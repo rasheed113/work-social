@@ -6,10 +6,13 @@ import { signOut } from '../features/auth/api/signOut';
 import { LoginForm } from '../features/auth/components/LoginForm';
 import { SignupForm } from '../features/auth/components/SignupForm';
 import { ProfilePanel } from '../features/profile/components/ProfilePanel';
+import { CreatePostForm } from '../features/posts/components/CreatePostForm';
+import { PostFeed } from '../features/posts/components/PostFeed';
 
 export function App() {
   const [session, setSession] = useState<Session | null>(null);
   const [showSignup, setShowSignup] = useState(false);
+  const [feedRefreshKey, setFeedRefreshKey] = useState(0);
 
   useEffect(() => {
     getSession().then(({ data }) => setSession(data.session));
@@ -31,5 +34,7 @@ export function App() {
       <button onClick={() => void signOut()}>Sign out</button>
     </section>
     <ProfilePanel profileId={session.user.id} />
+    <CreatePostForm profileId={session.user.id} onCreated={() => setFeedRefreshKey((key) => key + 1)} />
+    <PostFeed refreshKey={feedRefreshKey} />
   </main>;
 }
