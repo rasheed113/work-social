@@ -5,6 +5,7 @@ import { getSession } from '../features/auth/api/getSession';
 import { signOut } from '../features/auth/api/signOut';
 import { LoginForm } from '../features/auth/components/LoginForm';
 import { SignupForm } from '../features/auth/components/SignupForm';
+import { ProfilePanel } from '../features/profile/components/ProfilePanel';
 
 export function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -29,5 +30,6 @@ export function App() {
       <p>{session.user.email}</p>
       <button onClick={() => void signOut()}>Sign out</button>
     </section>
+    <ProfilePanel profileId={session.user.id} />
   </main>;
 }
