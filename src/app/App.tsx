@@ -23,10 +23,12 @@ export function App() {
       : <LoginForm onSignup={() => setShowSignup(true)} />}</main>;
   }
 
+  const isProfile = window.location.pathname === '/profile' || window.location.pathname === '/profile/settings';
+
   return <main className="app-shell" style={{ minHeight: '100vh', paddingBottom: 88 }}>
     <header className="foundation-card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
       <p className="eyebrow">Work Social</p>
-      <button type="button" onClick={() => void signOut()}>Sign out</button>
+      {isProfile && <button type="button" onClick={() => void signOut()}>Sign out</button>}
     </header>
 
     <Router profileId={session.user.id} />
