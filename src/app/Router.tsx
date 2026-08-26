@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { HomePage } from './pages/HomePage';
 import { FriendsPage } from './pages/FriendsPage';
@@ -23,17 +24,13 @@ export function navigate(path: string) {
 interface RouterProps { profileId: string; }
 
 export function Router({ profileId }: RouterProps) {
-  const [route, setRoute] = (() => {
-    const React = require('react') as typeof import('react');
-    return React.useState<Route>(routeFromPath(window.location.pathname));
-  })();
+  const [route, setRoute] = useState<Route>(() => routeFromPath(window.location.pathname));
 
-  const React = require('react') as typeof import('react');
-  React.useEffect(() => {
+  useEffect(() => {
     const onPopState = () => setRoute(routeFromPath(window.location.pathname));
     window.addEventListener('popstate', onPopState);
     return () => window.removeEventListener('popstate', onPopState);
-  }, [setRoute]);
+  }, []);
 
   const pages: Record<Route, ReactNode> = {
     home: <HomePage profileId={profileId} />,
