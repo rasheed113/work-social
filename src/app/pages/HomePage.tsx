@@ -9,6 +9,6 @@ export function HomePage({ profileId }: HomePageProps) {
   return <main>
     <h1>Home</h1>
     <CreatePostForm profileId={profileId} onCreated={() => setRefreshKey((key) => key + 1)} />
-    <PostFeed refreshKey={refreshKey} />
+    <PostFeed refreshKey={refreshKey} profileId={profileId} />
   </main>;
 }
