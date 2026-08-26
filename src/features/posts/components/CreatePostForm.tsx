@@ -11,27 +11,23 @@ export function CreatePostForm({ profileId, onCreated }: CreatePostFormProps) {
   const [locationLoading, setLocationLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const mediaInputRef = useRef<HTMLInputElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const kindRef = useRef<'image' | 'video' | 'file'>('image');
 
   useEffect(() => () => selectedFiles.forEach((item) => URL.revokeObjectURL(item.preview)), [selectedFiles]);
 
-  function choose(kind: 'image' | 'video' | 'file') {
-    kindRef.current = kind;
-    if (fileInputRef.current) {
-      fileInputRef.current.accept = kind === 'image' ? 'image/*' : kind === 'video' ? 'video/*' : '*/*';
-      fileInputRef.current.multiple = kind !== 'file';
-      fileInputRef.current.click();
-    }
-  }
-
-  function onFiles(event: React.ChangeEvent<HTMLInputElement>) {
-    const kind = kindRef.current;
+  function chooseMedia() { mediaInputRef.current?.click(); }
+  function chooseFile() { fileInputRef.current?.click(); }
+  function addFiles(event: React.ChangeEvent<HTMLInputElement>, kind: 'image' | 'video' | 'file') {
     const next = Array.from(event.target.files ?? []).map((file) => ({ file, kind, preview: URL.createObjectURL(file) }));
     setSelectedFiles((current) => [...current, ...next]);
     event.target.value = '';
   }
-
+  function onMedia(event: React.ChangeEvent<HTMLInputElement>) {
+    const next = Array.from(event.target.files ?? []).map((file) => ({ file, kind: file.type.startsWith('video/') ? 'video' as const : 'image' as const, preview: URL.createObjectURL(file) }));
+    setSelectedFiles((current) => [...current, ...next]);
+    event.target.value = '';
+  }
   function getLocation() {
     if (!navigator.geolocation) return setError('Location is not supported by this browser.');
     setLocationLoading(true); setError(null);
@@ -41,7 +37,6 @@ export function CreatePostForm({ profileId, onCreated }: CreatePostFormProps) {
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
     );
   }
-
   async function submit() {
     setSaving(true); setError(null);
     const { error: createError } = await createPost(profileId, content, selectedFiles.map(({ file, kind }) => ({ file, kind })), location);
@@ -49,17 +44,15 @@ export function CreatePostForm({ profileId, onCreated }: CreatePostFormProps) {
     selectedFiles.forEach((item) => URL.revokeObjectURL(item.preview));
     setSelectedFiles([]); setLocation(null); setContent(''); setSaving(false); onCreated();
   }
-
   const canPost = Boolean(content.trim() || selectedFiles.length || location);
-
   return <section>
     <h2>Create post</h2>
     <textarea value={content} onChange={(event) => setContent(event.target.value)} placeholder="What's happening?" disabled={saving} />
-    <input ref={fileInputRef} type="file" hidden onChange={onFiles} />
+    <input ref={mediaInputRef} type="file" accept="image/*,video/*" multiple hidden onChange={onMedia} />
+    <input ref={fileInputRef} type="file" hidden onChange={(event) => addFiles(event, 'file')} />
     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', margin: '10px 0' }}>
-      <button type="button" onClick={() => choose('image')} disabled={saving}>📷 Photo</button>
-      <button type="button" onClick={() => choose('video')} disabled={saving}>🎥 Video</button>
-      <button type="button" onClick={() => choose('file')} disabled={saving}>📎 File</button>
+      <button type="button" onClick={chooseMedia} disabled={saving}>📷 Photo / Video</button>
+      <button type="button" onClick={chooseFile} disabled={saving}>📎 File</button>
       <button type="button" onClick={getLocation} disabled={saving || locationLoading}>📍 {locationLoading ? 'Getting location…' : 'Location'}</button>
     </div>
     {selectedFiles.length > 0 && <div style={{ display: 'grid', gap: 8, marginBottom: 10 }}>
