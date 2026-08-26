@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { supabase } from '../../../lib/supabase/client';
+import { updateAvatar } from '../api/updateAvatar';
 
 const BUCKET = 'avatars';
 const MAX_FILE_SIZE = 2 * 1024 * 1024;
@@ -16,9 +17,7 @@ export function AvatarUploader({ userId, avatarUrl, onUploaded }: AvatarUploader
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    setPreviewUrl(avatarUrl);
-  }, [avatarUrl]);
+  useEffect(() => setPreviewUrl(avatarUrl), [avatarUrl]);
 
   function chooseFile() {
     inputRef.current?.click();
@@ -47,17 +46,20 @@ export function AvatarUploader({ userId, avatarUrl, onUploaded }: AvatarUploader
       const extension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
       const path = `${userId}/${crypto.randomUUID()}.${extension}`;
 
-      const { error: uploadError } = await supabase.storage
-        .from(BUCKET)
-        .upload(path, file, {
-          contentType: file.type,
-          cacheControl: '31536000',
-          upsert: false,
-        });
-
+      const { error: uploadError } = await supabase.storage.from(BUCKET).upload(path, file, {
+        contentType: file.type,
+        cacheControl: '31536000',
+        upsert: false,
+      });
       if (uploadError) throw uploadError;
 
       const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
+      const { error: profileError } = await updateAvatar(userId, data.publicUrl);
+      if (profileError) {
+        await supabase.storage.from(BUCKET).remove([path]);
+        throw profileError;
+      }
+
       onUploaded(data.publicUrl);
     } catch (uploadError) {
       setPreviewUrl(avatarUrl);
@@ -71,11 +73,7 @@ export function AvatarUploader({ userId, avatarUrl, onUploaded }: AvatarUploader
   return (
     <div className="profile-avatar-editor">
       <div className="profile-avatar-preview">
-        {previewUrl ? (
-          <img src={previewUrl} alt="Profile avatar" />
-        ) : (
-          <span aria-hidden="true">👤</span>
-        )}
+        {previewUrl ? <img src={previewUrl} alt="Profile avatar" /> : <span aria-hidden="true">👤</span>}
       </div>
 
       <input
