@@ -1,11 +1,33 @@
+import { useEffect, useState } from 'react';
+import type { Session } from '@supabase/supabase-js';
+import { supabase } from '../lib/supabase/client';
+import { getSession } from '../features/auth/api/getSession';
+import { signOut } from '../features/auth/api/signOut';
+import { LoginForm } from '../features/auth/components/LoginForm';
+import { SignupForm } from '../features/auth/components/SignupForm';
+
 export function App() {
-  return (
-    <main className="app-shell">
-      <section className="foundation-card" aria-labelledby="app-title">
-        <p className="eyebrow">Phase 1 · Foundation</p>
-        <h1 id="app-title">Work Social</h1>
-        <p>Application foundation is ready. Real features will be added gate by gate.</p>
-      </section>
-    </main>
-  );
+  const [session, setSession] = useState<Session | null>(null);
+  const [showSignup, setShowSignup] = useState(false);
+
+  useEffect(() => {
+    getSession().then(({ data }) => setSession(data.session));
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => setSession(nextSession));
+    return () => listener.subscription.unsubscribe();
+  }, []);
+
+  if (!session) {
+    return <main className="app-shell">{showSignup
+      ? <SignupForm onLogin={() => setShowSignup(false)} />
+      : <LoginForm onSignup={() => setShowSignup(true)} />}</main>;
+  }
+
+  return <main className="app-shell">
+    <section className="foundation-card">
+      <p className="eyebrow">Phase 1 · Authentication</p>
+      <h1>Authenticated</h1>
+      <p>{session.user.email}</p>
+      <button onClick={() => void signOut()}>Sign out</button>
+    </section>
+  </main>;
 }
