@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import type { ChangeEvent } from 'react';
 import { supabase } from '../../../lib/supabase/client';
 import { updateAvatar } from '../api/updateAvatar';
 
@@ -23,7 +24,7 @@ export function AvatarUploader({ userId, avatarUrl, onUploaded }: AvatarUploader
     inputRef.current?.click();
   }
 
-  async function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
+  async function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     event.target.value = '';
     setError(null);
