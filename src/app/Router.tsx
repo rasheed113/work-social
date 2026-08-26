@@ -40,5 +40,31 @@ export function Router({ profileId }: RouterProps) {
     settings: <SettingsPage />,
   };
 
-  return pages[route];
+  return (
+    <>
+      {pages[route]}
+      <nav
+        aria-label="Main navigation"
+        style={{
+          position: 'fixed',
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 1000,
+          display: 'grid',
+          gridTemplateColumns: 'repeat(4, 1fr)',
+          gap: 8,
+          padding: '10px 12px calc(10px + env(safe-area-inset-bottom))',
+          background: 'rgba(255,255,255,0.96)',
+          borderTop: '1px solid rgba(0,0,0,0.12)',
+          backdropFilter: 'blur(12px)',
+        }}
+      >
+        <button type="button" onClick={() => navigate('/')}>🏠 <span>Home</span></button>
+        <button type="button" onClick={() => navigate('/friends')}>👥 <span>Friends</span></button>
+        <button type="button" onClick={() => navigate('/notifications')}>🔔 <span>Notifications</span></button>
+        <button type="button" onClick={() => navigate('/profile')}>👤 <span>Profile</span></button>
+      </nav>
+    </>
+  );
 }
