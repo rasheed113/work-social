@@ -1,0 +1,97 @@
+import { useEffect, useRef, useState } from 'react';
+import { supabase } from '../../../lib/supabase/client';
+
+const BUCKET = 'avatars';
+const MAX_FILE_SIZE = 2 * 1024 * 1024;
+
+interface AvatarUploaderProps {
+  userId: string;
+  avatarUrl: string | null;
+  onUploaded: (publicUrl: string) => void;
+}
+
+export function AvatarUploader({ userId, avatarUrl, onUploaded }: AvatarUploaderProps) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(avatarUrl);
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setPreviewUrl(avatarUrl);
+  }, [avatarUrl]);
+
+  function chooseFile() {
+    inputRef.current?.click();
+  }
+
+  async function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    setError(null);
+
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      setError('Please choose an image file.');
+      return;
+    }
+    if (file.size > MAX_FILE_SIZE) {
+      setError('Avatar must be 2 MB or smaller.');
+      return;
+    }
+
+    const localPreview = URL.createObjectURL(file);
+    setPreviewUrl(localPreview);
+    setUploading(true);
+
+    try {
+      const extension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+      const path = `${userId}/${crypto.randomUUID()}.${extension}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from(BUCKET)
+        .upload(path, file, {
+          contentType: file.type,
+          cacheControl: '31536000',
+          upsert: false,
+        });
+
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
+      onUploaded(data.publicUrl);
+    } catch (uploadError) {
+      setPreviewUrl(avatarUrl);
+      setError(uploadError instanceof Error ? uploadError.message : 'Avatar upload failed.');
+    } finally {
+      URL.revokeObjectURL(localPreview);
+      setUploading(false);
+    }
+  }
+
+  return (
+    <div className="profile-avatar-editor">
+      <div className="profile-avatar-preview">
+        {previewUrl ? (
+          <img src={previewUrl} alt="Profile avatar" />
+        ) : (
+          <span aria-hidden="true">👤</span>
+        )}
+      </div>
+
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        hidden
+        onChange={(event) => void handleFileChange(event)}
+      />
+
+      <button type="button" onClick={chooseFile} disabled={uploading}>
+        {uploading ? 'Uploading…' : 'Choose profile photo'}
+      </button>
+
+      <p>JPG, PNG, GIF or WebP · max 2 MB</p>
+      {error && <p role="alert">{error}</p>}
+    </div>
+  );
+}
