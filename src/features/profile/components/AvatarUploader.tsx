@@ -4,7 +4,7 @@ import { supabase } from '../../../lib/supabase/client';
 import { updateAvatar } from '../api/updateAvatar';
 
 const BUCKET = 'avatars';
-const MAX_FILE_SIZE = 2 * 1024 * 1024;
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
 interface AvatarUploaderProps {
   userId: string;
@@ -35,7 +35,7 @@ export function AvatarUploader({ userId, avatarUrl, onUploaded }: AvatarUploader
       return;
     }
     if (file.size > MAX_FILE_SIZE) {
-      setError('Avatar must be 2 MB or smaller.');
+      setError('Avatar must be 10 MB or smaller.');
       return;
     }
 
@@ -72,15 +72,34 @@ export function AvatarUploader({ userId, avatarUrl, onUploaded }: AvatarUploader
   }
 
   return (
-    <div className="profile-avatar-editor">
-      <div className="profile-avatar-preview">
-        {previewUrl ? <img src={previewUrl} alt="Profile avatar" /> : <span aria-hidden="true">👤</span>}
+    <div className="profile-avatar-editor" style={{ width: '100%', maxWidth: 320, overflow: 'hidden' }}>
+      <div
+        className="profile-avatar-preview"
+        style={{
+          width: 160,
+          height: 160,
+          maxWidth: '100%',
+          overflow: 'hidden',
+          borderRadius: '50%',
+          display: 'grid',
+          placeItems: 'center',
+        }}
+      >
+        {previewUrl ? (
+          <img
+            src={previewUrl}
+            alt="Profile avatar"
+            style={{ width: '100%', height: '100%', maxWidth: '100%', maxHeight: '100%', objectFit: 'cover', display: 'block' }}
+          />
+        ) : (
+          <span aria-hidden="true">👤</span>
+        )}
       </div>
 
       <input
         ref={inputRef}
         type="file"
-        accept="image/*"
+        accept="image/jpeg,image/png,image/webp,image/gif"
         hidden
         onChange={(event) => void handleFileChange(event)}
       />
@@ -89,7 +108,7 @@ export function AvatarUploader({ userId, avatarUrl, onUploaded }: AvatarUploader
         {uploading ? 'Uploading…' : 'Choose profile photo'}
       </button>
 
-      <p>JPG, PNG, GIF or WebP · max 2 MB</p>
+      <p>JPG, PNG, WebP or GIF · max 10 MB</p>
       {error && <p role="alert">{error}</p>}
     </div>
   );
