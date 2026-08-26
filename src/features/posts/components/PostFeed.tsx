@@ -6,9 +6,18 @@ import { updatePostPrivacy, type PostPrivacy } from '../api/updatePostPrivacy';
 import { supabase } from '../../../lib/supabase/client';
 
 interface PostFeedProps { refreshKey: number; profileId: string; }
+type ReactionName = 'like' | 'love' | 'haha' | 'wow' | 'sad' | 'angry';
 
 const privacyLabels: Record<PostPrivacy, string> = { public: '🌎 Public', friends: '👥 Friends', private: '🔒 Only me' };
-const reactions = ['👍', '❤️', '😂', '😮', '😢', '😡'];
+const reactionOptions: { value: ReactionName; emoji: string; label: string }[] = [
+  { value: 'like', emoji: '👍', label: 'Like' },
+  { value: 'love', emoji: '❤️', label: 'Love' },
+  { value: 'haha', emoji: '😂', label: 'Haha' },
+  { value: 'wow', emoji: '😮', label: 'Wow' },
+  { value: 'sad', emoji: '😢', label: 'Sad' },
+  { value: 'angry', emoji: '😡', label: 'Angry' },
+];
+const reactionEmoji = Object.fromEntries(reactionOptions.map((item) => [item.value, item.emoji])) as Record<ReactionName, string>;
 
 export function PostFeed({ refreshKey, profileId }: PostFeedProps) {
   const [posts, setPosts] = useState<any[]>([]);
@@ -18,9 +27,10 @@ export function PostFeed({ refreshKey, profileId }: PostFeedProps) {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [openReactionId, setOpenReactionId] = useState<string | null>(null);
   const [reactionCounts, setReactionCounts] = useState<Record<string, Record<string, number>>>({});
-  const [myReactions, setMyReactions] = useState<Record<string, string | null>>({});
-  const [commentCounts, setCommentCounts] = useState<Record<string, number>>({});
+  const [myReactions, setMyReactions] = useState<Record<string, ReactionName | null>>({});
+  const [comments, setComments] = useState<Record<string, any[]>>({});
   const [commentText, setCommentText] = useState<Record<string, string>>({});
+  const [openCommentsId, setOpenCommentsId] = useState<string | null>(null);
   const reactionRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   const loadInteractions = async (items: any[]) => {
@@ -28,16 +38,22 @@ export function PostFeed({ refreshKey, profileId }: PostFeedProps) {
     const ids = items.map((post) => post.id);
     const [{ data: reactionRows, error: reactionError }, { data: commentRows, error: commentError }] = await Promise.all([
       supabase.from('post_reactions').select('post_id, profile_id, reaction').in('post_id', ids),
-      supabase.from('post_comments').select('post_id').in('post_id', ids),
+      supabase.from('post_comments').select('id, post_id, profile_id, content, created_at, updated_at, profiles(display_name, avatar_url)').in('post_id', ids).order('created_at', { ascending: true }),
     ]);
     if (reactionError) return setError(reactionError.message);
     if (commentError) return setError(commentError.message);
     const counts: Record<string, Record<string, number>> = {};
-    const mine: Record<string, string | null> = {};
-    (reactionRows ?? []).forEach((row: any) => { counts[row.post_id] ??= {}; counts[row.post_id][row.reaction] = (counts[row.post_id][row.reaction] ?? 0) + 1; if (row.profile_id === profileId) mine[row.post_id] = row.reaction; });
-    const comments: Record<string, number> = {};
-    (commentRows ?? []).forEach((row: any) => { comments[row.post_id] = (comments[row.post_id] ?? 0) + 1; });
-    setReactionCounts(counts); setMyReactions(mine); setCommentCounts(comments);
+    const mine: Record<string, ReactionName | null> = {};
+    (reactionRows ?? []).forEach((row: any) => {
+      counts[row.post_id] ??= {};
+      counts[row.post_id][row.reaction] = (counts[row.post_id][row.reaction] ?? 0) + 1;
+      if (row.profile_id === profileId) mine[row.post_id] = row.reaction as ReactionName;
+    });
+    const grouped: Record<string, any[]> = {};
+    (commentRows ?? []).forEach((row: any) => { grouped[row.post_id] ??= []; grouped[row.post_id].push(row); });
+    setReactionCounts(counts);
+    setMyReactions(mine);
+    setComments(grouped);
   };
 
   const loadPosts = async () => {
@@ -62,26 +78,23 @@ export function PostFeed({ refreshKey, profileId }: PostFeedProps) {
   const removePost = async (postId: string) => { if (!window.confirm('Delete this post?')) return; const { error: e } = await deletePost(postId); if (e) return setError(e.message); setOpenMenuId(null); await loadPosts(); };
   const changePrivacy = async (postId: string, privacy: PostPrivacy) => { const { error: e } = await updatePostPrivacy(postId, privacy); if (e) return setError(e.message); setOpenMenuId(null); await loadPosts(); };
 
-  const react = async (postId: string, reaction: string) => {
+  const react = async (postId: string, reaction: ReactionName) => {
     const current = myReactions[postId];
-    const { error: e } = current === reaction
+    const result = current === reaction
       ? await supabase.from('post_reactions').delete().eq('post_id', postId).eq('profile_id', profileId)
       : await supabase.from('post_reactions').upsert({ post_id: postId, profile_id: profileId, reaction }, { onConflict: 'post_id,profile_id' });
-    if (e) return setError(e.message);
+    if (result.error) return setError(result.error.message);
     setOpenReactionId(null);
     await loadPosts();
   };
 
-  const toggleReactionPicker = (postId: string) => setOpenReactionId((current) => current === postId ? null : postId);
-
   const addComment = async (postId: string) => {
     const content = (commentText[postId] ?? '').trim();
     if (!content) return;
-    const { error: e } = await supabase.from('post_comments').insert({ post_id: postId, profile_id: profileId, content });
+    const { data, error: e } = await supabase.from('post_comments').insert({ post_id: postId, profile_id: profileId, content }).select('id, post_id, profile_id, content, created_at, updated_at, profiles(display_name, avatar_url)').single();
     if (e) return setError(e.message);
     setCommentText((current) => ({ ...current, [postId]: '' }));
-    const { data } = await supabase.from('post_comments').select('post_id').eq('post_id', postId);
-    setCommentCounts((current) => ({ ...current, [postId]: data?.length ?? 0 }));
+    setComments((current) => ({ ...current, [postId]: [...(current[postId] ?? []), data] }));
   };
 
   return <section><h2>Feed</h2>{error && <p role="alert">{error}</p>}
@@ -91,6 +104,8 @@ export function PostFeed({ refreshKey, profileId }: PostFeedProps) {
       const counts = reactionCounts[post.id] ?? {};
       const myReaction = myReactions[post.id];
       const totalReactions = Object.values(counts).reduce((sum, value) => sum + value, 0);
+      const postComments = comments[post.id] ?? [];
+      const latestComment = postComments[postComments.length - 1];
       return <article key={post.id} style={{ position: 'relative', marginBottom: 16, padding: 16, border: '1px solid rgba(0,0,0,.12)', borderRadius: 12 }}>
         <header style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           {post.profiles?.avatar_url ? <img src={post.profiles.avatar_url} alt="" width={44} height={44} style={{ borderRadius: '50%', objectFit: 'cover' }} /> : <div aria-hidden="true" style={{ width: 44, height: 44, borderRadius: '50%', display: 'grid', placeItems: 'center', background: '#eee' }}>👤</div>}
@@ -102,13 +117,17 @@ export function PostFeed({ refreshKey, profileId }: PostFeedProps) {
         {editingId === post.id ? <div><textarea value={editContent} onChange={(event) => setEditContent(event.target.value)} rows={4} /><div><button type="button" onClick={() => void saveEdit(post.id)}>Save</button><button type="button" onClick={() => setEditingId(null)}>Cancel</button></div></div> : <p>{post.content}</p>}
         <small>{privacyLabels[privacy]} · {new Date(post.created_at).toLocaleString()}</small>
         <footer style={{ marginTop: 12 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-around', gap: 8 }}>
-            <button type="button" aria-haspopup="true" aria-expanded={openReactionId === post.id} onClick={() => toggleReactionPicker(post.id)}>{myReaction ? `${myReaction} ${counts[myReaction] ?? 0}` : `❤️ Like ${totalReactions ? `(${totalReactions})` : ''}`}</button>
-            <button type="button" onClick={() => setOpenReactionId(null)}>💬 Comment {commentCounts[post.id] ? `(${commentCounts[post.id]})` : ''}</button>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+            <div ref={(node) => { reactionRefs.current[post.id] = node; }} style={{ position: 'relative' }}>
+              <button type="button" aria-haspopup="true" aria-expanded={openReactionId === post.id} onClick={() => setOpenReactionId(openReactionId === post.id ? null : post.id)}>{myReaction ? `${reactionEmoji[myReaction]} ${counts[myReaction] ?? 0}` : `❤️ Like${totalReactions ? ` (${totalReactions})` : ''}`}</button>
+              {openReactionId === post.id && <div role="group" aria-label="Reactions" style={{ position: 'absolute', left: 0, bottom: 'calc(100% + 6px)', zIndex: 5, display: 'flex', gap: 6, padding: 8, background: 'white', border: '1px solid rgba(0,0,0,.15)', borderRadius: 12, boxShadow: '0 4px 16px rgba(0,0,0,.15)' }}>{reactionOptions.map((item) => <button key={item.value} type="button" aria-label={item.label} title={item.label} onClick={() => void react(post.id, item.value)} style={{ fontSize: 22 }}>{item.emoji}</button>)}</div>}
+            </div>
+            <button type="button" onClick={() => setOpenCommentsId(openCommentsId === post.id ? null : post.id)}>💬 {postComments.length ? `${postComments.length} comment${postComments.length === 1 ? '' : 's'}` : 'Comments'}</button>
             <button type="button" onClick={async () => { const url = `${window.location.origin}/?post=${encodeURIComponent(post.id)}`; if (navigator.share) await navigator.share({ title: 'Work Social post', text: post.content, url }); else await navigator.clipboard.writeText(url); }}>↗️ Share</button>
           </div>
-          {openReactionId === post.id && <div ref={(node) => { reactionRefs.current[post.id] = node; }} role="group" aria-label="Reactions" style={{ display: 'flex', gap: 8, padding: 8, justifyContent: 'center', background: 'white', border: '1px solid rgba(0,0,0,.12)', borderRadius: 10 }}>{reactions.map((reaction) => <button key={reaction} type="button" aria-label={`React ${reaction}`} onClick={() => void react(post.id, reaction)}>{reaction}</button>)}</div>}
-          <div style={{ display: 'flex', gap: 8, marginTop: 8 }}><input value={commentText[post.id] ?? ''} onChange={(event) => setCommentText((current) => ({ ...current, [post.id]: event.target.value }))} placeholder="Write a comment..." /><button type="button" onClick={() => void addComment(post.id)}>Comment</button></div>
+          {latestComment && !openCommentsId && <div style={{ marginTop: 10 }}><strong>{latestComment.profiles?.display_name ?? 'User'}</strong><span> {latestComment.content}</span>{postComments.length > 1 && <button type="button" onClick={() => setOpenCommentsId(post.id)}>View all {postComments.length} comments</button>}</div>}
+          {openCommentsId === post.id && <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid rgba(0,0,0,.08)' }}><button type="button" onClick={() => setOpenCommentsId(null)}>Close comments</button>{postComments.map((comment) => <div key={comment.id} style={{ marginTop: 8 }}><strong>{comment.profiles?.display_name ?? 'User'}</strong><div>{comment.content}</div></div>)}</div>}
+          <div style={{ display: 'flex', gap: 8, marginTop: 10 }}><input value={commentText[post.id] ?? ''} onChange={(event) => setCommentText((current) => ({ ...current, [post.id]: event.target.value }))} placeholder="Write a comment..." /><button type="button" onClick={() => void addComment(post.id)}>Comment</button></div>
           {isOwner && <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 12 }}><button type="button" onClick={() => startEdit(post)}>Edit</button><button type="button" onClick={() => void removePost(post.id)}>Delete</button></div>}
         </footer>
       </article>;
