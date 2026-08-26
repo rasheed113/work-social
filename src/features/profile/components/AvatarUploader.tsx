@@ -14,11 +14,20 @@ interface AvatarUploaderProps {
 
 export function AvatarUploader({ userId, avatarUrl, onUploaded }: AvatarUploaderProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const previewRef = useRef<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(avatarUrl);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => setPreviewUrl(avatarUrl), [avatarUrl]);
+  useEffect(() => {
+    setPreviewUrl(avatarUrl);
+  }, [avatarUrl]);
+
+  useEffect(() => {
+    return () => {
+      if (previewRef.current) URL.revokeObjectURL(previewRef.current);
+    };
+  }, []);
 
   function chooseFile() {
     inputRef.current?.click();
@@ -39,7 +48,9 @@ export function AvatarUploader({ userId, avatarUrl, onUploaded }: AvatarUploader
       return;
     }
 
+    if (previewRef.current) URL.revokeObjectURL(previewRef.current);
     const localPreview = URL.createObjectURL(file);
+    previewRef.current = localPreview;
     setPreviewUrl(localPreview);
     setUploading(true);
 
@@ -62,11 +73,14 @@ export function AvatarUploader({ userId, avatarUrl, onUploaded }: AvatarUploader
       }
 
       onUploaded(data.publicUrl);
+      URL.revokeObjectURL(localPreview);
+      previewRef.current = null;
     } catch (uploadError) {
       setPreviewUrl(avatarUrl);
+      URL.revokeObjectURL(localPreview);
+      previewRef.current = null;
       setError(uploadError instanceof Error ? uploadError.message : 'Avatar upload failed.');
     } finally {
-      URL.revokeObjectURL(localPreview);
       setUploading(false);
     }
   }
