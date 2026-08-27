@@ -61,6 +61,53 @@ export function Router({ profileId }: RouterProps) {
   }, []);
 
   useEffect(() => {
+    const openPostAuthor = async (event: MouseEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (!target) return;
+      if (target.closest('button, a, input, textarea, video')) return;
+      const article = target.closest('article');
+      const header = target.closest('article header');
+      if (!article || !header) return;
+      const author = header.querySelector('strong');
+      const avatar = header.querySelector('img');
+      if (!author || !(target === author || author.contains(target) || target === avatar || avatar?.contains(target))) return;
+
+      const displayName = author.textContent?.trim();
+      const avatarUrl = avatar?.getAttribute('src');
+      if (!displayName && !avatarUrl) return;
+
+      let authorId: string | null = null;
+      if (avatarUrl) {
+        const { data } = await supabase.from('profiles').select('id').eq('avatar_url', avatarUrl).maybeSingle();
+        authorId = data?.id ?? null;
+      }
+      if (!authorId && displayName) {
+        const { data } = await supabase.from('profiles').select('id').eq('display_name', displayName).limit(1).maybeSingle();
+        authorId = data?.id ?? null;
+      }
+      if (authorId) navigate(`/profile/${encodeURIComponent(authorId)}`);
+    };
+
+    const markAuthorClickable = (event: MouseEvent) => {
+      const target = event.target as HTMLElement | null;
+      const article = target?.closest('article');
+      const header = target?.closest('article header');
+      if (!article || !header) return;
+      const author = header.querySelector('strong') as HTMLElement | null;
+      const avatar = header.querySelector('img') as HTMLElement | null;
+      if (author) author.style.cursor = 'pointer';
+      if (avatar) avatar.style.cursor = 'pointer';
+    };
+
+    document.addEventListener('click', openPostAuthor);
+    document.addEventListener('mouseover', markAuthorClickable);
+    return () => {
+      document.removeEventListener('click', openPostAuthor);
+      document.removeEventListener('mouseover', markAuthorClickable);
+    };
+  }, []);
+
+  useEffect(() => {
     void loadUnread(); void loadChatUnread();
     const channel = supabase.channel(`global-badges:${profileId}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications', filter: `receiver_id=eq.${profileId}` }, () => void loadUnread())
