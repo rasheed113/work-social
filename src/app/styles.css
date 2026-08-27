@@ -10,7 +10,7 @@
 
 html, body, #root { min-height: 100%; }
 
-body { margin: 0; min-width: 320px; }
+body { margin: 0; min-width: 320px; overflow-x: hidden; }
 
 .app-shell {
   min-height: 100vh;
@@ -38,3 +38,29 @@ body { margin: 0; min-width: 320px; }
 
 h1 { margin: 0 0 12px; }
 .foundation-card p:last-child { margin-bottom: 0; }
+
+/* Feed/comment containment: expanding threads must never create horizontal page overflow. */
+main, section, article, footer { min-width: 0; }
+article { max-width: 100%; overflow-wrap: anywhere; }
+article footer { min-width: 0; }
+article footer > div { min-width: 0; }
+article footer input { min-width: 0; max-width: 100%; }
+article footer button { flex-shrink: 0; }
+
+/* The global mobile navigation stays viewport-anchored while comment trees grow in normal flow. */
+nav[aria-label="Main navigation"] {
+  position: fixed !important;
+  left: 10px !important;
+  right: 10px !important;
+  bottom: calc(10px + env(safe-area-inset-bottom)) !important;
+  z-index: 1000 !important;
+  box-sizing: border-box !important;
+  max-width: calc(100vw - 20px) !important;
+}
+
+@media (max-width: 767px) {
+  .app-shell { padding: 12px; }
+  article footer { padding-top: 8px !important; margin-top: 10px !important; }
+  article footer > div { gap: 6px !important; }
+  article footer > div:last-child { margin-top: 7px !important; }
+}
