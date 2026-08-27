@@ -1,12 +1,15 @@
 import { supabase } from '../../../lib/supabase/client';
 
-export async function listPosts(profileId?: string) {
+export type PostFeedScope = 'profile' | 'public';
+
+export async function listPosts(profileId?: string, scope: PostFeedScope = 'profile') {
   let query = supabase
     .from('posts')
     .select('id, profile_id, content, privacy, latitude, longitude, location_name, created_at, profiles(username, display_name, avatar_url)')
     .order('created_at', { ascending: false });
 
   if (profileId) query = query.eq('profile_id', profileId);
+  if (scope === 'public') query = query.eq('privacy', 'public');
 
   const { data: posts, error } = await query;
   if (error || !posts) return { data: posts, error };
