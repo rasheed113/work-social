@@ -36,27 +36,26 @@ drop trigger if exists trg_touch_conversation_updated_at on public.messages;
 create trigger trg_touch_conversation_updated_at after insert on public.messages for each row execute function public.touch_conversation_updated_at();
 
 create schema if not exists private;
-create or replace function private.is_conversation_member(p_conversation_id uuid, p_profile_id uuid) returns boolean
+create or replace function private.is_conversation_member(p_conversation_id uuid) returns boolean
 language sql stable security definer set search_path = pg_catalog, public
-as $$ select exists (select 1 from public.conversation_members where conversation_id = p_conversation_id and profile_id = p_profile_id); $$;
-revoke all on function private.is_conversation_member(uuid, uuid) from public, anon, authenticated;
-
+as $$ select exists (select 1 from public.conversation_members where conversation_id = p_conversation_id and profile_id = auth.uid()); $$;
+revoke all on function private.is_conversation_member(uuid) from public, anon, authenticated;
 grant usage on schema private to authenticated;
-grant execute on function private.is_conversation_member(uuid, uuid) to authenticated;
+grant execute on function private.is_conversation_member(uuid) to authenticated;
 
 alter table public.conversations enable row level security;
 alter table public.conversation_members enable row level security;
 alter table public.messages enable row level security;
 
 drop policy if exists conversations_member_select on public.conversations;
-create policy conversations_member_select on public.conversations for select to authenticated using (private.is_conversation_member(id, auth.uid()));
+create policy conversations_member_select on public.conversations for select to authenticated using (private.is_conversation_member(id));
 drop policy if exists conversations_create_own on public.conversations;
 create policy conversations_create_own on public.conversations for insert to authenticated with check (created_by = auth.uid());
 drop policy if exists conversations_creator_update on public.conversations;
 create policy conversations_creator_update on public.conversations for update to authenticated using (created_by = auth.uid()) with check (created_by = auth.uid());
 
 drop policy if exists conversation_members_select_own on public.conversation_members;
-create policy conversation_members_select_own on public.conversation_members for select to authenticated using (private.is_conversation_member(conversation_id, auth.uid()));
+create policy conversation_members_select_own on public.conversation_members for select to authenticated using (private.is_conversation_member(conversation_id));
 drop policy if exists conversation_members_insert_authorized on public.conversation_members;
 create policy conversation_members_insert_authorized on public.conversation_members for insert to authenticated with check (profile_id = auth.uid() or exists (select 1 from public.conversations c where c.id = conversation_id and c.created_by = auth.uid()));
 drop policy if exists conversation_members_delete_authorized on public.conversation_members;
@@ -65,15 +64,11 @@ drop policy if exists conversation_members_update_read on public.conversation_me
 create policy conversation_members_update_read on public.conversation_members for update to authenticated using (profile_id = auth.uid()) with check (profile_id = auth.uid());
 
 drop policy if exists messages_member_select on public.messages;
-create policy messages_member_select on public.messages for select to authenticated using (private.is_conversation_member(conversation_id, auth.uid()));
+create policy messages_member_select on public.messages for select to authenticated using (private.is_conversation_member(conversation_id));
 drop policy if exists messages_member_insert on public.messages;
-create policy messages_member_insert on public.messages for insert to authenticated with check (sender_id = auth.uid() and private.is_conversation_member(conversation_id, auth.uid()));
+create policy messages_member_insert on public.messages for insert to authenticated with check (sender_id = auth.uid() and private.is_conversation_member(conversation_id));
 drop policy if exists messages_member_update on public.messages;
 create policy messages_member_update on public.messages for update to authenticated using (sender_id = auth.uid());
 
-do $$ begin
-  alter publication supabase_realtime add table public.messages;
-exception when duplicate_object then null; end $$;
-do $$ begin
-  alter publication supabase_realtime add table public.conversation_members;
-exception when duplicate_object then null; end $$;
+do $$ begin alter publication supabase_realtime add table public.messages; exception when duplicate_object then null; end $$;
+do $$ begin alter publication supabase_realtime add table public.conversation_members; exception when duplicate_object then null; end $$;
