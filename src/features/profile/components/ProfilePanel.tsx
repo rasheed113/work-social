@@ -112,7 +112,9 @@ export function ProfilePanel({ profileId }: ProfilePanelProps) {
       {saved && <p role="status">Profile saved.</p>}
     </section>
 
-    <section style={{ marginTop: 20 }}><PostFeed refreshKey={0} profileId={profileId} /></section>
+    <section style={{ marginTop: 20 }}>
+      <PostFeed refreshKey={0} profileId={profileId} scope="profile" />
+    </section>
 
     <footer className="foundation-card" style={{ marginTop: 20, textAlign: 'center' }}>
       <p>Joined {formatJoinedDate(profile.created_at)}</p>
