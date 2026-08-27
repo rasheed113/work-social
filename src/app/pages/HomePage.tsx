@@ -92,13 +92,59 @@ export function HomePage({ profileId }: HomePageProps) {
 
   return (
     <main style={{ width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box', padding: '18px 0 112px', overflowX: 'hidden' }}>
+      <style>{`
+        .home-post-feed > section > h2 {
+          position: relative;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin: 0 0 12px;
+          padding: 10px 13px;
+          min-height: 42px;
+          box-sizing: border-box;
+          border: 1px solid rgba(99,102,241,.14);
+          border-radius: 15px;
+          background: linear-gradient(145deg, rgba(255,255,255,.98), rgba(241,245,255,.94));
+          color: #17202a;
+          font-size: 17px;
+          line-height: 1;
+          font-weight: 900;
+          letter-spacing: -.02em;
+          text-shadow: 0 1px 0 rgba(255,255,255,.95), 0 3px 9px rgba(23,32,42,.08);
+          box-shadow: 0 7px 18px rgba(15,23,42,.07), inset 0 1px 0 rgba(255,255,255,.95);
+          overflow: hidden;
+        }
+        .home-post-feed > section > h2::before {
+          content: '';
+          width: 7px;
+          height: 27px;
+          flex: 0 0 7px;
+          border-radius: 999px;
+          background: linear-gradient(180deg, #22c1dc, #6d5dfc, #ff5ca8);
+          box-shadow: 0 4px 10px rgba(109,93,252,.24);
+        }
+        .home-post-feed > section > h2::after {
+          content: '';
+          position: absolute;
+          width: 120px;
+          height: 120px;
+          right: -55px;
+          top: -48px;
+          border-radius: 50%;
+          background: radial-gradient(circle, rgba(109,93,252,.13), rgba(34,193,220,0));
+          pointer-events: none;
+        }
+        @media (max-width: 767px) {
+          .home-post-feed > section > h2 { margin-bottom: 10px; padding: 9px 11px; font-size: 16px; }
+        }
+      `}</style>
       <div style={{ width: '100%', maxWidth: 900, minWidth: 0, margin: '0 auto', padding: '0 14px', boxSizing: 'border-box' }}>
         <header style={{ marginBottom: 16, padding: '4px 4px 2px' }}>
           <h1 style={{ margin: 0, fontSize: 'clamp(28px, 5vw, 40px)', lineHeight: 1.05, fontWeight: 900, letterSpacing: '-.035em', color: '#17202a', textShadow: '0 2px 0 rgba(255,255,255,.9), 0 7px 18px rgba(23,32,42,.12)' }}>Home</h1>
           <div style={{ width: 54, height: 5, marginTop: 9, borderRadius: 999, background: 'linear-gradient(90deg, #6d5dfc, #22c1dc, #ff5ca8)', boxShadow: '0 5px 14px rgba(109,93,252,.28)' }} />
         </header>
         <CreatePostForm profileId={profileId} onCreated={() => setRefreshKey((key) => key + 1)} />
-        <div style={{ marginTop: 18 }}>
+        <div className="home-post-feed" style={{ marginTop: 18 }}>
           <PostFeed refreshKey={refreshKey} profileId={profileId} scope="public" />
         </div>
       </div>
