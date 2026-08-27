@@ -3,7 +3,7 @@ import { supabase } from '../../lib/supabase/client';
 
 type Profile = { id: string; display_name: string | null; username: string | null; avatar_url?: string };
 type Conversation = { id: string; kind: 'direct' | 'group'; title: string | null; avatar_url: string | null; created_by: string; updated_at: string };
-type Message = { id: string; conversation_id: string; sender_id: string; content: string; created_at: string; read_at: string | null; reply_to_message_id: string | null; edited_at: string | null; deleted_at: string | null; deleted_for_everyone: boolean };
+type Message = { id: string; conversation_id: string; sender_id: string; content: string; created_at: string; read_at: string | null; reply_to_message_id: string | null; edited_at: string | null; deleted_at: string | null };
 type Member = { conversation_id: string; profile_id: string; last_read_at: string | null; profile?: Profile };
 type Reaction = { message_id: string; profile_id: string; reaction: string };
 
@@ -39,7 +39,7 @@ export function InboxPage({ profileId }: { profileId: string }) {
     const [{ data: convs, error: ce }, { data: allMembers, error: me }, { data: allMessages, error: mse }] = await Promise.all([
       supabase.from('conversations').select('id, kind, title, avatar_url, created_by, updated_at').in('id', ids).order('updated_at', { ascending: false }),
       supabase.from('conversation_members').select('conversation_id, profile_id, last_read_at').in('conversation_id', ids),
-      supabase.from('messages').select('id, conversation_id, sender_id, content, created_at, read_at, reply_to_message_id, edited_at, deleted_at, deleted_for_everyone').in('conversation_id', ids).order('created_at', { ascending: true }),
+      supabase.from('messages').select('id, conversation_id, sender_id, content, created_at, read_at, reply_to_message_id, edited_at, deleted_at').in('conversation_id', ids).order('created_at', { ascending: true }),
     ]);
     const firstError = ce ?? me ?? mse;
     if (firstError) { setError(firstError.message); setLoading(false); return; }
