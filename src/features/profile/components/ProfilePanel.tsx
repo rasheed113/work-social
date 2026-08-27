@@ -4,7 +4,6 @@ import { getProfile } from '../api/getProfile';
 import { updateProfile } from '../api/updateProfile';
 import { AvatarUploader } from './AvatarUploader';
 import { PostFeed } from '../../posts/components/PostFeed';
-import { navigate } from '../../../app/Router';
 
 type Profile = {
   id: string;
@@ -26,17 +25,6 @@ function formatJoinedDate(createdAt: string) {
   const date = new Date(createdAt);
   if (Number.isNaN(date.getTime())) return '—';
   return date.toLocaleDateString(undefined, { year: 'numeric', month: 'long' });
-}
-
-function calculateAge(dateOfBirth: string | null) {
-  if (!dateOfBirth) return null;
-  const birth = new Date(`${dateOfBirth}T00:00:00`);
-  if (Number.isNaN(birth.getTime())) return null;
-  const today = new Date();
-  let age = today.getFullYear() - birth.getFullYear();
-  const monthDelta = today.getMonth() - birth.getMonth();
-  if (monthDelta < 0 || (monthDelta === 0 && today.getDate() < birth.getDate())) age -= 1;
-  return age >= 0 ? age : null;
 }
 
 export function ProfilePanel({ profileId }: ProfilePanelProps) {
@@ -72,10 +60,7 @@ export function ProfilePanel({ profileId }: ProfilePanelProps) {
 
   const handleSave = async () => {
     if (!profile) return;
-    const normalized: ProfileUpdateInput = {
-      display_name: form.display_name.trim(), bio: form.bio.trim(), date_of_birth: form.date_of_birth,
-      gender: form.gender, location: form.location.trim(), website: form.website.trim(),
-    };
+    const normalized: ProfileUpdateInput = { display_name: form.display_name.trim(), bio: form.bio.trim(), date_of_birth: form.date_of_birth, gender: form.gender, location: form.location.trim(), website: form.website.trim() };
     if (!normalized.display_name) { setError('Display name is required.'); return; }
     setSaving(true); setError(null); setSaved(false);
     const { data, error: updateError } = await updateProfile(profileId, normalized);
@@ -113,8 +98,6 @@ export function ProfilePanel({ profileId }: ProfilePanelProps) {
     </section>;
   }
 
-  const age = calculateAge(profile.date_of_birth);
-
   return <section>
     <section className="foundation-card" style={{ textAlign: 'center' }}>
       {profile.avatar_url ? <img src={profile.avatar_url} alt={`${profile.display_name} profile`} width={112} height={112} style={{ borderRadius: '50%', objectFit: 'cover', display: 'block', margin: '0 auto 16px' }} /> : <div aria-hidden="true" style={{ width: 112, height: 112, borderRadius: '50%', display: 'grid', placeItems: 'center', background: '#eee', margin: '0 auto 16px', fontSize: 40 }}>👤</div>}
@@ -122,20 +105,17 @@ export function ProfilePanel({ profileId }: ProfilePanelProps) {
       <p style={{ marginTop: 0 }}>@{profile.username}</p>
       {profile.bio && <p style={{ margin: '12px auto', maxWidth: 560 }}>{profile.bio}</p>}
       <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: 8, marginTop: 16 }}>
-        <button type="button" onClick={() => navigate('/friends')}>Friends</button>
+        <button type="button" onClick={() => window.location.assign('/friends')}>Friends</button>
         <button type="button" disabled aria-label="Followers">Followers</button>
         <button type="button" onClick={openEditor}>Edit</button>
       </div>
       {saved && <p role="status">Profile saved.</p>}
     </section>
 
-    <section style={{ marginTop: 20 }}>
-      <PostFeed refreshKey={0} profileId={profileId} />
-    </section>
+    <section style={{ marginTop: 20 }}><PostFeed refreshKey={0} profileId={profileId} /></section>
 
     <footer className="foundation-card" style={{ marginTop: 20, textAlign: 'center' }}>
       <p>Joined {formatJoinedDate(profile.created_at)}</p>
-      {age !== null && <span hidden>Age {age}</span>}
     </footer>
   </section>;
 }
