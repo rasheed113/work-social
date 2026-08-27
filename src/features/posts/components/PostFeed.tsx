@@ -36,7 +36,11 @@ export function PostFeed({ refreshKey, profileId, feedProfileId, scope = 'profil
   const [openCommentMenuId, setOpenCommentMenuId] = useState<string | null>(null);
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editingCommentText, setEditingCommentText] = useState('');
+  const [commentReactionCounts, setCommentReactionCounts] = useState<Record<string, Record<string, number>>>({});
+  const [myCommentReactions, setMyCommentReactions] = useState<Record<string, ReactionName | null>>({});
+  const [openCommentReactionId, setOpenCommentReactionId] = useState<string | null>(null);
   const reactionRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const commentReactionRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   const loadInteractions = async (items: any[]) => {
     if (!items.length) return;
@@ -57,6 +61,19 @@ export function PostFeed({ refreshKey, profileId, feedProfileId, scope = 'profil
     });
     (commentRows ?? []).forEach((row: CommentRow) => { grouped[row.post_id] ??= []; grouped[row.post_id].push(row); });
     setReactionCounts(counts); setMyReactions(mine); setComments(grouped);
+
+    const commentIds = (commentRows ?? []).map((row: CommentRow) => row.id);
+    if (!commentIds.length) { setCommentReactionCounts({}); setMyCommentReactions({}); return; }
+    const { data: commentReactionRows, error: commentReactionError } = await supabase.from('comment_reactions').select('comment_id, profile_id, reaction').in('comment_id', commentIds);
+    if (commentReactionError) return setError(commentReactionError.message);
+    const commentCounts: Record<string, Record<string, number>> = {};
+    const commentMine: Record<string, ReactionName | null> = {};
+    (commentReactionRows ?? []).forEach((row: any) => {
+      commentCounts[row.comment_id] ??= {};
+      commentCounts[row.comment_id][row.reaction] = (commentCounts[row.comment_id][row.reaction] ?? 0) + 1;
+      if (row.profile_id === profileId) commentMine[row.comment_id] = row.reaction as ReactionName;
+    });
+    setCommentReactionCounts(commentCounts); setMyCommentReactions(commentMine);
   };
 
   const loadPosts = async () => {
@@ -71,6 +88,7 @@ export function PostFeed({ refreshKey, profileId, feedProfileId, scope = 'profil
     const close = (event: MouseEvent | TouchEvent) => {
       const target = event.target as Node;
       if (!Object.values(reactionRefs.current).some((node) => node?.contains(target))) setOpenReactionId(null);
+      if (!Object.values(commentReactionRefs.current).some((node) => node?.contains(target))) setOpenCommentReactionId(null);
     };
     document.addEventListener('mousedown', close); document.addEventListener('touchstart', close);
     return () => { document.removeEventListener('mousedown', close); document.removeEventListener('touchstart', close); };
@@ -113,10 +131,23 @@ export function PostFeed({ refreshKey, profileId, feedProfileId, scope = 'profil
     setOpenCommentMenuId(null);
   };
 
+  const reactToComment = async (commentId: string, reaction: ReactionName) => {
+    const current = myCommentReactions[commentId];
+    const result = current === reaction
+      ? await supabase.from('comment_reactions').delete().eq('comment_id', commentId).eq('profile_id', profileId)
+      : await supabase.from('comment_reactions').upsert({ comment_id: commentId, profile_id: profileId, reaction }, { onConflict: 'comment_id,profile_id' });
+    if (result.error) return setError(result.error.message);
+    setOpenCommentReactionId(null);
+    await loadPosts();
+  };
+
   const renderComment = (comment: CommentRow, allComments: CommentRow[], depth = 0): JSX.Element => {
     const children = allComments.filter((row) => row.parent_comment_id === comment.id);
     const isOwner = comment.profile_id === profileId;
     const isEditing = editingCommentId === comment.id;
+    const counts = commentReactionCounts[comment.id] ?? {};
+    const myReaction = myCommentReactions[comment.id];
+    const totalReactions = Object.values(counts).reduce((sum, value) => sum + value, 0);
     return <div key={comment.id} style={{ marginTop: 12, marginLeft: Math.min(depth, 4) * 24, paddingLeft: depth ? 12 : 0, borderLeft: depth ? '2px solid rgba(0,0,0,.08)' : undefined }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
         {comment.profiles?.avatar_url ? <img src={comment.profiles.avatar_url} alt="" width={32} height={32} style={{ borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} /> : <div aria-hidden="true" style={{ width: 32, height: 32, borderRadius: '50%', display: 'grid', placeItems: 'center', background: '#eee', flexShrink: 0 }}>👤</div>}
@@ -126,7 +157,13 @@ export function PostFeed({ refreshKey, profileId, feedProfileId, scope = 'profil
             {openCommentMenuId === comment.id && isOwner && <div role="menu" style={{ position: 'absolute', right: 0, top: 30, zIndex: 6, padding: 8, display: 'grid', gap: 4, background: 'white', border: '1px solid rgba(0,0,0,.15)', borderRadius: 8 }}><button type="button" onClick={() => { setEditingCommentId(comment.id); setEditingCommentText(comment.content); setOpenCommentMenuId(null); }}>Edit</button><button type="button" onClick={() => void deleteComment(comment.id)}>Delete</button></div>}
           </div></div>
           {isEditing ? <div style={{ display: 'flex', gap: 8, marginTop: 4 }}><input value={editingCommentText} onChange={(event) => setEditingCommentText(event.target.value)} autoFocus /><button type="button" onClick={() => void saveCommentEdit(comment.id)}>Save</button><button type="button" onClick={() => { setEditingCommentId(null); setEditingCommentText(''); }}>Cancel</button></div> : <div style={{ marginTop: 2 }}>{comment.content}</div>}
-          <div style={{ display: 'flex', gap: 8, marginTop: 4 }}><button type="button" onClick={() => { setReplyToCommentId(comment.id); setReplyText(''); }}>Reply</button></div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 5 }}>
+            <div ref={(node) => { commentReactionRefs.current[comment.id] = node; }} style={{ position: 'relative' }}>
+              <button type="button" aria-haspopup="true" aria-expanded={openCommentReactionId === comment.id} onClick={() => setOpenCommentReactionId(openCommentReactionId === comment.id ? null : comment.id)}>{myReaction ? `${reactionEmoji[myReaction]} ${counts[myReaction] ?? 0}` : `❤️${totalReactions ? ` ${totalReactions}` : ''}`}</button>
+              {openCommentReactionId === comment.id && <div role="group" aria-label="Comment reactions" style={{ position: 'absolute', left: 0, bottom: 'calc(100% + 6px)', zIndex: 7, display: 'flex', gap: 6, padding: 7, background: 'white', border: '1px solid rgba(0,0,0,.15)', borderRadius: 10, boxShadow: '0 4px 16px rgba(0,0,0,.15)' }}>{reactionOptions.map((item) => <button key={item.value} type="button" aria-label={item.label} title={item.label} onClick={() => void reactToComment(comment.id, item.value)} style={{ fontSize: 20 }}>{item.emoji}</button>)}</div>}
+            </div>
+            <button type="button" onClick={() => { setReplyToCommentId(comment.id); setReplyText(''); }}>Reply</button>
+          </div>
           {replyToCommentId === comment.id && <div style={{ display: 'flex', gap: 8, marginTop: 6 }}><input value={replyText} onChange={(event) => setReplyText(event.target.value)} placeholder="Write a reply..." /><button type="button" onClick={() => void addComment(comment.post_id, comment.id)}>Reply</button><button type="button" onClick={() => setReplyToCommentId(null)}>Cancel</button></div>}
           {children.map((child) => renderComment(child, allComments, depth + 1))}
         </div>
