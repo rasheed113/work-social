@@ -93,6 +93,19 @@ export function HomePage({ profileId }: HomePageProps) {
   return (
     <main style={{ width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box', padding: '18px 0 112px', overflowX: 'hidden' }}>
       <style>{`
+        .home-page-title {
+          margin: 0;
+          font-size: clamp(28px, 5vw, 40px);
+          line-height: 1.05;
+          font-weight: 900;
+          letter-spacing: -.035em;
+          color: transparent;
+          background: linear-gradient(135deg, #6d5dfc 0%, #22c1dc 48%, #ff5ca8 100%);
+          -webkit-background-clip: text;
+          background-clip: text;
+          -webkit-text-fill-color: transparent;
+          text-shadow: 0 3px 0 rgba(255,255,255,.8), 0 7px 18px rgba(79,70,229,.16);
+        }
         .home-post-feed > section > h2 {
           position: relative;
           display: flex;
@@ -140,8 +153,7 @@ export function HomePage({ profileId }: HomePageProps) {
       `}</style>
       <div style={{ width: '100%', maxWidth: 900, minWidth: 0, margin: '0 auto', padding: '0 14px', boxSizing: 'border-box' }}>
         <header style={{ marginBottom: 16, padding: '4px 4px 2px' }}>
-          <h1 style={{ margin: 0, fontSize: 'clamp(28px, 5vw, 40px)', lineHeight: 1.05, fontWeight: 900, letterSpacing: '-.035em', color: '#17202a', textShadow: '0 2px 0 rgba(255,255,255,.9), 0 7px 18px rgba(23,32,42,.12)' }}>Home</h1>
-          <div style={{ width: 54, height: 5, marginTop: 9, borderRadius: 999, background: 'linear-gradient(90deg, #6d5dfc, #22c1dc, #ff5ca8)', boxShadow: '0 5px 14px rgba(109,93,252,.28)' }} />
+          <h1 className="home-page-title">Home</h1>
         </header>
         <CreatePostForm profileId={profileId} onCreated={() => setRefreshKey((key) => key + 1)} />
         <div className="home-post-feed" style={{ marginTop: 18 }}>
