@@ -64,6 +64,49 @@ export function ProfilePage({ profileId, viewerId }: ProfilePageProps) {
         font-weight: 800;
         box-shadow: 0 5px 14px rgba(15,23,42,.08);
       }
+      .premium-profile-page > section > section.foundation-card input,
+      .premium-profile-page > section > section.foundation-card textarea,
+      .premium-profile-page > section > section.foundation-card select {
+        width: 100%;
+        box-sizing: border-box;
+        margin-top: 6px;
+        padding: 9px 11px;
+        border: 1px solid rgba(99,102,241,.16);
+        border-radius: 12px;
+        background: rgba(255,255,255,.92);
+        color: #17202a;
+        font: inherit;
+        outline: none;
+        box-shadow: inset 0 1px 2px rgba(15,23,42,.035), 0 3px 10px rgba(15,23,42,.035);
+        transition: border-color .18s ease, box-shadow .18s ease;
+      }
+      .premium-profile-page > section > section.foundation-card textarea { resize: vertical; min-height: 72px; }
+      .premium-profile-page > section > section.foundation-card input:focus,
+      .premium-profile-page > section > section.foundation-card textarea:focus,
+      .premium-profile-page > section > section.foundation-card select:focus {
+        border-color: rgba(109,93,252,.48);
+        box-shadow: 0 0 0 3px rgba(109,93,252,.10), inset 0 1px 2px rgba(15,23,42,.035);
+      }
+      .premium-profile-page > section > section.foundation-card > label {
+        display: block;
+        margin-top: 11px;
+        color: #334155;
+        font-size: 13px;
+        font-weight: 800;
+      }
+      .premium-profile-page > section > section.foundation-card > label + label { margin-top: 10px; }
+      .premium-profile-page > section > section.foundation-card > button {
+        margin-top: 12px;
+      }
+      .premium-profile-page > section > section.foundation-card > button:first-of-type {
+        background: linear-gradient(135deg, #6d5dfc, #22c1dc);
+        color: white;
+        box-shadow: 0 7px 17px rgba(79,70,229,.20);
+      }
+      .premium-profile-page > section > section.foundation-card > button:last-of-type {
+        background: rgba(15,23,42,.06);
+        color: #334155;
+      }
       .premium-profile-page > section > section:not(.foundation-card) { min-width: 0; }
       .premium-profile-page > section > footer.foundation-card {
         border-radius: 15px;
