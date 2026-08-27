@@ -6,6 +6,17 @@ import { LoginForm } from '../features/auth/components/LoginForm';
 import { SignupForm } from '../features/auth/components/SignupForm';
 import { Router } from './Router';
 
+const AUTH_INIT_TIMEOUT_MS = 8000;
+
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number, message: string): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) => {
+      window.setTimeout(() => reject(new Error(message)), timeoutMs);
+    }),
+  ]);
+}
+
 export function App() {
   const [session, setSession] = useState<Session | null>(null);
   const [showSignup, setShowSignup] = useState(false);
@@ -18,23 +29,57 @@ export function App() {
       const url = new URL(window.location.href);
       const code = url.searchParams.get('code');
       const oauthError = url.searchParams.get('error_description') || url.searchParams.get('error');
+
       if (oauthError) {
         url.search = '';
         window.history.replaceState({}, '', `${url.pathname}${url.hash}`);
         if (active) setAuthError(oauthError);
       }
-      if (code) {
-        const { error } = await supabase.auth.exchangeCodeForSession(code);
-        url.searchParams.delete('code'); url.searchParams.delete('state');
-        window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
-        if (error && active) setAuthError(error.message);
+
+      try {
+        if (code) {
+          const { error } = await withTimeout(
+            supabase.auth.exchangeCodeForSession(code),
+            AUTH_INIT_TIMEOUT_MS,
+            'Authentication is taking too long. You can continue and retry without blocking the app.',
+          );
+          url.searchParams.delete('code');
+          url.searchParams.delete('state');
+          window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
+          if (error && active) setAuthError(error.message);
+        }
+
+        const { data, error } = await withTimeout(
+          getSession(),
+          AUTH_INIT_TIMEOUT_MS,
+          'Authentication initialization timed out. The app will continue and retry in the background.',
+        );
+
+        if (!active) return;
+        if (error) setAuthError(error.message);
+        setSession(data.session);
+      } catch (error) {
+        if (active) {
+          setAuthError(error instanceof Error ? error.message : 'Authentication initialization failed.');
+        }
+      } finally {
+        if (active) setInitializing(false);
       }
-      const { data } = await getSession();
-      if (active) { setSession(data.session); setInitializing(false); }
     }
+
     void initializeAuth();
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => { if (active) setSession(nextSession); });
-    return () => { active = false; listener.subscription.unsubscribe(); };
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      if (active) {
+        setSession(nextSession);
+        setAuthError(null);
+      }
+    });
+
+    return () => {
+      active = false;
+      listener.subscription.unsubscribe();
+    };
   }, []);
 
   if (initializing) return <main className="app-shell"><div className="auth-card"><p>Signing you in…</p></div></main>;
