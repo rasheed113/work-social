@@ -52,7 +52,38 @@ export function ProfilePanel({profileId,viewerId}:ProfilePanelProps){
  if(blockedMe)return <section className="foundation-card"><h2>Profile unavailable</h2><p>This profile is not available.</p></section>;
  if(error&&!profile)return <section className="foundation-card"><p role="alert">{error}</p></section>;
  if(!profile)return <section className="foundation-card"><p>Profile not found.</p></section>;
- if(editing&&isOwner)return <section className="foundation-card"><h2>Edit your profile</h2><AvatarUploader userId={profileId} avatarUrl={profile.avatar_url} onUploaded={(url)=>setProfile(p=>p?{...p,avatar_url:url}:p)}/><label>Display name<input value={form.display_name} onChange={e=>setForm(v=>({...v,display_name:e.target.value}))}/></label><label>Bio<textarea value={form.bio} onChange={e=>setForm(v=>({...v,bio:e.target.value}))}/></label><label>Date of birth<input type="date" value={form.date_of_birth} onChange={e=>setForm(v=>({...v,date_of_birth:e.target.value}))}/></label><label>Gender<select value={form.gender} onChange={e=>setForm(v=>({...v,gender:e.target.value}))}><option value="">Prefer not to say</option><option value="female">Female</option><option value="male">Male</option><option value="non_binary">Non-binary</option><option value="other">Other</option></select></label><label>Location<input value={form.location} onChange={e=>setForm(v=>({...v,location:e.target.value}))}/></label><label>Website<input type="url" value={form.website} onChange={e=>setForm(v=>({...v,website:e.target.value}))}/></label>{error&&<p role="alert">{error}</p>}<button type="button" onClick={()=>void handleSave()} disabled={saving}>{saving?'Saving…':'Save profile'}</button><button type="button" onClick={()=>setEditing(false)} disabled={saving}>Cancel</button></section>;
+ if(editing&&isOwner)return <section className="foundation-card edit-profile-card">
+   <style>{`
+     .edit-profile-card { min-width: 0; box-sizing: border-box; padding: 18px; border: 1px solid rgba(99,102,241,.16); border-radius: 18px; background: linear-gradient(145deg, rgba(255,255,255,.98), rgba(242,245,255,.95)); box-shadow: 0 10px 28px rgba(15,23,42,.075), inset 0 1px 0 rgba(255,255,255,.96); }
+     .edit-profile-card .edit-profile-heading { margin: 0 0 14px; font-size: 21px; font-weight: 900; letter-spacing: -.025em; color: #17202a; text-shadow: 0 2px 7px rgba(23,32,42,.09); }
+     .edit-profile-card .edit-profile-avatar { padding: 13px; margin-bottom: 13px; border: 1px solid rgba(99,102,241,.12); border-radius: 15px; background: rgba(255,255,255,.72); box-shadow: 0 6px 16px rgba(15,23,42,.045); }
+     .edit-profile-card .edit-profile-fields { display: grid; gap: 10px; }
+     .edit-profile-card .edit-profile-field { display: grid; gap: 5px; min-width: 0; }
+     .edit-profile-card .edit-profile-field > span { font-size: 12px; font-weight: 800; letter-spacing: .01em; opacity: .72; }
+     .edit-profile-card input, .edit-profile-card textarea, .edit-profile-card select { width: 100%; min-width: 0; box-sizing: border-box; border: 1px solid rgba(71,85,105,.16); border-radius: 11px; background: rgba(255,255,255,.94); color: #17202a; padding: 9px 11px; font: inherit; outline: none; box-shadow: inset 0 1px 2px rgba(15,23,42,.035); }
+     .edit-profile-card textarea { min-height: 62px; resize: vertical; }
+     .edit-profile-card input:focus, .edit-profile-card textarea:focus, .edit-profile-card select:focus { border-color: rgba(99,102,241,.48); box-shadow: 0 0 0 3px rgba(99,102,241,.10), inset 0 1px 2px rgba(15,23,42,.035); }
+     .edit-profile-card .edit-profile-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 13px; }
+     .edit-profile-card .edit-profile-actions button { border: 0; border-radius: 999px; padding: 8px 14px; font-weight: 800; cursor: pointer; box-shadow: 0 5px 14px rgba(15,23,42,.08); }
+     .edit-profile-card .edit-save { background: linear-gradient(135deg,#6d5dfc,#3b82f6,#22c1dc); color: white; }
+     .edit-profile-card .edit-cancel { background: rgba(15,23,42,.07); color: #17202a; }
+     .edit-profile-card button:disabled { opacity: .55; cursor: default; }
+     .edit-profile-card .edit-status { margin: 9px 0 0; font-size: 13px; }
+     @media (max-width: 767px) { .edit-profile-card { padding: 15px; } .edit-profile-card .edit-profile-heading { font-size: 20px; } }
+   `}</style>
+   <h2 className="edit-profile-heading">Edit your profile</h2>
+   <div className="edit-profile-avatar"><AvatarUploader userId={profileId} avatarUrl={profile.avatar_url} onUploaded={(url)=>setProfile(p=>p?{...p,avatar_url:url}:p)}/></div>
+   <div className="edit-profile-fields">
+     <label className="edit-profile-field"><span>Display name</span><input value={form.display_name} onChange={e=>setForm(v=>({...v,display_name:e.target.value}))}/></label>
+     <label className="edit-profile-field"><span>Bio</span><textarea value={form.bio} onChange={e=>setForm(v=>({...v,bio:e.target.value}))}/></label>
+     <label className="edit-profile-field"><span>Date of birth</span><input type="date" value={form.date_of_birth} onChange={e=>setForm(v=>({...v,date_of_birth:e.target.value}))}/></label>
+     <label className="edit-profile-field"><span>Gender</span><select value={form.gender} onChange={e=>setForm(v=>({...v,gender:e.target.value}))}><option value="">Prefer not to say</option><option value="female">Female</option><option value="male">Male</option><option value="non_binary">Non-binary</option><option value="other">Other</option></select></label>
+     <label className="edit-profile-field"><span>Location</span><input value={form.location} onChange={e=>setForm(v=>({...v,location:e.target.value}))}/></label>
+     <label className="edit-profile-field"><span>Website</span><input type="url" value={form.website} onChange={e=>setForm(v=>({...v,website:e.target.value}))}/></label>
+   </div>
+   {error&&<p className="edit-status" role="alert">{error}</p>}
+   <div className="edit-profile-actions"><button className="edit-save" type="button" onClick={()=>void handleSave()} disabled={saving}>{saving?'Saving…':'Save profile'}</button><button className="edit-cancel" type="button" onClick={()=>setEditing(false)} disabled={saving}>Cancel</button></div>
+ </section>;
 
  return <section><section className="foundation-card" style={{textAlign:'center'}}>{profile.avatar_url?<img src={profile.avatar_url} alt={`${profile.display_name} profile`} width={112} height={112} style={{borderRadius:'50%',objectFit:'cover'}}/>:<div aria-hidden="true">👤</div>}<h2>{profile.display_name}</h2>{isOwner&&<p>@{profile.username}</p>}{profile.bio&&<p>{profile.bio}</p>} {profile.location&&<p>📍 {profile.location}</p>}
  <div style={{display:'flex',justifyContent:'center',flexWrap:'wrap',gap:8}}>{isOwner?<><button type="button" onClick={()=>window.location.assign('/friends')}>Friends</button><button type="button" onClick={openEditor}>Edit</button><button type="button" onClick={()=>window.location.assign('/blocked-users')}>🚫 Blocked Users</button></>:<><button type="button" onClick={()=>void chatWithProfile()} disabled={busyAction}>💬 Chat with {profile.display_name}</button><button type="button" onClick={()=>void toggleFollow()} disabled={busyAction}>{following?'Following':'Follow'}</button><button type="button" onClick={()=>void sendFriendRequest()} disabled={busyAction||friend}>{friend?'Friends':friendPending?'Request sent':'Add as Friend'}</button><button type="button" onClick={()=>void blockProfile()} disabled={busyAction}>🚫 Block</button></>}</div>{error&&<p role="alert">{error}</p>}{saved&&<p role="status">Profile saved.</p>}</section>
