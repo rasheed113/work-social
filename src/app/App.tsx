@@ -41,13 +41,13 @@ export function App() {
   if (!session) return <main className="app-shell">{authError && <p role="alert">{authError}</p>}{showSignup ? <SignupForm onLogin={() => { setAuthError(null); setShowSignup(false); }} /> : <LoginForm onSignup={() => { setAuthError(null); setShowSignup(true); }} />}</main>;
 
   return (
-    <main className="app-shell" style={{ height: '100dvh', minHeight: 0, padding: 16, paddingBottom: 88, boxSizing: 'border-box', overflow: 'hidden' }}>
-      <div className="work-social-router-shell" style={{ height: '100%', minHeight: 0, minWidth: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+    <main className="app-shell" style={{ height: '100dvh', minHeight: 0, padding: 0, boxSizing: 'border-box', overflow: 'hidden', width: '100%' }}>
+      <div className="work-social-router-shell" style={{ height: '100%', width: '100%', maxWidth: '100%', minHeight: 0, minWidth: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         <Router profileId={session.user.id} />
       </div>
       <style>{`
         .work-social-router-shell > header { flex: 0 0 auto; position: sticky !important; top: 0 !important; }
-        .work-social-router-shell > div:nth-child(2) { flex: 1 1 auto; min-height: 0 !important; min-width: 0 !important; overflow-y: auto !important; overflow-x: hidden !important; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+        .work-social-router-shell > div:nth-child(2) { flex: 1 1 auto; min-height: 0 !important; min-width: 0 !important; width: 100% !important; max-width: 100% !important; overflow-y: auto !important; overflow-x: hidden !important; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
         .work-social-router-shell > nav { flex: 0 0 auto; }
       `}</style>
     </main>
