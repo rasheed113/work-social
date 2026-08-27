@@ -10,15 +10,39 @@ export interface ProfileUpdateInput {
 }
 
 export async function updateProfile(profileId: string, input: ProfileUpdateInput) {
+  const displayName = input.display_name.trim();
+  const bio = input.bio.trim();
+  const location = input.location.trim();
+  const website = input.website.trim();
+
+  if (!displayName) {
+    return {
+      data: null,
+      error: new Error('Display name is required.'),
+    };
+  }
+
+  if (website) {
+    try {
+      const url = new URL(website);
+      if (!['http:', 'https:'].includes(url.protocol)) throw new Error();
+    } catch {
+      return {
+        data: null,
+        error: new Error('Website must be a valid HTTP or HTTPS URL.'),
+      };
+    }
+  }
+
   return supabase
     .from('profiles')
     .update({
-      display_name: input.display_name.trim(),
-      bio: input.bio.trim() || null,
+      display_name: displayName,
+      bio: bio || null,
       date_of_birth: input.date_of_birth || null,
       gender: input.gender || null,
-      location: input.location.trim() || null,
-      website: input.website.trim() || null,
+      location: location || null,
+      website: website || null,
       updated_at: new Date().toISOString(),
     })
     .eq('id', profileId)
