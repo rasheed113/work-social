@@ -33,8 +33,6 @@ export function PostFeed({ refreshKey, profileId, feedProfileId, scope = 'profil
   };
 
   const loadPosts = async () => {
-    // Profile feeds must query the profile being displayed. Home/public feeds
-    // deliberately omit profileId so they can return public posts from everyone.
     const targetProfileId = scope === 'profile' ? (feedProfileId ?? profileId) : undefined;
     const { data, error: loadError } = await listPosts(targetProfileId, scope);
     if (loadError) setError(loadError.message);
@@ -66,7 +64,6 @@ export function PostFeed({ refreshKey, profileId, feedProfileId, scope = 'profil
           {!openCommentsId && latestComment && <div style={{ marginTop: 12, paddingTop: 10, borderTop: '1px solid rgba(0,0,0,.08)' }}><div style={{ display: 'flex', gap: 8, alignItems: 'baseline', flexWrap: 'wrap' }}><strong>{latestComment.profiles?.display_name ?? 'User'}</strong><span>{latestComment.content}</span></div><button type="button" onClick={() => setOpenCommentsId(post.id)} style={{ display: 'block', marginTop: 6 }}>View all {postComments.length} comment{postComments.length === 1 ? '' : 's'}</button></div>}
           {openCommentsId === post.id && <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid rgba(0,0,0,.08)' }}><button type="button" onClick={() => setOpenCommentsId(null)}>Close comments</button>{postComments.map((comment) => <div key={comment.id} style={{ marginTop: 8 }}><strong>{comment.profiles?.display_name ?? 'User'}</strong><div>{comment.content}</div></div>)}</div>}
           <div style={{ display: 'flex', gap: 8, marginTop: 10 }}><input value={commentText[post.id] ?? ''} onChange={(event) => setCommentText((current) => ({ ...current, [post.id]: event.target.value }))} placeholder="Write a comment..." /><button type="button" onClick={() => void addComment(post.id)}>Comment</button></div>
-          {isOwner && <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 12 }}><button type="button" onClick={() => startEdit(post)}>Edit</button><button type="button" onClick={() => void removePost(post.id)}>Delete</button></div>}
         </footer>
       </article>;
     })}
