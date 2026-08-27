@@ -47,6 +47,28 @@ article footer > div { min-width: 0; }
 article footer input { min-width: 0; max-width: 100%; }
 article footer button { flex-shrink: 0; }
 
+/* Comment identities stay readable instead of collapsing into one character per line. */
+article footer strong {
+  min-width: 0;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Keep comment text flexible inside every nested level. */
+article footer div {
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+/* Nested comment rows use a responsive indentation cap so deep trees do not squeeze their content. */
+article footer div[style*="border-left: 1px solid rgba(91,108,132"] {
+  max-width: 100%;
+  width: auto;
+  margin-right: 0;
+}
+
 /* The global mobile navigation stays viewport-anchored while comment trees grow in normal flow. */
 nav[aria-label="Main navigation"] {
   position: fixed !important;
@@ -63,4 +85,10 @@ nav[aria-label="Main navigation"] {
   article footer { padding-top: 8px !important; margin-top: 10px !important; }
   article footer > div { gap: 6px !important; }
   article footer > div:last-child { margin-top: 7px !important; }
+
+  /* On small screens, preserve a visible tree while keeping enough width for names and text. */
+  article footer div[style*="border-left: 1px solid rgba(91,108,132"] {
+    margin-left: clamp(6px, 2.5vw, 12px) !important;
+    padding-left: 7px !important;
+  }
 }
