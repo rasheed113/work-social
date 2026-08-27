@@ -77,13 +77,8 @@ export function Router({ profileId }: RouterProps) {
   };
 
   return <>
-    <header style={{ position: 'sticky', top: 0, zIndex: 900, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 16, padding: '12px 14px', border: '1px solid rgba(0,0,0,.1)', borderRadius: 14, background: 'rgba(255,255,255,.96)', backdropFilter: 'blur(12px)' }}>
+    <header style={{ position: 'sticky', top: 0, zIndex: 900, display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16, padding: '12px 14px', border: '1px solid rgba(0,0,0,.1)', borderRadius: 14, background: 'rgba(255,255,255,.96)', backdropFilter: 'blur(12px)' }}>
       <strong style={{ marginRight: 'auto', fontSize: 18 }}>Work Social</strong>
-      <button type="button" onClick={() => navigate('/')}>Home</button>
-      <button type="button" onClick={() => navigate('/friends')}>Friends</button>
-      <button type="button" onClick={() => navigate('/notifications')} aria-label={notificationUnread ? `Notifications, ${notificationUnread} unread` : 'Notifications'}>🔔 Notifications{notificationUnread > 0 ? ` ${badge(notificationUnread)}` : ''}</button>
-      <button type="button" onClick={() => navigate('/profile')}>Profile</button>
-      <button type="button" onClick={() => navigate('/profile/settings')}>Settings</button>
       <button type="button" onClick={() => navigate('/inbox')} aria-label={chatUnread ? `Work Social Chat, ${chatUnread} unread` : 'Work Social Chat'} style={{ fontWeight: chatUnread ? 700 : 400, borderColor: chatUnread ? '#e53935' : undefined }}>{chatUnread > 0 ? '🔴' : '💬'} Chat{chatUnread > 0 ? ` ${badge(chatUnread)}` : ''}</button>
     </header>
     {pages[route]}
