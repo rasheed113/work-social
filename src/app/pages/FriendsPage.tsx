@@ -19,16 +19,16 @@ const styles = {
   search: { flex: 1, minWidth: 0, border: 0, outline: 0, background: 'transparent', color: '#fff', fontSize: 15 } as React.CSSProperties,
   section: { marginTop: 16, padding: 16, borderRadius: 22, background: 'linear-gradient(180deg, rgba(255,255,255,.98), rgba(246,247,255,.98))', color: '#17182b', border: '1px solid rgba(99,102,241,.12)', boxShadow: '0 14px 36px rgba(24,25,60,.12)' } as React.CSSProperties,
   sectionTitle: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, margin: '0 0 12px', fontSize: 17, fontWeight: 850 } as React.CSSProperties,
-  row: { display: 'flex', alignItems: 'center', gap: 11, padding: 11, marginTop: 8, borderRadius: 17, background: '#fff', border: '1px solid rgba(30,35,80,.08)', boxShadow: '0 7px 20px rgba(30,35,80,.07)', transition: 'transform .18s ease, box-shadow .18s ease' } as React.CSSProperties,
+  row: { display: 'flex', alignItems: 'center', gap: 9, padding: 11, marginTop: 8, borderRadius: 17, background: '#fff', border: '1px solid rgba(30,35,80,.08)', boxShadow: '0 7px 20px rgba(30,35,80,.07)', transition: 'transform .18s ease, box-shadow .18s ease', minWidth: 0 } as React.CSSProperties,
   avatar: { width: 48, height: 48, borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: '2px solid rgba(111,76,255,.18)', boxShadow: '0 5px 14px rgba(75,62,150,.16)' } as React.CSSProperties,
   avatarFallback: { width: 48, height: 48, borderRadius: '50%', display: 'grid', placeItems: 'center', background: 'linear-gradient(135deg,#eef0ff,#dfe4ff)', flexShrink: 0, fontSize: 20, boxShadow: '0 5px 14px rgba(75,62,150,.12)' } as React.CSSProperties,
-  nameButton: { flex: 1, minWidth: 0, border: 0, background: 'transparent', textAlign: 'left', padding: 0, cursor: 'pointer', color: '#17182b', fontSize: 15 } as React.CSSProperties,
-  buttonBase: { border: 0, borderRadius: 12, padding: '9px 12px', fontWeight: 800, cursor: 'pointer', whiteSpace: 'nowrap' } as React.CSSProperties,
+  nameButton: { flex: 1, minWidth: 0, border: 0, background: 'transparent', textAlign: 'left', padding: 0, cursor: 'pointer', color: '#17182b', fontSize: 15, overflow: 'hidden' } as React.CSSProperties,
+  buttonBase: { border: 0, borderRadius: 11, padding: '7px 9px', fontSize: 12, fontWeight: 800, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0, lineHeight: 1.2 } as React.CSSProperties,
   follow: { background: '#eef0ff', color: '#4c3acb' } as React.CSSProperties,
-  add: { background: 'linear-gradient(135deg,#6547ff,#8b4dff)', color: '#fff', boxShadow: '0 7px 16px rgba(101,71,255,.25)' } as React.CSSProperties,
+  add: { background: 'linear-gradient(135deg,#6547ff,#8b4dff)', color: '#fff', boxShadow: '0 6px 14px rgba(101,71,255,.22)' } as React.CSSProperties,
   pending: { background: '#f1f2f6', color: '#666b7c' } as React.CSSProperties,
   friend: { background: 'linear-gradient(135deg,#dff9ed,#c9f3df)', color: '#147447' } as React.CSSProperties,
-  accept: { background: 'linear-gradient(135deg,#18a86b,#39c98b)', color: '#fff', boxShadow: '0 7px 16px rgba(24,168,107,.22)' } as React.CSSProperties,
+  accept: { background: 'linear-gradient(135deg,#18a86b,#39c98b)', color: '#fff', boxShadow: '0 6px 14px rgba(24,168,107,.2)' } as React.CSSProperties,
   reject: { background: '#f2f3f7', color: '#626777' } as React.CSSProperties,
   alert: { margin: '12px 0 0', padding: '10px 12px', borderRadius: 13, background: '#fff0f2', color: '#b4233c', border: '1px solid #ffd3da' } as React.CSSProperties,
   empty: { padding: '24px 10px', textAlign: 'center', color: '#777b8d' } as React.CSSProperties,
@@ -146,7 +146,7 @@ export function FriendsPage() {
               return <article key={request.id} style={styles.row}>
                 {sender?.avatar_url ? <img src={sender.avatar_url} alt="" style={styles.avatar} /> : <div aria-hidden="true" style={styles.avatarFallback}>👤</div>}
                 <div style={{ flex: 1, minWidth: 0 }}><strong style={{ display: 'block', fontSize: 15 }}>{sender?.display_name ?? 'User'}</strong><span style={{ color: '#85899a', fontSize: 12 }}>wants to connect with you</span></div>
-                <div style={{ display: 'flex', gap: 7, flexShrink: 0 }}>
+                <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
                   <button type="button" onClick={() => void respond(request, 'accepted')} style={{ ...styles.buttonBase, ...styles.accept }}>Accept</button>
                   <button type="button" onClick={() => void respond(request, 'rejected')} style={{ ...styles.buttonBase, ...styles.reject }}>Reject</button>
                 </div>
