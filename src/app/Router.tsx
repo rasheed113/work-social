@@ -8,15 +8,22 @@ import { ProfilePage } from './pages/ProfilePage';
 import { SettingsPage } from './pages/SettingsPage';
 import { InboxPage } from './pages/InboxPage';
 
-type Route = 'home' | 'friends' | 'notifications' | 'profile' | 'settings' | 'inbox';
+type Route = 'home' | 'friends' | 'notifications' | 'profile' | 'settings' | 'inbox' | 'publicProfile';
 
 function routeFromPath(pathname: string): Route {
   if (pathname === '/friends') return 'friends';
   if (pathname === '/notifications') return 'notifications';
   if (pathname === '/profile/settings') return 'settings';
   if (pathname === '/profile') return 'profile';
+  if (pathname.startsWith('/profile/') && pathname.length > '/profile/'.length) return 'publicProfile';
   if (pathname === '/inbox' || pathname === '/chat') return 'inbox';
   return 'home';
+}
+
+function viewedProfileId(pathname: string) {
+  if (!pathname.startsWith('/profile/')) return null;
+  const id = pathname.slice('/profile/'.length);
+  try { return decodeURIComponent(id) || null; } catch { return null; }
 }
 
 export function navigate(path: string) {
@@ -54,8 +61,7 @@ export function Router({ profileId }: RouterProps) {
   }, []);
 
   useEffect(() => {
-    void loadUnread();
-    void loadChatUnread();
+    void loadUnread(); void loadChatUnread();
     const channel = supabase.channel(`global-badges:${profileId}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications', filter: `receiver_id=eq.${profileId}` }, () => void loadUnread())
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, () => void loadChatUnread())
@@ -67,6 +73,7 @@ export function Router({ profileId }: RouterProps) {
   useEffect(() => { if (route === 'notifications') void loadUnread(); if (route === 'inbox') void loadChatUnread(); }, [route]);
 
   const badge = (count: number) => count > 8 ? '9+' : String(count);
+  const publicId = viewedProfileId(window.location.pathname);
   const pages: Record<Route, ReactNode> = {
     home: <HomePage profileId={profileId} />,
     friends: <FriendsPage />,
@@ -74,6 +81,7 @@ export function Router({ profileId }: RouterProps) {
     profile: <ProfilePage profileId={profileId} />,
     settings: <SettingsPage />,
     inbox: <InboxPage profileId={profileId} />,
+    publicProfile: publicId ? <ProfilePage profileId={publicId} viewerId={profileId} /> : <ProfilePage profileId={profileId} />,
   };
 
   return <>
