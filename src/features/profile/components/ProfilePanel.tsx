@@ -3,6 +3,8 @@ import type { ProfileUpdateInput } from '../api/updateProfile';
 import { getProfile } from '../api/getProfile';
 import { updateProfile } from '../api/updateProfile';
 import { AvatarUploader } from './AvatarUploader';
+import { PostFeed } from '../../posts/components/PostFeed';
+import { navigate } from '../../../app/Router';
 
 type Profile = {
   id: string;
@@ -18,21 +20,7 @@ type Profile = {
   updated_at: string;
 };
 
-interface ProfilePanelProps {
-  profileId: string;
-}
-
-function calculateAge(dateOfBirth: string | null) {
-  if (!dateOfBirth) return null;
-  const birth = new Date(`${dateOfBirth}T00:00:00`);
-  if (Number.isNaN(birth.getTime())) return null;
-
-  const today = new Date();
-  let age = today.getFullYear() - birth.getFullYear();
-  const monthDelta = today.getMonth() - birth.getMonth();
-  if (monthDelta < 0 || (monthDelta === 0 && today.getDate() < birth.getDate())) age -= 1;
-  return age >= 0 ? age : null;
-}
+interface ProfilePanelProps { profileId: string; }
 
 function formatJoinedDate(createdAt: string) {
   const date = new Date(createdAt);
@@ -40,16 +28,21 @@ function formatJoinedDate(createdAt: string) {
   return date.toLocaleDateString(undefined, { year: 'numeric', month: 'long' });
 }
 
+function calculateAge(dateOfBirth: string | null) {
+  if (!dateOfBirth) return null;
+  const birth = new Date(`${dateOfBirth}T00:00:00`);
+  if (Number.isNaN(birth.getTime())) return null;
+  const today = new Date();
+  let age = today.getFullYear() - birth.getFullYear();
+  const monthDelta = today.getMonth() - birth.getMonth();
+  if (monthDelta < 0 || (monthDelta === 0 && today.getDate() < birth.getDate())) age -= 1;
+  return age >= 0 ? age : null;
+}
+
 export function ProfilePanel({ profileId }: ProfilePanelProps) {
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [form, setForm] = useState<ProfileUpdateInput>({
-    display_name: '',
-    bio: '',
-    date_of_birth: '',
-    gender: '',
-    location: '',
-    website: '',
-  });
+  const [form, setForm] = useState<ProfileUpdateInput>({ display_name: '', bio: '', date_of_birth: '', gender: '', location: '', website: '' });
+  const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -57,188 +50,92 @@ export function ProfilePanel({ profileId }: ProfilePanelProps) {
 
   useEffect(() => {
     let active = true;
-
     async function loadProfile() {
-      setLoading(true);
-      setError(null);
-      setSaved(false);
-
+      setLoading(true); setError(null);
       const { data, error: profileError } = await getProfile(profileId);
       if (!active) return;
-
-      if (profileError || !data) {
-        setProfile(null);
-        setError(profileError?.message ?? 'Profile could not be loaded.');
-        setLoading(false);
-        return;
-      }
-
-      const nextProfile = data as Profile;
-      setProfile(nextProfile);
-      setForm({
-        display_name: nextProfile.display_name ?? '',
-        bio: nextProfile.bio ?? '',
-        date_of_birth: nextProfile.date_of_birth ?? '',
-        gender: nextProfile.gender ?? '',
-        location: nextProfile.location ?? '',
-        website: nextProfile.website ?? '',
-      });
+      if (profileError || !data) { setProfile(null); setError(profileError?.message ?? 'Profile could not be loaded.'); setLoading(false); return; }
+      const next = data as Profile;
+      setProfile(next);
+      setForm({ display_name: next.display_name ?? '', bio: next.bio ?? '', date_of_birth: next.date_of_birth ?? '', gender: next.gender ?? '', location: next.location ?? '', website: next.website ?? '' });
       setLoading(false);
     }
-
     void loadProfile();
-    return () => {
-      active = false;
-    };
+    return () => { active = false; };
   }, [profileId]);
 
-  async function handleSave() {
+  const openEditor = () => {
     if (!profile) return;
+    setForm({ display_name: profile.display_name ?? '', bio: profile.bio ?? '', date_of_birth: profile.date_of_birth ?? '', gender: profile.gender ?? '', location: profile.location ?? '', website: profile.website ?? '' });
+    setError(null); setSaved(false); setEditing(true);
+  };
 
-    setSaving(true);
-    setSaved(false);
-    setError(null);
-
+  const handleSave = async () => {
+    if (!profile) return;
     const normalized: ProfileUpdateInput = {
-      display_name: form.display_name.trim(),
-      bio: form.bio.trim(),
-      date_of_birth: form.date_of_birth,
-      gender: form.gender,
-      location: form.location.trim(),
-      website: form.website.trim(),
+      display_name: form.display_name.trim(), bio: form.bio.trim(), date_of_birth: form.date_of_birth,
+      gender: form.gender, location: form.location.trim(), website: form.website.trim(),
     };
-
-    if (!normalized.display_name) {
-      setError('Display name is required.');
-      setSaving(false);
-      return;
-    }
-
+    if (!normalized.display_name) { setError('Display name is required.'); return; }
+    setSaving(true); setError(null); setSaved(false);
     const { data, error: updateError } = await updateProfile(profileId, normalized);
-    if (updateError || !data) {
-      setError(updateError?.message ?? 'Profile could not be saved.');
-      setSaving(false);
-      return;
-    }
+    if (updateError || !data) { setError(updateError?.message ?? 'Profile could not be saved.'); setSaving(false); return; }
+    const next = data as Profile;
+    setProfile(next);
+    setForm({ display_name: next.display_name ?? '', bio: next.bio ?? '', date_of_birth: next.date_of_birth ?? '', gender: next.gender ?? '', location: next.location ?? '', website: next.website ?? '' });
+    setEditing(false); setSaved(true); setSaving(false);
+  };
 
-    const savedProfile = data as Profile;
-    setProfile(savedProfile);
-    setForm({
-      display_name: savedProfile.display_name ?? '',
-      bio: savedProfile.bio ?? '',
-      date_of_birth: savedProfile.date_of_birth ?? '',
-      gender: savedProfile.gender ?? '',
-      location: savedProfile.location ?? '',
-      website: savedProfile.website ?? '',
-    });
-    setSaved(true);
-    setSaving(false);
-  }
+  const handleAvatarUploaded = (publicUrl: string) => {
+    setProfile((current) => current ? { ...current, avatar_url: publicUrl } : current);
+    setSaved(true); setError(null);
+  };
 
-  function handleAvatarUploaded(publicUrl: string) {
-    setProfile((current) => (current ? { ...current, avatar_url: publicUrl } : current));
-    setSaved(true);
-    setError(null);
-  }
+  if (loading) return <section className="foundation-card"><p>Loading profile…</p></section>;
+  if (error && !profile) return <section className="foundation-card"><p role="alert">{error}</p></section>;
+  if (!profile) return <section className="foundation-card"><p>Profile not found.</p></section>;
 
-  if (loading) {
-    return <section className="foundation-card"><p>Loading profile…</p></section>;
-  }
-
-  if (error && !profile) {
-    return <section className="foundation-card"><p role="alert">{error}</p></section>;
-  }
-
-  if (!profile) {
-    return <section className="foundation-card"><p>Profile not found.</p></section>;
+  if (editing) {
+    return <section className="foundation-card">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+        <div><p className="eyebrow">Edit Profile</p><h2>Edit your profile</h2></div>
+        <button type="button" onClick={() => setEditing(false)} disabled={saving}>Cancel</button>
+      </div>
+      <AvatarUploader userId={profileId} avatarUrl={profile.avatar_url} onUploaded={handleAvatarUploaded} />
+      <label>Display name<input value={form.display_name} onChange={(e) => setForm((v) => ({ ...v, display_name: e.target.value }))} autoComplete="name" /></label>
+      <label>Bio<textarea value={form.bio} onChange={(e) => setForm((v) => ({ ...v, bio: e.target.value }))} rows={3} /></label>
+      <label>Date of birth<input type="date" value={form.date_of_birth} onChange={(e) => setForm((v) => ({ ...v, date_of_birth: e.target.value }))} /></label>
+      <label>Gender<select value={form.gender} onChange={(e) => setForm((v) => ({ ...v, gender: e.target.value }))}><option value="">Prefer not to say</option><option value="female">Female</option><option value="male">Male</option><option value="non_binary">Non-binary</option><option value="other">Other</option></select></label>
+      <label>Location<input value={form.location} onChange={(e) => setForm((v) => ({ ...v, location: e.target.value }))} placeholder="City, country" /></label>
+      <label>Website<input type="url" value={form.website} onChange={(e) => setForm((v) => ({ ...v, website: e.target.value }))} placeholder="https://example.com" /></label>
+      {error && <p role="alert">{error}</p>}
+      <button type="button" disabled={saving} onClick={() => void handleSave()}>{saving ? 'Saving…' : 'Save profile'}</button>
+    </section>;
   }
 
   const age = calculateAge(profile.date_of_birth);
 
-  return (
-    <section className="foundation-card">
-      <p className="eyebrow">Phase 1 · Profile</p>
-
-      <AvatarUploader
-        userId={profileId}
-        avatarUrl={profile.avatar_url}
-        onUploaded={handleAvatarUploaded}
-      />
-
-      <h2>@{profile.username}</h2>
-
-      <label>
-        Display name
-        <input
-          value={form.display_name}
-          onChange={(event) => setForm((current) => ({ ...current, display_name: event.target.value }))}
-          autoComplete="name"
-        />
-      </label>
-
-      <label>
-        Bio
-        <textarea
-          value={form.bio}
-          onChange={(event) => setForm((current) => ({ ...current, bio: event.target.value }))}
-          rows={3}
-        />
-      </label>
-
-      <label>
-        Date of birth
-        <input
-          type="date"
-          value={form.date_of_birth}
-          onChange={(event) => setForm((current) => ({ ...current, date_of_birth: event.target.value }))}
-        />
-      </label>
-
-      {age !== null && <p>Age: {age}</p>}
-
-      <label>
-        Gender
-        <select
-          value={form.gender}
-          onChange={(event) => setForm((current) => ({ ...current, gender: event.target.value }))}
-        >
-          <option value="">Prefer not to say</option>
-          <option value="female">Female</option>
-          <option value="male">Male</option>
-          <option value="non_binary">Non-binary</option>
-          <option value="other">Other</option>
-        </select>
-      </label>
-
-      <label>
-        Location
-        <input
-          value={form.location}
-          onChange={(event) => setForm((current) => ({ ...current, location: event.target.value }))}
-          placeholder="City, country"
-          autoComplete="address-level2"
-        />
-      </label>
-
-      <label>
-        Website
-        <input
-          type="url"
-          value={form.website}
-          onChange={(event) => setForm((current) => ({ ...current, website: event.target.value }))}
-          placeholder="https://example.com"
-          autoComplete="url"
-        />
-      </label>
-
-      <p>Joined {formatJoinedDate(profile.created_at)}</p>
-
-      <button type="button" disabled={saving} onClick={() => void handleSave()}>
-        {saving ? 'Saving…' : 'Save profile'}
-      </button>
-
+  return <section>
+    <section className="foundation-card" style={{ textAlign: 'center' }}>
+      {profile.avatar_url ? <img src={profile.avatar_url} alt={`${profile.display_name} profile`} width={112} height={112} style={{ borderRadius: '50%', objectFit: 'cover', display: 'block', margin: '0 auto 16px' }} /> : <div aria-hidden="true" style={{ width: 112, height: 112, borderRadius: '50%', display: 'grid', placeItems: 'center', background: '#eee', margin: '0 auto 16px', fontSize: 40 }}>👤</div>}
+      <h2 style={{ marginBottom: 4 }}>{profile.display_name}</h2>
+      <p style={{ marginTop: 0 }}>@{profile.username}</p>
+      {profile.bio && <p style={{ margin: '12px auto', maxWidth: 560 }}>{profile.bio}</p>}
+      <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: 8, marginTop: 16 }}>
+        <button type="button" onClick={() => navigate('/friends')}>Friends</button>
+        <button type="button" disabled aria-label="Followers">Followers</button>
+        <button type="button" onClick={openEditor}>Edit</button>
+      </div>
       {saved && <p role="status">Profile saved.</p>}
-      {error && <p role="alert">{error}</p>}
     </section>
-  );
+
+    <section style={{ marginTop: 20 }}>
+      <PostFeed refreshKey={0} profileId={profileId} />
+    </section>
+
+    <footer className="foundation-card" style={{ marginTop: 20, textAlign: 'center' }}>
+      <p>Joined {formatJoinedDate(profile.created_at)}</p>
+      {age !== null && <span hidden>Age {age}</span>}
+    </footer>
+  </section>;
 }
