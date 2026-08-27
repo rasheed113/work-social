@@ -8,7 +8,15 @@ export async function listPosts(profileId?: string, scope: PostFeedScope = 'prof
     .select('id, profile_id, content, privacy, latitude, longitude, location_name, created_at, profiles(username, display_name, avatar_url)')
     .order('created_at', { ascending: false });
 
-  if (profileId) query = query.eq('profile_id', profileId);
+  // Profile scope is explicitly owner-scoped. Public scope is the Home feed
+  // and must never inherit the current user's profile_id filter.
+  if (scope === 'profile') {
+    if (!profileId) {
+      return { data: null, error: new Error('profileId is required for profile post feeds.') };
+    }
+    query = query.eq('profile_id', profileId);
+  }
+
   if (scope === 'public') query = query.eq('privacy', 'public');
 
   const { data: posts, error } = await query;
