@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
+import { supabase } from '../lib/supabase/client';
 import { HomePage } from './pages/HomePage';
 import { FriendsPage } from './pages/FriendsPage';
 import { NotificationsPage } from './pages/NotificationsPage';
@@ -25,12 +26,30 @@ interface RouterProps { profileId: string; }
 
 export function Router({ profileId }: RouterProps) {
   const [route, setRoute] = useState<Route>(() => routeFromPath(window.location.pathname));
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  const loadUnread = async () => {
+    const { count, error } = await supabase.from('notifications').select('id', { count: 'exact', head: true }).eq('receiver_id', profileId).eq('is_read', false);
+    if (!error) setUnreadCount(count ?? 0);
+  };
 
   useEffect(() => {
     const onPopState = () => setRoute(routeFromPath(window.location.pathname));
     window.addEventListener('popstate', onPopState);
     return () => window.removeEventListener('popstate', onPopState);
   }, []);
+
+  useEffect(() => {
+    void loadUnread();
+    const channel = supabase.channel(`notification-badge:${profileId}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications', filter: `receiver_id=eq.${profileId}` }, () => void loadUnread())
+      .subscribe();
+    return () => { void supabase.removeChannel(channel); };
+  }, [profileId]);
+
+  useEffect(() => {
+    if (route === 'notifications') void loadUnread();
+  }, [route]);
 
   const pages: Record<Route, ReactNode> = {
     home: <HomePage profileId={profileId} />,
@@ -43,26 +62,10 @@ export function Router({ profileId }: RouterProps) {
   return (
     <>
       {pages[route]}
-      <nav
-        aria-label="Main navigation"
-        style={{
-          position: 'fixed',
-          left: 0,
-          right: 0,
-          bottom: 0,
-          zIndex: 1000,
-          display: 'grid',
-          gridTemplateColumns: 'repeat(4, 1fr)',
-          gap: 8,
-          padding: '10px 12px calc(10px + env(safe-area-inset-bottom))',
-          background: 'rgba(255,255,255,0.96)',
-          borderTop: '1px solid rgba(0,0,0,0.12)',
-          backdropFilter: 'blur(12px)',
-        }}
-      >
+      <nav aria-label="Main navigation" style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 1000, display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, padding: '10px 12px calc(10px + env(safe-area-inset-bottom))', background: 'rgba(255,255,255,0.96)', borderTop: '1px solid rgba(0,0,0,0.12)', backdropFilter: 'blur(12px)' }}>
         <button type="button" onClick={() => navigate('/')}>🏠 <span>Home</span></button>
         <button type="button" onClick={() => navigate('/friends')}>👥 <span>Friends</span></button>
-        <button type="button" onClick={() => navigate('/notifications')}>🔔 <span>Notifications</span></button>
+        <button type="button" onClick={() => navigate('/notifications')} aria-label={unreadCount ? `Notifications, ${unreadCount} unread` : 'Notifications'}>🔔 <span>Notifications{unreadCount > 0 ? ` (${unreadCount})` : ''}</span></button>
         <button type="button" onClick={() => navigate('/profile')}>👤 <span>Profile</span></button>
       </nav>
     </>
