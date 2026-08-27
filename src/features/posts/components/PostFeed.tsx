@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
-import { listPosts } from '../api/listPosts';
+import { listPosts, type PostFeedScope } from '../api/listPosts';
 import { deletePost } from '../api/deletePost';
 import { updatePost } from '../api/updatePost';
 import { updatePostPrivacy, type PostPrivacy } from '../api/updatePostPrivacy';
 import { supabase } from '../../../lib/supabase/client';
 
-interface PostFeedProps { refreshKey: number; profileId: string; }
+interface PostFeedProps { refreshKey: number; profileId: string; feedProfileId?: string; scope?: PostFeedScope; }
 type ReactionName = 'like' | 'love' | 'haha' | 'wow' | 'sad' | 'angry';
 const privacyLabels: Record<PostPrivacy, string> = { public: '🌎 Public', friends: '👥 Friends', private: '🔒 Only me' };
 const reactionOptions: { value: ReactionName; emoji: string; label: string }[] = [
@@ -14,7 +14,7 @@ const reactionOptions: { value: ReactionName; emoji: string; label: string }[] =
 ];
 const reactionEmoji = Object.fromEntries(reactionOptions.map((item) => [item.value, item.emoji])) as Record<ReactionName, string>;
 
-export function PostFeed({ refreshKey, profileId }: PostFeedProps) {
+export function PostFeed({ refreshKey, profileId, feedProfileId, scope = 'profile' }: PostFeedProps) {
   const [posts, setPosts] = useState<any[]>([]); const [error, setError] = useState<string | null>(null); const [editingId, setEditingId] = useState<string | null>(null); const [editContent, setEditContent] = useState('');
   const [openMenuId, setOpenMenuId] = useState<string | null>(null); const [openReactionId, setOpenReactionId] = useState<string | null>(null); const [reactionCounts, setReactionCounts] = useState<Record<string, Record<string, number>>>({});
   const [myReactions, setMyReactions] = useState<Record<string, ReactionName | null>>({}); const [comments, setComments] = useState<Record<string, any[]>>({}); const [commentText, setCommentText] = useState<Record<string, string>>({}); const [openCommentsId, setOpenCommentsId] = useState<string | null>(null);
@@ -31,8 +31,8 @@ export function PostFeed({ refreshKey, profileId }: PostFeedProps) {
     (reactionRows ?? []).forEach((row: any) => { counts[row.post_id] ??= {}; counts[row.post_id][row.reaction] = (counts[row.post_id][row.reaction] ?? 0) + 1; if (row.profile_id === profileId) mine[row.post_id] = row.reaction as ReactionName; });
     (commentRows ?? []).forEach((row: any) => { grouped[row.post_id] ??= []; grouped[row.post_id].push(row); }); setReactionCounts(counts); setMyReactions(mine); setComments(grouped);
   };
-  const loadPosts = async () => { const { data, error: loadError } = await listPosts(profileId); if (loadError) setError(loadError.message); else { const items = data ?? []; setPosts(items); await loadInteractions(items); } };
-  useEffect(() => { void loadPosts(); }, [refreshKey, profileId]);
+  const loadPosts = async () => { const { data, error: loadError } = await listPosts(feedProfileId, scope); if (loadError) setError(loadError.message); else { const items = data ?? []; setPosts(items); await loadInteractions(items); } };
+  useEffect(() => { void loadPosts(); }, [refreshKey, profileId, feedProfileId, scope]);
   useEffect(() => { const close = (event: MouseEvent | TouchEvent) => { const target = event.target as Node; if (!Object.values(reactionRefs.current).some((node) => node?.contains(target))) setOpenReactionId(null); }; document.addEventListener('mousedown', close); document.addEventListener('touchstart', close); return () => { document.removeEventListener('mousedown', close); document.removeEventListener('touchstart', close); }; }, []);
 
   const startEdit = (post: any) => { setEditingId(post.id); setEditContent(post.content ?? ''); setOpenMenuId(null); };
