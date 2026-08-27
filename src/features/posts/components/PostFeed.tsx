@@ -31,7 +31,16 @@ export function PostFeed({ refreshKey, profileId, feedProfileId, scope = 'profil
     (reactionRows ?? []).forEach((row: any) => { counts[row.post_id] ??= {}; counts[row.post_id][row.reaction] = (counts[row.post_id][row.reaction] ?? 0) + 1; if (row.profile_id === profileId) mine[row.post_id] = row.reaction as ReactionName; });
     (commentRows ?? []).forEach((row: any) => { grouped[row.post_id] ??= []; grouped[row.post_id].push(row); }); setReactionCounts(counts); setMyReactions(mine); setComments(grouped);
   };
-  const loadPosts = async () => { const { data, error: loadError } = await listPosts(feedProfileId, scope); if (loadError) setError(loadError.message); else { const items = data ?? []; setPosts(items); await loadInteractions(items); } };
+
+  const loadPosts = async () => {
+    // Profile feeds must query the profile being displayed. Home/public feeds
+    // deliberately omit profileId so they can return public posts from everyone.
+    const targetProfileId = scope === 'profile' ? (feedProfileId ?? profileId) : undefined;
+    const { data, error: loadError } = await listPosts(targetProfileId, scope);
+    if (loadError) setError(loadError.message);
+    else { const items = data ?? []; setPosts(items); await loadInteractions(items); }
+  };
+
   useEffect(() => { void loadPosts(); }, [refreshKey, profileId, feedProfileId, scope]);
   useEffect(() => { const close = (event: MouseEvent | TouchEvent) => { const target = event.target as Node; if (!Object.values(reactionRefs.current).some((node) => node?.contains(target))) setOpenReactionId(null); }; document.addEventListener('mousedown', close); document.addEventListener('touchstart', close); return () => { document.removeEventListener('mousedown', close); document.removeEventListener('touchstart', close); }; }, []);
 
