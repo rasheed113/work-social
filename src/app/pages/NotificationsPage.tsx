@@ -46,8 +46,8 @@ export function NotificationsPage() {
   const unreadCount = items.filter((item) => !item.is_read).length;
 
   return <main style={{ minWidth: 0 }}>
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginBottom: 14 }}>
-      <div><h1 style={{ margin: 0, letterSpacing: '-0.02em' }}>Notifications</h1><p style={{ margin: '4px 0 0', opacity: 0.65, fontSize: 13 }}>{unreadCount ? `${unreadCount} unread` : 'All caught up'}</p></div>
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginBottom: 14, padding: '10px 2px 12px', borderBottom: '1px solid rgba(92,92,180,.10)' }}>
+      <div style={{ minWidth: 0 }}><h1 style={{ margin: 0, letterSpacing: '-0.035em', fontSize: 'clamp(25px, 7vw, 34px)', fontWeight: 850, background: 'linear-gradient(135deg, #17152d 0%, #4f46e5 52%, #2563eb 100%)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }}>Notifications</h1><div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 7, padding: '4px 9px', borderRadius: 999, background: unreadCount ? 'rgba(79,70,229,.09)' : 'rgba(34,197,94,.09)', border: unreadCount ? '1px solid rgba(79,70,229,.13)' : '1px solid rgba(34,197,94,.13)', color: unreadCount ? '#4f46e5' : '#16803c', fontSize: 12, fontWeight: 750 }}><span aria-hidden="true" style={{ width: 6, height: 6, borderRadius: '50%', background: unreadCount ? '#4f46e5' : '#22c55e', boxShadow: unreadCount ? '0 0 0 3px rgba(79,70,229,.10)' : '0 0 0 3px rgba(34,197,94,.10)' }} />{unreadCount ? `${unreadCount} unread` : 'All caught up'}</div></div>
       <button type="button" onClick={() => void markAllRead()} disabled={!unreadCount} style={{ border: 0, borderRadius: 999, padding: '8px 13px', fontWeight: 700, background: unreadCount ? 'linear-gradient(135deg, #6d5dfc, #3b82f6)' : 'rgba(0,0,0,.07)', color: unreadCount ? 'white' : 'rgba(0,0,0,.45)', boxShadow: unreadCount ? '0 5px 16px rgba(76,92,220,.24)' : 'none', cursor: unreadCount ? 'pointer' : 'default' }}>Mark all read</button>
     </div>
     {error && <p role="alert">{error}</p>}
