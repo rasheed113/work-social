@@ -94,6 +94,29 @@ export function App() {
         .work-social-router-shell > header { flex: 0 0 auto; position: sticky !important; top: 0 !important; }
         .work-social-router-shell > div:nth-child(2) { flex: 1 1 auto; min-height: 0 !important; min-width: 0 !important; width: 100% !important; max-width: 100% !important; overflow-y: auto !important; overflow-x: hidden !important; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
         .work-social-router-shell > nav { flex: 0 0 auto; }
+
+        /* Inbox owns its own scroll region. On mobile the fixed global nav must
+           never cover the message composer; reserve the nav's real footprint in
+           the page content and let only the message list scroll. */
+        .work-social-router-shell > div.work-social-inbox-content {
+          overflow-y: hidden !important;
+          overflow-x: hidden !important;
+          min-height: 0 !important;
+          padding-bottom: 0 !important;
+        }
+        .work-social-router-shell > div.work-social-inbox-content main.premium-chat-page {
+          height: 100% !important;
+          min-height: 0 !important;
+        }
+        @media (max-width: 767px) {
+          .work-social-router-shell > div.work-social-inbox-content {
+            padding-bottom: calc(92px + env(safe-area-inset-bottom)) !important;
+          }
+          .work-social-router-shell > div.work-social-inbox-content main.premium-chat-page {
+            height: 100% !important;
+            min-height: 0 !important;
+          }
+        }
       `}</style>
     </main>
   );
