@@ -1,0 +1,282 @@
+name: Apply realtime inbox and notifications fix
+
+on:
+  push:
+    branches: [fix/realtime-inbox-notifications]
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Patch realtime implementation
+        shell: python
+        run: |
+          from pathlib import Path
+
+          inbox = Path('src/app/pages/InboxPage.tsx')
+          text = inbox.read_text()
+          old = """ useEffect(()=>{const ch=supabase.channel(`work-social-chat:${profileId}`).on('postgres_changes',{event:'*',schema:'public',table:'messages'},()=>void load()).on('postgres_changes',{event:'*',schema:'public',table:'message_reactions'},()=>void load()).subscribe();return()=>{void supabase.removeChannel(ch)}},[profileId]);"""
+          new = r''' useEffect(()=>{
+  let active=true;
+  let channel:ReturnType<typeof supabase.channel>|null=null;
+  let recoveryTimer:number|null=null;
+  let recoveryRunning=false;
+  const recentMessageLimit=200;
+
+  const mergeMessages=(incoming:Message[])=>{
+    if(!incoming.length)return;
+    setMessages(current=>{
+      const map=new Map(current.map(message=>[message.id,message]));
+      for(const message of incoming){
+        const existing=map.get(message.id);
+        map.set(message.id,existing?{...existing,...message}:message);
+      }
+      return [...map.values()].sort((a,b)=>a.created_at.localeCompare(b.created_at)||a.id.localeCompare(b.id));
+    });
+  };
+
+  const mergeProfiles=async(senderIds:string[])=>{
+    const ids=[...new Set(senderIds.filter(Boolean))];
+    if(!ids.length||!active)return;
+    const {data,error}=await supabase.from('profiles').select('id,display_name,username,avatar_url').in('id',ids);
+    if(error||!data?.length||!active)return;
+    setProfiles(current=>{
+      const map=new Map(current.map(profile=>[profile.id,profile]));
+      for(const profile of data as Profile[])map.set(profile.id,profile);
+      return [...map.values()];
+    });
+    setMembers(current=>current.map(member=>member.profile?member:{...member,profile:(data as Profile[]).find(profile=>profile.id===member.profile_id)}));
+  };
+
+  const hydrateMedia=async(rows:Message[])=>{
+    const mediaRows=rows.map(message=>[message.id,message.media_path] as const).filter((item):item is [string,string]=>Boolean(item[1]));
+    if(!mediaRows.length||!active)return;
+    const signed=await supabase.storage.from('chat-media').createSignedUrls(mediaRows.map(item=>item[1]),3600);
+    if(signed.error||!active)return;
+    setMediaUrls(current=>{
+      const next={...current};
+      mediaRows.forEach((item,index)=>{const url=signed.data?.[index]?.signedUrl;if(url)next[item[0]]=url;});
+      return next;
+    });
+  };
+
+  const syncRecent=async()=>{
+    if(!active||recoveryRunning)return;
+    recoveryRunning=true;
+    try{
+      const {data:mine,error:memberError}=await supabase.from('conversation_members').select('conversation_id').eq('profile_id',profileId);
+      if(memberError||!active)return;
+      const ids=(mine??[]).map((row:any)=>row.conversation_id).filter(Boolean);
+      if(!ids.length)return;
+      const {data,error}=await supabase.from('messages').select('id,conversation_id,sender_id,content,message_type,media_path,media_mime,media_name,media_size,media_duration_ms,created_at,read_at,reply_to_message_id,edited_at,deleted_at').in('conversation_id',ids).order('created_at',{ascending:false}).limit(recentMessageLimit);
+      if(error||!active)return;
+      const rows=(data??[]) as Message[];
+      mergeMessages(rows);
+      await mergeProfiles(rows.map(row=>row.sender_id));
+      await hydrateMedia(rows);
+      const latestByConversation=new Map<string,Message>();
+      rows.forEach(row=>{const previous=latestByConversation.get(row.conversation_id);if(!previous||row.created_at>previous.created_at)latestByConversation.set(row.conversation_id,row);});
+      setConversations(current=>[...current].sort((a,b)=>{
+        const at=latestByConversation.get(a.id)?.created_at??a.updated_at;
+        const bt=latestByConversation.get(b.id)?.created_at??b.updated_at;
+        return bt.localeCompare(at);
+      }).map(conversation=>{const latest=latestByConversation.get(conversation.id);return latest?{...conversation,updated_at:latest.created_at}:conversation;}));
+    }finally{recoveryRunning=false;}
+  };
+
+  const handleMessage=(payload:any)=>{
+    if(!active)return;
+    const event=payload.eventType as 'INSERT'|'UPDATE'|'DELETE';
+    const row=((event==='DELETE'?payload.old:payload.new)??null) as Message|null;
+    if(!row?.id||!row.conversation_id)return;
+    if(event==='DELETE'){
+      setMessages(current=>current.filter(message=>message.id!==row.id));
+      return;
+    }
+    mergeMessages([row]);
+    setConversations(current=>current.map(conversation=>conversation.id===row.conversation_id?{...conversation,updated_at:row.created_at}:conversation).sort((a,b)=>b.updated_at.localeCompare(a.updated_at)));
+    void mergeProfiles([row.sender_id]);
+    void hydrateMedia([row]);
+  };
+
+  const handleRecovery=()=>{
+    if(!active)return;
+    if(!supabase.realtime.isConnected())supabase.realtime.connect();
+    if(recoveryTimer!==null)window.clearTimeout(recoveryTimer);
+    recoveryTimer=window.setTimeout(()=>{recoveryTimer=null;void syncRecent();},250);
+  };
+
+  const subscribe=()=>{
+    if(!active)return;
+    if(channel)void supabase.removeChannel(channel);
+    channel=supabase.channel(`work-social-chat:${profileId}`)
+      .on('postgres_changes',{event:'INSERT',schema:'public',table:'messages'},handleMessage)
+      .on('postgres_changes',{event:'UPDATE',schema:'public',table:'messages'},handleMessage)
+      .on('postgres_changes',{event:'DELETE',schema:'public',table:'messages'},handleMessage)
+      .on('postgres_changes',{event:'*',schema:'public',table:'message_reactions'},()=>void syncRecent())
+      .subscribe((status)=>{
+        if(status==='SUBSCRIBED')void syncRecent();
+        else if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'||status==='CLOSED')handleRecovery();
+      });
+  };
+
+  const onVisibility=()=>{if(document.visibilityState==='visible')handleRecovery();};
+  const onFocus=()=>handleRecovery();
+  const onOnline=()=>handleRecovery();
+  document.addEventListener('visibilitychange',onVisibility);
+  window.addEventListener('focus',onFocus);
+  window.addEventListener('online',onOnline);
+  subscribe();
+
+  return()=>{
+    active=false;
+    document.removeEventListener('visibilitychange',onVisibility);
+    window.removeEventListener('focus',onFocus);
+    window.removeEventListener('online',onOnline);
+    if(recoveryTimer!==null)window.clearTimeout(recoveryTimer);
+    if(channel)void supabase.removeChannel(channel);
+  };
+ },[profileId]);'''
+          if old not in text:
+              raise SystemExit('Inbox realtime block not found; refusing unsafe patch')
+          inbox.write_text(text.replace(old,new,1))
+
+          notifications = Path('src/app/pages/NotificationsPage.tsx')
+          text = notifications.read_text()
+          old = """  useEffect(() => { void load(); let channel: ReturnType<typeof supabase.channel> | null = null; let mounted = true; supabase.auth.getUser().then(({ data }) => { if (!mounted || !data.user) return; channel = supabase.channel(`notifications:${data.user.id}`).on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `receiver_id=eq.${data.user.id}` }, () => void load()).on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'notifications', filter: `receiver_id=eq.${data.user.id}` }, () => void load()).subscribe(); }); return () => { mounted = false; if (channel) void supabase.removeChannel(channel); }; }, []);"""
+          new = r'''  useEffect(() => {
+    let mounted = true;
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    let recoveryTimer: number | null = null;
+    let recoveryRunning = false;
+    const recentLimit = 100;
+
+    const mergeItems = (rows: NotificationRow[]) => {
+      if (!rows.length || !mounted) return;
+      setItems(current => {
+        const map = new Map(current.map(item => [item.id, item]));
+        for (const row of rows) {
+          const existing = map.get(row.id);
+          map.set(row.id, existing ? { ...existing, ...row } : row);
+        }
+        return [...map.values()].sort((a, b) => b.created_at.localeCompare(a.created_at));
+      });
+    };
+
+    const hydrateSenders = async (rows: NotificationRow[]) => {
+      const ids = [...new Set(rows.map(row => row.sender_id).filter(Boolean))];
+      if (!ids.length || !mounted) return;
+      const { data, error } = await supabase.from('profiles').select('id, display_name, username, avatar_url').in('id', ids);
+      if (error || !data?.length || !mounted) return;
+      const senderMap = new Map((data as any[]).map(sender => [sender.id, sender]));
+      setItems(current => current.map(item => senderMap.has(item.sender_id) ? { ...item, sender: senderMap.get(item.sender_id) } : item));
+    };
+
+    const syncRecent = async () => {
+      if (!mounted || recoveryRunning) return;
+      recoveryRunning = true;
+      try {
+        const { data: auth } = await supabase.auth.getUser();
+        if (!auth.user || !mounted) return;
+        const { data, error } = await supabase.from('notifications').select('id, receiver_id, sender_id, type, post_id, comment_id, is_read, created_at, metadata').eq('receiver_id', auth.user.id).order('created_at', { ascending: false }).limit(recentLimit);
+        if (error || !mounted) return;
+        const rows = (data ?? []) as NotificationRow[];
+        mergeItems(rows);
+        await hydrateSenders(rows);
+      } finally {
+        recoveryRunning = false;
+      }
+    };
+
+    const handleNotification = (payload: any) => {
+      if (!mounted) return;
+      const event = payload.eventType as 'INSERT' | 'UPDATE' | 'DELETE';
+      const row = ((event === 'DELETE' ? payload.old : payload.new) ?? null) as NotificationRow | null;
+      if (!row?.id) return;
+      if (row.receiver_id && row.receiver_id !== payload?.new?.receiver_id && event !== 'DELETE') return;
+      if (event === 'DELETE') {
+        setItems(current => current.filter(item => item.id !== row.id));
+        return;
+      }
+      mergeItems([row]);
+      void hydrateSenders([row]);
+    };
+
+    const recover = () => {
+      if (!mounted) return;
+      if (!supabase.realtime.isConnected()) supabase.realtime.connect();
+      if (recoveryTimer !== null) window.clearTimeout(recoveryTimer);
+      recoveryTimer = window.setTimeout(() => { recoveryTimer = null; void syncRecent(); }, 250);
+    };
+
+    const subscribe = (userId: string) => {
+      if (!mounted) return;
+      if (channel) void supabase.removeChannel(channel);
+      channel = supabase.channel(`notifications:${userId}`)
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `receiver_id=eq.${userId}` }, handleNotification)
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'notifications', filter: `receiver_id=eq.${userId}` }, handleNotification)
+        .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'notifications' }, handleNotification)
+        .subscribe(status => {
+          if (status === 'SUBSCRIBED') void syncRecent();
+          else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') recover();
+        });
+    };
+
+    void load();
+    supabase.auth.getUser().then(({ data }) => { if (mounted && data.user) subscribe(data.user.id); });
+
+    const onVisibility = () => { if (document.visibilityState === 'visible') recover(); };
+    const onFocus = () => recover();
+    const onOnline = () => recover();
+    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('focus', onFocus);
+    window.addEventListener('online', onOnline);
+
+    return () => {
+      mounted = false;
+      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('focus', onFocus);
+      window.removeEventListener('online', onOnline);
+      if (recoveryTimer !== null) window.clearTimeout(recoveryTimer);
+      if (channel) void supabase.removeChannel(channel);
+    };
+  }, []);'''
+          if old not in text:
+              raise SystemExit('Notifications realtime block not found; refusing unsafe patch')
+          notifications.write_text(text.replace(old,new,1))
+          print('Realtime patch applied')
+
+      - name: Install dependencies and build
+        run: npm install && npm run build
+
+      - name: Verify diff scope
+        shell: bash
+        run: |
+          git status --short
+          git diff --check
+          changed=$(git diff --name-only)
+          echo "$changed"
+          test -z "$(echo "$changed" | grep -v -E '^(src/app/pages/InboxPage.tsx|src/app/pages/NotificationsPage.tsx)$')"
+
+      - name: Commit final fix and remove temporary workflow
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          rm -f .github/workflows/realtime-fix.yml
+          git add src/app/pages/InboxPage.tsx src/app/pages/NotificationsPage.tsx .github/workflows/realtime-fix.yml
+          git diff --cached --check
+          git commit -m "fix: make inbox and notifications realtime resilient"
+          git push origin HEAD:fix/realtime-inbox-notifications
