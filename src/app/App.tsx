@@ -83,7 +83,7 @@ export function App() {
   }, []);
 
   if (initializing) return <main className="app-shell"><div className="auth-card"><p>Signing you in…</p></div></main>;
-  if (!session) return <main className="app-shell">{authError && <p role="alert">{authError}</p>}{showSignup ? <SignupForm onLogin={() => { setAuthError(null); setShowSignup(false); }} /> : <LoginForm onSignup={() => { setAuthError(null); setShowSignup(true); }} />}</main>;
+  if (!session) return <main className="app-shell auth-screen">{authError && <p role="alert">{authError}</p>}{showSignup ? <SignupForm onLogin={() => { setAuthError(null); setShowSignup(false); }} /> : <LoginForm onSignup={() => { setAuthError(null); setShowSignup(true); }} />}</main>;
 
   return (
     <main className="app-shell" style={{ height: '100dvh', minHeight: 0, padding: 0, boxSizing: 'border-box', overflow: 'hidden', width: '100%' }}>
