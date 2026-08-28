@@ -6,7 +6,7 @@
   text-rendering: optimizeLegibility;
 }
 * { box-sizing: border-box; }
-html, body, #root { min-height: 100%; }
+html, body, #root { min-height: 100%; width: 100%; max-width: 100%; }
 body { margin: 0; min-width: 320px; overflow-x: hidden; }
 .app-shell { min-height: 100vh; display: grid; place-items: center; padding: 24px; }
 .foundation-card { width: min(100%, 560px); padding: 32px; border: 1px solid #dfe5eb; border-radius: 16px; background: #fff; box-shadow: 0 12px 40px rgba(23, 32, 42, 0.08); }
@@ -18,6 +18,30 @@ article { max-width: 100%; overflow-wrap: anywhere; }
 article footer { min-width: 0; }
 article footer > div { min-width: 0; }
 article footer input { min-width: 0; max-width: 100%; }
+
+/* Global-width contract for Inbox. The header, calls and group menu must live
+   inside the same width as the app shell rather than extending past the viewport. */
+main.premium-chat-page,
+main.premium-chat-page > section,
+main.premium-chat-page section {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+main.premium-chat-page section > header {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+  overflow: visible !important;
+}
+@media (max-width: 640px) {
+  main.premium-chat-page section > header {
+    padding-left: max(12px, env(safe-area-inset-left)) !important;
+    padding-right: max(12px, env(safe-area-inset-right)) !important;
+  }
+}
 
 /* Work Social Inbox: the Group navigation control is styled here because this
    stylesheet is globally loaded even before the Group Maker modal mounts. */
@@ -40,29 +64,8 @@ main.premium-chat-page aside button.ws-premium-group-trigger {
   box-shadow: inset 0 1px 0 rgba(255,255,255,1), inset 0 -2px 5px rgba(79,70,229,.08), 0 6px 15px rgba(79,70,229,.16), 0 0 24px rgba(34,193,220,.10) !important;
   transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease, background .18s ease !important;
 }
-main.premium-chat-page aside button.ws-premium-group-trigger::after {
-  content: '';
-  position: absolute;
-  inset: 1px;
-  border-radius: 12px;
-  background: linear-gradient(120deg, transparent 18%, rgba(255,255,255,.72) 48%, transparent 76%);
-  transform: translateX(-130%);
-  transition: transform .45s ease;
-  pointer-events: none;
-  z-index: 1;
-}
-main.premium-chat-page aside button.ws-premium-group-trigger:hover {
-  transform: translateY(-1px) !important;
-  border-color: rgba(109,93,252,.82) !important;
-  background: linear-gradient(135deg, #fff, rgba(244,241,255,.99) 52%, rgba(230,252,255,.99)) !important;
-  box-shadow: inset 0 1px 0 #fff, 0 9px 21px rgba(79,70,229,.21), 0 0 30px rgba(34,193,220,.14) !important;
-}
+main.premium-chat-page aside button.ws-premium-group-trigger::after { content: ''; position: absolute; inset: 1px; border-radius: 12px; background: linear-gradient(120deg, transparent 18%, rgba(255,255,255,.72) 48%, transparent 76%); transform: translateX(-130%); transition: transform .45s ease; pointer-events: none; z-index: 1; }
+main.premium-chat-page aside button.ws-premium-group-trigger:hover { transform: translateY(-1px) !important; border-color: rgba(109,93,252,.82) !important; background: linear-gradient(135deg, #fff, rgba(244,241,255,.99) 52%, rgba(230,252,255,.99)) !important; box-shadow: inset 0 1px 0 #fff, 0 9px 21px rgba(79,70,229,.21), 0 0 30px rgba(34,193,220,.14) !important; }
 main.premium-chat-page aside button.ws-premium-group-trigger:hover::after { transform: translateX(130%); }
-main.premium-chat-page aside button.ws-premium-group-trigger:active {
-  transform: translateY(1px) !important;
-  box-shadow: inset 0 2px 6px rgba(79,70,229,.13), 0 3px 8px rgba(79,70,229,.12) !important;
-}
-main.premium-chat-page aside button.ws-premium-group-trigger:focus-visible {
-  outline: none !important;
-  box-shadow: 0 0 0 3px rgba(109,93,252,.13), 0 8px 20px rgba(79,70,229,.18), 0 0 28px rgba(34,193,220,.12) !important;
-}
+main.premium-chat-page aside button.ws-premium-group-trigger:active { transform: translateY(1px) !important; box-shadow: inset 0 2px 6px rgba(79,70,229,.13), 0 3px 8px rgba(79,70,229,.12) !important; }
+main.premium-chat-page aside button.ws-premium-group-trigger:focus-visible { outline: none !important; box-shadow: 0 0 0 3px rgba(109,93,252,.13), 0 8px 20px rgba(79,70,229,.18), 0 0 28px rgba(34,193,220,.12) !important; }
