@@ -2,22 +2,91 @@
 .premium-chat-page aside { background:linear-gradient(180deg,rgba(248,250,255,.96),rgba(255,255,255,.9)); border-color:rgba(99,102,241,.12) !important; }
 .premium-chat-page aside h1 { font-weight:900 !important; letter-spacing:-.03em; color:transparent !important; background:linear-gradient(135deg,#6d5dfc,#22c1dc,#ff5ca8); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; text-shadow:0 3px 10px rgba(79,70,229,.12); }
 
-/* Inbox shell sizing: horizontal constraints only; existing heights remain unchanged. */
+/* Real Inbox shell containment: keep flex children inside the actual chat viewport. */
 .premium-chat-page,
 .premium-chat-page > div,
 .premium-chat-page section,
 .premium-chat-page section > header,
 .premium-chat-page section > footer,
 .premium-chat-page section > form { width:100% !important; max-width:100% !important; min-width:0 !important; box-sizing:border-box !important; }
-.premium-chat-page { overflow-x:hidden !important; }
+.premium-chat-page { overflow-x:hidden !important; padding-bottom:calc(92px + env(safe-area-inset-bottom)) !important; }
 .premium-chat-page > div,
-.premium-chat-page section,
-.premium-chat-page section > header,
+.premium-chat-page section { min-width:0 !important; }
+
+/* The conversation identity is a shrinkable flex item. Portaled controls and
+   group actions remain fixed-size siblings, so the title never pushes them out. */
+.premium-chat-page section > header {
+  display:flex !important;
+  align-items:center !important;
+  justify-content:space-between !important;
+  gap:10px !important;
+  min-width:0 !important;
+  width:100% !important;
+  max-width:100% !important;
+  box-sizing:border-box !important;
+  overflow:hidden !important;
+}
+.premium-chat-page section > header > div:not(.inbox-call-toolbar):not([data-ws-group-header-action]) {
+  flex:1 1 auto !important;
+  min-width:0 !important;
+  width:auto !important;
+  max-width:100% !important;
+  overflow:hidden !important;
+  box-sizing:border-box !important;
+}
+.premium-chat-page section > header > div:not(.inbox-call-toolbar):not([data-ws-group-header-action]) strong,
+.premium-chat-page section > header > div:not(.inbox-call-toolbar):not([data-ws-group-header-action]) small {
+  min-width:0 !important;
+  max-width:100% !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+  white-space:nowrap !important;
+}
+
+/* StableInboxCallControls is portaled into the real header. Its footprint is
+   reserved in normal flex flow; it cannot grow the header past the viewport. */
+.premium-chat-page section > header .inbox-call-toolbar {
+  position:static !important;
+  inset:auto !important;
+  transform:none !important;
+  flex:0 0 auto !important;
+  min-width:0 !important;
+  max-width:100% !important;
+  box-sizing:border-box !important;
+}
+.premium-chat-page section > header [data-ws-group-header-action] {
+  position:relative !important;
+  flex:0 0 auto !important;
+  min-width:0 !important;
+  max-width:100% !important;
+  box-sizing:border-box !important;
+}
+
+/* Footer/composer is the final grid row and remains above the fixed bottom nav. */
 .premium-chat-page section > footer,
-.premium-chat-page section > form { overflow-x:hidden !important; }
-.premium-chat-page section > header > div,
+.premium-chat-page section > form,
+.premium-chat-page section > div:last-child {
+  min-width:0 !important;
+  max-width:100% !important;
+  box-sizing:border-box !important;
+  overflow:hidden !important;
+}
 .premium-chat-page section > footer > div,
-.premium-chat-page section > form > div { min-width:0 !important; max-width:100% !important; box-sizing:border-box !important; }
+.premium-chat-page section > form > div,
+.premium-chat-page section > div:last-child > div {
+  min-width:0 !important;
+  max-width:100% !important;
+  width:auto !important;
+  box-sizing:border-box !important;
+  flex:1 1 auto !important;
+}
+.premium-chat-page section > footer input,
+.premium-chat-page section > form input,
+.premium-chat-page section > div:last-child input {
+  min-width:0 !important;
+  max-width:100% !important;
+  box-sizing:border-box !important;
+}
 
 /* Premium Inbox search — visual only; dimensions/layout remain unchanged. */
 .premium-chat-page aside input[placeholder="Search people..."] { appearance:none !important; -webkit-appearance:none !important; border:1px solid rgba(109,93,252,.38) !important; background:linear-gradient(145deg,rgba(255,255,255,.995),rgba(240,244,255,.96)) !important; box-shadow:inset 0 1px 0 rgba(255,255,255,1),inset 0 -2px 5px rgba(67,56,202,.06),0 3px 7px rgba(15,23,42,.06),0 8px 20px rgba(79,70,229,.10),0 0 18px rgba(34,193,220,.06) !important; outline:none !important; transition:border-color .2s ease,box-shadow .2s ease,background .2s ease !important; }
@@ -41,4 +110,4 @@
 .premium-chat-page textarea { border:1px solid rgba(99,102,241,.16) !important; border-radius:14px !important; background:rgba(255,255,255,.96) !important; box-shadow:inset 0 1px 2px rgba(15,23,42,.03); outline:none; }
 .premium-chat-page textarea:focus { border-color:rgba(109,93,252,.45) !important; box-shadow:0 0 0 3px rgba(109,93,252,.09) !important; }
 .premium-chat-page form button[type="submit"] { border:0 !important; border-radius:999px !important; background:linear-gradient(135deg,#6d5dfc,#22c1dc) !important; color:#fff !important; font-weight:900 !important; box-shadow:0 7px 17px rgba(79,70,229,.20); }
-@media (max-width:767px){.premium-chat-page > div{border-radius:15px !important}.premium-chat-page article{border-radius:12px !important}}
+@media (max-width:767px){.premium-chat-page>div{border-radius:15px !important}.premium-chat-page article{border-radius:12px !important}.premium-chat-page section>header{padding-left:11px !important;padding-right:11px !important;gap:8px !important}.premium-chat-page section>header>div:not(.inbox-call-toolbar):not([data-ws-group-header-action]){flex-basis:0 !important}.premium-chat-page section>div:last-child{padding-bottom:env(safe-area-inset-bottom) !important}}
