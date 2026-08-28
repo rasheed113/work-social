@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { supabase } from '../../lib/supabase/client';
 
 type Profile = { id: string; display_name: string | null };
-type PresenceEntry = { userId?: string; online_at?: string };
+type PresenceEntry = { userId?: string; profile_id?: string; user_id?: string; online_at?: string };
 
 const PRESENCE_CHANNEL = 'work-social-presence';
 
@@ -21,20 +21,14 @@ export function RealtimePresenceStatus({ profileId }: { profileId: string }) {
     updateHost();
     const observer = new MutationObserver(updateHost);
     observer.observe(document.body, { childList: true, subtree: true });
-    return () => {
-      cancelled = true;
-      observer.disconnect();
-    };
+    return () => { cancelled = true; observer.disconnect(); };
   }, []);
 
   useEffect(() => {
     let cancelled = false;
     const loadPeer = async () => {
       try {
-        if (!conversationId) {
-          if (!cancelled) setPeer(null);
-          return;
-        }
+        if (!conversationId) { if (!cancelled) setPeer(null); return; }
         const { data, error } = await supabase
           .from('conversation_members')
           .select('profile_id')
@@ -43,46 +37,33 @@ export function RealtimePresenceStatus({ profileId }: { profileId: string }) {
           .limit(1);
         if (cancelled || error) return;
         const peerId = data?.[0]?.profile_id;
-        if (!peerId) {
-          setPeer(null);
-          return;
-        }
+        if (!peerId) { setPeer(null); return; }
         setPeer({ id: peerId, display_name: null });
-      } catch {
-        if (!cancelled) setPeer(null);
-      }
+      } catch { if (!cancelled) setPeer(null); }
     };
     void loadPeer();
     return () => { cancelled = true; };
   }, [conversationId, profileId]);
 
   useEffect(() => {
-    if (!peer || !profileId) {
-      setOnline(false);
-      return;
-    }
-
+    if (!peer?.id || !profileId) { setOnline(false); return; }
     let disposed = false;
-    // Presence is intentionally public-channel based here. The payload only contains
-    // the authenticated profile id and timestamp; no message or conversation data is exposed.
-    // Keeping this separate from the call channel also prevents presence failures from
-    // affecting the working WebRTC/call flow.
-    const channel = supabase.channel(PRESENCE_CHANNEL, {
-      config: { presence: { key: profileId } },
-    });
+    const channel = supabase.channel(PRESENCE_CHANNEL, { config: { presence: { key: profileId } } });
 
     const sync = () => {
       if (disposed) return;
       try {
         const state = channel.presenceState<PresenceEntry>();
-        const peerEntries = state[peer.id] ?? [];
-        const peerIsTracked = peerEntries.length > 0 || Object.values(state).some((entries) =>
-          entries.some((entry) => entry.userId === peer.id),
+        const entries = Object.entries(state).flatMap(([key, values]) =>
+          values.map((entry) => ({ ...entry, __key: key }))
         );
-        setOnline(peerIsTracked);
-      } catch {
-        setOnline(false);
-      }
+        setOnline(entries.some((entry) =>
+          entry.__key === peer.id ||
+          entry.userId === peer.id ||
+          entry.profile_id === peer.id ||
+          entry.user_id === peer.id
+        ));
+      } catch { setOnline(false); }
     };
 
     channel
@@ -91,28 +72,16 @@ export function RealtimePresenceStatus({ profileId }: { profileId: string }) {
       .on('presence', { event: 'leave' }, sync)
       .subscribe((status) => {
         if (disposed) return;
-        if (status !== 'SUBSCRIBED') {
-          setOnline(false);
-          return;
-        }
-        void channel.track({
-          userId: profileId,
-          online_at: new Date().toISOString(),
-        }).then(() => sync()).catch(() => {
-          if (!disposed) setOnline(false);
-        });
-        sync();
+        if (status !== 'SUBSCRIBED') { setOnline(false); return; }
+        void channel.track({ userId: profileId, profile_id: profileId, online_at: new Date().toISOString() })
+          .then(() => sync())
+          .catch(() => { if (!disposed) setOnline(false); });
       });
 
-    return () => {
-      disposed = true;
-      setOnline(false);
-      void supabase.removeChannel(channel).catch(() => undefined);
-    };
+    return () => { disposed = true; setOnline(false); void supabase.removeChannel(channel).catch(() => undefined); };
   }, [peer?.id, profileId]);
 
   if (!host) return null;
-
   return createPortal(
     <span className="realtime-presence-status" aria-label={online ? 'Online' : 'Offline'}>
       <span className={`realtime-presence-dot${online ? ' online' : ''}`} />
