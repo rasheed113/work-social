@@ -2,20 +2,23 @@
 .premium-chat-page aside { background:linear-gradient(180deg,rgba(248,250,255,.96),rgba(255,255,255,.9)); border-color:rgba(99,102,241,.12) !important; }
 .premium-chat-page aside h1 { font-weight:900 !important; letter-spacing:-.03em; color:transparent !important; background:linear-gradient(135deg,#6d5dfc,#22c1dc,#ff5ca8); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; text-shadow:0 3px 10px rgba(79,70,229,.12); }
 
-/* Chat viewport containment. The selected conversation is a grid child of the
-   Inbox shell, so every horizontal flex item must be shrinkable at its source. */
+/* Root Chat Screen widget boundary. The outer Inbox grid must use shrinkable
+   tracks; otherwise a min-content child can make the selected-chat widget
+   wider than its viewport even when the header itself says width:100%. */
 .premium-chat-page,
 .premium-chat-page > div,
+.premium-chat-page > div > aside,
+.premium-chat-page > div > section,
 .premium-chat-page section,
 .premium-chat-page section > header,
 .premium-chat-page section > footer,
 .premium-chat-page section > form { width:100% !important; max-width:100% !important; min-width:0 !important; box-sizing:border-box !important; }
+.premium-chat-page > div { grid-template-columns:minmax(0,280px) minmax(0,1fr) !important; overflow:hidden !important; }
 .premium-chat-page { overflow-x:hidden !important; padding-bottom:calc(92px + env(safe-area-inset-bottom)) !important; }
-.premium-chat-page > div,
-.premium-chat-page section { min-width:0 !important; }
+.premium-chat-page > div > section { overflow:hidden !important; }
 
-/* Active chat header: identity shrinks; action controls keep their intrinsic
-   button sizes and remain in normal flex flow instead of being clipped. */
+/* Active chat HEADER WIDGET only. Keep the existing header content and
+   button dimensions; constrain the outer widget to its actual grid column. */
 .premium-chat-page section > header {
   display:flex !important;
   align-items:center !important;
@@ -24,55 +27,25 @@
   min-width:0 !important;
   width:100% !important;
   max-width:100% !important;
+  margin-inline:0 !important;
   padding-left:clamp(8px,2vw,14px) !important;
   padding-right:max(clamp(8px,2vw,14px),env(safe-area-inset-right)) !important;
   box-sizing:border-box !important;
   overflow:visible !important;
 }
-.premium-chat-page section > header > button,
-.premium-chat-page section > header > img,
-.premium-chat-page section > header > span,
-.premium-chat-page section > header > .inbox-call-toolbar,
-.premium-chat-page section > header > [data-ws-group-header-action] { min-width:0 !important; flex-shrink:0 !important; box-sizing:border-box !important; }
 .premium-chat-page section > header > div:not(.inbox-call-toolbar):not([data-ws-group-header-action]) {
-  flex:1 1 0% !important;
+  flex:1 1 auto !important;
   min-width:0 !important;
-  width:auto !important;
-  max-width:none !important;
-  overflow:hidden !important;
-  box-sizing:border-box !important;
 }
-.premium-chat-page section > header > div:not(.inbox-call-toolbar):not([data-ws-group-header-action]) strong,
-.premium-chat-page section > header > div:not(.inbox-call-toolbar):not([data-ws-group-header-action]) small {
-  display:block !important;
+.premium-chat-page section > header .inbox-call-toolbar,
+.premium-chat-page section > header [data-ws-group-header-action] {
+  flex:0 0 auto !important;
   min-width:0 !important;
   max-width:100% !important;
-  overflow:hidden !important;
-  text-overflow:ellipsis !important;
-  white-space:nowrap !important;
+  box-sizing:border-box !important;
 }
 
-/* StableInboxCallControls is portaled into this header. Keep its toolbar in
-   flex flow so it reserves real space instead of overlaying/clipping at right. */
-.premium-chat-page section > header .inbox-call-toolbar {
-  position:static !important;
-  inset:auto !important;
-  transform:none !important;
-  flex:0 0 auto !important;
-  width:auto !important;
-  max-width:none !important;
-  overflow:visible !important;
-}
-.premium-chat-page section > header [data-ws-group-header-action] {
-  position:relative !important;
-  flex:0 0 auto !important;
-  width:auto !important;
-  max-width:none !important;
-  overflow:visible !important;
-}
-
-/* Composer is the final grid row. Its input may shrink, while controls remain
-   fully visible; the Inbox shell's bottom clearance keeps this row above nav. */
+/* Chat composer widget stays inside the same shrinkable grid column. */
 .premium-chat-page section > footer,
 .premium-chat-page section > form,
 .premium-chat-page section > div:last-child {
@@ -80,26 +53,13 @@
   max-width:100% !important;
   width:100% !important;
   box-sizing:border-box !important;
-  overflow:visible !important;
 }
 .premium-chat-page section > footer > div,
 .premium-chat-page section > form > div,
-.premium-chat-page section > div:last-child > div {
-  min-width:0 !important;
-  max-width:100% !important;
-  width:100% !important;
-  box-sizing:border-box !important;
-  flex:1 1 auto !important;
-}
+.premium-chat-page section > div:last-child > div { min-width:0 !important; max-width:100% !important; width:100% !important; box-sizing:border-box !important; }
 .premium-chat-page section > footer input,
 .premium-chat-page section > form input,
-.premium-chat-page section > div:last-child input {
-  min-width:0 !important;
-  max-width:100% !important;
-  width:auto !important;
-  flex:1 1 0% !important;
-  box-sizing:border-box !important;
-}
+.premium-chat-page section > div:last-child input { min-width:0 !important; max-width:100% !important; box-sizing:border-box !important; }
 .premium-chat-page section > footer button,
 .premium-chat-page section > form button,
 .premium-chat-page section > div:last-child button { flex:0 0 auto !important; }
@@ -107,10 +67,9 @@
 /* Premium Inbox search — visual only; dimensions/layout remain unchanged. */
 .premium-chat-page aside input[placeholder="Search people..."] { appearance:none !important; -webkit-appearance:none !important; border:1px solid rgba(109,93,252,.38) !important; background:linear-gradient(145deg,rgba(255,255,255,.995),rgba(240,244,255,.96)) !important; box-shadow:inset 0 1px 0 rgba(255,255,255,1),inset 0 -2px 5px rgba(67,56,202,.06),0 3px 7px rgba(15,23,42,.06),0 8px 20px rgba(79,70,229,.10),0 0 18px rgba(34,193,220,.06) !important; outline:none !important; transition:border-color .2s ease,box-shadow .2s ease,background .2s ease !important; }
 .premium-chat-page aside input[placeholder="Search people..."]::placeholder { color:rgba(55,61,89,.66); opacity:1; }
-.premium-chat-page aside input[placeholder="Search people..."]:hover { border-color:rgba(109,93,252,.56) !important; box-shadow:inset 0 1px 0 rgba(255,255,255,1),inset 0 -2px 5px rgba(67,56,202,.075),0 4px 8px rgba(15,23,42,.07),0 10px 22px rgba(79,70,229,.14),0 0 22px rgba(34,193,220,.09) !important; }
-.premium-chat-page aside input[placeholder="Search people..."]:focus { border-color:rgba(109,93,252,.76) !important; background:linear-gradient(145deg,#fff,rgba(245,247,255,.99)) !important; box-shadow:inset 0 1px 0 #fff,inset 0 -2px 5px rgba(67,56,202,.08),0 4px 8px rgba(15,23,42,.075),0 10px 25px rgba(79,70,229,.16),0 0 0 3px rgba(109,93,252,.09),0 0 28px rgba(34,193,220,.13) !important; }
+.premium-chat-page aside input[placeholder="Search people..."]:hover { border-color:rgba(109,93,252,.56) !important; box-shadow:inset 0 1px 0 rgba(255,255,255,1),inset 0 -2px 5px rgba(67,70,229,.075),0 4px 8px rgba(15,23,42,.07),0 10px 22px rgba(79,70,229,.14),0 0 22px rgba(34,193,220,.09) !important; }
+.premium-chat-page aside input[placeholder="Search people..."]:focus { border-color:rgba(109,93,252,.76) !important; background:linear-gradient(145deg,#fff,rgba(245,247,255,.99)) !important; box-shadow:inset 0 1px 0 #fff,inset 0 -2px 5px rgba(67,93,202,.08),0 4px 8px rgba(15,23,42,.075),0 10px 25px rgba(79,70,229,.16),0 0 0 3px rgba(109,93,252,.09),0 0 28px rgba(34,193,220,.13) !important; }
 
-/* Create Group navigation control — explicit class target. */
 .premium-chat-page .ws-premium-group-trigger { position:relative !important; display:flex !important; align-items:center !important; justify-content:center !important; gap:6px !important; overflow:hidden !important; isolation:isolate !important; border:1px solid rgba(109,93,252,.48) !important; border-radius:14px !important; background:linear-gradient(135deg,rgba(255,255,255,.99) 0%,rgba(242,240,255,.98) 48%,rgba(233,251,255,.96) 100%) !important; color:#5146e5 !important; font-weight:900 !important; letter-spacing:-.015em !important; box-shadow:inset 0 1px 0 rgba(255,255,255,1),inset 0 -2px 5px rgba(79,70,229,.07),0 4px 10px rgba(79,70,229,.12),0 0 18px rgba(109,93,252,.09),0 0 24px rgba(34,193,220,.055) !important; transform:translateZ(0); transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease,background .18s ease !important; }
 .premium-chat-page .ws-premium-group-trigger::before { content:''; position:absolute; inset:1px; border-radius:12px; background:linear-gradient(115deg,rgba(255,255,255,.78),rgba(255,255,255,0) 42%,rgba(34,193,220,.09)); pointer-events:none; z-index:-1; }
 .premium-chat-page .ws-premium-group-trigger::after { content:''; position:absolute; top:-70%; left:-30%; width:45%; height:240%; transform:rotate(22deg); background:linear-gradient(90deg,transparent,rgba(255,255,255,.72),transparent); opacity:0; pointer-events:none; transition:left .45s ease,opacity .2s ease; z-index:0; }
@@ -118,7 +77,6 @@
 .premium-chat-page .ws-premium-group-trigger:hover::after { left:110%; opacity:1; }
 .premium-chat-page .ws-premium-group-trigger:active { transform:translateY(1px) !important; box-shadow:inset 0 2px 5px rgba(79,70,229,.12),0 2px 7px rgba(79,70,229,.12) !important; }
 .premium-chat-page .ws-premium-group-trigger:focus-visible { outline:none !important; box-shadow:0 0 0 3px rgba(109,93,252,.12),0 7px 18px rgba(79,70,229,.16),0 0 25px rgba(34,193,220,.09) !important; }
-
 .premium-chat-page aside button { border-radius:12px !important; font-weight:800 !important; }
 .premium-chat-page article { border-color:rgba(99,102,241,.10) !important; border-radius:14px !important; background:rgba(255,255,255,.72); box-shadow:0 4px 12px rgba(15,23,42,.035); }
 .premium-chat-page article button { border-radius:999px !important; font-weight:800 !important; }
@@ -127,9 +85,8 @@
 .premium-chat-page textarea:focus { border-color:rgba(109,93,252,.45) !important; box-shadow:0 0 0 3px rgba(109,93,252,.09) !important; }
 .premium-chat-page form button[type="submit"] { border:0 !important; border-radius:999px !important; background:linear-gradient(135deg,#6d5dfc,#22c1dc) !important; color:#fff !important; font-weight:900 !important; box-shadow:0 7px 17px rgba(79,70,229,.20); }
 @media (max-width:767px){
-  .premium-chat-page>div{border-radius:15px !important}
+  .premium-chat-page>div{border-radius:15px !important;grid-template-columns:minmax(0,1fr) !important}
   .premium-chat-page article{border-radius:12px !important}
   .premium-chat-page section>header{padding-left:8px !important;padding-right:max(8px,env(safe-area-inset-right)) !important;gap:6px !important}
-  .premium-chat-page section>header>div:not(.inbox-call-toolbar):not([data-ws-group-header-action]){flex-basis:0 !important}
   .premium-chat-page section>div:last-child{padding-bottom:env(safe-area-inset-bottom) !important}
 }
