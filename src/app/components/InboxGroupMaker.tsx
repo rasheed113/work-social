@@ -4,7 +4,7 @@ import { supabase } from '../../lib/supabase/client';
 
 type Profile={id:string;display_name:string|null;username:string|null;avatar_url?:string|null};
 
-function label(p:Profile){return p.display_name||p.username||'User'}
+function label(p?:Profile){return p?.display_name||p?.username||'User'}
 
 export function InboxGroupMaker({profileId}:{profileId:string}){
  const [open,setOpen]=useState(false),[profiles,setProfiles]=useState<Profile[]>([]),[selected,setSelected]=useState<string[]>([]),[title,setTitle]=useState(''),[query,setQuery]=useState(''),[loading,setLoading]=useState(false),[saving,setSaving]=useState(false),[error,setError]=useState<string|null>(null);
