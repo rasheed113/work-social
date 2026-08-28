@@ -45,6 +45,8 @@ export function StableInboxCallControls({ profileId }: { profileId: string }) {
   const timerRef = useRef<number | null>(null);
   const seenRef = useRef(new Set<string>());
   const signalChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const outboundChannelsRef = useRef(new Map<string, ReturnType<typeof supabase.channel>>());
+  const outboundReadyRef = useRef(new Map<string, Promise<void>>());
 
   useEffect(() => { peerRef.current = peer; }, [peer]);
   useEffect(() => { activeRef.current = active; }, [active]);
@@ -88,10 +90,36 @@ export function StableInboxCallControls({ profileId }: { profileId: string }) {
     return data as Profile | null;
   }, []);
 
-  const send = useCallback(async (s: Signal) => {
-    const channel = signalChannelRef.current;
-    if (!channel) throw new Error('Call signaling channel is not ready');
+  const getOutboundChannel = useCallback(async (recipientId: string) => {
+    const existing = outboundChannelsRef.current.get(recipientId);
+    if (existing) {
+      const pending = outboundReadyRef.current.get(recipientId);
+      if (pending) await pending;
+      return existing;
+    }
 
+    const channel = supabase.channel(`call-signals:${recipientId}`);
+    outboundChannelsRef.current.set(recipientId, channel);
+    const readyPromise = new Promise<void>((resolve, reject) => {
+      channel.subscribe(status => {
+        if (status === 'SUBSCRIBED') resolve();
+        else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') reject(new Error(`Call signaling channel ${status.toLowerCase()}`));
+      });
+    });
+    outboundReadyRef.current.set(recipientId, readyPromise);
+    try {
+      await readyPromise;
+      return channel;
+    } catch (e) {
+      outboundChannelsRef.current.delete(recipientId);
+      outboundReadyRef.current.delete(recipientId);
+      void supabase.removeChannel(channel);
+      throw e;
+    }
+  }, []);
+
+  const send = useCallback(async (s: Signal) => {
+    const channel = await getOutboundChannel(s.to);
     const broadcastResult = await channel.send({ type: 'broadcast', event: 'call-signal', payload: s });
     if (broadcastResult !== 'ok') throw new Error(`Call signaling channel failed: ${broadcastResult}`);
 
@@ -109,10 +137,8 @@ export function StableInboxCallControls({ profileId }: { profileId: string }) {
       sdp: s.sdp ?? null,
       candidate: s.candidate ?? null,
     });
-    // Broadcast is the live signaling path. Database persistence is a secondary audit/recovery path;
-    // a transient RLS/database failure must not kill an otherwise healthy WebRTC session.
     if (dbError) console.warn('[Work Social] call signal persistence failed:', dbError.message);
-  }, []);
+  }, [getOutboundChannel]);
 
   const receive = useCallback(async (row: any) => {
     const s: Signal = row && row.callId ? row as Signal : {
@@ -176,6 +202,9 @@ export function StableInboxCallControls({ profileId }: { profileId: string }) {
       alive = false;
       setReady(false);
       signalChannelRef.current = null;
+      for (const channel of outboundChannelsRef.current.values()) void supabase.removeChannel(channel);
+      outboundChannelsRef.current.clear();
+      outboundReadyRef.current.clear();
       void supabase.removeChannel(channel);
     };
   }, [profileId, receive]);
