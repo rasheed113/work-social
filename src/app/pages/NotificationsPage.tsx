@@ -39,7 +39,103 @@ export function NotificationsPage() {
     if (senderIds.length) { const { data: senders, error: senderError } = await supabase.from('profiles').select('id, display_name, username, avatar_url').in('id', senderIds); if (senderError) { setError(senderError.message); setLoading(false); return; } senderMap = new Map((senders ?? []).map((sender: any) => [sender.id, sender])); }
     setItems(rows.map((row) => ({ ...row, sender: senderMap.get(row.sender_id) }))); setLoading(false);
   };
-  useEffect(() => { void load(); let channel: ReturnType<typeof supabase.channel> | null = null; let mounted = true; supabase.auth.getUser().then(({ data }) => { if (!mounted || !data.user) return; channel = supabase.channel(`notifications:${data.user.id}`).on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `receiver_id=eq.${data.user.id}` }, () => void load()).on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'notifications', filter: `receiver_id=eq.${data.user.id}` }, () => void load()).subscribe(); }); return () => { mounted = false; if (channel) void supabase.removeChannel(channel); }; }, []);
+  useEffect(() => {
+    let mounted = true;
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    let recoveryTimer: number | null = null;
+    let recoveryRunning = false;
+    const recentLimit = 100;
+
+    const mergeItems = (rows: NotificationRow[]) => {
+      if (!rows.length || !mounted) return;
+      setItems(current => {
+        const map = new Map(current.map(item => [item.id, item]));
+        for (const row of rows) {
+          const existing = map.get(row.id);
+          map.set(row.id, existing ? { ...existing, ...row } : row);
+        }
+        return [...map.values()].sort((a, b) => b.created_at.localeCompare(a.created_at));
+      });
+    };
+
+    const hydrateSenders = async (rows: NotificationRow[]) => {
+      const ids = [...new Set(rows.map(row => row.sender_id).filter(Boolean))];
+      if (!ids.length || !mounted) return;
+      const { data, error } = await supabase.from('profiles').select('id, display_name, username, avatar_url').in('id', ids);
+      if (error || !data?.length || !mounted) return;
+      const senderMap = new Map((data as any[]).map(sender => [sender.id, sender]));
+      setItems(current => current.map(item => senderMap.has(item.sender_id) ? { ...item, sender: senderMap.get(item.sender_id) } : item));
+    };
+
+    const syncRecent = async () => {
+      if (!mounted || recoveryRunning) return;
+      recoveryRunning = true;
+      try {
+        const { data: auth } = await supabase.auth.getUser();
+        if (!auth.user || !mounted) return;
+        const { data, error } = await supabase.from('notifications').select('id, receiver_id, sender_id, type, post_id, comment_id, is_read, created_at, metadata').eq('receiver_id', auth.user.id).order('created_at', { ascending: false }).limit(recentLimit);
+        if (error || !mounted) return;
+        const rows = (data ?? []) as NotificationRow[];
+        mergeItems(rows);
+        await hydrateSenders(rows);
+      } finally {
+        recoveryRunning = false;
+      }
+    };
+
+    const handleNotification = (payload: any) => {
+      if (!mounted) return;
+      const event = payload.eventType as 'INSERT' | 'UPDATE' | 'DELETE';
+      const row = ((event === 'DELETE' ? payload.old : payload.new) ?? null) as NotificationRow | null;
+      if (!row?.id) return;
+      if (event !== 'DELETE' && row.receiver_id !== payload.new?.receiver_id) return;
+      if (event === 'DELETE') {
+        setItems(current => current.filter(item => item.id !== row.id));
+        return;
+      }
+      mergeItems([row]);
+      void hydrateSenders([row]);
+    };
+
+    const recover = () => {
+      if (!mounted) return;
+      if (!supabase.realtime.isConnected()) supabase.realtime.connect();
+      if (recoveryTimer !== null) window.clearTimeout(recoveryTimer);
+      recoveryTimer = window.setTimeout(() => { recoveryTimer = null; void syncRecent(); }, 250);
+    };
+
+    const subscribe = (userId: string) => {
+      if (!mounted) return;
+      if (channel) void supabase.removeChannel(channel);
+      channel = supabase.channel(`notifications:${userId}`)
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `receiver_id=eq.${userId}` }, handleNotification)
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'notifications', filter: `receiver_id=eq.${userId}` }, handleNotification)
+        .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'notifications' }, handleNotification)
+        .subscribe(status => {
+          if (status === 'SUBSCRIBED') void syncRecent();
+          else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') recover();
+        });
+    };
+
+    void load();
+    supabase.auth.getUser().then(({ data }) => { if (mounted && data.user) subscribe(data.user.id); });
+
+    const onVisibility = () => { if (document.visibilityState === 'visible') recover(); };
+    const onFocus = () => recover();
+    const onOnline = () => recover();
+    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('focus', onFocus);
+    window.addEventListener('online', onOnline);
+
+    return () => {
+      mounted = false;
+      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('focus', onFocus);
+      window.removeEventListener('online', onOnline);
+      if (recoveryTimer !== null) window.clearTimeout(recoveryTimer);
+      if (channel) void supabase.removeChannel(channel);
+    };
+  }, []);
   const markRead = async (id: string) => { const { error: updateError } = await supabase.from('notifications').update({ is_read: true }).eq('id', id); if (updateError) return setError(updateError.message); setItems((current) => current.map((item) => item.id === id ? { ...item, is_read: true } : item)); };
   const handleNotificationClick = async (item: NotificationRow) => { await markRead(item.id); openNotificationTarget(item); };
   const markAllRead = async () => { const { data: auth } = await supabase.auth.getUser(); if (!auth.user) return; const { error: updateError } = await supabase.from('notifications').update({ is_read: true }).eq('receiver_id', auth.user.id).eq('is_read', false); if (updateError) return setError(updateError.message); setItems((current) => current.map((item) => ({ ...item, is_read: true }))); };
