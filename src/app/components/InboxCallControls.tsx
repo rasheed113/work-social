@@ -1,0 +1,152 @@
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { supabase } from '../../lib/supabase/client';
+
+type Profile = { id: string; display_name: string | null; avatar_url: string | null };
+type Signal = { callId: string; from: string; to: string; kind: 'audio' | 'video'; type: 'offer' | 'answer' | 'ice' | 'hangup' | 'reject'; sdp?: RTCSessionDescriptionInit; candidate?: RTCIceCandidateInit };
+
+const rtcConfig: RTCConfiguration = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
+
+export function InboxCallControls({ profileId }: { profileId: string }) {
+  const [conversationId, setConversationId] = useState<string | null>(() => new URLSearchParams(window.location.search).get('conversation'));
+  const [peer, setPeer] = useState<Profile | null>(null);
+  const [online, setOnline] = useState(false);
+  const [call, setCall] = useState<{ id: string; kind: 'audio' | 'video'; incoming: boolean } | null>(null);
+  const [connected, setConnected] = useState(false);
+  const [muted, setMuted] = useState(false);
+  const [cameraOff, setCameraOff] = useState(false);
+  const [header, setHeader] = useState<HTMLElement | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const pcRef = useRef<RTCPeerConnection | null>(null);
+  const localRef = useRef<MediaStream | null>(null);
+  const remoteRef = useRef<MediaStream | null>(null);
+  const localVideo = useRef<HTMLVideoElement | null>(null);
+  const remoteVideo = useRef<HTMLVideoElement | null>(null);
+  const pendingIce = useRef<RTCIceCandidateInit[]>([]);
+  const callRef = useRef(call);
+
+  useEffect(() => { callRef.current = call; }, [call]);
+
+  useEffect(() => {
+    const update = () => {
+      setConversationId(new URLSearchParams(window.location.search).get('conversation'));
+      setHeader(document.querySelector('.chat-header'));
+    };
+    update();
+    const observer = new MutationObserver(update);
+    observer.observe(document.body, { childList: true, subtree: true });
+    window.addEventListener('popstate', update);
+    return () => { observer.disconnect(); window.removeEventListener('popstate', update); };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    const loadPeer = async () => {
+      if (!conversationId) { setPeer(null); setOnline(false); return; }
+      const { data: members, error: memberError } = await supabase.from('conversation_members').select('profile_id').eq('conversation_id', conversationId).neq('profile_id', profileId).limit(1);
+      if (cancelled || memberError || !members?.[0]?.profile_id) { setPeer(null); return; }
+      const { data } = await supabase.from('profiles').select('id,display_name,avatar_url').eq('id', members[0].profile_id).maybeSingle();
+      if (!cancelled) setPeer((data ?? null) as Profile | null);
+    };
+    void loadPeer();
+    return () => { cancelled = true; };
+  }, [conversationId, profileId]);
+
+  useEffect(() => {
+    if (!conversationId || !peer) return;
+    const topic = `work-social-call:${conversationId}`;
+    const channel = supabase.channel(topic, { config: { presence: { key: profileId } } });
+    channel.on('presence', { event: 'sync' }, () => {
+      const state = channel.presenceState<{ userId?: string }>();
+      setOnline(Object.values(state).flat().some((x: any) => x.userId === peer.id));
+    });
+    channel.on('broadcast', { event: 'signal' }, ({ payload }) => { void handleSignal(payload as Signal); });
+    channel.subscribe(async status => { if (status === 'SUBSCRIBED') await channel.track({ userId: profileId, online_at: new Date().toISOString() }); });
+    channelRef.current = channel;
+    return () => { channelRef.current = null; void supabase.removeChannel(channel); };
+  }, [conversationId, peer?.id, profileId]);
+
+  const send = async (signal: Signal) => {
+    if (!channelRef.current) return;
+    await channelRef.current.send({ type: 'broadcast', event: 'signal', payload: signal });
+  };
+
+  const cleanup = () => {
+    pcRef.current?.close(); pcRef.current = null;
+    localRef.current?.getTracks().forEach(t => t.stop()); localRef.current = null;
+    remoteRef.current?.getTracks().forEach(t => t.stop()); remoteRef.current = null;
+    if (localVideo.current) localVideo.current.srcObject = null;
+    if (remoteVideo.current) remoteVideo.current.srcObject = null;
+    pendingIce.current = [];
+    setCall(null); setConnected(false); setMuted(false); setCameraOff(false);
+  };
+
+  const setupPeer = async (kind: 'audio' | 'video', initiator: boolean, callId: string) => {
+    if (!peer) throw new Error('The other participant is unavailable.');
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: kind === 'video' });
+    localRef.current = stream;
+    if (localVideo.current) { localVideo.current.srcObject = stream; localVideo.current.muted = true; }
+    const pc = new RTCPeerConnection(rtcConfig);
+    pcRef.current = pc;
+    remoteRef.current = new MediaStream();
+    if (remoteVideo.current) remoteVideo.current.srcObject = remoteRef.current;
+    stream.getTracks().forEach(track => pc.addTrack(track, stream));
+    pc.ontrack = e => { e.streams[0]?.getTracks().forEach(track => remoteRef.current?.addTrack(track)); setConnected(true); };
+    pc.onicecandidate = e => { if (e.candidate) void send({ callId, from: profileId, to: peer.id, kind, type: 'ice', candidate: e.candidate.toJSON() }); };
+    pc.onconnectionstatechange = () => { if (pc.connectionState === 'connected') setConnected(true); if (['failed','closed','disconnected'].includes(pc.connectionState)) cleanup(); };
+    if (initiator) {
+      const offer = await pc.createOffer(); await pc.setLocalDescription(offer);
+      await send({ callId, from: profileId, to: peer.id, kind, type: 'offer', sdp: offer });
+    }
+  };
+
+  const handleSignal = async (signal: Signal) => {
+    if (!peer || signal.to !== profileId || signal.from !== peer.id) return;
+    try {
+      if (signal.type === 'hangup' || signal.type === 'reject') { cleanup(); return; }
+      if (signal.type === 'offer') {
+        if (callRef.current) return;
+        setCall({ id: signal.callId, kind: signal.kind, incoming: true });
+        const accept = window.confirm(`${peer.display_name || 'Contact'} is calling you. Accept ${signal.kind} call?`);
+        if (!accept) { await send({ ...signal, from: profileId, to: peer.id, type: 'reject' }); cleanup(); return; }
+        setCall({ id: signal.callId, kind: signal.kind, incoming: false });
+        await setupPeer(signal.kind, false, signal.callId);
+        const pc = pcRef.current; if (!pc || !signal.sdp) return;
+        await pc.setRemoteDescription(signal.sdp);
+        for (const c of pendingIce.current.splice(0)) await pc.addIceCandidate(c);
+        const answer = await pc.createAnswer(); await pc.setLocalDescription(answer);
+        await send({ callId: signal.callId, from: profileId, to: peer.id, kind: signal.kind, type: 'answer', sdp: answer });
+      } else if (signal.type === 'answer' && pcRef.current && signal.sdp) {
+        await pcRef.current.setRemoteDescription(signal.sdp);
+        for (const c of pendingIce.current.splice(0)) await pcRef.current.addIceCandidate(c);
+      } else if (signal.type === 'ice' && signal.candidate) {
+        if (pcRef.current?.remoteDescription) await pcRef.current.addIceCandidate(signal.candidate); else pendingIce.current.push(signal.candidate);
+      }
+    } catch (e) { setError(e instanceof Error ? e.message : 'Call setup failed.'); cleanup(); }
+  };
+
+  const startCall = async (kind: 'audio' | 'video') => {
+    if (!peer || !conversationId || call) return;
+    try {
+      const callId = crypto.randomUUID(); setError(null); setCall({ id: callId, kind, incoming: false }); await setupPeer(kind, true, callId);
+    } catch (e) { setError(e instanceof Error ? e.message : 'Microphone/camera permission was denied.'); cleanup(); }
+  };
+
+  const hangup = async () => {
+    if (call && peer) await send({ callId: call.id, from: profileId, to: peer.id, kind: call.kind, type: 'hangup' });
+    cleanup();
+  };
+
+  const toggleMute = () => { const track = localRef.current?.getAudioTracks()[0]; if (!track) return; track.enabled = !track.enabled; setMuted(!track.enabled); };
+  const toggleCamera = () => { const track = localRef.current?.getVideoTracks()[0]; if (!track) return; track.enabled = !track.enabled; setCameraOff(!track.enabled); };
+
+  const title = peer?.display_name || 'Contact';
+  const controls = useMemo(() => header && peer && conversationId ? createPortal(<div className="inbox-call-actions" data-inbox-popover><span className={`call-presence ${online ? 'online' : ''}`} title={online ? 'Online' : 'Offline'} /> <button type="button" aria-label={`Audio call ${title}`} onClick={() => void startCall('audio')} disabled={!online || !!call}>☎</button><button type="button" aria-label={`Video call ${title}`} onClick={() => void startCall('video')} disabled={!online || !!call}>▣</button></div>, header) : null, [header, peer, conversationId, online, call, title]);
+
+  return <>
+    {controls}
+    <style>{`.inbox-call-actions{margin-left:auto;display:flex;align-items:center;gap:7px}.inbox-call-actions button{width:38px;height:38px;border:1px solid rgba(79,70,229,.15);border-radius:12px;background:rgba(255,255,255,.9);color:#4338ca;font-size:18px;font-weight:900;cursor:pointer;box-shadow:0 5px 14px rgba(79,70,229,.1)}.inbox-call-actions button:disabled{opacity:.42;cursor:not-allowed}.call-presence{width:9px;height:9px;border-radius:50%;background:#94a3b8;box-shadow:0 0 0 3px rgba(148,163,184,.12)}.call-presence.online{background:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.14),0 0 10px rgba(34,197,94,.4)}.inbox-call-stage{position:fixed;inset:0;z-index:3000;background:rgba(8,12,25,.82);backdrop-filter:blur(14px);display:grid;place-items:center;padding:18px}.inbox-call-card{width:min(680px,100%);overflow:hidden;border:1px solid rgba(255,255,255,.18);border-radius:26px;background:linear-gradient(145deg,#111827,#1e1b4b);box-shadow:0 30px 90px rgba(0,0,0,.45);color:#fff}.inbox-call-videos{position:relative;aspect-ratio:16/10;background:#020617}.inbox-call-videos video{width:100%;height:100%;object-fit:cover;background:#020617}.inbox-call-local{position:absolute!important;right:14px;top:14px;width:150px!important;height:100px!important;border-radius:16px;border:2px solid rgba(255,255,255,.35)}.inbox-call-info{padding:16px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px}.inbox-call-name{font-weight:900}.inbox-call-status{font-size:12px;color:rgba(255,255,255,.65);margin-top:3px}.inbox-call-buttons{display:flex;gap:8px}.inbox-call-buttons button{width:42px;height:42px;border:0;border-radius:14px;background:rgba(255,255,255,.1);color:#fff;font-size:18px;cursor:pointer}.inbox-call-buttons .end{background:#ef4444}.inbox-call-error{margin:0 18px 16px;padding:10px 12px;border-radius:12px;background:rgba(239,68,68,.14);color:#fecaca;font-size:12px}`}</style>
+    {call && <div className="inbox-call-stage" role="dialog" aria-label={`${call.kind} call with ${title}`}><div className="inbox-call-card"><div className="inbox-call-videos">{call.kind === 'video' ? <><video ref={remoteVideo} autoPlay playsInline /><video ref={localVideo} className="inbox-call-local" autoPlay playsInline muted /></> : <div style={{height:'100%',display:'grid',placeItems:'center',fontSize:72}}>☎</div>}</div><div className="inbox-call-info"><div><div className="inbox-call-name">{title}</div><div className="inbox-call-status">{connected ? 'Connected' : call.incoming ? 'Connecting…' : 'Calling…'} · {call.kind === 'video' ? 'Video' : 'Audio'}</div></div><div className="inbox-call-buttons"><button type="button" onClick={toggleMute} aria-label={muted ? 'Unmute' : 'Mute'}>{muted ? '🔇' : '🎙'}</button>{call.kind === 'video' && <button type="button" onClick={toggleCamera} aria-label={cameraOff ? 'Turn camera on' : 'Turn camera off'}>{cameraOff ? '📷' : '◉'}</button>}<button type="button" className="end" onClick={() => void hangup()} aria-label="End call">✕</button></div></div>{error && <div className="inbox-call-error">{error}</div>}</div></div>}
+  </>;
+}
