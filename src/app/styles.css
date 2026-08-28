@@ -23,106 +23,31 @@ article footer button { flex-shrink: 0; }
 article footer strong { min-width: 0; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 article footer div { overflow-wrap: anywhere; word-break: normal; }
 article footer div[style*="border-left: 1px solid rgba(91,108,132"] { max-width: 100%; width: auto; margin-right: 0; }
-
-nav[aria-label="Main navigation"] {
-  position: fixed !important;
-  left: 10px !important;
-  right: 10px !important;
-  bottom: calc(10px + env(safe-area-inset-bottom)) !important;
-  z-index: 1000 !important;
-  box-sizing: border-box !important;
-  max-width: calc(100vw - 20px) !important;
-}
-
+nav[aria-label="Main navigation"] { position: fixed !important; left: 10px !important; right: 10px !important; bottom: calc(10px + env(safe-area-inset-bottom)) !important; z-index: 1000 !important; box-sizing: border-box !important; max-width: calc(100vw - 20px) !important; }
 .premium-chat-page { min-width: 0 !important; max-width: 100% !important; box-sizing: border-box !important; }
 .premium-chat-page > div { min-width: 0 !important; max-width: 100% !important; box-sizing: border-box !important; }
 .premium-chat-page section { min-width: 0 !important; max-width: 100% !important; }
 .premium-chat-page section > header { width: 100% !important; max-width: 100% !important; min-width: 0 !important; box-sizing: border-box !important; overflow: hidden !important; }
 .premium-chat-page section > header > div { min-width: 0 !important; flex: 1 1 auto !important; overflow: hidden !important; }
 .premium-chat-page section > header strong, .premium-chat-page section > header small { max-width: 100% !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; }
+.premium-chat-page section > header .inbox-call-actions, .premium-chat-header .inbox-call-actions, .chat-header .inbox-call-actions { position: relative !important; z-index: 4 !important; display: flex !important; align-items: center !important; justify-content: flex-end !important; gap: 6px !important; flex: 0 0 auto !important; width: auto !important; max-width: 100% !important; min-width: 0 !important; margin-left: auto !important; overflow: hidden !important; }
+.premium-chat-page section > header .inbox-call-actions button, .premium-chat-header .inbox-call-actions button, .chat-header .inbox-call-actions button { flex: 0 0 36px !important; width: 36px !important; min-width: 36px !important; height: 36px !important; padding: 0 !important; display: inline-flex !important; align-items: center !important; justify-content: center !important; }
+.premium-chat-page section > header .inbox-call-actions svg, .premium-chat-header .inbox-call-actions svg, .chat-header .inbox-call-actions svg { width: 17px !important; height: 17px !important; fill: none !important; stroke: currentColor !important; stroke-width: 2 !important; stroke-linecap: round !important; stroke-linejoin: round !important; }
 
-/* Inbox call controls are portaled into the chat header. Keep them inside the header width. */
-.premium-chat-page section > header .inbox-call-actions,
-.premium-chat-header .inbox-call-actions,
-.chat-header .inbox-call-actions {
-  position: relative !important;
-  z-index: 4 !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: flex-end !important;
-  gap: 6px !important;
-  flex: 0 0 auto !important;
-  width: auto !important;
-  max-width: 100% !important;
-  min-width: 0 !important;
-  margin-left: auto !important;
-  overflow: hidden !important;
-}
-
-.premium-chat-page section > header .inbox-call-actions button,
-.premium-chat-header .inbox-call-actions button,
-.chat-header .inbox-call-actions button {
-  flex: 0 0 36px !important;
-  width: 36px !important;
-  min-width: 36px !important;
-  height: 36px !important;
-  padding: 0 !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
-
-.premium-chat-page section > header .inbox-call-actions svg,
-.premium-chat-header .inbox-call-actions svg,
-.chat-header .inbox-call-actions svg {
-  width: 17px !important;
-  height: 17px !important;
-  fill: none !important;
-  stroke: currentColor !important;
-  stroke-width: 2 !important;
-  stroke-linecap: round !important;
-  stroke-linejoin: round !important;
-}
+/* Loaded global override for the Inbox Search. Visual only: dimensions/layout remain untouched. */
+.premium-chat-page aside input[placeholder="Search people..."] { border:1px solid rgba(109,93,252,.34) !important; background:linear-gradient(145deg,rgba(255,255,255,.99),rgba(238,242,255,.96)) !important; box-shadow:inset 0 1px 0 rgba(255,255,255,1),inset 0 -2px 5px rgba(67,56,202,.06),0 3px 8px rgba(15,23,42,.055),0 8px 20px rgba(79,70,229,.11),0 0 18px rgba(34,193,220,.065) !important; outline:none !important; transition:border-color .2s ease,box-shadow .2s ease,background .2s ease !important; }
+.premium-chat-page aside input[placeholder="Search people..."]::placeholder { color:rgba(71,76,105,.62) !important; }
+.premium-chat-page aside input[placeholder="Search people..."]:hover { border-color:rgba(109,93,252,.52) !important; box-shadow:inset 0 1px 0 rgba(255,255,255,1),inset 0 -2px 5px rgba(67,56,202,.075),0 4px 10px rgba(15,23,42,.06),0 10px 24px rgba(79,70,229,.15),0 0 22px rgba(34,193,220,.09) !important; }
+.premium-chat-page aside input[placeholder="Search people..."]:focus { border-color:rgba(109,93,252,.72) !important; background:linear-gradient(145deg,rgba(255,255,255,1),rgba(246,248,255,.98)) !important; box-shadow:inset 0 1px 0 rgba(255,255,255,1),inset 0 -2px 5px rgba(67,56,202,.08),0 4px 10px rgba(15,23,42,.07),0 10px 26px rgba(79,70,229,.17),0 0 0 3px rgba(109,93,252,.10),0 0 26px rgba(34,193,220,.12) !important; }
 
 @media (max-width: 767px) {
   .app-shell { padding: 12px; }
   article footer { padding-top: 8px !important; margin-top: 10px !important; }
   article footer > div { gap: 6px !important; }
   article footer > div:last-child { margin-top: 7px !important; }
-
-  /* Keep the existing global nav exactly where it is; reclaim only the empty gap above it. */
-  .premium-chat-page {
-    height: calc(100dvh - 150px - 58px) !important;
-    min-height: 0 !important;
-    max-height: calc(100dvh - 150px - 58px) !important;
-    overflow: hidden !important;
-  }
-
-  .premium-chat-page section > header .inbox-call-actions,
-  .premium-chat-header .inbox-call-actions,
-  .chat-header .inbox-call-actions {
-    gap: 4px !important;
-    flex-shrink: 0 !important;
-  }
-
-  .premium-chat-page section > header .inbox-call-actions button,
-  .premium-chat-header .inbox-call-actions button,
-  .chat-header .inbox-call-actions button {
-    flex-basis: 34px !important;
-    width: 34px !important;
-    min-width: 34px !important;
-    height: 34px !important;
-    border-radius: 10px !important;
-  }
-
-  .premium-chat-page section > header .call-presence-label,
-  .premium-chat-header .call-presence-label,
-  .chat-header .call-presence-label {
-    display: none !important;
-  }
-
-  article footer div[style*="border-left: 1px solid rgba(91,108,132"] {
-    margin-left: clamp(6px, 2.5vw, 12px) !important;
-    padding-left: 7px !important;
-  }
+  .premium-chat-page { height: calc(100dvh - 150px - 58px) !important; min-height: 0 !important; max-height: calc(100dvh - 150px - 58px) !important; overflow: hidden !important; }
+  .premium-chat-page section > header .inbox-call-actions, .premium-chat-header .inbox-call-actions, .chat-header .inbox-call-actions { gap: 4px !important; flex-shrink: 0 !important; }
+  .premium-chat-page section > header .inbox-call-actions button, .premium-chat-header .inbox-call-actions button, .chat-header .inbox-call-actions button { flex-basis: 34px !important; width: 34px !important; min-width: 34px !important; height: 34px !important; border-radius: 10px !important; }
+  .premium-chat-page section > header .call-presence-label, .premium-chat-header .call-presence-label, .chat-header .call-presence-label { display: none !important; }
+  article footer div[style*="border-left: 1px solid rgba(91,108,132"] { margin-left: clamp(6px, 2.5vw, 12px) !important; padding-left: 7px !important; }
 }
