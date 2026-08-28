@@ -10,6 +10,9 @@ const RTC_CONFIG: RTCConfiguration = {
   iceServers: [
     { urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] },
     { urls: 'stun:stun.cloudflare.com:3478' },
+    { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
+    { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
+    { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' },
   ],
 };
 
@@ -41,6 +44,7 @@ export function StableInboxCallControls({ profileId }: { profileId: string }) {
   const pendingIceRef = useRef<RTCIceCandidateInit[]>([]);
   const timerRef = useRef<number | null>(null);
   const seenRef = useRef(new Set<string>());
+  const signalChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   useEffect(() => { peerRef.current = peer; }, [peer]);
   useEffect(() => { activeRef.current = active; }, [active]);
@@ -85,21 +89,33 @@ export function StableInboxCallControls({ profileId }: { profileId: string }) {
   }, []);
 
   const send = useCallback(async (s: Signal) => {
-    const { error: e } = await supabase.from('call_signals').insert({
+    const channel = signalChannelRef.current;
+    if (!channel) throw new Error('Call signaling channel is not ready');
+
+    const broadcastResult = await channel.send({ type: 'broadcast', event: 'call-signal', payload: s });
+    if (broadcastResult !== 'ok') throw new Error(`Call signaling channel failed: ${broadcastResult}`);
+
+    const { data: authData, error: authError } = await supabase.auth.getUser();
+    if (authError || !authData.user) throw new Error('Authenticated session is unavailable for calling');
+    if (authData.user.id !== s.from) throw new Error('Authenticated caller identity does not match the call session');
+
+    const { error: dbError } = await supabase.from('call_signals').insert({
       call_id: s.callId,
       conversation_id: s.conversationId,
-      sender_id: s.from,
+      sender_id: authData.user.id,
       recipient_id: s.to,
       kind: s.kind,
       signal_type: s.type,
       sdp: s.sdp ?? null,
       candidate: s.candidate ?? null,
     });
-    if (e) throw new Error(e.message);
+    // Broadcast is the live signaling path. Database persistence is a secondary audit/recovery path;
+    // a transient RLS/database failure must not kill an otherwise healthy WebRTC session.
+    if (dbError) console.warn('[Work Social] call signal persistence failed:', dbError.message);
   }, []);
 
   const receive = useCallback(async (row: any) => {
-    const s: Signal = {
+    const s: Signal = row && row.callId ? row as Signal : {
       callId: row.call_id,
       from: row.sender_id,
       to: row.recipient_id,
@@ -110,8 +126,9 @@ export function StableInboxCallControls({ profileId }: { profileId: string }) {
       conversationId: row.conversation_id,
     };
     if (s.to !== profileId || s.from === profileId || !s.callId) return;
-    if (row.created_at && Date.now() - new Date(row.created_at).getTime() > 60000) return;
-    const key = `${s.callId}:${s.type}:${row.id}`;
+    const createdAt = row?.created_at;
+    if (createdAt && Date.now() - new Date(createdAt).getTime() > 60000) return;
+    const key = `${s.callId}:${s.type}:${row?.id || JSON.stringify(s)}`;
     if (seenRef.current.has(key)) return;
     seenRef.current.add(key);
     try {
@@ -146,10 +163,21 @@ export function StableInboxCallControls({ profileId }: { profileId: string }) {
   }, [cleanup, loadPeer, profileId]);
 
   useEffect(() => {
+    let alive = true;
     const channel = supabase.channel(`call-signals:${profileId}`)
+      .on('broadcast', { event: 'call-signal' }, payload => void receive(payload.payload))
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'call_signals', filter: `recipient_id=eq.${profileId}` }, payload => void receive(payload.new));
-    channel.subscribe(status => setReady(status === 'SUBSCRIBED'));
-    return () => { setReady(false); void supabase.removeChannel(channel); };
+    signalChannelRef.current = channel;
+    channel.subscribe(status => {
+      if (!alive) return;
+      setReady(status === 'SUBSCRIBED');
+    });
+    return () => {
+      alive = false;
+      setReady(false);
+      signalChannelRef.current = null;
+      void supabase.removeChannel(channel);
+    };
   }, [profileId, receive]);
 
   useEffect(() => {
@@ -216,7 +244,7 @@ export function StableInboxCallControls({ profileId }: { profileId: string }) {
       }
     };
     pc.oniceconnectionstatechange = () => {
-      if (pc.iceConnectionState === 'failed') setError('ICE failed. Both devices may need a TURN relay for their networks.');
+      if (pc.iceConnectionState === 'failed') setError('ICE failed. TURN relay could not establish a network path.');
     };
 
     if (offer) await pc.setRemoteDescription(offer);
@@ -226,7 +254,9 @@ export function StableInboxCallControls({ profileId }: { profileId: string }) {
     if (!offer) {
       const o = await pc.createOffer();
       await pc.setLocalDescription(o);
-      await send({ callId: id, from: profileId, to: target.id, kind, type: 'offer', sdp: o, conversationId });
+      const local = pc.localDescription;
+      if (!local) throw new Error('WebRTC local offer was not created');
+      await send({ callId: id, from: profileId, to: target.id, kind, type: 'offer', sdp: { type: local.type, sdp: local.sdp || '' }, conversationId });
     }
   };
 
@@ -247,7 +277,6 @@ export function StableInboxCallControls({ profileId }: { profileId: string }) {
       }, 45000);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not start call');
-      // Keep the error visible instead of immediately hiding the failure behind cleanup.
       pcRef.current?.close();
       pcRef.current = null;
       stopMedia();
@@ -268,7 +297,15 @@ export function StableInboxCallControls({ profileId }: { profileId: string }) {
       if (!pc) throw new Error('Connection unavailable');
       const answer = await pc.createAnswer();
       await pc.setLocalDescription(answer);
-      await send({ callId: s.callId, from: profileId, to: s.from, kind: s.kind, type: 'answer', sdp: answer, conversationId: s.conversationId });
+      const local = pc.localDescription;
+      if (!local) throw new Error('WebRTC local answer was not created');
+      await send({ callId: s.callId, from: profileId, to: s.from, kind: s.kind, type: 'answer', sdp: { type: local.type, sdp: local.sdp || '' }, conversationId: s.conversationId });
+      timerRef.current = window.setTimeout(() => {
+        if (activeRef.current?.id === s.callId && pcRef.current?.connectionState !== 'connected') {
+          setError('No connection established after 45 seconds.');
+          cleanup();
+        }
+      }, 45000);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not accept call');
       pcRef.current?.close();
@@ -299,12 +336,12 @@ export function StableInboxCallControls({ profileId }: { profileId: string }) {
   useEffect(() => () => cleanup(), [cleanup]);
   if (!cid || !peer) return null;
   const name = peer.display_name?.trim() || 'Contact';
-  const toolbar = <div className="inbox-call-toolbar"><button aria-label="Start voice call" onClick={() => void start('audio')} disabled={!ready || !!active || !!incoming}><Icon t="phone" /></button><button aria-label="Start video call" onClick={() => void start('video')} disabled={!ready || !!active || !!incoming}><Icon t="video" /></button></div>;
+  const toolbar = <div className="inbox-call-toolbar"><button type="button" aria-label="Start voice call" onClick={() => void start('audio')} disabled={!ready || !!active || !!incoming}><Icon t="phone" /></button><button type="button" aria-label="Start video call" onClick={() => void start('video')} disabled={!ready || !!active || !!incoming}><Icon t="video" /></button></div>;
 
   return <>
     <style>{`.inbox-call-toolbar{position:absolute;top:50%;right:10px;z-index:8;transform:translateY(-50%);display:flex;gap:5px;padding:3px;border-radius:12px;background:rgba(255,255,255,.82);box-shadow:0 4px 12px rgba(15,23,42,.08);backdrop-filter:blur(8px)}.inbox-call-toolbar button{width:34px;height:34px;border:1px solid rgba(109,93,252,.14);border-radius:10px;background:#fff;font-size:16px}.inbox-call-toolbar button:disabled{opacity:.55}.inbox-call-stage{position:fixed;inset:0;z-index:5000;display:flex;align-items:center;justify-content:center;padding:8px;background:#020617dd}.inbox-call-card{width:min(820px,calc(100vw - 12px));max-height:calc(100vh - 12px);overflow:hidden;border-radius:20px;background:#0b1220;color:#fff}.inbox-call-media{height:min(54vh,500px);min-height:260px;position:relative;background:#020617;display:grid;place-items:center}.inbox-call-media video{width:100%;height:100%;object-fit:contain}.inbox-call-local{position:absolute!important;right:10px;top:10px;width:120px!important;height:82px!important;object-fit:cover!important;border-radius:12px}.inbox-call-info{display:flex;align-items:center;justify-content:space-between;padding:9px 11px calc(10px + env(safe-area-inset-bottom))}.inbox-call-actions{display:flex;gap:6px}.inbox-call-actions button{width:42px;height:42px;border:0;border-radius:50%;background:#334155;color:#fff;font-size:17px}.inbox-call-actions .end{background:#ef4444}.inbox-call-actions .active{background:#2563eb}.inbox-incoming{text-align:center;padding:26px}.inbox-incoming img{width:70px;height:70px;border-radius:50%;object-fit:cover}.inbox-incoming-actions{display:flex;justify-content:center;gap:8px}.inbox-incoming-actions button{padding:11px 24px;border:0;border-radius:12px;color:#fff;font-weight:800}.accept{background:#22c55e}.decline{background:#ef4444}.premium-chat-page [role="dialog"][aria-modal="true"]{z-index:3000!important}.premium-chat-page [role="dialog"][aria-modal="true"]>button{z-index:3001!important;position:absolute!important;top:12px!important;right:12px!important;width:42px!important;height:42px!important;display:grid!important;place-items:center!important;border:0!important;border-radius:50%!important;background:rgba(255,255,255,.18)!important;color:#fff!important;font-size:28px!important;line-height:1!important;cursor:pointer!important;box-shadow:0 4px 18px rgba(0,0,0,.35)!important}@media(max-width:767px){.inbox-call-toolbar{right:7px;gap:3px;padding:2px}.inbox-call-toolbar button{width:31px;height:31px;flex-basis:31px;font-size:14px}.inbox-call-stage{padding:0}.inbox-call-card{width:calc(100vw - 8px);max-height:calc(100vh - 8px)}.inbox-call-media{height:calc(100vh - 125px);min-height:230px}.inbox-call-local{width:100px!important;height:70px!important}.inbox-call-actions button{width:40px;height:40px}}`}</style>
     {header && createPortal(toolbar, header)}
-    {incoming && <div className="inbox-call-stage"><div className="inbox-call-card"><div className="inbox-incoming"><img src={peer.avatar_url || ''} alt=""/><h3>{name}</h3><p>Incoming {incoming.kind === 'video' ? 'video' : 'voice'} call</p><div className="inbox-incoming-actions"><button className="decline" onClick={() => void decline()}>Decline</button><button className="accept" onClick={() => void accept()}>Accept</button></div></div></div></div>}
-    {active && <div className="inbox-call-stage"><div className="inbox-call-card"><div className="inbox-call-media">{active.kind === 'video' ? <><video ref={remoteVideoRef} autoPlay playsInline/><video ref={localVideoRef} className="inbox-call-local" autoPlay muted playsInline/></> : <><audio ref={remoteAudioRef} autoPlay/><Icon t="phone"/></>}</div><div className="inbox-call-info"><div><b>{name}</b><small style={{display:'block',color:'#94a3b8'}}>{connected ? 'Connected' : 'Connecting…'} · {active.kind === 'video' ? 'Video' : 'Voice'}</small>{error && <small style={{display:'block',color:'#fca5a5',maxWidth:360}}>{error}</small>}</div><div className="inbox-call-actions"><button className={muted ? 'active' : ''} onClick={mute}><Icon t="mic"/></button>{active.kind === 'video' && <button className={cameraOff ? 'active' : ''} onClick={camera}><Icon t="camera"/></button>}<button className={speaker ? 'active' : ''} onClick={toggleSpeaker}><Icon t="speaker"/></button><button className="end" onClick={() => void hangup()}><Icon t="end"/></button></div></div></div></div>}
+    {incoming && <div className="inbox-call-stage"><div className="inbox-call-card"><div className="inbox-incoming"><img src={peer.avatar_url || ''} alt=""/><h3>{name}</h3><p>Incoming {incoming.kind === 'video' ? 'video' : 'voice'} call</p><div className="inbox-incoming-actions"><button type="button" className="decline" onClick={() => void decline()}>Decline</button><button type="button" className="accept" onClick={() => void accept()}>Accept</button></div></div></div></div>}
+    {active && <div className="inbox-call-stage"><div className="inbox-call-card"><div className="inbox-call-media">{active.kind === 'video' ? <><video ref={remoteVideoRef} autoPlay playsInline/><video ref={localVideoRef} className="inbox-call-local" autoPlay muted playsInline/></> : <><audio ref={remoteAudioRef} autoPlay/><Icon t="phone"/></>}</div><div className="inbox-call-info"><div><b>{name}</b><small style={{display:'block',color:'#94a3b8'}}>{connected ? 'Connected' : 'Connecting…'} · {active.kind === 'video' ? 'Video' : 'Voice'}</small>{error && <small style={{display:'block',color:'#fca5a5',maxWidth:360}}>{error}</small>}</div><div className="inbox-call-actions"><button type="button" className={muted ? 'active' : ''} onClick={mute}><Icon t="mic"/></button>{active.kind === 'video' && <button type="button" className={cameraOff ? 'active' : ''} onClick={camera}><Icon t="camera"/></button>}<button type="button" className={speaker ? 'active' : ''} onClick={toggleSpeaker}><Icon t="speaker"/></button><button type="button" className="end" onClick={() => void hangup()}><Icon t="end"/></button></div></div></div></div>}
   </>;
 }
