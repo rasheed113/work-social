@@ -10,6 +10,8 @@ type Mode = 'members' | 'add' | 'name' | 'avatar' | 'remove' | null;
 const BUCKET = 'avatars';
 const MAX_AVATAR_SIZE = 10 * 1024 * 1024;
 const label = (p?: Profile) => p?.display_name || p?.username || 'User';
+const inputStyle = { width: '100%', boxSizing: 'border-box' as const, padding: '12px 13px', border: '1px solid rgba(99,102,241,.16)', borderRadius: 14, background: '#fff', outline: 'none', boxShadow: 'inset 0 1px 2px rgba(15,23,42,.03)' };
+const primaryButton = { width: '100%', marginTop: 12, padding: '12px 16px', border: 0, borderRadius: 14, background: 'linear-gradient(135deg,#6d5dfc,#22c1dc)', color: '#fff', fontWeight: 900, boxShadow: '0 9px 24px rgba(79,70,229,.2)' };
 
 export function InboxGroupMenu({ profileId }: { profileId: string }) {
   const [conversation, setConversation] = useState<Conversation | null>(null);
@@ -24,15 +26,10 @@ export function InboxGroupMenu({ profileId }: { profileId: string }) {
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   const [menuPoint, setMenuPoint] = useState({ top: 0, right: 0 });
   const fileInput = useRef<HTMLInputElement | null>(null);
-
-  const conversationId = useMemo(() => {
-    try { return new URLSearchParams(window.location.search).get('conversation'); } catch { return null; }
-  }, [mode, menuOpen, error]);
-
+  const conversationId = new URLSearchParams(window.location.search).get('conversation');
   const isCreator = !!conversation && conversation.created_by === profileId;
   const memberIds = useMemo(() => new Set(members.map(m => m.profile_id)), [members]);
   const visibleProfiles = useMemo(() => profiles.filter(p => !memberIds.has(p.id) && p.id !== profileId && `${p.display_name ?? ''} ${p.username ?? ''}`.toLowerCase().includes(query.trim().toLowerCase())), [profiles, memberIds, profileId, query]);
-  const removable = useMemo(() => members.filter(m => m.profile_id !== profileId), [members, profileId]);
 
   const loadGroup = async () => {
     if (!conversationId) { setConversation(null); setMembers([]); return; }
@@ -48,11 +45,6 @@ export function InboxGroupMenu({ profileId }: { profileId: string }) {
     setMembers((rows ?? []).map((m: Member) => ({ ...m, profile: byId.get(m.profile_id) })));
   };
 
-  const loadProfiles = async () => {
-    const { data, error: e } = await supabase.from('profiles').select('id,display_name,username,avatar_url').neq('id', profileId).order('display_name');
-    if (e) setError(e.message); else setProfiles((data ?? []) as Profile[]);
-  };
-
   useEffect(() => { void loadGroup(); }, [conversationId]);
 
   useEffect(() => {
@@ -62,8 +54,7 @@ export function InboxGroupMenu({ profileId }: { profileId: string }) {
       if (!conversation) return;
       const section = document.querySelector('main.premium-chat-page section') as HTMLElement | null;
       const header = section?.firstElementChild as HTMLElement | null;
-      if (!header) return;
-      if (installed && installed.isConnected) return;
+      if (!header || (installed && installed.isConnected)) return;
       const host = document.createElement('div');
       host.dataset.wsGroupMenuAnchor = 'true';
       host.style.cssText = 'display:flex;align-items:center;flex:0 0 auto;margin-left:8px;';
@@ -81,7 +72,7 @@ export function InboxGroupMenu({ profileId }: { profileId: string }) {
 
   useEffect(() => {
     if (!menuOpen) return;
-    const close = (event: MouseEvent) => { const target = event.target as Node; if (!(target as HTMLElement)?.closest?.('[data-ws-group-menu], [data-ws-group-menu-popover]')) setMenuOpen(false); };
+    const close = (event: MouseEvent) => { const target = event.target as HTMLElement; if (!target.closest?.('[data-ws-group-menu], [data-ws-group-menu-popover]')) setMenuOpen(false); };
     document.addEventListener('mousedown', close);
     return () => document.removeEventListener('mousedown', close);
   }, [menuOpen]);
@@ -96,7 +87,7 @@ export function InboxGroupMenu({ profileId }: { profileId: string }) {
 
   const openMode = async (next: Exclude<Mode, null>) => {
     setMenuOpen(false); setError(null); setMode(next); setQuery('');
-    if (next === 'add') await loadProfiles();
+    if (next === 'add') { const { data, error: e } = await supabase.from('profiles').select('id,display_name,username,avatar_url').neq('id', profileId).order('display_name'); if (e) setError(e.message); else setProfiles((data ?? []) as Profile[]); }
     if (next === 'name') setName(conversation?.title ?? '');
     if (next === 'members' || next === 'remove') await loadGroup();
   };
@@ -147,7 +138,7 @@ export function InboxGroupMenu({ profileId }: { profileId: string }) {
     if (!conversation) return;
     setSaving(true); setError(null);
     const { error: e } = await supabase.from('conversation_members').delete().eq('conversation_id', conversation.id).eq('profile_id', profileId);
-    if (e) setError(e.message); else { setMode(null); setConversation(null); window.history.replaceState({}, '', '/inbox'); window.dispatchEvent(new PopStateEvent('popstate')); }
+    if (e) setError(e.message); else { setMode(null); setMenuOpen(false); setConversation(null); window.history.replaceState({}, '', '/inbox'); window.dispatchEvent(new PopStateEvent('popstate')); }
     setSaving(false);
   };
 
@@ -158,11 +149,7 @@ export function InboxGroupMenu({ profileId }: { profileId: string }) {
       <div style={{ padding: '8px 10px 7px', fontSize: 10, fontWeight: 900, letterSpacing: '.13em', color: '#6d5dfc' }}>GROUP OPTIONS</div>
       <MenuItem icon="◉" text="View Members" onClick={() => void openMode('members')} />
       <MenuItem icon="＋" text="Add Members" onClick={() => void openMode('add')} />
-      {isCreator && <>
-        <MenuItem icon="✎" text="Update Group Name" onClick={() => void openMode('name')} />
-        <MenuItem icon="◌" text="Update Group Avatar" onClick={() => void openMode('avatar')} />
-        <MenuItem icon="−" text="Remove Member" onClick={() => void openMode('remove')} />
-      </>}
+      {isCreator && <><MenuItem icon="✎" text="Update Group Name" onClick={() => void openMode('name')} /><MenuItem icon="◌" text="Update Group Avatar" onClick={() => void openMode('avatar')} /><MenuItem icon="−" text="Remove Member" onClick={() => void openMode('remove')} /></>}
       <div style={{ height: 1, margin: '6px 5px', background: 'rgba(99,102,241,.12)' }} />
       <MenuItem icon="↪" text="Leave Group" danger onClick={() => void leaveGroup()} />
     </div>, document.body)}
@@ -181,5 +168,3 @@ export function InboxGroupMenu({ profileId }: { profileId: string }) {
 
 function Avatar({ profile }: { profile?: Profile }) { return profile?.avatar_url ? <img src={profile.avatar_url} alt="" style={{ width: 38, height: 38, borderRadius: 13, objectFit: 'cover' }} /> : <span style={{ width: 38, height: 38, display: 'grid', placeItems: 'center', borderRadius: 13, background: '#eef2ff' }}>👤</span>; }
 function MenuItem({ icon, text, onClick, danger = false }: { icon: string; text: string; onClick: () => void; danger?: boolean }) { return <button type="button" onClick={onClick} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '10px 11px', border: 0, borderRadius: 13, background: 'transparent', color: danger ? '#be123c' : '#344054', fontWeight: 800, textAlign: 'left', cursor: 'pointer' }}><span style={{ width: 28, height: 28, display: 'grid', placeItems: 'center', borderRadius: 9, background: danger ? 'rgba(244,63,94,.08)' : 'rgba(109,93,252,.08)', color: danger ? '#be123c' : '#6d5dfc' }}>{icon}</span>{text}</button>; }
-const inputStyle: React.CSSProperties = { width: '100%', boxSizing: 'border-box', padding: '12px 13px', border: '1px solid rgba(99,102,241,.16)', borderRadius: 14, background: '#fff', outline: 'none', boxShadow: 'inset 0 1px 2px rgba(15,23,42,.03)' };
-const primaryButton: React.CSSProperties = { width: '100%', marginTop: 12, padding: '12px 16px', border: 0, borderRadius: 14, background: 'linear-gradient(135deg,#6d5dfc,#22c1dc)', color: '#fff', fontWeight: 900, boxShadow: '0 9px 24px rgba(79,70,229,.2)' };
