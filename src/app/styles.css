@@ -7,69 +7,23 @@
 }
 
 * { box-sizing: border-box; }
-
 html, body, #root { min-height: 100%; }
-
 body { margin: 0; min-width: 320px; overflow-x: hidden; }
-
-.app-shell {
-  min-height: 100vh;
-  display: grid;
-  place-items: center;
-  padding: 24px;
-}
-
-.foundation-card {
-  width: min(100%, 560px);
-  padding: 32px;
-  border: 1px solid #dfe5eb;
-  border-radius: 16px;
-  background: #fff;
-  box-shadow: 0 12px 40px rgba(23, 32, 42, 0.08);
-}
-
-.eyebrow {
-  margin: 0 0 8px;
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
+.app-shell { min-height: 100vh; display: grid; place-items: center; padding: 24px; }
+.foundation-card { width: min(100%, 560px); padding: 32px; border: 1px solid #dfe5eb; border-radius: 16px; background: #fff; box-shadow: 0 12px 40px rgba(23, 32, 42, 0.08); }
+.eyebrow { margin: 0 0 8px; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
 h1 { margin: 0 0 12px; }
 .foundation-card p:last-child { margin-bottom: 0; }
-
-/* Feed/comment containment: expanding threads must never create horizontal page overflow. */
 main, section, article, footer { min-width: 0; }
 article { max-width: 100%; overflow-wrap: anywhere; }
 article footer { min-width: 0; }
 article footer > div { min-width: 0; }
 article footer input { min-width: 0; max-width: 100%; }
 article footer button { flex-shrink: 0; }
+article footer strong { min-width: 0; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+article footer div { overflow-wrap: anywhere; word-break: normal; }
+article footer div[style*="border-left: 1px solid rgba(91,108,132"] { max-width: 100%; width: auto; margin-right: 0; }
 
-/* Comment identities stay readable instead of collapsing into one character per line. */
-article footer strong {
-  min-width: 0;
-  max-width: 100%;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* Keep comment text flexible inside every nested level. */
-article footer div {
-  overflow-wrap: anywhere;
-  word-break: normal;
-}
-
-/* Nested comment rows use a responsive indentation cap so deep trees do not squeeze their content. */
-article footer div[style*="border-left: 1px solid rgba(91,108,132"] {
-  max-width: 100%;
-  width: auto;
-  margin-right: 0;
-}
-
-/* The global mobile navigation stays viewport-anchored while comment trees grow in normal flow. */
 nav[aria-label="Main navigation"] {
   position: fixed !important;
   left: 10px !important;
@@ -80,13 +34,28 @@ nav[aria-label="Main navigation"] {
   max-width: calc(100vw - 20px) !important;
 }
 
+/* Inbox: constrain the card/header to the available viewport width. */
+.premium-chat-page { min-width: 0 !important; max-width: 100% !important; box-sizing: border-box !important; }
+.premium-chat-page > div { min-width: 0 !important; max-width: 100% !important; box-sizing: border-box !important; }
+.premium-chat-page section { min-width: 0 !important; max-width: 100% !important; }
+.premium-chat-page section > header { width: 100% !important; max-width: 100% !important; min-width: 0 !important; box-sizing: border-box !important; overflow: hidden !important; }
+.premium-chat-page section > header > div { min-width: 0 !important; flex: 1 1 auto !important; overflow: hidden !important; }
+.premium-chat-page section > header strong, .premium-chat-page section > header small { max-width: 100% !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; }
+
 @media (max-width: 767px) {
   .app-shell { padding: 12px; }
   article footer { padding-top: 8px !important; margin-top: 10px !important; }
   article footer > div { gap: 6px !important; }
   article footer > div:last-child { margin-top: 7px !important; }
 
-  /* On small screens, preserve a visible tree while keeping enough width for names and text. */
+  /* The bottom nav remains unchanged; Inbox ends above its fixed footprint. */
+  .premium-chat-page {
+    height: calc(100dvh - 150px - 76px) !important;
+    min-height: 0 !important;
+    max-height: calc(100dvh - 150px - 76px) !important;
+    overflow: hidden !important;
+  }
+
   article footer div[style*="border-left: 1px solid rgba(91,108,132"] {
     margin-left: clamp(6px, 2.5vw, 12px) !important;
     padding-left: 7px !important;
