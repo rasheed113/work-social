@@ -32,7 +32,14 @@ type Message = {
   deleted_at: string | null;
 };
 
+type PresencePayload = {
+  profile_id?: string;
+  user_id?: string;
+  userId?: string;
+};
+
 const displayName = (profile?: Profile) => profile?.display_name?.trim() || 'User';
+const PRESENCE_CHANNEL = 'work-social-presence';
 
 export function InboxPagePremiumActions({ profileId }: { profileId: string }) {
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -47,6 +54,7 @@ export function InboxPagePremiumActions({ profileId }: { profileId: string }) {
   const [moreOpen, setMoreOpen] = useState(false);
   const [marked, setMarked] = useState(false);
   const [mobile, setMobile] = useState(() => window.innerWidth < 768);
+  const [peerOnline, setPeerOnline] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -177,6 +185,55 @@ export function InboxPagePremiumActions({ profileId }: { profileId: string }) {
     ? selectedMembers.find((member) => member.profile_id !== profileId)?.profile
     : undefined;
 
+  useEffect(() => {
+    setPeerOnline(false);
+    if (!profileId || !other?.id) return;
+
+    let disposed = false;
+    const channel = supabase.channel(PRESENCE_CHANNEL, {
+      config: { presence: { key: profileId } },
+    });
+
+    const isPeerOnline = () => {
+      if (disposed) return;
+      try {
+        const state = channel.presenceState<PresencePayload>();
+        const peerId = other.id;
+        const online = Object.entries(state).some(([key, entries]) =>
+          key === peerId || entries.some((entry) =>
+            entry.profile_id === peerId || entry.user_id === peerId || entry.userId === peerId,
+          ),
+        );
+        setPeerOnline(online);
+      } catch {
+        setPeerOnline(false);
+      }
+    };
+
+    channel
+      .on('presence', { event: 'sync' }, isPeerOnline)
+      .on('presence', { event: 'join' }, isPeerOnline)
+      .on('presence', { event: 'leave' }, isPeerOnline)
+      .subscribe((status) => {
+        if (disposed) return;
+        if (status !== 'SUBSCRIBED') {
+          setPeerOnline(false);
+          return;
+        }
+        void channel.track({
+          profile_id: profileId,
+          user_id: profileId,
+          userId: profileId,
+        }).then(isPeerOnline).catch(() => setPeerOnline(false));
+      });
+
+    return () => {
+      disposed = true;
+      setPeerOnline(false);
+      void supabase.removeChannel(channel);
+    };
+  }, [profileId, other?.id]);
+
   const searchPeople = profiles.filter((profile) =>
     profile.id !== profileId && displayName(profile).toLowerCase().includes(search.trim().toLowerCase()),
   );
@@ -273,6 +330,10 @@ export function InboxPagePremiumActions({ profileId }: { profileId: string }) {
         .premium-chat-compose{display:flex;gap:7px;align-items:center;padding:9px;border-top:1px solid rgba(99,102,241,.1);background:#fff}
         .premium-chat-compose input{flex:1;min-width:0;padding:10px 13px;border:1px solid rgba(99,102,241,.16);border-radius:999px;outline:none}
         .premium-chat-bubble{max-width:82%;padding:9px 11px;border-radius:15px;overflow-wrap:anywhere}
+        .realtime-presence{display:flex;align-items:center;gap:5px;margin-top:3px;color:#667085;font-size:11px;font-weight:700}
+        .realtime-presence-dot{width:7px;height:7px;border-radius:50%;background:#98a2b3;box-shadow:0 0 0 2px rgba(152,162,179,.12)}
+        .realtime-presence-dot.online{background:#12b76a;box-shadow:0 0 0 2px rgba(18,183,106,.13)}
+        .realtime-presence.online-text{color:#079455}
         @media(max-width:767px){.premium-chat-header{min-height:66px;padding:8px 10px}.premium-chat-avatar{width:40px;height:40px;flex-basis:40px}.premium-chat-popover{width:min(250px,calc(100vw - 32px))}}
       `}</style>
 
@@ -328,7 +389,14 @@ export function InboxPagePremiumActions({ profileId }: { profileId: string }) {
                 {other?.avatar_url ? <img className="premium-chat-avatar" src={other.avatar_url} alt="" /> : <span className="premium-chat-avatar" style={{ display: 'grid', placeItems: 'center', background: 'linear-gradient(135deg,#eef2ff,#ecfeff)', fontSize: 22 }}>👤</span>}
                 <div className="premium-chat-title">
                   <strong>{selected.kind === 'group' ? selected.title || 'Group' : displayName(other)}</strong>
-                  <small>{selected.kind === 'group' ? `${selectedMembers.length} members` : 'Conversation'}</small>
+                  {selected.kind === 'group' ? (
+                    <small>{selectedMembers.length} members</small>
+                  ) : (
+                    <small className={peerOnline ? 'realtime-presence online-text' : 'realtime-presence'}>
+                      <span className={`realtime-presence-dot${peerOnline ? ' online' : ''}`} aria-hidden="true" />
+                      {peerOnline ? 'Online' : 'Offline'}
+                    </small>
+                  )}
                 </div>
                 <button
                   className="premium-chat-button premium-chat-more"
