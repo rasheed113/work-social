@@ -1,60 +1,379 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '../../lib/supabase/client';
 
-type Profile={id:string;display_name:string|null;username:string|null;avatar_url?:string|null};
-type Conversation={id:string;kind:'direct'|'group';title:string|null;avatar_url:string|null;created_by:string;updated_at:string};
-type Message={id:string;conversation_id:string;sender_id:string;content:string;created_at:string;read_at:string|null;reply_to_message_id:string|null;edited_at:string|null;deleted_at:string|null};
-type Member={conversation_id:string;profile_id:string;last_read_at:string|null;profile?:Profile};
-type Reaction={message_id:string;profile_id:string;reaction:string};
-type AudioPayload={dataUrl:string;durationMs:number};
-type MediaPayload={path:string;mime:string;name:string;size:number};
-type LightboxMedia={type:'image'|'video';url:string;name:string};
-const REACTIONS=['😂','❤️','👍','😢','😡','😮'];
-const reactionToDb:Record<string,string>={'😂':'haha','❤️':'love','👍':'like','😢':'sad','😡':'angry','😮':'wow'};
-const dbToReaction:Record<string,string>={haha:'😂',love:'❤️',like:'👍',sad:'😢',angry:'😡',wow:'😮'};
-const AUDIO_PREFIX='__work_social_audio__:'; const MEDIA_PREFIX='__work_social_media__:';
-const nameOf=(p?:Profile)=>p?.display_name||p?.username||'User';
-const parseAudio=(c:string):AudioPayload|null=>{if(!c.startsWith(AUDIO_PREFIX))return null;try{const p=JSON.parse(c.slice(AUDIO_PREFIX.length));return typeof p.dataUrl==='string'?p:null}catch{return null}};
-const parseMedia=(c:string):MediaPayload|null=>{if(!c.startsWith(MEDIA_PREFIX))return null;try{const p=JSON.parse(c.slice(MEDIA_PREFIX.length));return typeof p.path==='string'&&typeof p.mime==='string'?p:null}catch{return null}};
-const blobToDataUrl=(blob:Blob)=>new Promise<string>((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(String(r.result));r.onerror=()=>reject(r.error??new Error('Could not read recording.'));r.readAsDataURL(blob)});
+type Profile = {
+  id: string;
+  display_name: string | null;
+  username: string | null;
+  avatar_url: string | null;
+};
 
-export function InboxPagePremiumActions({profileId}:{profileId:string}){
- const [conversations,setConversations]=useState<Conversation[]>([]),[members,setMembers]=useState<Member[]>([]),[messages,setMessages]=useState<Message[]>([]),[profiles,setProfiles]=useState<Profile[]>([]),[reactions,setReactions]=useState<Reaction[]>([]),[mediaUrls,setMediaUrls]=useState<Record<string,string>>({}),[lightbox,setLightbox]=useState<LightboxMedia|null>(null);
- const [selectedId,setSelectedId]=useState<string|null>(()=>new URLSearchParams(window.location.search).get('conversation')),[draft,setDraft]=useState(''),[search,setSearch]=useState(''),[loading,setLoading]=useState(true),[error,setError]=useState<string|null>(null),[actionId,setActionId]=useState<string|null>(null),[moreOpen,setMoreOpen]=useState(false),[deleteId,setDeleteId]=useState<string|null>(null),[editingId,setEditingId]=useState<string|null>(null),[replyId,setReplyId]=useState<string|null>(null),[mobile,setMobile]=useState(()=>window.innerWidth<768),[recording,setRecording]=useState(false),[recordingMs,setRecordingMs]=useState(0),[uploading,setUploading]=useState(false),[marked,setMarked]=useState(false);
- const press=useRef<number|null>(null),fileInput=useRef<HTMLInputElement|null>(null),recorder=useRef<MediaRecorder|null>(null),streamRef=useRef<MediaStream|null>(null),chunks=useRef<Blob[]>([]),started=useRef(0),timer=useRef<number|null>(null);
- const load=async()=>{setLoading(true);setError(null);const {data:mine,error:me}=await supabase.from('conversation_members').select('conversation_id,profile_id,last_read_at').eq('profile_id',profileId);if(me){setError(me.message);setLoading(false);return}const ids=(mine??[]).map((x:any)=>x.conversation_id);if(!ids.length){setConversations([]);setMembers([]);setMessages([]);setProfiles([]);setReactions([]);setMediaUrls({});setMarked(false);setLoading(false);return}const [cr,mr,msg,hidden,marks]=await Promise.all([supabase.from('conversations').select('id,kind,title,avatar_url,created_by,updated_at').in('id',ids).order('updated_at',{ascending:false}),supabase.from('conversation_members').select('conversation_id,profile_id,last_read_at').in('conversation_id',ids),supabase.from('messages').select('id,conversation_id,sender_id,content,created_at,read_at,reply_to_message_id,edited_at,deleted_at').in('conversation_id',ids).order('created_at',{ascending:true}),supabase.from('message_hidden_for').select('message_id').eq('profile_id',profileId),supabase.from('conversation_delete_marks').select('conversation_id').eq('profile_id',profileId).in('conversation_id',ids)]);const first=cr.error??mr.error??msg.error??hidden.error??marks.error;if(first){setError(first.message);setLoading(false);return}const hiddenIds=new Set((hidden.data??[]).map((x:any)=>x.message_id));const rows=(msg.data??[] as any[]).filter(m=>!hiddenIds.has(m.id)) as Message[];const memberRows=(mr.data??[]) as Member[];const ids2=[...new Set(memberRows.map(x=>x.profile_id).concat(rows.map(x=>x.sender_id)))];const pr=ids2.length?await supabase.from('profiles').select('id,display_name,username,avatar_url').in('id',ids2):{data:[],error:null};if(pr.error){setError(pr.error.message);setLoading(false);return}const rr=rows.length?await supabase.from('message_reactions').select('message_id,profile_id,reaction').in('message_id',rows.map(x=>x.id)):{data:[],error:null};if(rr.error){setError(rr.error.message);setLoading(false);return}const map=new Map((pr.data??[]).map((p:any)=>[p.id,p as Profile]));let signed:Record<string,string>={};const mediaRows=rows.map(m=>[m.id,parseMedia(m.content)] as const).filter((x):x is [string,MediaPayload]=>!!x[1]);if(mediaRows.length){const sr=await supabase.storage.from('chat-media').createSignedUrls(mediaRows.map(x=>x[1].path),3600);if(!sr.error)mediaRows.forEach((x,i)=>{const u=sr.data?.[i]?.signedUrl;if(u)signed[x[0]]=u})}setConversations((cr.data??[]) as Conversation[]);setMembers(memberRows.map(m=>({...m,profile:map.get(m.profile_id)})));setMessages(rows);setProfiles((pr.data??[]) as Profile[]);setReactions((rr.data??[]) as Reaction[]);setMediaUrls(signed);setMarked(!!(marks.data??[]).some((x:any)=>x.conversation_id===selectedId));setLoading(false)};
- useEffect(()=>{void load();return()=>{if(press.current)clearTimeout(press.current);if(timer.current)clearInterval(timer.current);streamRef.current?.getTracks().forEach(t=>t.stop())}},[profileId]);
- useEffect(()=>{const f=()=>setMobile(window.innerWidth<768);window.addEventListener('resize',f);return()=>window.removeEventListener('resize',f)},[]);
- useEffect(()=>{const close=(e:PointerEvent)=>{const t=e.target as HTMLElement;if(!t.closest('[data-inbox-popover]')){setActionId(null);setMoreOpen(false)}};document.addEventListener('pointerdown',close);return()=>document.removeEventListener('pointerdown',close)},[]);
- useEffect(()=>{const onKey=(e:KeyboardEvent)=>{if(e.key==='Escape'){setActionId(null);setMoreOpen(false);setLightbox(null)}};window.addEventListener('keydown',onKey);return()=>window.removeEventListener('keydown',onKey)},[]);
- useEffect(()=>{const ch=supabase.channel(`work-social-chat-premium:${profileId}`).on('postgres_changes',{event:'*',schema:'public',table:'messages'},()=>void load()).on('postgres_changes',{event:'*',schema:'public',table:'message_reactions'},()=>void load()).subscribe();return()=>{void supabase.removeChannel(ch)}},[profileId]);
- const selected=conversations.find(c=>c.id===selectedId)??null,selectedMessages=useMemo(()=>messages.filter(m=>m.conversation_id===selectedId),[messages,selectedId]),selectedMembers=members.filter(m=>m.conversation_id===selectedId),other=selected?.kind==='direct'?selectedMembers.find(m=>m.profile_id!==profileId)?.profile:undefined,searchPeople=profiles.filter(p=>p.id!==profileId&&`${p.display_name??''}`.toLowerCase().includes(search.toLowerCase().trim()));
- const byId=(id:string|null)=>id?messages.find(m=>m.id===id):undefined;
- const reactionRows=(id:string)=>{const map=new Map<string,{count:number;mine:boolean}>();reactions.filter(r=>r.message_id===id).forEach(r=>{const k=dbToReaction[r.reaction]??r.reaction,v=map.get(k)??{count:0,mine:false};v.count++;if(r.profile_id===profileId)v.mine=true;map.set(k,v)});return [...map.entries()]};
- const open=async(id:string)=>{setSelectedId(id);setMoreOpen(false);setActionId(null);const {error:e}=await supabase.from('conversation_members').update({last_read_at:new Date().toISOString()}).eq('conversation_id',id).eq('profile_id',profileId);if(e)setError(e.message);window.history.replaceState({},'',`/inbox?conversation=${encodeURIComponent(id)}`);await load()};
- const back=()=>{setSelectedId(null);setMoreOpen(false);setActionId(null);setDeleteId(null);setEditingId(null);setReplyId(null);setDraft('');window.history.replaceState({},'','/inbox')};
- const createDirect=async(person:Profile)=>{const {data,error:e}=await supabase.rpc('create_direct_conversation',{target_profile:person.id});if(e||!data){setError(e?.message??'Could not open chat.');return}setSearch('');await load();setSelectedId(data as string);window.history.replaceState({},'',`/inbox?conversation=${encodeURIComponent(data as string)}`)};
- const sendText=async()=>{const text=draft.trim();if(!text||!selectedId)return;if(editingId){const {error:e}=await supabase.rpc('edit_message',{p_message_id:editingId,p_content:text});if(e)setError(e.message);else{setEditingId(null);setDraft('')}return}const p:any={conversation_id:selectedId,sender_id:profileId,content:text};if(replyId)p.reply_to_message_id=replyId;const {error:e}=await supabase.from('messages').insert(p);if(e)setError(e.message);else{setDraft('');setReplyId(null)}};
- const sendFiles=async(files:FileList|null)=>{if(!files||!selectedId)return;setUploading(true);try{for(const file of Array.from(files)){if(!file.type.startsWith('image/')&&!file.type.startsWith('video/'))throw new Error('Only images and videos can be sent.');if(file.size>25*1024*1024)throw new Error('Each image/video must be 25 MB or smaller.');const safe=file.name.replace(/[^a-zA-Z0-9._-]/g,'_'),path=`${selectedId}/${profileId}/${crypto.randomUUID()}-${safe}`,up=await supabase.storage.from('chat-media').upload(path,file,{contentType:file.type,cacheControl:'3600',upsert:false});if(up.error)throw up.error;const content=MEDIA_PREFIX+JSON.stringify({path,mime:file.type,name:file.name,size:file.size});const p:any={conversation_id:selectedId,sender_id:profileId,content};if(replyId)p.reply_to_message_id=replyId;const ins=await supabase.from('messages').insert(p);if(ins.error)throw ins.error}setReplyId(null);await load()}catch(e){setError(e instanceof Error?e.message:'Could not send media.')}finally{setUploading(false);if(fileInput.current)fileInput.current.value=''}};
- const startRecording=async()=>{if(!selectedId||recording)return;try{const s=await navigator.mediaDevices.getUserMedia({audio:true});streamRef.current=s;const mime=MediaRecorder.isTypeSupported('audio/webm;codecs=opus')?'audio/webm;codecs=opus':'audio/webm',r=new MediaRecorder(s,{mimeType:mime});chunks.current=[];started.current=Date.now();r.ondataavailable=e=>e.data.size&&chunks.current.push(e.data);r.onstop=async()=>{const blob=new Blob(chunks.current,{type:r.mimeType}),durationMs=Math.min(Date.now()-started.current,120000);try{const dataUrl=await blobToDataUrl(blob),p:any={conversation_id:selectedId,sender_id:profileId,content:AUDIO_PREFIX+JSON.stringify({dataUrl,durationMs})};if(replyId)p.reply_to_message_id=replyId;const {error:e}=await supabase.from('messages').insert(p);if(e)setError(e.message);else{setReplyId(null);await load()}}finally{s.getTracks().forEach(t=>t.stop());streamRef.current=null;setRecording(false);setRecordingMs(0)}};r.start();recorder.current=r;setRecording(true);timer.current=window.setInterval(()=>{const ms=Math.min(Date.now()-started.current,120000);setRecordingMs(ms);if(ms>=120000)r.stop()},200)}catch(e){setError(e instanceof Error?e.message:'Microphone permission was denied.')}};
- const stopRecording=()=>{if(recorder.current?.state==='recording')recorder.current.stop();if(timer.current){clearInterval(timer.current);timer.current=null}};
- const toggleReaction=async(id:string,emoji:string)=>{const db=reactionToDb[emoji]??emoji,mine=reactions.find(r=>r.message_id===id&&r.profile_id===profileId),res=mine?.reaction===db?await supabase.rpc('remove_message_reaction',{p_message_id:id}):await supabase.rpc('set_message_reaction',{p_message_id:id,p_reaction:db});if(res.error)setError(res.error.message);else await load();setActionId(null)};
- const deleteMe=async(id:string)=>{const {error:e}=await supabase.rpc('delete_message_for_me',{p_message_id:id});if(e)setError(e.message);else await load();setDeleteId(null);setActionId(null)};
- const deleteEveryone=async(id:string)=>{const m=byId(id);if(!m||m.sender_id!==profileId)return;const {error:e}=await supabase.rpc('delete_message_for_everyone',{p_message_id:id});if(e)setError(e.message);else await load();setDeleteId(null);setActionId(null)};
- const clearChat=async()=>{if(!selectedId)return;const {error:e}=await supabase.rpc('clear_conversation_for_me',{p_conversation_id:selectedId});if(e)setError(e.message);else await load();setMoreOpen(false)};
- const deleteChat=async()=>{if(!selectedId)return;const {error:e}=await supabase.rpc('delete_conversation_for_me',{p_conversation_id:selectedId});if(e)setError(e.message);else back()};
- const markDelete=async()=>{if(!selectedId)return;const fn=marked?'unmark_conversation_for_delete':'mark_conversation_for_delete';const {error:e}=await supabase.rpc(fn,{p_conversation_id:selectedId});if(e)setError(e.message);else{setMarked(!marked);setMoreOpen(false)}};
- const startPress=(id:string)=>{if(press.current)clearTimeout(press.current);press.current=window.setTimeout(()=>setActionId(id),480)},endPress=()=>{if(press.current){clearTimeout(press.current);press.current=null}};
- const recordLabel=`${Math.floor(recordingMs/60000)}:${String(Math.floor((recordingMs%60000)/1000)).padStart(2,'0')}`;
- return <main className="premium-chat-page" style={{height:'calc(100vh - 150px)',minHeight:420,width:'100%',overflow:'hidden',boxSizing:'border-box'}}><style>{`
- .premium-chat-page{color:#17202a}.premium-chat-page>div{border:1px solid rgba(99,102,241,.16)!important;border-radius:20px!important;background:linear-gradient(145deg,#fff,#f6f8ff)!important;box-shadow:0 12px 34px rgba(15,23,42,.09),inset 0 1px #fff!important}.premium-chat-page aside{background:linear-gradient(180deg,#f8faff,#fff)}.premium-chat-page input{border:1px solid rgba(99,102,241,.16)!important;background:#fff!important;outline:none}.premium-chat-page input:focus{border-color:rgba(109,93,252,.45)!important;box-shadow:0 0 0 3px rgba(109,93,252,.09)!important}.chat-header{position:relative;display:flex;align-items:center;gap:10px;min-height:72px;padding:10px 14px!important;background:linear-gradient(135deg,#fff,#f6f7ff 55%,#f0fcff)!important;border-bottom:1px solid rgba(99,102,241,.13)!important;box-shadow:0 8px 24px rgba(15,23,42,.07);overflow:visible}.chat-header:before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(180deg,#6d5dfc,#22c1dc,#ff5ca8);border-radius:0 4px 4px 0}.chat-header img,.chat-avatar{position:relative;z-index:2;width:46px;height:46px;border-radius:50%;object-fit:cover;border:2px solid #fff;box-shadow:0 6px 16px rgba(79,70,229,.16);flex-shrink:0}.chat-avatar{display:grid;place-items:center;background:linear-gradient(135deg,#eef2ff,#ecfeff);font-size:22px}.chat-title{position:relative;z-index:2;min-width:0;flex:1}.chat-title strong{display:block;font-size:15px;font-weight:900;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.chat-title small{display:block;margin-top:3px;color:#667085;font-size:11px;font-weight:700}.header-more{position:relative;z-index:20;width:42px;height:42px;border:1px solid rgba(99,102,241,.14)!important;border-radius:13px!important;background:rgba(255,255,255,.9)!important;color:#4f46e5;font-size:22px;box-shadow:0 5px 14px rgba(79,70,229,.09);cursor:pointer}.popover{position:absolute;z-index:50;right:10px;top:62px;width:min(250px,calc(100vw - 32px));padding:7px;border:1px solid rgba(99,102,241,.14);border-radius:18px;background:rgba(255,255,255,.96);backdrop-filter:blur(18px);box-shadow:0 18px 50px rgba(15,23,42,.16)}.popover button{width:100%;display:flex;align-items:center;gap:10px;padding:11px 12px;border:0;border-radius:12px;background:transparent;font-weight:800;text-align:left;cursor:pointer}.popover button:hover{background:#f3f4ff}.popover .danger{color:#dc2626}.action-sheet{position:absolute;z-index:40;left:50%;transform:translateX(-50%);top:calc(100% + 8px);width:min(390px,calc(100% - 24px));padding:10px;border:1px solid rgba(99,102,241,.16);border-radius:20px;background:rgba(255,255,255,.96);backdrop-filter:blur(18px);box-shadow:0 20px 60px rgba(15,23,42,.18)}.reaction-row{display:flex;justify-content:center;gap:5px;padding:4px 0 9px}.reaction-row button{width:38px;height:38px;border:1px solid rgba(99,102,241,.12)!important;border-radius:50%!important;background:#fff!important;font-size:20px;cursor:pointer;box-shadow:0 4px 10px rgba(15,23,42,.06)}.action-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.action-grid button{padding:10px 6px;border:1px solid rgba(99,102,241,.10)!important;border-radius:12px!important;background:#fff!important;font-weight:800;cursor:pointer}.action-grid .danger{color:#dc2626}.confirm-modal{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:16px;background:rgba(15,23,42,.45);backdrop-filter:blur(5px)}.confirm-card{width:min(360px,92vw);padding:20px;border:1px solid rgba(255,255,255,.65);border-radius:20px;background:rgba(255,255,255,.97);box-shadow:0 24px 70px rgba(15,23,42,.25)}.confirm-actions{display:flex;gap:8px;flex-wrap:wrap}.confirm-actions button{flex:1;min-width:100px;padding:10px;border:0;border-radius:12px;font-weight:800}.confirm-actions .danger{background:#fee2e2;color:#b91c1c}.confirm-actions .primary{background:linear-gradient(135deg,#6d5dfc,#22c1dc);color:#fff}.mark-pill{display:inline-flex;margin-left:6px;padding:2px 7px;border-radius:999px;background:#fff4d6;color:#a16207;font-size:10px;font-weight:900}@media(max-width:767px){.chat-header{min-height:66px;padding:8px 10px!important}.chat-header img,.chat-avatar{width:40px;height:40px}.action-sheet{position:fixed;top:auto;bottom:12px}.action-grid{grid-template-columns:repeat(2,1fr)}}
- `}</style><div style={{display:'grid',gridTemplateColumns:mobile?'1fr':'minmax(220px,300px) minmax(0,1fr)',height:'100%',width:'100%',overflow:'hidden',borderRadius:20,background:'#fff'}}>
- <aside style={{display:!mobile||!selected?'block':'none',padding:10,overflowY:'auto',borderRight:mobile?0:'1px solid rgba(99,102,241,.12)',minWidth:0}}><div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}><h1 style={{margin:0,fontSize:22,fontWeight:900,background:'linear-gradient(135deg,#6d5dfc,#22c1dc,#ff5ca8)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent'}}>Inbox</h1><button type="button" style={{border:0,borderRadius:999,padding:'8px 12px',fontWeight:800}}>＋ Group</button></div><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search people..." style={{width:'100%',boxSizing:'border-box',marginTop:10,padding:10,borderRadius:12}}/>{search.trim()&&<div>{searchPeople.map(p=><button key={p.id} type="button" onClick={()=>void createDirect(p)} style={{display:'flex',gap:9,alignItems:'center;width:'100%',padding:8,border:0,background:'transparent',textAlign:'left'}}>{p.avatar_url?<img src={p.avatar_url} alt="" width={36} height={36} style={{borderRadius:'50%',objectFit:'cover'}}/>:<span>👤</span>}<strong>{nameOf(p)}</strong></button>)}</div>}{loading&&<p>Loading chats…</p>}{error&&<p role="alert" style={{overflowWrap:'anywhere'}}>{error}</p>}{!loading&&!conversations.length&&<p>No conversations yet. Search for someone to start a chat.</p>}{conversations.map(c=>{const member=members.find(m=>m.conversation_id===c.id&&m.profile_id!==profileId),title=c.kind==='group'?c.title??'Group':nameOf(member?.profile),avatar=c.kind==='group'?c.avatar_url:member?.profile?.avatar_url,last=messages.filter(m=>m.conversation_id===c.id&&!m.deleted_at).at(-1),lm=last&&parseMedia(last.content),la=last&&parseAudio(last.content);return <button key={c.id} type="button" onClick={()=>void open(c.id)} style={{display:'flex',alignItems:'center',gap:9,width:'100%',padding:9,marginTop:6,border:'1px solid rgba(99,102,241,.08)',borderRadius:13,background:selectedId===c.id?'#f2f3ff':'#fff',textAlign:'left'}}>{avatar?<img src={avatar} alt="" width={38} height={38} style={{borderRadius:'50%',objectFit:'cover'}}/>:<span>👤</span>}<span style={{minWidth:0,flex:1}}><strong style={{display:'block',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{title}</strong><small style={{display:'block',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{lm?(lm.mime.startsWith('image/')?'📷 Photo':'🎥 Video'):la?'🎤 Voice message':last?.content??'No messages yet'}</small></span></button>})}</aside>
- <section style={{display:!mobile||selected?'grid':'none',gridTemplateRows:'auto minmax(0,1fr) auto',minWidth:0,minHeight:0,height:'100%',position:'relative'}}>{selected?<><header className="chat-header" data-inbox-popover>{mobile&&<button type="button" onClick={back} style={{position:'relative',zIndex:20,width:40,height:40,border:0,borderRadius:12,background:'#fff',fontSize:22}}>←</button>}{other?.avatar_url?<img src={other.avatar_url} alt=""/>:<span className="chat-avatar">👤</span>}<div className="chat-title"><strong>{selected.kind==='group'?selected.title??'Group':nameOf(other)}{marked&&<span className="mark-pill">Marked</span>}</strong><small>{selected.kind==='group'?`${selectedMembers.length} members`:'Active conversation'}</small></div><button className="header-more" type="button" onClick={e=>{e.stopPropagation();setMoreOpen(v=>!v);setActionId(null)}} aria-label="More chat options">⋯</button>{moreOpen&&<div className="popover" data-inbox-popover onPointerDown={e=>e.stopPropagation()}><button type="button" onClick={()=>void clearChat()}>🧹 <span>Clear all messages</span></button><button type="button" onClick={()=>setMoreOpen(false)}>✦ <span>{marked?'Unmark delete':'Mark to delete'}</span></button>{marked&&<button type="button" className="danger" onClick={()=>void deleteChat()}>🗑 <span>Delete inbox chat</span></button>} {!marked&&<button type="button" className="danger" onClick={()=>void deleteChat()}>🗑 <span>Delete inbox chat</span></button>}</div>}</header>
- <div style={{overflowY:'auto',padding:10,background:'radial-gradient(circle at 85% 8%,rgba(109,93,252,.05),transparent 25%),linear-gradient(180deg,#fafbff,#fff)'}}>{!selectedMessages.length&&<div style={{height:'100%',display:'grid',placeItems:'center',opacity:.55}}>No messages yet</div>}{selectedMessages.map(m=>{const mine=m.sender_id===profileId,sender=members.find(x=>x.conversation_id===selected.id&&x.profile_id===m.sender_id)?.profile,reply=byId(m.reply_to_message_id),audio=parseAudio(m.content),media=parseMedia(m.content),url=media?mediaUrls[m.id]:undefined;return <div key={m.id} onMouseDown={()=>startPress(m.id)} onMouseUp={endPress} onMouseLeave={endPress} onTouchStart={()=>startPress(m.id)} onTouchEnd={endPress} onContextMenu={e=>{e.preventDefault();setActionId(m.id)}} style={{display:'flex',justifyContent:mine?'flex-end':'flex-start',alignItems:'flex-end',gap:6,marginBottom:10,position:'relative'}}>{!mine&&(sender?.avatar_url?<img src={sender.avatar_url} alt="" width={28} height={28} style={{borderRadius:'50%',objectFit:'cover'}}/>:<span>👤</span>)}<div style={{maxWidth:'82%',minWidth:0}}>{selected.kind==='group'&&!mine&&<small>{nameOf(sender)}</small>}{reply&&<div style={{fontSize:11,opacity:.7,padding:'4px 7px',borderLeft:'3px solid #6d5dfc',marginBottom:3,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{reply.deleted_at?'Deleted message':parseMedia(reply.content)?'📎 Media':parseAudio(reply.content)?'🎤 Voice':reply.content}</div>}{m.deleted_at?<div style={{padding:'8px 10px',borderRadius:13,background:'#eee',color:'#777',fontStyle:'italic'}}>Message deleted</div>:media?<div style={{padding:5,borderRadius:14,background:mine?'#17202a':'#eef1f4'}}>{url?(media.mime.startsWith('image/')?<button type="button" onClick={()=>setLightbox({type:'image',url,name:media.name})} style={{border:0,padding:0,background:'transparent'}}><img src={url} alt={media.name} style={{maxWidth:'100%',maxHeight:360,borderRadius:10}}/></button>:<video controls src={url} style={{maxWidth:'100%',maxHeight:360,borderRadius:10}}/>):'Loading media…'}</div>:audio?<div style={{padding:'8px 10px',borderRadius:15,background:mine?'#17202a':'#eef1f4',color:mine?'#fff':'#17202a'}}><div>🎤 Voice message · {Math.max(1,Math.round(audio.durationMs/1000))}s</div><audio controls src={audio.dataUrl} style={{width:'100%',marginTop:5}}/></div>:<div style={{padding:'9px 11px',borderRadius:15,background:mine?'linear-gradient(135deg,#6d5dfc,#22c1dc)':'#eef1f4',color:mine?'#fff':'#17202a',overflowWrap:'anywhere'}}>{m.content}</div>}{m.edited_at&&!m.deleted_at&&<small> edited</small>}{reactionRows(m.id).length>0&&<div style={{display:'flex',flexWrap:'wrap',gap:3,marginTop:3}}>{reactionRows(m.id).map(([r,i])=><button key={r} type="button" onClick={()=>void toggleReaction(m.id,r)} style={{border:'1px solid #ddd',borderRadius:999,background:i.mine?'#fff4c2':'#fff',padding:'2px 7px'}}>{r} {i.count}</button>)}</div>}{actionId===m.id&&<div className="action-sheet" data-inbox-popover onPointerDown={e=>e.stopPropagation()}><div className="reaction-row">{REACTIONS.map(r=><button key={r} type="button" onClick={()=>void toggleReaction(m.id,r)}>{r}</button>)}</div><div className="action-grid"><button type="button" onClick={()=>{setReplyId(m.id);setActionId(null)}}>↩ Reply</button>{mine&&!media&&!audio&&<button type="button" onClick={()=>{setEditingId(m.id);setDraft(m.content);setActionId(null)}}>✎ Edit</button>}<button type="button" className="danger" onClick={()=>{setDeleteId(m.id);setActionId(null)}}>⌫ Delete</button><button type="button" onClick={()=>setActionId(null)}>Done</button></div></div>}</div></div>})}</div>
- {replyId&&<div style={{padding:'7px 10px',fontSize:12,borderTop:'1px solid #eee',background:'#fafafa'}}>Replying to {nameOf(members.find(x=>x.profile_id===byId(replyId)?.sender_id)?.profile)} <button type="button" onClick={()=>setReplyId(null)}>×</button></div>}
- <div style={{padding:9,borderTop:'1px solid rgba(99,102,241,.1)',display:'flex',gap:6,alignItems:'center',background:'#fff'}}><input ref={fileInput} type="file" accept="image/*,video/*" multiple hidden onChange={e=>void sendFiles(e.target.files)}/><button type="button" onClick={()=>fileInput.current?.click()} disabled={uploading||recording}>＋</button><input value={draft} onChange={e=>setDraft(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();void sendText()}}} placeholder={editingId?'Edit message…':'Write a message...'} style={{flex:1,minWidth:0,padding:'9px 12px',borderRadius:999}} disabled={recording}/>{recording?<button type="button" onClick={stopRecording}>⏹ {recordLabel}</button>:<button type="button" onClick={()=>void startRecording()} disabled={!selectedId||!!draft.trim()}>🎤</button>}<button type="button" onClick={()=>void sendText()} disabled={!draft.trim()||uploading}>{editingId?'Save':'Send'}</button></div>
- {deleteId&&<div className="confirm-modal" data-inbox-popover onPointerDown={e=>e.stopPropagation()}><div className="confirm-card"><strong>Delete message</strong><p>Choose where this message should disappear.</p><div className="confirm-actions"><button type="button" className="danger" onClick={()=>void deleteMe(deleteId)}>Delete for me</button>{byId(deleteId)?.sender_id===profileId&&<button type="button" className="danger" onClick={()=>void deleteEveryone(deleteId)}>Delete for everyone</button>}<button type="button" onClick={()=>setDeleteId(null)}>Cancel</button></div></div></div>}
- {lightbox&&<div className="confirm-modal" onClick={()=>setLightbox(null)} style={{background:'rgba(0,0,0,.92)'}}><div onClick={e=>e.stopPropagation()}>{lightbox.type==='image'?<img src={lightbox.url} alt={lightbox.name} style={{maxWidth:'95vw',maxHeight:'90vh'}}/>:<video src={lightbox.url} controls autoPlay style={{maxWidth:'95vw',maxHeight:'90vh'}}/>}</div></div>}
- </>:<div style={{display:'grid',placeItems:'center',opacity:.55}}>Select a conversation</div>}</section></div></main>;
+type Conversation = {
+  id: string;
+  kind: 'direct' | 'group';
+  title: string | null;
+  avatar_url: string | null;
+  updated_at: string;
+};
+
+type Member = {
+  conversation_id: string;
+  profile_id: string;
+  last_read_at: string | null;
+  profile?: Profile;
+};
+
+type Message = {
+  id: string;
+  conversation_id: string;
+  sender_id: string;
+  content: string;
+  created_at: string;
+  deleted_at: string | null;
+};
+
+const displayName = (profile?: Profile) => profile?.display_name?.trim() || 'User';
+
+export function InboxPagePremiumActions({ profileId }: { profileId: string }) {
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [members, setMembers] = useState<Member[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [selectedId, setSelectedId] = useState<string | null>(() => new URLSearchParams(window.location.search).get('conversation'));
+  const [search, setSearch] = useState('');
+  const [draft, setDraft] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const [marked, setMarked] = useState(false);
+  const [mobile, setMobile] = useState(() => window.innerWidth < 768);
+
+  const load = async () => {
+    setLoading(true);
+    setError(null);
+
+    const { data: mine, error: memberError } = await supabase
+      .from('conversation_members')
+      .select('conversation_id, profile_id, last_read_at')
+      .eq('profile_id', profileId);
+
+    if (memberError) {
+      setError(memberError.message);
+      setLoading(false);
+      return;
+    }
+
+    const ids = (mine ?? []).map((row: Member) => row.conversation_id);
+    if (!ids.length) {
+      setConversations([]);
+      setMembers([]);
+      setMessages([]);
+      setProfiles([]);
+      setMarked(false);
+      setLoading(false);
+      return;
+    }
+
+    const [conversationResult, memberResult, messageResult, markResult] = await Promise.all([
+      supabase
+        .from('conversations')
+        .select('id, kind, title, avatar_url, updated_at')
+        .in('id', ids)
+        .order('updated_at', { ascending: false }),
+      supabase
+        .from('conversation_members')
+        .select('conversation_id, profile_id, last_read_at')
+        .in('conversation_id', ids),
+      supabase
+        .from('messages')
+        .select('id, conversation_id, sender_id, content, created_at, deleted_at')
+        .in('conversation_id', ids)
+        .order('created_at', { ascending: true }),
+      supabase
+        .from('conversation_delete_marks')
+        .select('conversation_id')
+        .eq('profile_id', profileId)
+        .in('conversation_id', ids),
+    ]);
+
+    const queryError = conversationResult.error ?? memberResult.error ?? messageResult.error ?? markResult.error;
+    if (queryError) {
+      setError(queryError.message);
+      setLoading(false);
+      return;
+    }
+
+    const memberRows = (memberResult.data ?? []) as Member[];
+    const messageRows = (messageResult.data ?? []) as Message[];
+    const profileIds = [...new Set(memberRows.map((row) => row.profile_id).concat(messageRows.map((row) => row.sender_id)))];
+
+    const profileResult = profileIds.length
+      ? await supabase.from('profiles').select('id, display_name, username, avatar_url').in('id', profileIds)
+      : { data: [], error: null };
+
+    if (profileResult.error) {
+      setError(profileResult.error.message);
+      setLoading(false);
+      return;
+    }
+
+    const profileMap = new Map((profileResult.data ?? []).map((profile) => [profile.id, profile as Profile]));
+    const hydratedMembers = memberRows.map((member) => ({ ...member, profile: profileMap.get(member.profile_id) }));
+
+    setConversations((conversationResult.data ?? []) as Conversation[]);
+    setMembers(hydratedMembers);
+    setMessages(messageRows);
+    setProfiles((profileResult.data ?? []) as Profile[]);
+    setMarked(Boolean((markResult.data ?? []).some((row: { conversation_id: string }) => row.conversation_id === selectedId)));
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    void load();
+  }, [profileId]);
+
+  useEffect(() => {
+    const resize = () => setMobile(window.innerWidth < 768);
+    window.addEventListener('resize', resize);
+    return () => window.removeEventListener('resize', resize);
+  }, []);
+
+  useEffect(() => {
+    const close = (event: PointerEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (!target?.closest('[data-inbox-popover]')) setMoreOpen(false);
+    };
+    document.addEventListener('pointerdown', close);
+    return () => document.removeEventListener('pointerdown', close);
+  }, []);
+
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMoreOpen(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
+  useEffect(() => {
+    const channel = supabase
+      .channel(`work-social-chat:${profileId}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, () => void load())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'conversation_members' }, () => void load())
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [profileId]);
+
+  const selected = conversations.find((conversation) => conversation.id === selectedId) ?? null;
+  const selectedMembers = members.filter((member) => member.conversation_id === selectedId);
+  const selectedMessages = useMemo(
+    () => messages.filter((message) => message.conversation_id === selectedId),
+    [messages, selectedId],
+  );
+  const other = selected?.kind === 'direct'
+    ? selectedMembers.find((member) => member.profile_id !== profileId)?.profile
+    : undefined;
+
+  const searchPeople = profiles.filter((profile) =>
+    profile.id !== profileId && displayName(profile).toLowerCase().includes(search.trim().toLowerCase()),
+  );
+
+  const openConversation = async (conversationId: string) => {
+    setSelectedId(conversationId);
+    setMoreOpen(false);
+    window.history.replaceState({}, '', `/inbox?conversation=${encodeURIComponent(conversationId)}`);
+    await supabase
+      .from('conversation_members')
+      .update({ last_read_at: new Date().toISOString() })
+      .eq('conversation_id', conversationId)
+      .eq('profile_id', profileId);
+    await load();
+  };
+
+  const back = () => {
+    setSelectedId(null);
+    setMoreOpen(false);
+    window.history.replaceState({}, '', '/inbox');
+  };
+
+  const createDirect = async (person: Profile) => {
+    const { data, error: rpcError } = await supabase.rpc('create_direct_conversation', { target_profile: person.id });
+    if (rpcError || !data) {
+      setError(rpcError?.message ?? 'Could not open chat.');
+      return;
+    }
+    setSearch('');
+    await load();
+    await openConversation(data as string);
+  };
+
+  const sendText = async () => {
+    const text = draft.trim();
+    if (!text || !selectedId) return;
+    const { error: sendError } = await supabase.from('messages').insert({
+      conversation_id: selectedId,
+      sender_id: profileId,
+      content: text,
+    });
+    if (sendError) setError(sendError.message);
+    else setDraft('');
+  };
+
+  const clearChat = async () => {
+    if (!selectedId) return;
+    const { error: rpcError } = await supabase.rpc('clear_conversation_for_me', { p_conversation_id: selectedId });
+    if (rpcError) setError(rpcError.message);
+    else await load();
+    setMoreOpen(false);
+  };
+
+  const toggleMarkDelete = async () => {
+    if (!selectedId) return;
+    const rpcName = marked ? 'unmark_conversation_for_delete' : 'mark_conversation_for_delete';
+    const { error: rpcError } = await supabase.rpc(rpcName, { p_conversation_id: selectedId });
+    if (rpcError) setError(rpcError.message);
+    else {
+      setMarked((value) => !value);
+      setMoreOpen(false);
+    }
+  };
+
+  const deleteChat = async () => {
+    if (!selectedId) return;
+    const { error: rpcError } = await supabase.rpc('delete_conversation_for_me', { p_conversation_id: selectedId });
+    if (rpcError) setError(rpcError.message);
+    else back();
+  };
+
+  return (
+    <main className="premium-chat-page" style={{ height: 'calc(100vh - 150px)', minHeight: 420, width: '100%', overflow: 'hidden' }}>
+      <style>{`
+        .premium-chat-page{color:#17202a}
+        .premium-chat-shell{height:100%;display:grid;border:1px solid rgba(99,102,241,.16);border-radius:22px;overflow:hidden;background:#fff;box-shadow:0 18px 50px rgba(15,23,42,.12)}
+        .premium-chat-sidebar{background:linear-gradient(180deg,#f8faff,#fff);padding:12px;overflow-y:auto;border-right:1px solid rgba(99,102,241,.1)}
+        .premium-chat-header{position:relative;display:flex;align-items:center;gap:10px;min-height:72px;padding:10px 14px;background:linear-gradient(135deg,#fff,#f5f7ff 55%,#effcff);border-bottom:1px solid rgba(99,102,241,.13);box-shadow:0 8px 24px rgba(15,23,42,.07)}
+        .premium-chat-header:before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(180deg,#6d5dfc,#22c1dc,#ff5ca8)}
+        .premium-chat-avatar{position:relative;z-index:1;width:46px;height:46px;flex:0 0 46px;border-radius:50%;object-fit:cover;border:2px solid #fff;box-shadow:0 6px 16px rgba(79,70,229,.16)}
+        .premium-chat-title{min-width:0;flex:1}
+        .premium-chat-title strong{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:15px;font-weight:900}
+        .premium-chat-title small{display:block;margin-top:3px;color:#667085;font-size:11px;font-weight:700}
+        .premium-chat-button{border:1px solid rgba(99,102,241,.14);border-radius:13px;background:rgba(255,255,255,.9);color:#4f46e5;cursor:pointer;box-shadow:0 5px 14px rgba(79,70,229,.08)}
+        .premium-chat-more{position:relative;z-index:20;width:42px;height:42px;font-size:22px}
+        .premium-chat-popover{position:absolute;right:10px;top:62px;z-index:100;width:250px;padding:7px;border:1px solid rgba(99,102,241,.14);border-radius:18px;background:rgba(255,255,255,.97);backdrop-filter:blur(18px);box-shadow:0 18px 50px rgba(15,23,42,.18)}
+        .premium-chat-popover button{width:100%;padding:11px 12px;border:0;border-radius:12px;background:transparent;text-align:left;font-weight:800;cursor:pointer}
+        .premium-chat-popover button:hover{background:#f3f4ff}
+        .premium-chat-popover .danger{color:#dc2626}
+        .premium-chat-list-button{display:flex;align-items:center;gap:9px;width:100%;padding:9px;margin-top:6px;border:1px solid rgba(99,102,241,.08);border-radius:13px;background:#fff;text-align:left;cursor:pointer}
+        .premium-chat-list-button img{width:38px;height:38px;border-radius:50%;object-fit:cover}
+        .premium-chat-body{min-width:0;min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr) auto;position:relative}
+        .premium-chat-messages{overflow-y:auto;padding:12px;background:linear-gradient(180deg,#fafbff,#fff)}
+        .premium-chat-compose{display:flex;gap:7px;align-items:center;padding:9px;border-top:1px solid rgba(99,102,241,.1);background:#fff}
+        .premium-chat-compose input{flex:1;min-width:0;padding:10px 13px;border:1px solid rgba(99,102,241,.16);border-radius:999px;outline:none}
+        .premium-chat-bubble{max-width:82%;padding:9px 11px;border-radius:15px;overflow-wrap:anywhere}
+        @media(max-width:767px){.premium-chat-header{min-height:66px;padding:8px 10px}.premium-chat-avatar{width:40px;height:40px;flex-basis:40px}.premium-chat-popover{width:min(250px,calc(100vw - 32px))}}
+      `}</style>
+
+      <div
+        className="premium-chat-shell"
+        style={{ gridTemplateColumns: mobile ? '1fr' : 'minmax(220px,300px) minmax(0,1fr)' }}
+      >
+        <aside className="premium-chat-sidebar" style={{ display: !mobile || !selected ? 'block' : 'none' }}>
+          <h1 style={{ margin: '0 0 10px', fontSize: 22, fontWeight: 900 }}>Inbox</h1>
+          <input
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Search people..."
+            style={{ width: '100%', boxSizing: 'border-box', padding: 10, border: '1px solid rgba(99,102,241,.16)', borderRadius: 12 }}
+          />
+          {search.trim() && searchPeople.map((person) => (
+            <button key={person.id} className="premium-chat-list-button" type="button" onClick={() => void createDirect(person)}>
+              {person.avatar_url ? <img src={person.avatar_url} alt="" /> : <span>👤</span>}
+              <strong>{displayName(person)}</strong>
+            </button>
+          ))}
+          {loading && <p>Loading chats…</p>}
+          {error && <p role="alert" style={{ overflowWrap: 'anywhere' }}>{error}</p>}
+          {!loading && !conversations.length && <p>No conversations yet. Search for someone to start a chat.</p>}
+          {conversations.map((conversation) => {
+            const member = members.find((item) => item.conversation_id === conversation.id && item.profile_id !== profileId);
+            const title = conversation.kind === 'group' ? conversation.title || 'Group' : displayName(member?.profile);
+            const avatar = conversation.kind === 'group' ? conversation.avatar_url : member?.profile?.avatar_url;
+            const last = messages.filter((message) => message.conversation_id === conversation.id).at(-1);
+            return (
+              <button
+                key={conversation.id}
+                className="premium-chat-list-button"
+                type="button"
+                onClick={() => void openConversation(conversation.id)}
+                style={{ background: selectedId === conversation.id ? '#f2f3ff' : '#fff' }}
+              >
+                {avatar ? <img src={avatar} alt="" /> : <span>👤</span>}
+                <span style={{ minWidth: 0 }}>
+                  <strong style={{ display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{title}</strong>
+                  <small style={{ display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{last?.deleted_at ? 'Message deleted' : last?.content || 'No messages yet'}</small>
+                </span>
+              </button>
+            );
+          })}
+        </aside>
+
+        <section className="premium-chat-body" style={{ display: !mobile || selected ? 'grid' : 'none' }}>
+          {selected ? (
+            <>
+              <header className="premium-chat-header" data-inbox-popover>
+                {mobile && <button className="premium-chat-button" type="button" onClick={back} style={{ width: 40, height: 40, fontSize: 22 }}>←</button>}
+                {other?.avatar_url ? <img className="premium-chat-avatar" src={other.avatar_url} alt="" /> : <span className="premium-chat-avatar" style={{ display: 'grid', placeItems: 'center', background: 'linear-gradient(135deg,#eef2ff,#ecfeff)', fontSize: 22 }}>👤</span>}
+                <div className="premium-chat-title">
+                  <strong>{selected.kind === 'group' ? selected.title || 'Group' : displayName(other)}</strong>
+                  <small>{selected.kind === 'group' ? `${selectedMembers.length} members` : 'Conversation'}</small>
+                </div>
+                <button
+                  className="premium-chat-button premium-chat-more"
+                  type="button"
+                  aria-label="More chat options"
+                  onClick={(event) => { event.stopPropagation(); setMoreOpen((value) => !value); }}
+                >⋮</button>
+                {moreOpen && (
+                  <div className="premium-chat-popover" data-inbox-popover onPointerDown={(event) => event.stopPropagation()}>
+                    <button type="button" onClick={() => void clearChat()}>🧹 &nbsp; Clear chat</button>
+                    <button type="button" onClick={() => void toggleMarkDelete()}>✦ &nbsp; {marked ? 'Unmark delete' : 'Mark to delete'}</button>
+                    <button className="danger" type="button" onClick={() => void deleteChat()}>🗑 &nbsp; Delete chat</button>
+                  </div>
+                )}
+              </header>
+
+              <div className="premium-chat-messages">
+                {!selectedMessages.length && <div style={{ height: '100%', display: 'grid', placeItems: 'center', opacity: .55 }}>No messages yet</div>}
+                {selectedMessages.map((message) => {
+                  const mine = message.sender_id === profileId;
+                  return (
+                    <div key={message.id} style={{ display: 'flex', justifyContent: mine ? 'flex-end' : 'flex-start', marginBottom: 10 }}>
+                      <div className="premium-chat-bubble" style={{ background: mine ? 'linear-gradient(135deg,#6d5dfc,#22c1dc)' : '#eef1f4', color: mine ? '#fff' : '#17202a' }}>
+                        {message.deleted_at ? 'Message deleted' : message.content}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="premium-chat-compose">
+                <input
+                  value={draft}
+                  onChange={(event) => setDraft(event.target.value)}
+                  onKeyDown={(event) => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); void sendText(); } }}
+                  placeholder="Write a message..."
+                />
+                <button className="premium-chat-button" type="button" onClick={() => void sendText()} disabled={!draft.trim()}>Send</button>
+              </div>
+            </>
+          ) : (
+            <div style={{ display: 'grid', placeItems: 'center', opacity: .55 }}>Select a conversation</div>
+          )}
+        </section>
+      </div>
+    </main>
+  );
 }
