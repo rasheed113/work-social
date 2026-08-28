@@ -63,16 +63,23 @@ export function RealtimePresenceStatus({ profileId }: { profileId: string }) {
     }
 
     let disposed = false;
+    // Presence is intentionally public-channel based here. The payload only contains
+    // the authenticated profile id and timestamp; no message or conversation data is exposed.
+    // Keeping this separate from the call channel also prevents presence failures from
+    // affecting the working WebRTC/call flow.
     const channel = supabase.channel(PRESENCE_CHANNEL, {
-      config: { private: true, presence: { key: profileId } },
+      config: { presence: { key: profileId } },
     });
 
     const sync = () => {
       if (disposed) return;
       try {
         const state = channel.presenceState<PresenceEntry>();
-        const entries = Object.values(state).flat();
-        setOnline(entries.some((entry) => entry.userId === peer.id));
+        const peerEntries = state[peer.id] ?? [];
+        const peerIsTracked = peerEntries.length > 0 || Object.values(state).some((entries) =>
+          entries.some((entry) => entry.userId === peer.id),
+        );
+        setOnline(peerIsTracked);
       } catch {
         setOnline(false);
       }
@@ -91,7 +98,7 @@ export function RealtimePresenceStatus({ profileId }: { profileId: string }) {
         void channel.track({
           userId: profileId,
           online_at: new Date().toISOString(),
-        }).catch(() => {
+        }).then(() => sync()).catch(() => {
           if (!disposed) setOnline(false);
         });
         sync();
