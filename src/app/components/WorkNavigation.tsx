@@ -1,8 +1,9 @@
-interface WorkNavigationProps {
-  onNavigate: (path: string) => void;
-}
+export function WorkNavigation() {
+  const openWorkHouse = () => {
+    window.history.pushState({}, '', '/work');
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  };
 
-export function WorkNavigation({ onNavigate }: WorkNavigationProps) {
   return (
     <nav
       aria-label="Work navigation"
@@ -25,7 +26,7 @@ export function WorkNavigation({ onNavigate }: WorkNavigationProps) {
     >
       <button
         type="button"
-        onClick={() => onNavigate('/work')}
+        onClick={openWorkHouse}
         aria-current="page"
         style={{
           position: 'relative',
