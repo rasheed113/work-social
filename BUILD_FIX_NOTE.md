@@ -1,0 +1,1 @@
+TypeScript fix: MutationObserver is only constructed after the queried main element is narrowed to a non-null HTMLElement.
