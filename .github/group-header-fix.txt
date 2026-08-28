@@ -1,1 +1,0 @@
-Header controls are intentionally separated by reserved right-side slots.
