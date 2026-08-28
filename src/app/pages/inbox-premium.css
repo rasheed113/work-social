@@ -2,69 +2,68 @@
 .premium-chat-page aside { background:linear-gradient(180deg,rgba(248,250,255,.96),rgba(255,255,255,.9)); border-color:rgba(99,102,241,.12) !important; }
 .premium-chat-page aside h1 { font-weight:900 !important; letter-spacing:-.03em; color:transparent !important; background:linear-gradient(135deg,#6d5dfc,#22c1dc,#ff5ca8); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; text-shadow:0 3px 10px rgba(79,70,229,.12); }
 
-/* Root Chat Screen widget boundary. The outer Inbox grid must use shrinkable
-   tracks; otherwise a min-content child can make the selected-chat widget
-   wider than its viewport even when the header itself says width:100%. */
+/* Chat Screen outer-widget contract. The selected conversation is a grid item;
+   its grid area must be allowed to shrink before the header/composer are sized. */
 .premium-chat-page,
 .premium-chat-page > div,
 .premium-chat-page > div > aside,
-.premium-chat-page > div > section,
-.premium-chat-page section,
-.premium-chat-page section > header,
-.premium-chat-page section > footer,
-.premium-chat-page section > form { width:100% !important; max-width:100% !important; min-width:0 !important; box-sizing:border-box !important; }
-.premium-chat-page > div { grid-template-columns:minmax(0,280px) minmax(0,1fr) !important; overflow:hidden !important; }
-.premium-chat-page { overflow-x:hidden !important; padding-bottom:calc(92px + env(safe-area-inset-bottom)) !important; }
-.premium-chat-page > div > section { overflow:hidden !important; }
+.premium-chat-page > div > section { width:100% !important; max-width:100% !important; min-width:0 !important; box-sizing:border-box !important; }
+.premium-chat-page { overflow-x:clip !important; padding-bottom:calc(92px + env(safe-area-inset-bottom)) !important; }
+.premium-chat-page > div { grid-template-columns:minmax(0,280px) minmax(0,1fr) !important; min-width:0 !important; overflow:hidden !important; }
+.premium-chat-page > div > section { min-width:0 !important; max-width:100% !important; overflow-x:clip !important; }
 
-/* Active chat HEADER WIDGET only. Keep the existing header content and
-   button dimensions; constrain the outer widget to its actual grid column. */
-.premium-chat-page section > header {
-  display:flex !important;
-  align-items:center !important;
-  justify-content:space-between !important;
-  gap:clamp(6px,1.5vw,10px) !important;
-  min-width:0 !important;
+/* The header itself is the visual widget. Keep its existing children/design;
+   only contain the widget box in its selected-chat grid area. */
+.premium-chat-page > div > section > header {
   width:100% !important;
   max-width:100% !important;
-  margin-inline:0 !important;
-  padding-left:clamp(8px,2vw,14px) !important;
-  padding-right:max(clamp(8px,2vw,14px),env(safe-area-inset-right)) !important;
+  min-width:0 !important;
+  inline-size:100% !important;
+  max-inline-size:100% !important;
   box-sizing:border-box !important;
-  overflow:visible !important;
+  margin-left:0 !important;
+  margin-right:0 !important;
+  left:auto !important;
+  right:auto !important;
+  transform:none !important;
 }
-.premium-chat-page section > header > div:not(.inbox-call-toolbar):not([data-ws-group-header-action]) {
-  flex:1 1 auto !important;
-  min-width:0 !important;
-}
-.premium-chat-page section > header .inbox-call-toolbar,
-.premium-chat-page section > header [data-ws-group-header-action] {
-  flex:0 0 auto !important;
-  min-width:0 !important;
+
+/* Portaled controls are children of the header at runtime. Their footprint
+   must not become a second width constraint on the header widget. */
+.premium-chat-page > div > section > header .inbox-call-toolbar,
+.premium-chat-page > div > section > header [data-ws-group-header-action] {
   max-width:100% !important;
+  min-width:0 !important;
   box-sizing:border-box !important;
 }
 
-/* Chat composer widget stays inside the same shrinkable grid column. */
-.premium-chat-page section > footer,
-.premium-chat-page section > form,
-.premium-chat-page section > div:last-child {
-  min-width:0 !important;
-  max-width:100% !important;
+/* Composer outer widget: contain the complete row, then let only its input
+   region shrink. Existing composer/button sizes and height are preserved. */
+.premium-chat-page > div > section > footer,
+.premium-chat-page > div > section > form,
+.premium-chat-page > div > section > div:last-child {
   width:100% !important;
+  max-width:100% !important;
+  min-width:0 !important;
+  inline-size:100% !important;
+  max-inline-size:100% !important;
   box-sizing:border-box !important;
+  margin-left:0 !important;
+  margin-right:0 !important;
+  left:auto !important;
+  right:auto !important;
+  transform:none !important;
 }
-.premium-chat-page section > footer > div,
-.premium-chat-page section > form > div,
-.premium-chat-page section > div:last-child > div { min-width:0 !important; max-width:100% !important; width:100% !important; box-sizing:border-box !important; }
-.premium-chat-page section > footer input,
-.premium-chat-page section > form input,
-.premium-chat-page section > div:last-child input { min-width:0 !important; max-width:100% !important; box-sizing:border-box !important; }
-.premium-chat-page section > footer button,
-.premium-chat-page section > form button,
-.premium-chat-page section > div:last-child button { flex:0 0 auto !important; }
+.premium-chat-page > div > section > footer > div,
+.premium-chat-page > div > section > form > div,
+.premium-chat-page > div > section > div:last-child > div { width:100% !important; max-width:100% !important; min-width:0 !important; box-sizing:border-box !important; }
+.premium-chat-page > div > section > footer input,
+.premium-chat-page > div > section > form input,
+.premium-chat-page > div > section > div:last-child input { min-width:0 !important; max-width:100% !important; box-sizing:border-box !important; }
+.premium-chat-page > div > section > footer button,
+.premium-chat-page > div > section > form button,
+.premium-chat-page > div > section > div:last-child button { flex:0 0 auto !important; }
 
-/* Premium Inbox search — visual only; dimensions/layout remain unchanged. */
 .premium-chat-page aside input[placeholder="Search people..."] { appearance:none !important; -webkit-appearance:none !important; border:1px solid rgba(109,93,252,.38) !important; background:linear-gradient(145deg,rgba(255,255,255,.995),rgba(240,244,255,.96)) !important; box-shadow:inset 0 1px 0 rgba(255,255,255,1),inset 0 -2px 5px rgba(67,56,202,.06),0 3px 7px rgba(15,23,42,.06),0 8px 20px rgba(79,70,229,.10),0 0 18px rgba(34,193,220,.06) !important; outline:none !important; transition:border-color .2s ease,box-shadow .2s ease,background .2s ease !important; }
 .premium-chat-page aside input[placeholder="Search people..."]::placeholder { color:rgba(55,61,89,.66); opacity:1; }
 .premium-chat-page aside input[placeholder="Search people..."]:hover { border-color:rgba(109,93,252,.56) !important; box-shadow:inset 0 1px 0 rgba(255,255,255,1),inset 0 -2px 5px rgba(67,70,229,.075),0 4px 8px rgba(15,23,42,.07),0 10px 22px rgba(79,70,229,.14),0 0 22px rgba(34,193,220,.09) !important; }
