@@ -8,7 +8,30 @@ export function CallSpeakerEnhancer() {
 
   useEffect(() => {
     mounted.current = true;
+
+    // Call controls are portaled into the chat header. If that header is ever
+    // inside a form, the browser's default button behavior can submit/navigate
+    // immediately after the click and unmount the WebRTC controller. Make every
+    // call control an explicit non-submit control and stop that default action.
+    const protectCallButtons = (root: ParentNode = document) => {
+      const buttons = root.querySelectorAll?.('button[aria-label="Start voice call"], button[aria-label="Start video call"], .inbox-call-actions button, .inbox-incoming-actions button') ?? [];
+      buttons.forEach(button => {
+        (button as HTMLButtonElement).type = 'button';
+      });
+    };
+
+    const preventCallSubmit = (event: Event) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      const button = target.closest('button[aria-label="Start voice call"], button[aria-label="Start video call"], .inbox-call-actions button, .inbox-incoming-actions button');
+      if (button) event.preventDefault();
+    };
+
+    protectCallButtons();
+    document.addEventListener('click', preventCallSubmit, true);
+
     const apply = async () => {
+      protectCallButtons();
       const stage = document.querySelector('.inbox-call-stage');
       const actions = document.querySelector('.inbox-call-actions');
       if (!stage || !actions) {
@@ -31,7 +54,9 @@ export function CallSpeakerEnhancer() {
         button.style.boxShadow = on ? '0 8px 24px rgba(59,130,246,.35)' : 'none';
         button.setAttribute('aria-pressed', String(on));
       };
-      button.addEventListener('click', async () => {
+      button.addEventListener('click', async (event) => {
+        event.preventDefault();
+        event.stopPropagation();
         const media = Array.from(stage.querySelectorAll('audio,video')) as HTMLMediaElement[];
         const next = !button.dataset.active || button.dataset.active !== 'true';
         let changed = false;
@@ -58,12 +83,14 @@ export function CallSpeakerEnhancer() {
       actions.insertBefore(button, actions.firstChild);
       setVisible(true);
     };
+
     const observer = new MutationObserver(() => void apply());
     observer.observe(document.body, { childList: true, subtree: true });
     void apply();
     return () => {
       mounted.current = false;
       observer.disconnect();
+      document.removeEventListener('click', preventCallSubmit, true);
       document.querySelector('[data-call-speaker]')?.remove();
     };
   }, []);
