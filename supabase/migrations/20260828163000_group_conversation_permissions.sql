@@ -14,19 +14,19 @@ WITH CHECK (
     WHERE c.id = conversation_id
       AND c.created_by = (SELECT auth.uid())
   )
-  OR EXISTS (
-    SELECT 1
-    FROM public.conversations c
-    JOIN public.conversation_members cm
-      ON cm.conversation_id = c.id
-    WHERE c.id = conversation_id
-      AND c.kind = 'group'
-      AND cm.profile_id = (SELECT auth.uid())
+  OR (
+    private.is_conversation_member(conversation_id)
+    AND EXISTS (
+      SELECT 1
+      FROM public.conversations c
+      WHERE c.id = conversation_id
+        AND c.kind = 'group'
+    )
   )
 );
 
--- Keep direct-conversation membership private to its participants/creator while allowing
--- every existing group member to add another profile to a group.
+-- Only the member themselves may leave; the group creator may remove another member.
+-- Direct-conversation membership is intentionally not creator-removable through this policy.
 DROP POLICY IF EXISTS conversation_members_delete_authorized ON public.conversation_members;
 CREATE POLICY conversation_members_delete_authorized
 ON public.conversation_members
