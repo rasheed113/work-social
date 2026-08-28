@@ -1,123 +1,32 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase } from '../../lib/supabase/client';
 
-type Kind = 'audio' | 'video';
-type Profile = { id: string; display_name: string | null; avatar_url: string | null };
-type Signal = { callId: string; from: string; to: string; kind: Kind; type: 'offer' | 'answer' | 'ice' | 'hangup' | 'reject'; sdp?: RTCSessionDescriptionInit; candidate?: RTCIceCandidateInit; conversationId?: string };
-const rtcConfig: RTCConfiguration = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
-const topic = (id: string) => `work-social-user:${id}`;
+type Kind='audio'|'video';
+type Profile={id:string;display_name:string|null;avatar_url:string|null};
+type Signal={callId:string;from:string;to:string;kind:Kind;type:'offer'|'answer'|'ice'|'hangup'|'reject';sdp?:RTCSessionDescriptionInit;candidate?:RTCIceCandidateInit;conversationId?:string};
+const rtcConfig:RTCConfiguration={iceServers:[{urls:'stun:stun.l.google.com:19302'}]};
+const topic=(id:string)=>`work-social-user:${id}`;
+function Icon({type}:{type:'phone'|'video'|'mic'|'camera'|'end'}){const p:Record<string,React.ReactNode>={phone:<path d="M22 16.9v3a2 2 0 0 1-2.2 2A19.8 19.8 0 0 1 3.1 5.2 2 2 0 0 1 5.1 3h3a2 2 0 0 1 2 1.7c.1.9.3 1.8.6 2.6a2 2 0 0 1-.5 2.1L9 10.7a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.8.3 1.7.5 2.6.6a2 2 0 0 1 1.7 1.4Z"/>,video:<><path d="M15 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h11"/><path d="m15 11 7-4v10l-7-4"/></>,mic:<><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4M8 22h8"/></>,camera:<><path d="M14 5 16 3h3l1 2h1a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h11Z"/><circle cx="12" cy="12" r="3.5"/></>,end:<path d="m5 9 1-3 3-1 2 2h2l2-2 3 1 1 3-3 2a8 8 0 0 1-8 0L5 9Z"/>};return <svg viewBox="0 0 24 24" aria-hidden="true">{p[type]}</svg>}
 
-function Icon({ type }: { type: 'phone' | 'video' | 'mic' | 'camera' | 'end' }) {
-  const paths: Record<string, React.ReactNode> = {
-    phone: <path d="M22 16.9v3a2 2 0 0 1-2.2 2A19.8 19.8 0 0 1 3.1 5.2 2 2 0 0 1 5.1 3h3a2 2 0 0 1 2 1.7c.1.9.3 1.8.6 2.6a2 2 0 0 1-.5 2.1L9 10.7a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.8.3 1.7.5 2.6.6a2 2 0 0 1 1.7 1.4Z" />,
-    video: <><path d="M15 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h11"/><path d="m15 11 7-4v10l-7-4"/></>,
-    mic: <><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4M8 22h8"/></>,
-    camera: <><path d="M14 5 16 3h3l1 2h1a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h11Z"/><circle cx="12" cy="12" r="3.5"/></>,
-    end: <path d="m5 9 1-3 3-1 2 2h2l2-2 3 1 1 3-3 2a8 8 0 0 1-8 0L5 9Z" />,
-  };
-  return <svg viewBox="0 0 24 24" aria-hidden="true">{paths[type]}</svg>;
-}
-
-export function StableInboxCallControls({ profileId }: { profileId: string }) {
-  const [conversationId, setConversationId] = useState<string | null>(() => new URLSearchParams(window.location.search).get('conversation'));
-  const [peer, setPeer] = useState<Profile | null>(null);
-  const [incoming, setIncoming] = useState<Signal | null>(null);
-  const [active, setActive] = useState<{ id: string; kind: Kind } | null>(null);
-  const [connected, setConnected] = useState(false), [muted, setMuted] = useState(false), [cameraOff, setCameraOff] = useState(false), [error, setError] = useState<string | null>(null);
-  const peerRef = useRef<Profile | null>(null), activeRef = useRef(active), incomingRef = useRef(incoming);
-  const pcRef = useRef<RTCPeerConnection | null>(null), localRef = useRef<MediaStream | null>(null), remoteRef = useRef<MediaStream | null>(null);
-  const remoteAudio = useRef<HTMLAudioElement | null>(null), remoteVideo = useRef<HTMLVideoElement | null>(null), localVideo = useRef<HTMLVideoElement | null>(null);
-  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null), seen = useRef(new Set<string>()), pendingIce = useRef<RTCIceCandidateInit[]>([]), disconnectTimer = useRef<number | null>(null);
-  useEffect(() => { peerRef.current = peer; }, [peer]); useEffect(() => { activeRef.current = active; }, [active]); useEffect(() => { incomingRef.current = incoming; }, [incoming]);
-
-  const cleanup = useCallback(() => {
-    if (disconnectTimer.current) window.clearTimeout(disconnectTimer.current);
-    pcRef.current?.close(); pcRef.current = null;
-    localRef.current?.getTracks().forEach(t => t.stop()); remoteRef.current?.getTracks().forEach(t => t.stop());
-    if (remoteAudio.current) remoteAudio.current.srcObject = null; if (remoteVideo.current) remoteVideo.current.srcObject = null; if (localVideo.current) localVideo.current.srcObject = null;
-    pendingIce.current = []; setActive(null); setConnected(false); setMuted(false); setCameraOff(false);
-  }, []);
-
-  const send = useCallback(async (s: Signal) => {
-    const ch = channelRef.current; if (!ch) throw new Error('Call signaling is not ready.');
-    const result = await ch.send({ type: 'broadcast', event: 'signal', payload: s });
-    if (result !== 'ok') throw new Error('Call signaling failed.');
-  }, []);
-
-  const loadPeer = useCallback(async (id: string) => {
-    const { data } = await supabase.from('profiles').select('id,display_name,avatar_url').eq('id', id).maybeSingle();
-    return (data ?? null) as Profile | null;
-  }, []);
-
-  const handleSignal = useCallback(async (s: Signal) => {
-    if (!s || s.to !== profileId || s.from === profileId) return;
-    const key = `${s.callId}:${s.type}:${s.candidate?.candidate ?? s.sdp?.sdp ?? ''}`; if (seen.current.has(key)) return; seen.current.add(key);
-    try {
-      if (s.type === 'offer' && s.sdp) {
-        if (activeRef.current || incomingRef.current) return;
-        const p = peerRef.current?.id === s.from ? peerRef.current : await loadPeer(s.from); if (!p) return;
-        peerRef.current = p; setPeer(p); if (s.conversationId) { setConversationId(s.conversationId); window.history.replaceState({}, '', `/inbox?conversation=${encodeURIComponent(s.conversationId)}`); }
-        setError(null); setIncoming(s); return;
-      }
-      if (s.type === 'hangup' || s.type === 'reject') { setIncoming(null); cleanup(); return; }
-      if (s.type === 'answer' && s.sdp && pcRef.current) {
-        await pcRef.current.setRemoteDescription(s.sdp); for (const c of pendingIce.current.splice(0)) await pcRef.current.addIceCandidate(c); return;
-      }
-      if (s.type === 'ice' && s.candidate) { if (pcRef.current?.remoteDescription) await pcRef.current.addIceCandidate(s.candidate); else pendingIce.current.push(s.candidate); }
-    } catch (e) { setError(e instanceof Error ? e.message : 'Call setup failed.'); cleanup(); }
-  }, [cleanup, loadPeer, profileId]);
-
-  useEffect(() => {
-    const id = new URLSearchParams(window.location.search).get('conversation'); setConversationId(id);
-    const ch = supabase.channel(topic(profileId), { config: { private: true } });
-    ch.on('broadcast', { event: 'signal' }, ({ payload }) => void handleSignal(payload as Signal));
-    ch.subscribe(); channelRef.current = ch;
-    return () => { channelRef.current = null; void supabase.removeChannel(ch); };
-  }, [profileId, handleSignal]);
-
-  useEffect(() => {
-    let cancelled = false;
-    const run = async () => {
-      if (!conversationId) { setPeer(null); return; }
-      const { data } = await supabase.from('conversation_members').select('profile_id').eq('conversation_id', conversationId).neq('profile_id', profileId).limit(1);
-      const id = data?.[0]?.profile_id; if (!id) return; const p = await loadPeer(id); if (!cancelled) setPeer(p);
-    }; void run(); return () => { cancelled = true; };
-  }, [conversationId, profileId, loadPeer]);
-
-  const setup = async (kind: Kind, id: string, initiator: boolean, offer?: RTCSessionDescriptionInit) => {
-    const p = peerRef.current; if (!p) throw new Error('Contact unavailable.');
-    if (!navigator.mediaDevices?.getUserMedia) throw new Error('Calling requires HTTPS or localhost.');
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: kind === 'video' }); localRef.current = stream;
-    const pc = new RTCPeerConnection(rtcConfig); pcRef.current = pc; remoteRef.current = new MediaStream();
-    if (localVideo.current) localVideo.current.srcObject = stream; if (remoteVideo.current) remoteVideo.current.srcObject = remoteRef.current; if (remoteAudio.current) remoteAudio.current.srcObject = remoteRef.current;
-    stream.getTracks().forEach(t => pc.addTrack(t, stream));
-    pc.ontrack = e => { const rs = e.streams[0] ?? remoteRef.current!; remoteRef.current = rs; if (remoteVideo.current) remoteVideo.current.srcObject = rs; if (remoteAudio.current) { remoteAudio.current.srcObject = rs; void remoteAudio.current.play().catch(() => undefined); } setConnected(true); };
-    pc.onicecandidate = e => { if (e.candidate) void send({ callId: id, from: profileId, to: p.id, kind, type: 'ice', candidate: e.candidate.toJSON(), conversationId: conversationId ?? undefined }).catch(() => undefined); };
-    pc.onconnectionstatechange = () => { if (pc.connectionState === 'connected') setConnected(true); if (pc.connectionState === 'failed' || pc.connectionState === 'closed') cleanup(); if (pc.connectionState === 'disconnected') { disconnectTimer.current = window.setTimeout(() => { if (pc.connectionState === 'disconnected') cleanup(); }, 5000); } };
-    if (offer) await pc.setRemoteDescription(offer);
-    if (initiator) { const o = await pc.createOffer(); await pc.setLocalDescription(o); await send({ callId: id, from: profileId, to: p.id, kind, type: 'offer', sdp: o, conversationId: conversationId ?? undefined }); }
-  };
-
-  const start = async (kind: Kind) => {
-    if (!peer || !conversationId || activeRef.current || incomingRef.current) return;
-    try { const id = crypto.randomUUID(); setError(null); setActive({ id, kind }); await setup(kind, id, true); } catch (e) { setError(e instanceof Error ? e.message : 'Microphone/camera permission was denied.'); cleanup(); }
-  };
-  const accept = async () => {
-    const s = incomingRef.current, p = peerRef.current; if (!s || !p) return; setIncoming(null); setActive({ id: s.callId, kind: s.kind });
-    try { await setup(s.kind, s.callId, false, s.sdp); const pc = pcRef.current; if (!pc) throw new Error('Call connection unavailable.'); const a = await pc.createAnswer(); await pc.setLocalDescription(a); await send({ callId: s.callId, from: profileId, to: s.from, kind: s.kind, type: 'answer', sdp: a, conversationId: s.conversationId }); } catch (e) { setError(e instanceof Error ? e.message : 'Could not accept call.'); cleanup(); }
-  };
-  const decline = async () => { const s = incomingRef.current; if (s) { try { await send({ ...s, from: profileId, to: s.from, type: 'reject' }); } catch {} } setIncoming(null); };
-  const hangup = async () => { const a = activeRef.current, p = peerRef.current; if (a && p) { try { await send({ callId: a.id, from: profileId, to: p.id, kind: a.kind, type: 'hangup', conversationId: conversationId ?? undefined }); } catch {} } cleanup(); };
-  const mute = () => { const t = localRef.current?.getAudioTracks()[0]; if (t) { t.enabled = !t.enabled; setMuted(!t.enabled); } };
-  const camera = () => { const t = localRef.current?.getVideoTracks()[0]; if (t) { t.enabled = !t.enabled; setCameraOff(!t.enabled); } };
-  useEffect(() => () => cleanup(), [cleanup]);
-
-  if (!conversationId || !peer) return <>{incoming && <div />}</>;
-  const name = peer.display_name?.trim() || 'Contact';
-  return <>
-    <style>{`.inbox-call-toolbar{position:fixed;top:76px;right:14px;z-index:2500;display:flex;align-items:center;gap:7px;padding:6px 7px;border:1px solid rgba(99,102,241,.16);border-radius:17px;background:rgba(255,255,255,.97);box-shadow:0 10px 30px rgba(15,23,42,.16);backdrop-filter:blur(12px)}.inbox-call-toolbar button{width:40px;height:40px;border:0;border-radius:12px;background:linear-gradient(145deg,#eef2ff,#f8fafc);color:#3730a3;display:grid;place-items:center;cursor:pointer}.inbox-call-toolbar button:hover{transform:translateY(-1px);box-shadow:0 5px 14px rgba(79,70,229,.16)}.inbox-call-toolbar button:disabled{opacity:.45;cursor:not-allowed}.inbox-call-toolbar svg,.inbox-call-stage svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}.inbox-call-stage{position:fixed;inset:0;z-index:5000;background:rgba(2,6,23,.82);backdrop-filter:blur(12px);display:grid;place-items:center;padding:16px}.inbox-call-card{width:min(680px,100%);overflow:hidden;border-radius:25px;background:#111827;color:#fff;box-shadow:0 30px 90px rgba(0,0,0,.5)}.inbox-call-media{position:relative;aspect-ratio:16/10;background:#020617;display:grid;place-items:center}.inbox-call-media video{width:100%;height:100%;object-fit:cover}.inbox-call-local{position:absolute!important;right:14px;top:14px;width:150px!important;height:100px!important;border:2px solid rgba(255,255,255,.4);border-radius:15px}.inbox-call-info{padding:16px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px}.inbox-call-name{font-weight:900;font-size:18px}.inbox-call-status{font-size:12px;color:#94a3b8;margin-top:3px}.inbox-call-actions{display:flex;gap:8px}.inbox-call-actions button{width:46px;height:46px;border:0;border-radius:15px;background:#334155;color:#fff;display:grid;place-items:center;cursor:pointer}.inbox-call-actions .end{background:#ef4444}.inbox-incoming{text-align:center;padding:30px}.inbox-incoming img{width:76px;height:76px;border-radius:50%;object-fit:cover;background:#312e81}.inbox-incoming h2{margin:12px 0 4px}.inbox-incoming p{margin:0 0 22px;color:#94a3b8}.inbox-incoming-actions{display:flex;justify-content:center;gap:12px}.inbox-incoming-actions button{min-width:120px;height:46px;border:0;border-radius:14px;font-weight:900;color:#fff;cursor:pointer}.inbox-incoming-actions .accept{background:#22c55e}.inbox-incoming-actions .decline{background:#ef4444}.inbox-call-error{padding:0 18px 16px;color:#fecaca;font-size:12px}@media(max-width:767px){.inbox-call-toolbar{top:70px;right:10px}.inbox-call-toolbar button{width:38px;height:38px}}`}</style>
-    <div className="inbox-call-toolbar" aria-label="Call controls"><button type="button" title="Voice call" aria-label={`Voice call ${name}`} onClick={() => void start('audio')} disabled={!!active || !!incoming}><Icon type="phone" /></button><button type="button" title="Video call" aria-label={`Video call ${name}`} onClick={() => void start('video')} disabled={!!active || !!incoming}><Icon type="video" /></button></div>
-    {incoming && <div className="inbox-call-stage" role="dialog" aria-modal="true"><div className="inbox-call-card"><div className="inbox-incoming"><img src={peer.avatar_url || ''} alt=""/><h2>{name}</h2><p>Incoming {incoming.kind === 'video' ? 'video' : 'voice'} call</p><div className="inbox-incoming-actions"><button className="decline" onClick={() => void decline()}>Decline</button><button className="accept" onClick={() => void accept()}>Accept</button></div></div></div></div>}
-    {active && <div className="inbox-call-stage" role="dialog" aria-modal="true"><div className="inbox-call-card"><div className="inbox-call-media">{active.kind === 'video' ? <><video ref={remoteVideo} autoPlay playsInline /><video ref={localVideo} className="inbox-call-local" autoPlay playsInline muted /></> : <><audio ref={remoteAudio} autoPlay /><Icon type="phone" /></>}</div><div className="inbox-call-info"><div><div className="inbox-call-name">{name}</div><div className="inbox-call-status">{connected ? 'Connected' : 'Calling…'} · {active.kind === 'video' ? 'Video' : 'Voice'}</div></div><div className="inbox-call-actions"><button title={muted ? 'Unmute' : 'Mute'} onClick={mute}><Icon type="mic" /></button>{active.kind === 'video' && <button title={cameraOff ? 'Camera on' : 'Camera off'} onClick={camera}><Icon type="camera" /></button>}<button className="end" title="End call" onClick={() => void hangup()}><Icon type="end" /></button></div></div>{error && <div className="inbox-call-error">{error}</div>}</div></div>}
-  </>;
+export function StableInboxCallControls({profileId}:{profileId:string}){
+ const [conversationId,setConversationId]=useState<string|null>(()=>new URLSearchParams(window.location.search).get('conversation'));
+ const [peer,setPeer]=useState<Profile|null>(null),[incoming,setIncoming]=useState<Signal|null>(null),[active,setActive]=useState<{id:string;kind:Kind}|null>(null),[connected,setConnected]=useState(false),[muted,setMuted]=useState(false),[cameraOff,setCameraOff]=useState(false),[error,setError]=useState<string|null>(null),[signalingReady,setSignalingReady]=useState(false);
+ const peerRef=useRef<Profile|null>(null),activeRef=useRef(active),incomingRef=useRef(incoming); const pcRef=useRef<RTCPeerConnection|null>(null),localRef=useRef<MediaStream|null>(null),remoteRef=useRef<MediaStream|null>(null); const remoteAudio=useRef<HTMLAudioElement|null>(null),remoteVideo=useRef<HTMLVideoElement|null>(null),localVideo=useRef<HTMLVideoElement|null>(null); const channelRef=useRef<ReturnType<typeof supabase.channel>|null>(null),seen=useRef(new Set<string>()),pendingIce=useRef<RTCIceCandidateInit[]>([]),disconnectTimer=useRef<number|null>(null);
+ useEffect(()=>{peerRef.current=peer},[peer]);useEffect(()=>{activeRef.current=active},[active]);useEffect(()=>{incomingRef.current=incoming},[incoming]);
+ const cleanup=useCallback(()=>{if(disconnectTimer.current)window.clearTimeout(disconnectTimer.current);pcRef.current?.close();pcRef.current=null;localRef.current?.getTracks().forEach(t=>t.stop());remoteRef.current?.getTracks().forEach(t=>t.stop());if(remoteAudio.current)remoteAudio.current.srcObject=null;if(remoteVideo.current)remoteVideo.current.srcObject=null;if(localVideo.current)localVideo.current.srcObject=null;pendingIce.current=[];setActive(null);setConnected(false);setMuted(false);setCameraOff(false)},[]);
+ const send=useCallback(async(s:Signal)=>{const ch=channelRef.current;if(!ch)throw new Error('Call signaling is not ready.');const result=await ch.send({type:'broadcast',event:'signal',payload:s});if(result!=='ok')throw new Error('Call signaling failed.');},[]);
+ const loadPeer=useCallback(async(id:string)=>{const {data}=await supabase.from('profiles').select('id,display_name,avatar_url').eq('id',id).maybeSingle();return(data??null)as Profile|null},[]);
+ const handleSignal=useCallback(async(s:Signal)=>{if(!s||s.to!==profileId||s.from===profileId)return;const key=`${s.callId}:${s.type}:${s.candidate?.candidate??s.sdp?.sdp??''}`;if(seen.current.has(key))return;seen.current.add(key);try{if(s.type==='offer'&&s.sdp){if(activeRef.current||incomingRef.current)return;const p=peerRef.current?.id===s.from?peerRef.current:await loadPeer(s.from);if(!p)return;peerRef.current=p;setPeer(p);if(s.conversationId){setConversationId(s.conversationId);window.history.replaceState({},'',`/inbox?conversation=${encodeURIComponent(s.conversationId)}`)}setError(null);setIncoming(s);return}if(s.type==='hangup'||s.type==='reject'){setIncoming(null);cleanup();return}if(s.type==='answer'&&s.sdp&&pcRef.current){await pcRef.current.setRemoteDescription(s.sdp);for(const c of pendingIce.current.splice(0))await pcRef.current.addIceCandidate(c);return}if(s.type==='ice'&&s.candidate){if(pcRef.current?.remoteDescription)await pcRef.current.addIceCandidate(s.candidate);else pendingIce.current.push(s.candidate)}}catch(e){setError(e instanceof Error?e.message:'Call setup failed.');cleanup()}},[cleanup,loadPeer,profileId]);
+ useEffect(()=>{const ch=supabase.channel(topic(profileId),{config:{private:true}});ch.on('broadcast',{event:'signal'},({payload})=>void handleSignal(payload as Signal));ch.subscribe(status=>setSignalingReady(status==='SUBSCRIBED'));channelRef.current=ch;return()=>{channelRef.current=null;setSignalingReady(false);void supabase.removeChannel(ch)}},[profileId,handleSignal]);
+ useEffect(()=>{let cancelled=false;const sync=()=>{const id=new URLSearchParams(window.location.search).get('conversation');setConversationId(id)};sync();const originalPush=history.pushState,originalReplace=history.replaceState;history.pushState=function(...args){const r=originalPush.apply(this,args);window.dispatchEvent(new Event('work-social-location'));return r};history.replaceState=function(...args){const r=originalReplace.apply(this,args);window.dispatchEvent(new Event('work-social-location'));return r};window.addEventListener('popstate',sync);window.addEventListener('work-social-location',sync);return()=>{cancelled=true;history.pushState=originalPush;history.replaceState=originalReplace;window.removeEventListener('popstate',sync);window.removeEventListener('work-social-location',sync)}},[]);
+ useEffect(()=>{let cancelled=false;const run=async()=>{if(!conversationId){setPeer(null);return}const {data}=await supabase.from('conversation_members').select('profile_id').eq('conversation_id',conversationId).neq('profile_id',profileId).limit(1);const id=data?.[0]?.profile_id;if(!id)return;const p=await loadPeer(id);if(!cancelled)setPeer(p)};void run();return()=>{cancelled=true}},[conversationId,profileId,loadPeer]);
+ useEffect(()=>{if(!conversationId){if(activeRef.current||incomingRef.current)cleanup();setPeer(null)}},[conversationId,cleanup]);
+ const setup=async(kind:Kind,id:string,initiator:boolean,offer?:RTCSessionDescriptionInit)=>{const p=peerRef.current;if(!p)throw new Error('Contact unavailable.');if(!signalingReady)throw new Error('Call signaling is not ready.');if(!navigator.mediaDevices?.getUserMedia)throw new Error('Calling requires HTTPS or localhost.');const stream=await navigator.mediaDevices.getUserMedia({audio:true,video:kind==='video'});localRef.current=stream;const pc=new RTCPeerConnection(rtcConfig);pcRef.current=pc;remoteRef.current=new MediaStream();if(localVideo.current)localVideo.current.srcObject=stream;if(remoteVideo.current)remoteVideo.current.srcObject=remoteRef.current;if(remoteAudio.current)remoteAudio.current.srcObject=remoteRef.current;stream.getTracks().forEach(t=>pc.addTrack(t,stream));pc.ontrack=e=>{const rs=e.streams[0]??remoteRef.current!;remoteRef.current=rs;if(remoteVideo.current)remoteVideo.current.srcObject=rs;if(remoteAudio.current){remoteAudio.current.srcObject=rs;void remoteAudio.current.play().catch(()=>undefined)}setConnected(true)};pc.onicecandidate=e=>{if(e.candidate)void send({callId:id,from:profileId,to:p.id,kind,type:'ice',candidate:e.candidate.toJSON(),conversationId:conversationId??undefined}).catch(()=>undefined)};pc.onconnectionstatechange=()=>{if(pc.connectionState==='connected'){if(disconnectTimer.current)window.clearTimeout(disconnectTimer.current);setConnected(true)}if(pc.connectionState==='failed'||pc.connectionState==='closed')cleanup();if(pc.connectionState==='disconnected'){if(disconnectTimer.current)window.clearTimeout(disconnectTimer.current);disconnectTimer.current=window.setTimeout(()=>{if(pc.connectionState==='disconnected')cleanup()},5000)}};if(offer)await pc.setRemoteDescription(offer);if(initiator){const o=await pc.createOffer();await pc.setLocalDescription(o);await send({callId:id,from:profileId,to:p.id,kind,type:'offer',sdp:o,conversationId:conversationId??undefined})}};
+ const start=async(kind:Kind)=>{if(!peer||!conversationId||activeRef.current||incomingRef.current)return;try{const id=crypto.randomUUID();setError(null);setActive({id,kind});await setup(kind,id,true)}catch(e){setError(e instanceof Error?e.message:'Microphone/camera permission was denied.');cleanup()}};
+ const accept=async()=>{const s=incomingRef.current;if(!s)return;setIncoming(null);setActive({id:s.callId,kind:s.kind});try{const p=peerRef.current;if(!p)throw new Error('Caller unavailable.');await setup(s.kind,s.callId,false,s.sdp);const pc=pcRef.current;if(!pc)throw new Error('Call connection unavailable.');const a=await pc.createAnswer();await pc.setLocalDescription(a);await send({callId:s.callId,from:profileId,to:s.from,kind:s.kind,type:'answer',sdp:a,conversationId:s.conversationId})}catch(e){setError(e instanceof Error?e.message:'Could not accept call.');cleanup()}};
+ const decline=async()=>{const s=incomingRef.current;if(s){try{await send({...s,from:profileId,to:s.from,type:'reject'})}catch{}}setIncoming(null)};
+ const hangup=async()=>{const a=activeRef.current,p=peerRef.current;if(a&&p){try{await send({callId:a.id,from:profileId,to:p.id,kind:a.kind,type:'hangup',conversationId:conversationId??undefined})}catch{}}cleanup()};
+ const mute=()=>{const t=localRef.current?.getAudioTracks()[0];if(t){t.enabled=!t.enabled;setMuted(!t.enabled)}};const camera=()=>{const t=localRef.current?.getVideoTracks()[0];if(t){t.enabled=!t.enabled;setCameraOff(!t.enabled)}};useEffect(()=>()=>cleanup(),[cleanup]);
+ if(!conversationId||!peer)return incoming?<div/>:null;const name=peer.display_name?.trim()||'Contact';
+ return <><style>{`.inbox-call-toolbar{position:fixed;top:76px;right:14px;z-index:2500;display:flex;gap:7px;padding:6px 7px;border:1px solid rgba(99,102,241,.16);border-radius:17px;background:rgba(255,255,255,.97);box-shadow:0 10px 30px rgba(15,23,42,.16);backdrop-filter:blur(12px)}.inbox-call-toolbar button{width:40px;height:40px;border:0;border-radius:12px;background:linear-gradient(145deg,#eef2ff,#f8fafc);color:#3730a3;display:grid;place-items:center;cursor:pointer}.inbox-call-toolbar button:disabled{opacity:.45;cursor:not-allowed}.inbox-call-toolbar svg,.inbox-call-stage svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}.inbox-call-stage{position:fixed;inset:0;z-index:5000;background:rgba(2,6,23,.82);backdrop-filter:blur(12px);display:grid;place-items:center;padding:16px}.inbox-call-card{width:min(680px,100%);overflow:hidden;border-radius:25px;background:#111827;color:#fff;box-shadow:0 30px 90px rgba(0,0,0,.5)}.inbox-call-media{position:relative;aspect-ratio:16/10;background:#020617;display:grid;place-items:center}.inbox-call-media video{width:100%;height:100%;object-fit:cover}.inbox-call-local{position:absolute!important;right:14px;top:14px;width:150px!important;height:100px!important;border:2px solid rgba(255,255,255,.4);border-radius:15px}.inbox-call-info{padding:16px 18px;display:flex;align-items:center;justify-content:space-between}.inbox-call-name{font-weight:900;font-size:18px}.inbox-call-status{font-size:12px;color:#94a3b8;margin-top:3px}.inbox-call-actions{display:flex;gap:8px}.inbox-call-actions button{width:46px;height:46px;border:0;border-radius:15px;background:#334155;color:#fff;display:grid;place-items:center;cursor:pointer}.inbox-call-actions .end{background:#ef4444}.inbox-incoming{text-align:center;padding:30px}.inbox-incoming img{width:76px;height:76px;border-radius:50%;object-fit:cover;background:#312e81}.inbox-incoming h2{margin:12px 0 4px}.inbox-incoming p{margin:0 0 22px;color:#94a3b8}.inbox-incoming-actions{display:flex;justify-content:center;gap:12px}.inbox-incoming-actions button{min-width:120px;height:46px;border:0;border-radius:14px;font-weight:900;color:#fff;cursor:pointer}.inbox-incoming-actions .accept{background:#22c55e}.inbox-incoming-actions .decline{background:#ef4444}.inbox-call-error{padding:0 18px 16px;color:#fecaca;font-size:12px}`}</style><div className="inbox-call-toolbar"><button type="button" title="Voice call" aria-label={`Voice call ${name}`} onClick={()=>void start('audio')} disabled={!signalingReady||!!active||!!incoming}><Icon type="phone"/></button><button type="button" title="Video call" aria-label={`Video call ${name}`} onClick={()=>void start('video')} disabled={!signalingReady||!!active||!!incoming}><Icon type="video"/></button></div>{incoming&&<div className="inbox-call-stage"><div className="inbox-call-card"><div className="inbox-incoming"><img src={peer.avatar_url||''} alt=""/><h2>{name}</h2><p>Incoming {incoming.kind==='video'?'video':'voice'} call</p><div className="inbox-incoming-actions"><button className="decline" onClick={()=>void decline()}>Decline</button><button className="accept" onClick={()=>void accept()}>Accept</button></div></div></div></div>}{active&&<div className="inbox-call-stage"><div className="inbox-call-card"><div className="inbox-call-media">{active.kind==='video'?<><video ref={remoteVideo} autoPlay playsInline/><video ref={localVideo} className="inbox-call-local" autoPlay playsInline muted/></>:<><audio ref={remoteAudio} autoPlay/><Icon type="phone"/></>}</div><div className="inbox-call-info"><div><div className="inbox-call-name">{name}</div><div className="inbox-call-status">{connected?'Connected':'Calling…'} · {active.kind==='video'?'Video':'Voice'}</div></div><div className="inbox-call-actions"><button onClick={mute} title={muted?'Unmute':'Mute'}><Icon type="mic"/></button>{active.kind==='video'&&<button onClick={camera} title={cameraOff?'Camera on':'Camera off'}><Icon type="camera"/></button>}<button className="end" onClick={()=>void hangup()} title="End call"><Icon type="end"/></button></div></div>{error&&<div className="inbox-call-error">{error}</div>}</div></div>}</>;
 }
