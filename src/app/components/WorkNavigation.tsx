@@ -1,6 +1,8 @@
-import { navigate } from '../Router';
+interface WorkNavigationProps {
+  onNavigate: (path: string) => void;
+}
 
-export function WorkNavigation() {
+export function WorkNavigation({ onNavigate }: WorkNavigationProps) {
   return (
     <nav
       aria-label="Work navigation"
@@ -23,7 +25,7 @@ export function WorkNavigation() {
     >
       <button
         type="button"
-        onClick={() => navigate('/work')}
+        onClick={() => onNavigate('/work')}
         aria-current="page"
         style={{
           position: 'relative',
