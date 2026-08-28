@@ -34,7 +34,6 @@ nav[aria-label="Main navigation"] {
   max-width: calc(100vw - 20px) !important;
 }
 
-/* Inbox: constrain the card/header to the available viewport width. */
 .premium-chat-page { min-width: 0 !important; max-width: 100% !important; box-sizing: border-box !important; }
 .premium-chat-page > div { min-width: 0 !important; max-width: 100% !important; box-sizing: border-box !important; }
 .premium-chat-page section { min-width: 0 !important; max-width: 100% !important; }
@@ -48,11 +47,11 @@ nav[aria-label="Main navigation"] {
   article footer > div { gap: 6px !important; }
   article footer > div:last-child { margin-top: 7px !important; }
 
-  /* The bottom nav remains unchanged; Inbox ends above its fixed footprint. */
+  /* Keep the existing global nav exactly where it is; reclaim only the empty gap above it. */
   .premium-chat-page {
-    height: calc(100dvh - 150px - 76px) !important;
+    height: calc(100dvh - 150px - 58px) !important;
     min-height: 0 !important;
-    max-height: calc(100dvh - 150px - 76px) !important;
+    max-height: calc(100dvh - 150px - 58px) !important;
     overflow: hidden !important;
   }
 
