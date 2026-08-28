@@ -19,46 +19,82 @@ article footer { min-width: 0; }
 article footer > div { min-width: 0; }
 article footer input { min-width: 0; max-width: 100%; }
 
-/* Chat Screen viewport contract. The Router's page viewport is a block inside
-   a scroll container; the selected-chat widget must never establish a wider
-   containing block than that viewport. */
-main.premium-chat-page,
-.work-social-router-shell > div:nth-child(2) > main.premium-chat-page {
+/* Chat Screen viewport contract. Keep the chat widget inside the actual
+   Router page viewport instead of allowing a grid/flex child to establish a
+   larger inline-size. */
+.work-social-router-shell > div:nth-child(2) {
+  flex: 1 1 0 !important;
+  min-width: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  overflow-x: clip !important;
+}
+main.premium-chat-page {
   display: block;
   width: 100% !important;
   max-width: 100% !important;
   min-width: 0 !important;
-  margin-left: 0 !important;
-  margin-right: 0 !important;
+  margin: 0 !important;
   box-sizing: border-box !important;
+  overflow: hidden !important;
 }
 main.premium-chat-page > div {
+  display: grid !important;
   width: 100% !important;
   max-width: 100% !important;
   min-width: 0 !important;
   box-sizing: border-box !important;
+  grid-template-columns: minmax(0, 300px) minmax(0, 1fr) !important;
 }
 main.premium-chat-page section {
   width: 100% !important;
   max-width: 100% !important;
   min-width: 0 !important;
+  min-height: 0 !important;
   box-sizing: border-box !important;
+  justify-self: stretch !important;
+  overflow: hidden !important;
 }
 main.premium-chat-page section > header {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: space-between !important;
   width: 100% !important;
   max-width: 100% !important;
   min-width: 0 !important;
-  margin-inline: 0 !important;
+  margin: 0 !important;
   box-sizing: border-box !important;
-  overflow: visible !important;
+  justify-self: stretch !important;
+  align-self: stretch !important;
+}
+main.premium-chat-page section > header > div {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  flex: 1 1 auto !important;
+}
+main.premium-chat-page section > header .inbox-call-toolbar {
+  flex: 0 0 auto !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+main.premium-chat-page section > div:last-child {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+  justify-self: stretch !important;
+  align-self: stretch !important;
+}
+main.premium-chat-page section > div:last-child > input,
+main.premium-chat-page section > div:last-child > button {
+  min-width: 0;
 }
 
-/* Mobile: reserve only the viewport-safe horizontal space. */
 @media (max-width: 767px) {
-  .work-social-router-shell > div:nth-child(2) > main.premium-chat-page {
-    width: 100% !important;
-    max-width: 100% !important;
-    min-width: 0 !important;
+  main.premium-chat-page > div {
+    grid-template-columns: minmax(0, 1fr) !important;
   }
   main.premium-chat-page section > header {
     padding-left: max(8px, env(safe-area-inset-left)) !important;
