@@ -38,7 +38,12 @@ export function useWorkerWorkDashboard(profileId: string) {
     const bounds = getWorkerWorkPeriodBounds();
     const [entriesResult, totalsResult] = await Promise.all([listWorkerWorkEntries(RECENT_LIMIT), getWorkerWorkTotals(bounds)]);
     if (entriesResult.error) setError(entriesResult.error.message); else setEntries(entriesResult.data);
-    if (totalsResult.error) setError((current) => current ?? totalsResult.error.message); else setTotals(totalsResult.data);
+    if (totalsResult.error) {
+      const totalsError = totalsResult.error;
+      setError((current) => current ?? totalsError.message);
+    } else {
+      setTotals(totalsResult.data);
+    }
     setLoading(false);
   }, [profileId]);
 
