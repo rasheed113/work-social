@@ -1,6 +1,7 @@
 import { supabase } from '../../../lib/supabase/client';
 import type { WorkEntry, WorkEntryInput, WorkEntryUpdateInput, WorkEntryVersion, WorkerWorkTotals } from '../types/workEntry';
 import { canonicalizeWorkDecimal, getWorkerWorkPeriodBounds, normalizeWorkerWorkTotals } from '../logic/workEntryCalculations';
+import { normalizeWorkEntrySizes } from '../logic/workEntrySizes';
 
 const WORK_ENTRY_COLUMNS = 'id, worker_profile_id, work_context, item_name, size, quantity, rate, total, special_note, occurred_at, created_at, updated_at';
 
@@ -22,8 +23,12 @@ export interface WorkHistoryPeriodBounds { start: string; end: string; }
 type WorkPeriodBounds = ReturnType<typeof getWorkerWorkPeriodBounds>;
 
 function normalizeDecimal(value: string | number): string { return canonicalizeWorkDecimal(String(value)); }
-function normalizeEntry(row: WorkEntryRow): WorkEntry { return { ...row, quantity: normalizeDecimal(row.quantity), rate: normalizeDecimal(row.rate), total: normalizeDecimal(row.total) }; }
-function normalizeVersion(row: WorkEntryVersionRow): WorkEntryVersion { return { ...row, revision_no: Number(row.revision_no), quantity: normalizeDecimal(row.quantity), rate: normalizeDecimal(row.rate), total: normalizeDecimal(row.total) }; }
+function normalizeSizes(value: string[] | null): string[] | null {
+  const normalized = normalizeWorkEntrySizes(value);
+  return normalized.length ? normalized : null;
+}
+function normalizeEntry(row: WorkEntryRow): WorkEntry { return { ...row, size: normalizeSizes(row.size), quantity: normalizeDecimal(row.quantity), rate: normalizeDecimal(row.rate), total: normalizeDecimal(row.total) }; }
+function normalizeVersion(row: WorkEntryVersionRow): WorkEntryVersion { return { ...row, size: normalizeSizes(row.size), revision_no: Number(row.revision_no), quantity: normalizeDecimal(row.quantity), rate: normalizeDecimal(row.rate), total: normalizeDecimal(row.total) }; }
 
 export async function listWorkerWorkEntries(limit: number, cursor: WorkHistoryCursor | null = null, period: WorkHistoryPeriod = 'lifetime') {
   let query = supabase.from('work_entries').select(WORK_ENTRY_COLUMNS).order('occurred_at', { ascending: false }).order('id', { ascending: false }).limit(limit);
@@ -53,12 +58,13 @@ export async function getWorkerWorkEntryVersions(entryId: string) {
 
 export async function createWorkerWorkEntry(input: WorkEntryInput) {
   const id = input.id ?? crypto.randomUUID();
+  const normalizedSize = normalizeWorkEntrySizes(input.size);
   const payload = {
     id,
     worker_profile_id: input.worker_profile_id,
     work_context: 'my_work' as const,
     item_name: input.item_name.trim(),
-    size: input.size?.trim() || null,
+    size: normalizedSize.length ? normalizedSize : null,
     quantity: canonicalizeWorkDecimal(input.quantity),
     rate: canonicalizeWorkDecimal(input.rate),
     special_note: input.special_note?.trim() || null,
@@ -71,7 +77,7 @@ export async function createWorkerWorkEntry(input: WorkEntryInput) {
   const samePayload = existing.data.worker_profile_id === payload.worker_profile_id
     && existing.data.work_context === payload.work_context
     && existing.data.item_name === payload.item_name
-    && existing.data.size === payload.size
+    && JSON.stringify(existing.data.size) === JSON.stringify(payload.size)
     && existing.data.quantity === payload.quantity
     && existing.data.rate === payload.rate
     && existing.data.special_note === payload.special_note;
@@ -81,7 +87,8 @@ export async function createWorkerWorkEntry(input: WorkEntryInput) {
 }
 
 export async function updateWorkerWorkEntry(entryId: string, input: WorkEntryUpdateInput) {
-  const result = await supabase.from('work_entries').update({ item_name: input.item_name.trim(), size: input.size?.trim() || null, quantity: canonicalizeWorkDecimal(input.quantity), rate: canonicalizeWorkDecimal(input.rate), special_note: input.special_note?.trim() || null }).eq('id', entryId).select(WORK_ENTRY_COLUMNS).maybeSingle<WorkEntryRow>();
+  const normalizedSize = normalizeWorkEntrySizes(input.size);
+  const result = await supabase.from('work_entries').update({ item_name: input.item_name.trim(), size: normalizedSize.length ? normalizedSize : null, quantity: canonicalizeWorkDecimal(input.quantity), rate: canonicalizeWorkDecimal(input.rate), special_note: input.special_note?.trim() || null }).eq('id', entryId).select(WORK_ENTRY_COLUMNS).maybeSingle<WorkEntryRow>();
   return { data: result.data ? normalizeEntry(result.data) : null, error: result.error };
 }
 
