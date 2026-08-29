@@ -1,0 +1,7 @@
+-- Run manually against the connected production database inside a transaction and roll back.
+-- This test creates transient worker_profiles/work_entries only for the transaction.
+-- It verifies: owner read/write, cross-worker read/update denial, generated totals,
+-- immutable audit revisions, delete-for-me visibility, canonical preservation,
+-- and totals excluding hidden-for-me records.
+-- The test identities used during the Phase 3C audit were existing profile UUIDs;
+-- no test rows were committed to production.
