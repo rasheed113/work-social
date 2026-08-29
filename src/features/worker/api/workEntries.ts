@@ -51,6 +51,11 @@ export async function getWorkerWorkEntryVersions(entryId: string) {
   return { data: result.data?.map(normalizeVersion) ?? [], error: result.error };
 }
 
+function normalizeSize(value: string | null | undefined): string | null {
+  const trimmed = value?.trim() ?? '';
+  return trimmed || null;
+}
+
 export async function createWorkerWorkEntry(input: WorkEntryInput) {
   const id = input.id ?? crypto.randomUUID();
   const payload = {
@@ -58,7 +63,7 @@ export async function createWorkerWorkEntry(input: WorkEntryInput) {
     worker_profile_id: input.worker_profile_id,
     work_context: 'my_work' as const,
     item_name: input.item_name.trim(),
-    size: input.size.trim(),
+    size: normalizeSize(input.size),
     quantity: canonicalizeWorkDecimal(input.quantity),
     rate: canonicalizeWorkDecimal(input.rate),
     special_note: input.special_note?.trim() || null,
@@ -81,7 +86,7 @@ export async function createWorkerWorkEntry(input: WorkEntryInput) {
 }
 
 export async function updateWorkerWorkEntry(entryId: string, input: WorkEntryUpdateInput) {
-  const result = await supabase.from('work_entries').update({ item_name: input.item_name.trim(), size: input.size.trim(), quantity: canonicalizeWorkDecimal(input.quantity), rate: canonicalizeWorkDecimal(input.rate), special_note: input.special_note?.trim() || null }).eq('id', entryId).select(WORK_ENTRY_COLUMNS).maybeSingle<WorkEntryRow>();
+  const result = await supabase.from('work_entries').update({ item_name: input.item_name.trim(), size: normalizeSize(input.size), quantity: canonicalizeWorkDecimal(input.quantity), rate: canonicalizeWorkDecimal(input.rate), special_note: input.special_note?.trim() || null }).eq('id', entryId).select(WORK_ENTRY_COLUMNS).maybeSingle<WorkEntryRow>();
   return { data: result.data ? normalizeEntry(result.data) : null, error: result.error };
 }
 
