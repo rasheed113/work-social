@@ -1,4 +1,6 @@
 let audioContext: AudioContext | null = null;
+let notificationBuffer: AudioBuffer | null = null;
+let ringtoneBuffer: AudioBuffer | null = null;
 let ringtoneSource: AudioBufferSourceNode | null = null;
 
 function getContext(): AudioContext | null {
@@ -6,7 +8,6 @@ function getContext(): AudioContext | null {
   const AudioContextCtor = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
   if (!AudioContextCtor) return null;
   audioContext ??= new AudioContextCtor();
-  if (audioContext.state === 'suspended') void audioContext.resume().catch(() => undefined);
   return audioContext;
 }
 
@@ -27,37 +28,64 @@ function toneBuffer(ctx: AudioContext, notes: number[], noteSeconds: number): Au
   return buffer;
 }
 
+async function resumeContext(ctx: AudioContext): Promise<boolean> {
+  if (ctx.state === 'running') return true;
+  try {
+    await ctx.resume();
+    return ctx.state === 'running';
+  } catch {
+    return false;
+  }
+}
+
 export function playNotificationSound(): void {
   const ctx = getContext();
   if (!ctx) return;
-  try {
-    const source = ctx.createBufferSource();
-    const gain = ctx.createGain();
-    source.buffer = toneBuffer(ctx, [880, 1320], 0.11);
-    gain.gain.value = 0.8;
-    source.connect(gain).connect(ctx.destination);
-    source.start();
-  } catch {
-    // Audio is enhancement-only; notification delivery must continue if audio is unavailable.
-  }
+  void resumeContext(ctx).then(running => {
+    if (!running) return;
+    try {
+      notificationBuffer ??= toneBuffer(ctx, [880, 1320], 0.11);
+      const source = ctx.createBufferSource();
+      const gain = ctx.createGain();
+      source.buffer = notificationBuffer;
+      gain.gain.value = 0.8;
+      source.connect(gain).connect(ctx.destination);
+      source.onended = () => {
+        source.disconnect();
+        gain.disconnect();
+      };
+      source.start();
+    } catch {
+      // Audio is enhancement-only; notification delivery must continue if audio is unavailable.
+    }
+  });
 }
 
 export function startCallRingtone(): void {
   if (ringtoneSource) return;
   const ctx = getContext();
   if (!ctx) return;
-  try {
-    const source = ctx.createBufferSource();
-    const gain = ctx.createGain();
-    source.buffer = toneBuffer(ctx, [660, 880, 660, 880], 0.22);
-    source.loop = true;
-    gain.gain.value = 0.75;
-    source.connect(gain).connect(ctx.destination);
-    source.start();
-    ringtoneSource = source;
-  } catch {
-    ringtoneSource = null;
-  }
+  void resumeContext(ctx).then(running => {
+    if (!running || ringtoneSource) return;
+    try {
+      ringtoneBuffer ??= toneBuffer(ctx, [660, 880, 660, 880], 0.22);
+      const source = ctx.createBufferSource();
+      const gain = ctx.createGain();
+      source.buffer = ringtoneBuffer;
+      source.loop = true;
+      gain.gain.value = 0.75;
+      source.connect(gain).connect(ctx.destination);
+      source.onended = () => {
+        if (ringtoneSource === source) ringtoneSource = null;
+        source.disconnect();
+        gain.disconnect();
+      };
+      source.start();
+      ringtoneSource = source;
+    } catch {
+      ringtoneSource = null;
+    }
+  });
 }
 
 export function stopCallRingtone(): void {
@@ -77,7 +105,7 @@ export async function requestNotificationPermission(): Promise<NotificationPermi
 export function showBrowserNotification(title: string, body: string, tag: string): void {
   if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
   try {
-    new Notification(title, { body, tag, renotify: true });
+    new Notification(title, { body, tag });
   } catch {
     // Browser notification support is optional and must never break realtime handling.
   }
