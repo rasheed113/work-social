@@ -6,7 +6,7 @@ export function normalizeWorkEntrySizes(values: readonly string[] | null | undef
   const unique = new Set<string>();
   for (const value of values ?? []) {
     const normalized = value.trim();
-    if (!normalized || normalized.length > MAX_WORK_ENTRY_SIZE_LENGTH) continue;
+    if (!normalized) continue;
     unique.add(normalized);
   }
   return [...unique];
