@@ -1,6 +1,5 @@
 let audioContext: AudioContext | null = null;
 let ringtoneSource: AudioBufferSourceNode | null = null;
-let ringtoneGain: GainNode | null = null;
 
 function getContext(): AudioContext | null {
   if (typeof window === 'undefined') return null;
@@ -56,17 +55,14 @@ export function startCallRingtone(): void {
     source.connect(gain).connect(ctx.destination);
     source.start();
     ringtoneSource = source;
-    ringtoneGain = gain;
   } catch {
     ringtoneSource = null;
-    ringtoneGain = null;
   }
 }
 
 export function stopCallRingtone(): void {
   const source = ringtoneSource;
   ringtoneSource = null;
-  ringtoneGain = null;
   if (!source) return;
   try { source.stop(); } catch { /* already stopped */ }
   source.disconnect();
