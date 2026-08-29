@@ -65,7 +65,7 @@ export function InboxPage({profileId}:{profileId:string}){
   window.visualViewport?.addEventListener('resize',schedule,{passive:true});
   window.visualViewport?.addEventListener('scroll',schedule,{passive:true});
   const observer=typeof ResizeObserver!=='undefined'?new ResizeObserver(schedule):null;
-  if(observer){observer.observe(picker);observer.observe(list);if(header)observer.observe(header);if(composer)observer.observe(composer)}
+  if(observer){if(picker)observer.observe(picker);if(list)observer.observe(list);if(header)observer.observe(header);if(composer)observer.observe(composer)}
   return()=>{if(frame)window.cancelAnimationFrame(frame);list?.removeEventListener('scroll',schedule);window.removeEventListener('resize',schedule);window.visualViewport?.removeEventListener('resize',schedule);window.visualViewport?.removeEventListener('scroll',schedule);observer?.disconnect()};
  },[actionId,selectedId]);
  const selected=conversations.find(c=>c.id===selectedId)??null,selectedMessages=useMemo(()=>messages.filter(m=>m.conversation_id===selectedId),[messages,selectedId]),selectedMembers=members.filter(m=>m.conversation_id===selectedId),other=selected?.kind==='direct'?selectedMembers.find(m=>m.profile_id!==profileId)?.profile:undefined,searchPeople=profiles.filter(p=>p.id!==profileId&&`${p.display_name??''} ${p.username??''}`.toLowerCase().includes(search.toLowerCase().trim()));
