@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import type { FormEvent } from 'react';
 import type { WorkerProfile } from '../types/workerProfile';
 
 interface WorkerIdentityFormProps {
@@ -26,7 +27,7 @@ export function WorkerIdentityForm({ workerProfile, profile, saving, onSave }: W
     setSkillInput('');
   };
 
-  const submit = async (event: React.FormEvent) => {
+  const submit = async (event: FormEvent) => {
     event.preventDefault();
     setSaved(false);
     const result = await onSave({ work_description: description, skills });
