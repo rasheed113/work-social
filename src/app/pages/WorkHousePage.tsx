@@ -1,3 +1,5 @@
+import { navigate } from '../Router';
+
 export function WorkHousePage() {
   return (
     <main
@@ -83,6 +85,13 @@ export function WorkHousePage() {
           <p style={{ position: 'relative', margin: '12px 0 0', maxWidth: 620, color: '#536072', fontSize: 'clamp(14px, 2.4vw, 17px)', lineHeight: 1.6 }}>
             The Work side of Work Social. This is the foundation for future workspaces, without adding unfinished or fake features.
           </p>
+          <button
+            type="button"
+            onClick={() => navigate('/work/identity')}
+            style={{ position: 'relative', marginTop: 22, minHeight: 46, padding: '0 16px', borderRadius: 14, cursor: 'pointer', fontWeight: 800 }}
+          >
+            Work Identity
+          </button>
         </section>
       </div>
     </main>
