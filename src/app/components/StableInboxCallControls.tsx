@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { supabase } from '../../lib/supabase/client';
+import { navigate } from '../Router';
+import { showBrowserNotification, startCallRingtone, stopCallRingtone } from '../services/notificationAudio';
 
 type Kind = 'audio' | 'video';
 type Profile = { id: string; display_name: string | null; avatar_url: string | null };
@@ -73,6 +75,7 @@ export function StableInboxCallControls({ profileId }: { profileId: string }) {
   const cleanup = useCallback(() => {
     if (timerRef.current !== null) window.clearTimeout(timerRef.current);
     timerRef.current = null;
+    stopCallRingtone();
     pcRef.current?.close();
     pcRef.current = null;
     stopMedia();
@@ -140,8 +143,10 @@ export function StableInboxCallControls({ profileId }: { profileId: string }) {
         const p = peerRef.current?.id === s.from ? peerRef.current : await loadPeer(s.from);
         if (!p) throw new Error('Caller profile could not be loaded');
         peerRef.current = p; setPeer(p); setCid(s.conversationId);
-        history.replaceState({}, '', `/inbox?conversation=${encodeURIComponent(s.conversationId)}`);
-        setError(null); setIncoming(s); return;
+        navigate(`/inbox?conversation=${encodeURIComponent(s.conversationId)}`);
+        setError(null); setIncoming(s); startCallRingtone();
+        showBrowserNotification(`Incoming ${s.kind === 'video' ? 'video' : 'voice'} call`, `${p.display_name?.trim() || 'Someone'} is calling you`, `call:${s.callId}`);
+        return;
       }
       if ((s.type === 'hangup' || s.type === 'reject') && (activeRef.current?.id === s.callId || incomingRef.current?.callId === s.callId)) { cleanup(); return; }
       if (s.type === 'answer' && s.sdp && activeRef.current?.id === s.callId && pcRef.current) {
@@ -215,12 +220,13 @@ export function StableInboxCallControls({ profileId }: { profileId: string }) {
 
   const accept = async () => {
     const s = incomingRef.current; const target = peerRef.current; if (!s || !target) return;
+    stopCallRingtone();
     setIncoming(null); setActive({ id: s.callId, kind: s.kind, outgoing: false });
     try { await setup(s.kind, s.callId, s.conversationId, target, s.sdp); const pc = pcRef.current; if (!pc) throw new Error('Connection unavailable'); const answer = await pc.createAnswer(); await pc.setLocalDescription(answer); const local = pc.localDescription; if (!local) throw new Error('WebRTC local answer was not created'); await send({ callId: s.callId, from: profileId, to: s.from, kind: s.kind, type: 'answer', sdp: { type: local.type, sdp: local.sdp || '' }, conversationId: s.conversationId }); timerRef.current = window.setTimeout(() => { if (activeRef.current?.id === s.callId && pcRef.current?.connectionState !== 'connected') { setError('No connection established after 45 seconds.'); cleanup(); } }, 45000); }
     catch (e) { setError(e instanceof Error ? e.message : 'Could not accept call'); pcRef.current?.close(); pcRef.current = null; stopMedia(); setActive(null); }
   };
 
-  const decline = async () => { const s = incomingRef.current; if (s) await send({ ...s, from: profileId, to: s.from, type: 'reject' }).catch(() => undefined); setIncoming(null); };
+  const decline = async () => { const s = incomingRef.current; stopCallRingtone(); if (s) await send({ ...s, from: profileId, to: s.from, type: 'reject' }).catch(() => undefined); setIncoming(null); };
   const hangup = async () => { const a = activeRef.current; const p = peerRef.current; const conversationId = cidRef.current; if (a && p && conversationId) await send({ callId: a.id, from: profileId, to: p.id, kind: a.kind, type: 'hangup', conversationId }).catch(() => undefined); cleanup(); };
   const mute = () => { const tracks = localRef.current?.getAudioTracks() || []; if (tracks.length) { const on = !tracks.every(t => t.enabled); tracks.forEach(t => { t.enabled = on; }); setMuted(!on); } };
   const camera = () => { const tracks = localRef.current?.getVideoTracks() || []; if (tracks.length) { const on = !tracks.every(t => t.enabled); tracks.forEach(t => { t.enabled = on; }); setCameraOff(!on); } };
