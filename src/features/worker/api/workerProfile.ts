@@ -18,14 +18,6 @@ export async function saveWorkerProfile(profileId: string, input: WorkerProfileU
     new Set(input.skills.map((skill) => skill.trim()).filter(Boolean)),
   );
 
-  if (workDescription.length > 5000) {
-    return { data: null, error: new Error('Work description must be 5000 characters or fewer.') };
-  }
-
-  if (skills.some((skill) => skill.length > 100)) {
-    return { data: null, error: new Error('Each skill must be 100 characters or fewer.') };
-  }
-
   return supabase
     .from('worker_profiles')
     .upsert(
