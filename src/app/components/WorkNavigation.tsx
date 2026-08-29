@@ -1,8 +1,7 @@
+import { navigate } from '../Router';
+
 export function WorkNavigation() {
-  const openWorkHouse = () => {
-    window.history.pushState({}, '', '/work');
-    window.dispatchEvent(new PopStateEvent('popstate'));
-  };
+  const openWorkHouse = () => navigate('/work');
 
   return (
     <nav

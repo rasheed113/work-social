@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { supabase } from '../../lib/supabase/client';
+import { showBrowserNotification, startCallRingtone, stopCallRingtone } from '../services/notificationAudio';
 
 type Kind = 'audio' | 'video';
 type Profile = { id: string; display_name: string | null; avatar_url: string | null };
@@ -16,6 +17,7 @@ const RTC_CONFIG: RTCConfiguration = {
   ],
 };
 
+const CALL_TIMEOUT_MS = 45_000;
 const Icon = ({ t }: { t: string }) => <span aria-hidden>{({ phone: '📞', video: '🎥', mic: '🎙️', camera: '📷', speaker: '🔊', end: '📵' } as Record<string, string>)[t]}</span>;
 
 export function StableInboxCallControls({ profileId }: { profileId: string }) {
@@ -44,6 +46,7 @@ export function StableInboxCallControls({ profileId }: { profileId: string }) {
   const pendingIceRef = useRef<RTCIceCandidateInit[]>([]);
   const timerRef = useRef<number | null>(null);
   const seenRef = useRef(new Set<string>());
+  const expiredIncomingCallIdsRef = useRef(new Set<string>());
   const signalChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const outboundChannelsRef = useRef(new Map<string, ReturnType<typeof supabase.channel>>());
   const outboundReadyRef = useRef(new Map<string, Promise<void>>());
@@ -73,6 +76,9 @@ export function StableInboxCallControls({ profileId }: { profileId: string }) {
   const cleanup = useCallback(() => {
     if (timerRef.current !== null) window.clearTimeout(timerRef.current);
     timerRef.current = null;
+    activeRef.current = null;
+    incomingRef.current = null;
+    stopCallRingtone();
     pcRef.current?.close();
     pcRef.current = null;
     stopMedia();
@@ -136,12 +142,21 @@ export function StableInboxCallControls({ profileId }: { profileId: string }) {
     seenRef.current.add(key);
     try {
       if (s.type === 'offer' && s.sdp) {
+        if (expiredIncomingCallIdsRef.current.has(s.callId)) return;
         if (activeRef.current || incomingRef.current) return;
         const p = peerRef.current?.id === s.from ? peerRef.current : await loadPeer(s.from);
         if (!p) throw new Error('Caller profile could not be loaded');
+        if (expiredIncomingCallIdsRef.current.has(s.callId)) return;
         peerRef.current = p; setPeer(p); setCid(s.conversationId);
-        history.replaceState({}, '', `/inbox?conversation=${encodeURIComponent(s.conversationId)}`);
-        setError(null); setIncoming(s); return;
+        setError(null); setIncoming(s); startCallRingtone();
+        timerRef.current = window.setTimeout(() => {
+          if (incomingRef.current?.callId !== s.callId) return;
+          expiredIncomingCallIdsRef.current.add(s.callId);
+          cleanup();
+          setError('Incoming call timed out.');
+        }, CALL_TIMEOUT_MS);
+        showBrowserNotification(`Incoming ${s.kind === 'video' ? 'video' : 'voice'} call`, `${p.display_name?.trim() || 'Someone'} is calling you`, `call:${s.callId}`);
+        return;
       }
       if ((s.type === 'hangup' || s.type === 'reject') && (activeRef.current?.id === s.callId || incomingRef.current?.callId === s.callId)) { cleanup(); return; }
       if (s.type === 'answer' && s.sdp && activeRef.current?.id === s.callId && pcRef.current) {
@@ -209,18 +224,33 @@ export function StableInboxCallControls({ profileId }: { profileId: string }) {
     const target = peerRef.current; const conversationId = cidRef.current;
     if (!target || !conversationId || activeRef.current || incomingRef.current || !ready) return;
     const id = crypto.randomUUID(); setError(null); setActive({ id, kind, outgoing: true });
-    try { await setup(kind, id, conversationId, target); timerRef.current = window.setTimeout(() => { if (activeRef.current?.id === id && pcRef.current?.connectionState !== 'connected') { setError('No connection established after 45 seconds.'); cleanup(); } }, 45000); }
-    catch (e) { setError(e instanceof Error ? e.message : 'Could not start call'); pcRef.current?.close(); pcRef.current = null; stopMedia(); setConnected(false); setActive(null); }
+    try { await setup(kind, id, conversationId, target); timerRef.current = window.setTimeout(() => { if (activeRef.current?.id === id && pcRef.current?.connectionState !== 'connected') { setError(`No connection established after ${CALL_TIMEOUT_MS / 1000} seconds.`); cleanup(); } }, CALL_TIMEOUT_MS); }
+    catch (e) { setError(e instanceof Error ? e.message : 'Could not start call'); pcRef.current?.close(); pcRef.current = null; stopMedia(); setConnected(false); activeRef.current = null; setActive(null); }
   };
 
   const accept = async () => {
     const s = incomingRef.current; const target = peerRef.current; if (!s || !target) return;
-    setIncoming(null); setActive({ id: s.callId, kind: s.kind, outgoing: false });
-    try { await setup(s.kind, s.callId, s.conversationId, target, s.sdp); const pc = pcRef.current; if (!pc) throw new Error('Connection unavailable'); const answer = await pc.createAnswer(); await pc.setLocalDescription(answer); const local = pc.localDescription; if (!local) throw new Error('WebRTC local answer was not created'); await send({ callId: s.callId, from: profileId, to: s.from, kind: s.kind, type: 'answer', sdp: { type: local.type, sdp: local.sdp || '' }, conversationId: s.conversationId }); timerRef.current = window.setTimeout(() => { if (activeRef.current?.id === s.callId && pcRef.current?.connectionState !== 'connected') { setError('No connection established after 45 seconds.'); cleanup(); } }, 45000); }
-    catch (e) { setError(e instanceof Error ? e.message : 'Could not accept call'); pcRef.current?.close(); pcRef.current = null; stopMedia(); setActive(null); }
+    if (timerRef.current !== null) window.clearTimeout(timerRef.current);
+    timerRef.current = null;
+    incomingRef.current = null;
+    stopCallRingtone();
+    activeRef.current = { id: s.callId, kind: s.kind, outgoing: false };
+    setIncoming(null); setActive(activeRef.current);
+    try { await setup(s.kind, s.callId, s.conversationId, target, s.sdp); if (activeRef.current?.id !== s.callId || !pcRef.current) throw new Error('Incoming call is no longer active'); const pc = pcRef.current; const answer = await pc.createAnswer(); await pc.setLocalDescription(answer); const local = pc.localDescription; if (!local) throw new Error('WebRTC local answer was not created'); if (activeRef.current?.id !== s.callId) throw new Error('Incoming call ended before answer was sent'); await send({ callId: s.callId, from: profileId, to: s.from, kind: s.kind, type: 'answer', sdp: { type: local.type, sdp: local.sdp || '' }, conversationId: s.conversationId }); timerRef.current = window.setTimeout(() => { if (activeRef.current?.id === s.callId && pcRef.current?.connectionState !== 'connected') { setError(`No connection established after ${CALL_TIMEOUT_MS / 1000} seconds.`); cleanup(); } }, CALL_TIMEOUT_MS); }
+    catch (e) { setError(e instanceof Error ? e.message : 'Could not accept call'); pcRef.current?.close(); pcRef.current = null; stopMedia(); setConnected(false); activeRef.current = null; setActive(null); }
   };
 
-  const decline = async () => { const s = incomingRef.current; if (s) await send({ ...s, from: profileId, to: s.from, type: 'reject' }).catch(() => undefined); setIncoming(null); };
+  const decline = async () => {
+    const s = incomingRef.current;
+    if (!s) return;
+    if (timerRef.current !== null) window.clearTimeout(timerRef.current);
+    timerRef.current = null;
+    incomingRef.current = null;
+    stopCallRingtone();
+    await send({ ...s, from: profileId, to: s.from, type: 'reject' }).catch(() => undefined);
+    cleanup();
+  };
+
   const hangup = async () => { const a = activeRef.current; const p = peerRef.current; const conversationId = cidRef.current; if (a && p && conversationId) await send({ callId: a.id, from: profileId, to: p.id, kind: a.kind, type: 'hangup', conversationId }).catch(() => undefined); cleanup(); };
   const mute = () => { const tracks = localRef.current?.getAudioTracks() || []; if (tracks.length) { const on = !tracks.every(t => t.enabled); tracks.forEach(t => { t.enabled = on; }); setMuted(!on); } };
   const camera = () => { const tracks = localRef.current?.getVideoTracks() || []; if (tracks.length) { const on = !tracks.every(t => t.enabled); tracks.forEach(t => { t.enabled = on; }); setCameraOff(!on); } };
@@ -235,6 +265,6 @@ export function StableInboxCallControls({ profileId }: { profileId: string }) {
     <style>{`.premium-chat-page,.premium-chat-page>div,.premium-chat-page section{width:100%!important;max-width:100%!important;min-width:0!important;box-sizing:border-box!important}.premium-chat-page{overflow-x:hidden!important}.premium-chat-page>div{overflow:hidden!important}.premium-chat-page section{overflow:hidden!important}.premium-chat-page section>header{overflow:visible!important;width:100%!important;max-width:100%!important;min-width:0!important;box-sizing:border-box!important}.premium-chat-page section>header>div{min-width:0!important;max-width:100%!important;flex:1 1 auto!important;overflow:hidden!important}.premium-chat-page section>header .inbox-call-toolbar{position:static!important;top:auto!important;right:auto!important;transform:none!important;flex:0 0 74px!important;width:74px!important;min-width:74px!important;max-width:74px!important;height:40px!important;margin-left:auto!important;z-index:20;display:flex;align-items:center;gap:4px;padding:3px;box-sizing:border-box;border-radius:12px;background:rgba(255,255,255,.82);box-shadow:0 4px 12px rgba(15,23,42,.08);backdrop-filter:blur(8px);overflow:visible}.premium-chat-page section>header [data-ws-group-header-action]{position:static!important;top:auto!important;right:auto!important;transform:none!important;flex:0 0 42px!important;width:42px!important;max-width:42px!important;height:42px!important;margin-left:0!important;z-index:12}.premium-chat-page section>div[style*="overflow-y"]{width:100%!important;max-width:100%!important;min-width:0!important;box-sizing:border-box!important}.premium-chat-page section>div:last-child{width:100%!important;max-width:100%!important;min-width:0!important;box-sizing:border-box!important;overflow-x:hidden!important;flex-shrink:0!important}.inbox-call-toolbar button{width:32px;height:32px;min-width:32px;flex:0 0 32px;box-sizing:border-box;border:1px solid rgba(109,93,252,.14);border-radius:10px;background:#fff;font-size:15px;display:grid;place-items:center;padding:0;line-height:1}.inbox-call-toolbar button:disabled{opacity:.55}.inbox-call-stage{position:fixed;inset:0;z-index:5000;display:flex;align-items:center;justify-content:center;padding:8px;background:#020617dd}.inbox-call-card{width:min(820px,calc(100vw - 12px));max-height:calc(100vh - 12px);overflow:hidden;border-radius:20px;background:#0b1220;color:#fff}.inbox-call-media{height:min(54vh,500px);min-height:260px;position:relative;background:#020617;display:grid;place-items:center}.inbox-call-media video{width:100%;height:100%;object-fit:contain}.inbox-call-local{position:absolute!important;right:10px;top:10px;width:120px!important;height:82px!important;object-fit:cover!important;border-radius:12px}.inbox-call-info{display:flex;align-items:center;justify-content:space-between;padding:9px 11px calc(10px + env(safe-area-inset-bottom))}.inbox-call-actions{display:flex;gap:6px}.inbox-call-actions button{width:42px;height:42px;border:0;border-radius:50%;background:#334155;color:#fff;font-size:17px}.inbox-call-actions .end{background:#ef4444}.inbox-call-actions .active{background:#2563eb}.inbox-incoming{text-align:center;padding:26px}.inbox-incoming img{width:70px;height:70px;border-radius:50%;object-fit:cover}.inbox-incoming-actions{display:flex;justify-content:center;gap:8px}.inbox-incoming-actions button{padding:11px 24px;border:0;border-radius:12px;color:#fff;font-weight:800}.accept{background:#22c55e}.decline{background:#ef4444}.premium-chat-page [role="dialog"][aria-modal="true"]{z-index:3000!important}.premium-chat-page [role="dialog"][aria-modal="true"]>button{z-index:3001!important;position:absolute!important;top:12px!important;right:12px!important;width:42px!important;height:42px!important;display:grid!important;place-items:center!important;border:0!important;border-radius:50%!important;background:rgba(255,255,255,.18)!important;color:#fff!important;font-size:28px!important;line-height:1!important;cursor:pointer!important;box-shadow:0 4px 18px rgba(0,0,0,.35)!important}@media(max-width:767px){.premium-chat-page section>header{overflow:visible!important}.premium-chat-page section>header .inbox-call-toolbar{flex-basis:70px!important;width:70px!important;min-width:70px!important;max-width:70px!important;gap:3px;padding:2px}.premium-chat-page section>header [data-ws-group-header-action]{flex-basis:42px!important;width:42px!important;max-width:42px!important}.inbox-call-toolbar button{width:30px;height:30px;min-width:30px;flex-basis:30px;font-size:14px}.inbox-call-stage{padding:0}.inbox-call-card{width:calc(100vw - 8px);max-height:calc(100vh - 8px)}.inbox-call-media{height:calc(100vh - 125px);min-height:230px}.inbox-call-local{width:100px!important;height:70px!important}.inbox-call-actions button{width:40px;height:40px}}`}</style>
     {header && createPortal(toolbar, header)}
     {incoming && <div className="inbox-call-stage"><div className="inbox-call-card"><div className="inbox-incoming"><img src={peer.avatar_url || ''} alt=""/><h3>{name}</h3><p>Incoming {incoming.kind === 'video' ? 'video' : 'voice'} call</p><div className="inbox-incoming-actions"><button type="button" className="decline" onClick={() => void decline()}>Decline</button><button type="button" className="accept" onClick={() => void accept()}>Accept</button></div></div></div></div>}
-    {active && <div className="inbox-call-stage"><div className="inbox-call-card"><div className="inbox-call-media">{active.kind === 'video' ? <><video ref={remoteVideoRef} autoPlay playsInline/><video ref={localVideoRef} className="inbox-call-local" autoPlay muted playsInline/></> : <><audio ref={remoteAudioRef} autoPlay/><Icon t="phone"/></>}</div><div className="inbox-call-info"><div><b>{name}</b><small style={{display:'block',color:'#94a3b8'}}>{connected ? 'Connected' : 'Connecting…'} · {active.kind === 'video' ? 'Video' : 'Voice'}</small>{error && <small style={{display:'block',color:'#fca5a5',maxWidth:360}}>{error}</small>}</div><div className="inbox-call-actions"><button type="button" className={muted ? 'active' : ''} onClick={mute}><Icon t="mic"/></button>{active.kind === 'video' && <button type="button" className={cameraOff ? 'active' : ''} onClick={camera}><Icon t="camera"/></button>}<button type="button" className={speaker ? 'active' : ''} onClick={toggleSpeaker}><Icon t="speaker"/></button><button type="button" className="end" onClick={() => void hangup()}><Icon t="end"/></button></div></div></div></div>}
+    {active && <div className="inbox-call-stage"><div className="inbox-call-card"><div className="inbox-call-media">{active.kind === 'video' ? <><video ref={remoteVideoRef} autoPlay playsInline/><video ref={localVideoRef} className="inbox-call-local" autoPlay muted playsInline/></> : <><audio ref={remoteAudioRef} autoPlay/><Icon t="phone"/></>}</div><div className="inbox-call-info"><div><b>{name}</b><small style={{display:'block',color:'#94a3b8'}}>{connected ? 'Connected' : 'Connecting…'} · {active.kind === 'video' ? 'Video' : 'Voice'}</small>{error && <small style={{display:'block',color:'#fca5a5',maxWidth:360}}>{error}</small>}</div><div className="inbox-call-actions"><button type="button" className={muted ? 'active' : ''} onClick={mute}><Icon t="mic" /></button>{active.kind === 'video' && <button type="button" className={cameraOff ? 'active' : ''} onClick={camera}><Icon t="camera" /></button>}<button type="button" className={speaker ? 'active' : ''} onClick={toggleSpeaker}><Icon t="speaker" /></button><button type="button" className="end" onClick={() => void hangup()}><Icon t="end" /></button></div></div></div></div>}
   </>;
 }
