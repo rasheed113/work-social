@@ -6,7 +6,7 @@ interface WorkerNewWorkEntryModalProps {
   open: boolean;
   saving: boolean;
   onClose: () => void;
-  onSave: (input: { id?: string; item_name: string; size: string; quantity: string; rate: string; special_note: string | null }) => Promise<{ error: unknown } | { error: null }>;
+  onSave: (input: { id?: string; item_name: string; size?: string | null; quantity: string; rate: string; special_note: string | null }) => Promise<{ error: unknown } | { error: null }>;
 }
 
 const DECIMAL_RE = /^(?:0|[1-9]\d*)(?:\.\d{1,4})?$/;
@@ -39,11 +39,10 @@ export function WorkerNewWorkEntryModal({ open, saving, onClose, onSave }: Worke
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!itemName.trim()) return setValidationError('Item Name is required.');
-    if (!size.trim()) return setValidationError('Size is required.');
     if (!DECIMAL_RE.test(quantity) || quantity === '0') return setValidationError('Quantity must be a valid positive decimal with up to 4 decimal places.');
     if (!DECIMAL_RE.test(rate)) return setValidationError('Rate must be a valid decimal with up to 4 decimal places.');
     setValidationError(null);
-    const result = await onSave({ id: entryId, item_name: itemName, size, quantity, rate, special_note: specialNote.trim() || null });
+    const result = await onSave({ id: entryId, item_name: itemName, size: size.trim() || null, quantity, rate, special_note: specialNote.trim() || null });
     if (!result.error) resetAndClose();
   };
 
@@ -54,7 +53,7 @@ export function WorkerNewWorkEntryModal({ open, saving, onClose, onSave }: Worke
         <form onSubmit={submit} style={{ display: 'grid', gap: 12, marginTop: 18 }}>
           <label style={{ display: 'grid', gap: 6, fontWeight: 700, fontSize: 13 }}>Work context<div style={{ padding: '11px 12px', borderRadius: 12, background: '#f8fafc', border: '1px solid #e2e8f0', color: '#334155' }}>My Work</div></label>
           <label style={{ display: 'grid', gap: 6, fontWeight: 700, fontSize: 13 }}>Item Name<input value={itemName} onChange={(event) => setItemName(event.target.value)} maxLength={200} autoFocus disabled={saving} /></label>
-          <label style={{ display: 'grid', gap: 6, fontWeight: 700, fontSize: 13 }}>Size<input value={size} onChange={(event) => setSize(event.target.value)} maxLength={100} disabled={saving} /></label>
+          <label style={{ display: 'grid', gap: 6, fontWeight: 700, fontSize: 13 }}>Size <span style={{ color: '#94a3b8', fontWeight: 500 }}>(optional)</span><input value={size} onChange={(event) => setSize(event.target.value)} maxLength={100} disabled={saving} placeholder="e.g. Small, XL, 40/120" /></label>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}><label style={{ display: 'grid', gap: 6, fontWeight: 700, fontSize: 13 }}>Pieces / Quantity<input type="text" inputMode="decimal" value={quantity} onChange={(event) => setQuantity(event.target.value)} disabled={saving} /></label><label style={{ display: 'grid', gap: 6, fontWeight: 700, fontSize: 13 }}>Rate<input type="text" inputMode="decimal" value={rate} onChange={(event) => setRate(event.target.value)} disabled={saving} /></label></div>
           <div style={{ padding: 14, borderRadius: 14, background: 'linear-gradient(145deg,#eff6ff,#ecfeff)', border: '1px solid #bae6fd' }}><div style={{ color: '#475569', fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.08em' }}>Live Total</div><div style={{ marginTop: 4, fontSize: 28, fontWeight: 950, letterSpacing: '-.04em' }}>{total}</div><div style={{ marginTop: 3, color: '#64748b', fontSize: 11 }}>Quantity × Rate · exact decimal</div></div>
           <label style={{ display: 'grid', gap: 6, fontWeight: 700, fontSize: 13 }}>Special Note <span style={{ color: '#94a3b8', fontWeight: 500 }}>(optional)</span><textarea value={specialNote} onChange={(event) => setSpecialNote(event.target.value)} maxLength={2000} rows={3} disabled={saving} /></label>
