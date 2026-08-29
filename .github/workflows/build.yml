@@ -3,7 +3,7 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
+    branches: [main, feat/worker-work-house-phase-3b-merged]
 jobs:
   build:
     runs-on: ubuntu-latest
