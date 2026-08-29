@@ -22,12 +22,15 @@ begin
 end;
 $$;
 
+revoke all on function public.touch_worker_profile_updated_at() from public, anon, authenticated;
+
 drop trigger if exists trg_worker_profiles_updated_at on public.worker_profiles;
 create trigger trg_worker_profiles_updated_at
 before update on public.worker_profiles
 for each row execute function public.touch_worker_profile_updated_at();
 
 alter table public.worker_profiles enable row level security;
+grant select, insert, update on public.worker_profiles to authenticated;
 
 drop policy if exists worker_profiles_select_own on public.worker_profiles;
 create policy worker_profiles_select_own
@@ -50,6 +53,3 @@ for update
 to authenticated
 using ((select auth.uid()) = profile_id)
 with check ((select auth.uid()) = profile_id);
-
-create index if not exists worker_profiles_profile_idx
-on public.worker_profiles(profile_id);
