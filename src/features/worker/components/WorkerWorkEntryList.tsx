@@ -1,3 +1,4 @@
+import { formatWorkDecimal } from '../logic/workEntryCalculations';
 import type { WorkEntry } from '../types/workEntry';
 
 interface WorkerWorkEntryListProps {
@@ -5,10 +6,6 @@ interface WorkerWorkEntryListProps {
   emptyTitle?: string;
   emptyDescription?: string;
   onOpen: (entry: WorkEntry) => void;
-}
-
-function formatAmount(value: number) {
-  return new Intl.NumberFormat(undefined, { maximumFractionDigits: 4 }).format(value);
 }
 
 function formatDate(value: string) {
@@ -24,22 +21,16 @@ export function WorkerWorkEntryList({ entries, emptyTitle = 'No Work Entries yet
       </section>
     );
   }
-
   return (
     <section aria-label="My Work Entries" style={{ display: 'grid', gap: 9 }}>
       {entries.map((entry) => (
-        <button
-          key={entry.id}
-          type="button"
-          onClick={() => onOpen(entry)}
-          style={{ width: '100%', padding: 14, border: '1px solid rgba(99,102,241,.13)', borderRadius: 16, background: '#fff', boxShadow: '0 8px 22px rgba(15,23,42,.05)', textAlign: 'left', cursor: 'pointer', font: 'inherit' }}
-        >
+        <button key={entry.id} type="button" onClick={() => onOpen(entry)} style={{ width: '100%', padding: 14, border: '1px solid rgba(99,102,241,.13)', borderRadius: 16, background: '#fff', boxShadow: '0 8px 22px rgba(15,23,42,.05)', textAlign: 'left', cursor: 'pointer', font: 'inherit' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
             <div style={{ minWidth: 0 }}>
               <strong style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 15 }}>{entry.item_name}</strong>
               <span style={{ display: 'block', marginTop: 4, color: '#64748b', fontSize: 12 }}>{entry.size} · {entry.quantity} pcs · {formatDate(entry.occurred_at)}</span>
             </div>
-            <span style={{ flex: '0 0 auto', fontWeight: 900, fontSize: 15 }}>{formatAmount(entry.total)}</span>
+            <span style={{ flex: '0 0 auto', fontWeight: 900, fontSize: 15 }}>{formatWorkDecimal(entry.total)}</span>
           </div>
         </button>
       ))}
