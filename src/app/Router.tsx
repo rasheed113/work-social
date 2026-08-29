@@ -15,6 +15,7 @@ import { BlockedUsersPage } from './pages/BlockedUsersPage';
 import { WorkHousePage } from './pages/WorkHousePage';
 import { WorkNavigation } from './components/WorkNavigation';
 import { playNotificationSound, requestNotificationPermission, showBrowserNotification } from './services/notificationAudio';
+import { WorkerIdentityPage } from '../features/worker/pages/WorkerIdentityPage';
 
 type Route = 'home' | 'friends' | 'notifications' | 'profile' | 'settings' | 'inbox' | 'blockedUsers' | 'publicProfile' | 'work';
 function routeFromPath(pathname: string): Route {
@@ -49,7 +50,8 @@ export function Router({ profileId }: RouterProps) {
   useEffect(()=>{if(route==='notifications')void loadUnread();if(route==='inbox')void loadChatUnread()},[route]);
   const badge=(count:number)=>count>8?'9+':String(count); const publicId=viewedProfileId(window.location.pathname);
   const inboxPage:ReactNode=(<><InboxPage profileId={profileId}/><InboxGroupMaker profileId={profileId}/><InboxGroupMenu profileId={profileId}/><CallSpeakerEnhancer /></>);
-  const pages:Record<Route,ReactNode>={home:<HomePage profileId={profileId}/>,friends:<FriendsPage/>,notifications:<NotificationsPage/>,profile:<ProfilePage profileId={profileId}/>,settings:<SettingsPage/>,inbox:inboxPage,blockedUsers:<BlockedUsersPage/>,publicProfile:publicId?<ProfilePage profileId={publicId} viewerId={profileId}/>:<ProfilePage profileId={profileId}/>,work:<WorkHousePage/>};
+  const workPage:ReactNode=window.location.pathname==='/work/identity'?<WorkerIdentityPage profileId={profileId}/>:<WorkHousePage/>;
+  const pages:Record<Route,ReactNode>={home:<HomePage profileId={profileId}/>,friends:<FriendsPage/>,notifications:<NotificationsPage/>,profile:<ProfilePage profileId={profileId}/>,settings:<SettingsPage/>,inbox:inboxPage,blockedUsers:<BlockedUsersPage/>,publicProfile:publicId?<ProfilePage profileId={publicId} viewerId={profileId}/>:<ProfilePage profileId={profileId}/>,work:workPage};
   const navItems=[{route:'home' as Route,path:'/',icon:'⌂',label:'Home'},{route:'friends' as Route,path:'/friends',icon:'♧',label:'Friends'},{route:'notifications' as Route,path:'/notifications',icon:'♢',label:'Activity',count:notificationUnread},{route:'profile' as Route,path:'/profile',icon:'◉',label:'Profile'}];
   const isWorkRoute=window.location.pathname==='/work'||window.location.pathname.startsWith('/work/');
   const switchLabel=isWorkRoute?'Social':'Dashboard';
