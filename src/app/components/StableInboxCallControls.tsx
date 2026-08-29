@@ -17,6 +17,7 @@ const RTC_CONFIG: RTCConfiguration = {
   ],
 };
 
+const CALL_TIMEOUT_MS = 45_000;
 const Icon = ({ t }: { t: string }) => <span aria-hidden>{({ phone: '📞', video: '🎥', mic: '🎙️', camera: '📷', speaker: '🔊', end: '📵' } as Record<string, string>)[t]}</span>;
 
 export function StableInboxCallControls({ profileId }: { profileId: string }) {
@@ -143,6 +144,11 @@ export function StableInboxCallControls({ profileId }: { profileId: string }) {
         if (!p) throw new Error('Caller profile could not be loaded');
         peerRef.current = p; setPeer(p); setCid(s.conversationId);
         setError(null); setIncoming(s); startCallRingtone();
+        timerRef.current = window.setTimeout(() => {
+          if (incomingRef.current?.callId !== s.callId) return;
+          setError('Incoming call timed out.');
+          cleanup();
+        }, CALL_TIMEOUT_MS);
         showBrowserNotification(`Incoming ${s.kind === 'video' ? 'video' : 'voice'} call`, `${p.display_name?.trim() || 'Someone'} is calling you`, `call:${s.callId}`);
         return;
       }
@@ -212,19 +218,32 @@ export function StableInboxCallControls({ profileId }: { profileId: string }) {
     const target = peerRef.current; const conversationId = cidRef.current;
     if (!target || !conversationId || activeRef.current || incomingRef.current || !ready) return;
     const id = crypto.randomUUID(); setError(null); setActive({ id, kind, outgoing: true });
-    try { await setup(kind, id, conversationId, target); timerRef.current = window.setTimeout(() => { if (activeRef.current?.id === id && pcRef.current?.connectionState !== 'connected') { setError('No connection established after 45 seconds.'); cleanup(); } }, 45000); }
+    try { await setup(kind, id, conversationId, target); timerRef.current = window.setTimeout(() => { if (activeRef.current?.id === id && pcRef.current?.connectionState !== 'connected') { setError(`No connection established after ${CALL_TIMEOUT_MS / 1000} seconds.`); cleanup(); } }, CALL_TIMEOUT_MS); }
     catch (e) { setError(e instanceof Error ? e.message : 'Could not start call'); pcRef.current?.close(); pcRef.current = null; stopMedia(); setConnected(false); setActive(null); }
   };
 
   const accept = async () => {
     const s = incomingRef.current; const target = peerRef.current; if (!s || !target) return;
+    if (timerRef.current !== null) window.clearTimeout(timerRef.current);
+    timerRef.current = null;
+    incomingRef.current = null;
     stopCallRingtone();
     setIncoming(null); setActive({ id: s.callId, kind: s.kind, outgoing: false });
-    try { await setup(s.kind, s.callId, s.conversationId, target, s.sdp); const pc = pcRef.current; if (!pc) throw new Error('Connection unavailable'); const answer = await pc.createAnswer(); await pc.setLocalDescription(answer); const local = pc.localDescription; if (!local) throw new Error('WebRTC local answer was not created'); await send({ callId: s.callId, from: profileId, to: s.from, kind: s.kind, type: 'answer', sdp: { type: local.type, sdp: local.sdp || '' }, conversationId: s.conversationId }); timerRef.current = window.setTimeout(() => { if (activeRef.current?.id === s.callId && pcRef.current?.connectionState !== 'connected') { setError('No connection established after 45 seconds.'); cleanup(); } }, 45000); }
-    catch (e) { setError(e instanceof Error ? e.message : 'Could not accept call'); pcRef.current?.close(); pcRef.current = null; stopMedia(); setActive(null); }
+    try { await setup(s.kind, s.callId, s.conversationId, target, s.sdp); const pc = pcRef.current; if (!pc) throw new Error('Connection unavailable'); const answer = await pc.createAnswer(); await pc.setLocalDescription(answer); const local = pc.localDescription; if (!local) throw new Error('WebRTC local answer was not created'); await send({ callId: s.callId, from: profileId, to: s.from, kind: s.kind, type: 'answer', sdp: { type: local.type, sdp: local.sdp || '' }, conversationId: s.conversationId }); timerRef.current = window.setTimeout(() => { if (activeRef.current?.id === s.callId && pcRef.current?.connectionState !== 'connected') { setError(`No connection established after ${CALL_TIMEOUT_MS / 1000} seconds.`); cleanup(); } }, CALL_TIMEOUT_MS); }
+    catch (e) { setError(e instanceof Error ? e.message : 'Could not accept call'); pcRef.current?.close(); pcRef.current = null; stopMedia(); setConnected(false); setActive(null); }
   };
 
-  const decline = async () => { const s = incomingRef.current; stopCallRingtone(); if (s) await send({ ...s, from: profileId, to: s.from, type: 'reject' }).catch(() => undefined); setIncoming(null); };
+  const decline = async () => {
+    const s = incomingRef.current;
+    if (!s) return;
+    if (timerRef.current !== null) window.clearTimeout(timerRef.current);
+    timerRef.current = null;
+    incomingRef.current = null;
+    stopCallRingtone();
+    await send({ ...s, from: profileId, to: s.from, type: 'reject' }).catch(() => undefined);
+    cleanup();
+  };
+
   const hangup = async () => { const a = activeRef.current; const p = peerRef.current; const conversationId = cidRef.current; if (a && p && conversationId) await send({ callId: a.id, from: profileId, to: p.id, kind: a.kind, type: 'hangup', conversationId }).catch(() => undefined); cleanup(); };
   const mute = () => { const tracks = localRef.current?.getAudioTracks() || []; if (tracks.length) { const on = !tracks.every(t => t.enabled); tracks.forEach(t => { t.enabled = on; }); setMuted(!on); } };
   const camera = () => { const tracks = localRef.current?.getVideoTracks() || []; if (tracks.length) { const on = !tracks.every(t => t.enabled); tracks.forEach(t => { t.enabled = on; }); setCameraOff(!on); } };
