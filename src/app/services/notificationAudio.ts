@@ -32,7 +32,7 @@ async function resumeContext(ctx: AudioContext): Promise<boolean> {
   if (ctx.state === 'running') return true;
   try {
     await ctx.resume();
-    return ctx.state === 'running';
+    return true;
   } catch {
     return false;
   }
