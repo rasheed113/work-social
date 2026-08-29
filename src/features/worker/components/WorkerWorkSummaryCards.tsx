@@ -1,16 +1,16 @@
-import { navigate } from '../../../app/Router';
 import type { WorkerWorkTotals } from '../types/workEntry';
 
 interface WorkerWorkSummaryCardsProps {
   totals: WorkerWorkTotals;
   periodLabels: { day: string; week: string; month: string };
+  onOpenHistory: () => void;
 }
 
 function formatAmount(value: number) {
   return new Intl.NumberFormat(undefined, { maximumFractionDigits: 4 }).format(value);
 }
 
-export function WorkerWorkSummaryCards({ totals, periodLabels }: WorkerWorkSummaryCardsProps) {
+export function WorkerWorkSummaryCards({ totals, periodLabels, onOpenHistory }: WorkerWorkSummaryCardsProps) {
   const cards = [
     { label: 'Daily Earnings', period: periodLabels.day, value: totals.daily_total },
     { label: 'Weekly', period: periodLabels.week, value: totals.weekly_total },
@@ -20,7 +20,7 @@ export function WorkerWorkSummaryCards({ totals, periodLabels }: WorkerWorkSumma
   return (
     <section aria-label="Worker Work totals" style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))' }}>
       {cards.map((card) => (
-        <button key={card.label} type="button" onClick={() => navigate('/work/history')} style={{ padding: 15, border: '1px solid rgba(99,102,241,.14)', borderRadius: 18, background: 'rgba(255,255,255,.94)', boxShadow: '0 10px 28px rgba(15,23,42,.07)', minWidth: 0, textAlign: 'left', cursor: 'pointer', font: 'inherit' }}>
+        <button key={card.label} type="button" onClick={onOpenHistory} style={{ padding: 15, border: '1px solid rgba(99,102,241,.14)', borderRadius: 18, background: 'rgba(255,255,255,.94)', boxShadow: '0 10px 28px rgba(15,23,42,.07)', minWidth: 0, textAlign: 'left', cursor: 'pointer', font: 'inherit' }}>
           <span style={{ display: 'block', color: '#64748b', fontSize: 11, fontWeight: 800 }}>{card.label}</span>
           <span style={{ display: 'block', marginTop: 7, fontSize: 'clamp(18px, 5vw, 25px)', fontWeight: 900, letterSpacing: '-.035em', overflowWrap: 'anywhere' }}>{formatAmount(card.value)}</span>
           <span style={{ display: 'block', marginTop: 5, color: '#94a3b8', fontSize: 10 }}>{card.period}</span>
