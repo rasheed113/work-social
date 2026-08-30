@@ -19,19 +19,19 @@ async function refreshSessionOnce() {
 }
 
 /**
- * A persisted Supabase session can contain a token whose iat is now in the
- * future relative to the PostgREST clock (for example after restoring a stale
- * session created while a clock was skewed). Refreshing asks Supabase Auth
- * for a newly issued token; it does not disable JWT validation or alter RLS.
+ * Recover once from the specific PostgREST "JWT issued at future" error by
+ * asking Supabase Auth for a newly issued session. This never disables JWT
+ * validation, changes auth.uid(), or bypasses RLS.
  *
- * Retry at most once and only for this exact server-side JWT clock error.
- * Concurrent requests share one refresh so refresh-token rotation cannot race.
+ * The error accessor keeps this helper independent of Supabase response types
+ * and allows concurrent Worker requests to share one refresh-token rotation.
  */
-export async function withSessionRecovery<T extends { error: { message?: string } | null }>(
+export async function withSessionRecovery<T>(
   operation: () => Promise<T>,
+  getError: (result: T) => { message?: string } | null | undefined,
 ): Promise<T> {
   const first = await operation();
-  if (!isJwtIssuedAtFutureError(first.error)) return first;
+  if (!isJwtIssuedAtFutureError(getError(first))) return first;
 
   if (!(await refreshSessionOnce())) return first;
 
