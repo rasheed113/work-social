@@ -25,6 +25,7 @@ export interface WorkerFinanceCreateInput {
   amount: string;
   occurred_at: string;
   note?: string | null;
+  idempotency_key: string;
 }
 
 function normalize(value: string | number | null | undefined) {
@@ -49,6 +50,7 @@ export async function createWorkerFinanceTransaction(input: WorkerFinanceCreateI
     p_amount: input.amount,
     p_occurred_at: input.occurred_at,
     p_note: input.note?.trim() || null,
+    p_idempotency_key: input.idempotency_key,
   });
   return { data: result.data, error: result.error };
 }
