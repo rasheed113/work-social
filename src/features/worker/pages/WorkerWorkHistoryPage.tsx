@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { navigate } from '../../../app/Router';
 import { useCurrentWorkerProfileId } from '../hooks/useCurrentWorkerProfileId';
 import { useWorkerWorkHistory } from '../hooks/useWorkerWorkHistory';
@@ -25,7 +25,7 @@ export function WorkerWorkHistoryPage() {
 
   const history = useWorkerWorkHistory(session.profileId ?? '', period);
 
-  useMemo(() => {
+  useEffect(() => {
     if (!session.profileId) return;
     let active = true;
     setTotalsLoading(true);
