@@ -3,7 +3,7 @@ import type { WorkEntry, WorkEntryInput, WorkEntryUpdateInput, WorkEntryVersion,
 import { canonicalizeWorkDecimal, getWorkerWorkPeriodBounds, normalizeWorkerWorkTotals } from '../logic/workEntryCalculations';
 import { normalizeWorkEntrySizes } from '../logic/workEntrySizes';
 
-const WORK_ENTRY_COLUMNS = 'id, worker_profile_id, work_context, item_name, size, quantity, rate, total, special_note, occurred_at, created_at, updated_at';
+const WORK_ENTRY_COLUMNS = 'id, worker_profile_id, work_context, lifecycle_state, item_name, size, quantity, rate, total, special_note, occurred_at, created_at, updated_at';
 
 interface WorkEntryRow extends Omit<WorkEntry, 'quantity' | 'rate' | 'total'> {
   quantity: string | number;
@@ -27,11 +27,14 @@ function normalizeSizes(value: string[] | null): string[] | null {
   const normalized = normalizeWorkEntrySizes(value);
   return normalized.length ? normalized : null;
 }
-function normalizeEntry(row: WorkEntryRow): WorkEntry { return { ...row, size: normalizeSizes(row.size), quantity: normalizeDecimal(row.quantity), rate: normalizeDecimal(row.rate), total: normalizeDecimal(row.total) }; }
-function normalizeVersion(row: WorkEntryVersionRow): WorkEntryVersion { return { ...row, size: normalizeSizes(row.size), revision_no: Number(row.revision_no), quantity: normalizeDecimal(row.quantity), rate: normalizeDecimal(row.rate), total: normalizeDecimal(row.total) }; }
+function normalizeEntry(row: WorkEntryRow): WorkEntry {
+  return { ...row, size: normalizeSizes(row.size), quantity: normalizeDecimal(row.quantity), rate: normalizeDecimal(row.rate), total: normalizeDecimal(row.total) };
+}
+function normalizeVersion(row: WorkEntryVersionRow): WorkEntryVersion {
+  return { ...row, size: normalizeSizes(row.size), revision_no: Number(row.revision_no), quantity: normalizeDecimal(row.quantity), rate: normalizeDecimal(row.rate), total: normalizeDecimal(row.total) };
+}
 
-export async function listWorkerWorkEntries(limit: number, cursor: WorkHistoryCursor | null = null, period: WorkHistoryPeriod = 'lifetime') {
-  let query = supabase.from('work_entries').select(WORK_ENTRY_COLUMNS).order('occurred_at', { ascending: false }).order('id', { ascending: false }).limit(limit);
+function periodQuery<T>(query: T, period: WorkHistoryPeriod) {
   const bounds = getWorkerWorkPeriodBounds();
   const periodBounds: WorkHistoryPeriodBounds | null = period === 'day'
     ? { start: bounds.dayStart, end: bounds.dayEnd }
@@ -40,9 +43,20 @@ export async function listWorkerWorkEntries(limit: number, cursor: WorkHistoryCu
       : period === 'month'
         ? { start: bounds.monthStart, end: bounds.monthEnd }
         : null;
-  if (periodBounds) query = query.gte('occurred_at', periodBounds.start).lt('occurred_at', periodBounds.end);
+  if (!periodBounds) return query as T;
+  return (query as { gte: (column: string, value: string) => { lt: (column: string, value: string) => T } }).gte('occurred_at', periodBounds.start).lt('occurred_at', periodBounds.end);
+}
+
+export async function listWorkerWorkEntries(limit: number, cursor: WorkHistoryCursor | null = null, period: WorkHistoryPeriod = 'lifetime') {
+  let query = supabase.from('work_entries').select(WORK_ENTRY_COLUMNS).eq('lifecycle_state', 'active').order('occurred_at', { ascending: false }).order('id', { ascending: false }).limit(limit);
+  query = periodQuery(query, period);
   if (cursor) query = query.or(`occurred_at.lt.${cursor.occurred_at},and(occurred_at.eq.${cursor.occurred_at},id.lt.${cursor.id})`);
   const result = await query.returns<WorkEntryRow[]>();
+  return { data: result.data?.map(normalizeEntry) ?? [], error: result.error };
+}
+
+export async function listWorkerTrash(limit = 50) {
+  const result = await supabase.from('work_entries').select(WORK_ENTRY_COLUMNS).eq('lifecycle_state', 'trashed').order('updated_at', { ascending: false }).order('id', { ascending: false }).limit(limit).returns<WorkEntryRow[]>();
   return { data: result.data?.map(normalizeEntry) ?? [], error: result.error };
 }
 
@@ -52,7 +66,7 @@ export async function getWorkerWorkEntry(entryId: string) {
 }
 
 export async function getWorkerWorkEntryVersions(entryId: string) {
-  const result = await supabase.from('work_entry_versions').select('id, work_entry_id, revision_no, item_name, size, quantity, rate, total, special_note, recorded_at, changed_by').eq('work_entry_id', entryId).order('revision_no', { ascending: true }).returns<WorkEntryVersionRow[]>();
+  const result = await supabase.from('work_entry_versions').select('id, work_entry_id, worker_profile_id, revision_no, item_name, size, quantity, rate, total, special_note, recorded_at, changed_by').eq('work_entry_id', entryId).order('revision_no', { ascending: true }).returns<WorkEntryVersionRow[]>();
   return { data: result.data?.map(normalizeVersion) ?? [], error: result.error };
 }
 
@@ -92,5 +106,24 @@ export async function updateWorkerWorkEntry(entryId: string, input: WorkEntryUpd
   return { data: result.data ? normalizeEntry(result.data) : null, error: result.error };
 }
 
-export async function hideWorkerWorkEntry(entryId: string, profileId: string) { return supabase.from('work_entry_hidden_for').insert({ work_entry_id: entryId, profile_id: profileId }); }
-export async function getWorkerWorkTotals(bounds: WorkPeriodBounds) { const result = await supabase.rpc('get_worker_work_totals', { p_day_start: bounds.dayStart, p_day_end: bounds.dayEnd, p_week_start: bounds.weekStart, p_week_end: bounds.weekEnd, p_month_start: bounds.monthStart, p_month_end: bounds.monthEnd }); const row = Array.isArray(result.data) ? result.data[0] : result.data; return { data: normalizeWorkerWorkTotals(row as Partial<WorkerWorkTotals> | null | undefined), error: result.error }; }
+export async function trashWorkerWorkEntry(entryId: string) {
+  return supabase.rpc('trash_worker_work_entry', { p_entry_id: entryId });
+}
+
+export async function restoreWorkerWorkEntry(entryId: string) {
+  return supabase.rpc('restore_worker_work_entry', { p_entry_id: entryId });
+}
+
+export async function removeWorkerWorkEntryPermanently(entryId: string) {
+  return supabase.rpc('remove_worker_work_entry_permanently', { p_entry_id: entryId });
+}
+
+export async function emptyWorkerWorkTrash() {
+  return supabase.rpc('empty_worker_work_trash');
+}
+
+export async function getWorkerWorkTotals(bounds: WorkPeriodBounds) {
+  const result = await supabase.rpc('get_worker_work_totals', { p_day_start: bounds.dayStart, p_day_end: bounds.dayEnd, p_week_start: bounds.weekStart, p_week_end: bounds.weekEnd, p_month_start: bounds.monthStart, p_month_end: bounds.monthEnd });
+  const row = Array.isArray(result.data) ? result.data[0] : result.data;
+  return { data: normalizeWorkerWorkTotals(row as Partial<WorkerWorkTotals> | null | undefined), error: result.error };
+}
