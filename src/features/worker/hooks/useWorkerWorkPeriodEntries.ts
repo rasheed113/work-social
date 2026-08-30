@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { getWorkerWorkEntry, getWorkerWorkEntryVersions, trashWorkerWorkEntry, updateWorkerWorkEntry } from '../api/workEntries';
 import type { WorkEntry, WorkEntryUpdateInput, WorkEntryVersion } from '../types/workEntry';
 import { listWorkerWorkEntriesForRange } from '../api/workEntries';
@@ -14,13 +14,16 @@ export function useWorkerWorkPeriodEntries(start: string | null, end: string | n
   const [selectedEntry, setSelectedEntry] = useState<WorkEntry | null>(null);
   const [versions, setVersions] = useState<WorkEntryVersion[]>([]);
   const [versionsLoading, setVersionsLoading] = useState(false);
+  const requestRef = useRef(0);
 
   const load = useCallback(async (append = false) => {
     if (!start || !end || (append && loadingMore)) return;
+    const requestId = ++requestRef.current;
     if (append) setLoadingMore(true); else setLoading(true);
     setError(null);
     const cursor = append && entries.length ? { occurred_at: entries[entries.length - 1].occurred_at, id: entries[entries.length - 1].id } : null;
     const result = await listWorkerWorkEntriesForRange(start, end, PAGE_SIZE, cursor);
+    if (requestId !== requestRef.current) return;
     if (result.error) setError(result.error.message);
     else {
       const next = append ? [...entries, ...result.data] : result.data;
@@ -31,6 +34,7 @@ export function useWorkerWorkPeriodEntries(start: string | null, end: string | n
   }, [end, entries, loadingMore, start]);
 
   useEffect(() => {
+    requestRef.current += 1;
     setEntries([]);
     setHasMore(false);
     setSelectedEntry(null);
