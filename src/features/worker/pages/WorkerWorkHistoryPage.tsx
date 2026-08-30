@@ -62,7 +62,7 @@ export function WorkerWorkHistoryPage() {
   };
 
   const openPeriod = (row: WorkerWorkPeriodHistoryRow) => {
-    navigate(`/work/history?period=${period}&start=${encodeURIComponent(row.period_start)}&end=${encodeURIComponent(row.period_end)}&total=${encodeURIComponent(String(row.period_total))}&entries=${row.entry_count}`);
+    navigate(`/work/history?period=${period}&start=${encodeURIComponent(row.period_start)}&end=${encodeURIComponent(row.period_end)}`);
   };
 
   const backToPeriods = () => navigate(`/work/history?period=${period}`);
@@ -114,18 +114,7 @@ export function WorkerWorkHistoryPage() {
           <WorkerWorkEntryDetails entry={history.selectedEntry} versions={history.versions} versionsLoading={history.versionsLoading} actionError={history.actionError} onClose={history.closeDetails} onEdit={editEntry} onTrash={trashEntry} />
         </section>
       ) : selectedPeriod ? (
-        <WorkerWorkPeriodDetails
-          period={period as WorkerWorkPeriod}
-          row={{
-            period_start: selectedPeriod.start,
-            period_end: selectedPeriod.end,
-            period_total: new URLSearchParams(window.location.search).get('total') ?? '0',
-            entry_count: Number(new URLSearchParams(window.location.search).get('entries') ?? 0),
-            has_more: false,
-          }}
-          timezone={periodHistory.timezone}
-          onBack={backToPeriods}
-        />
+        <WorkerWorkPeriodDetails period={period as WorkerWorkPeriod} bounds={{ start: selectedPeriod.start, end: selectedPeriod.end }} timezone={periodHistory.timezone} onBack={backToPeriods} />
       ) : (
         <section aria-labelledby="worker-period-history-heading">
           <h2 id="worker-period-history-heading" style={{ margin: '0 0 10px', fontSize: 19 }}>{period === 'day' ? 'Daily Earnings' : period === 'week' ? 'Weekly Earnings' : 'Monthly Earnings'}</h2>
