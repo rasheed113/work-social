@@ -27,8 +27,9 @@ export function useWorkerWorkHistory(profileId: string, period: WorkHistoryPerio
     const result = await listWorkerWorkEntries(pageSize, currentCursor, period);
     if (result.error) setActionError(result.error.message);
     else {
-      setEntries((current) => append ? [...current, ...result.data] : result.data);
-      setHasMore(result.data.length === pageSize);
+      const nextEntries = append ? [...entries, ...result.data] : result.data;
+      setEntries(nextEntries);
+      setHasMore(nextEntries.length < result.count);
     }
     if (append) setLoadingMore(false); else setLoading(false);
   }, [entries, loadingMore, period]);
@@ -45,7 +46,7 @@ export function useWorkerWorkHistory(profileId: string, period: WorkHistoryPerio
     if (result.error) setActionError(result.error.message);
     else {
       setEntries(result.data);
-      setHasMore(result.data.length === INITIAL_PAGE_SIZE);
+      setHasMore(result.data.length < result.count);
     }
   }, [period]);
 
