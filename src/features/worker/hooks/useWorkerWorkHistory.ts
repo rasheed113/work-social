@@ -6,9 +6,9 @@ import type { WorkEntry, WorkEntryUpdateInput, WorkEntryVersion } from '../types
 const INITIAL_PAGE_SIZE = 5;
 const MORE_PAGE_SIZE = 10;
 
-export function useWorkerWorkHistory(profileId: string, period: WorkHistoryPeriod = 'lifetime') {
+export function useWorkerWorkHistory(profileId: string, period: WorkHistoryPeriod = 'lifetime', enabled = true) {
   const [entries, setEntries] = useState<WorkEntry[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(enabled);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -17,7 +17,7 @@ export function useWorkerWorkHistory(profileId: string, period: WorkHistoryPerio
   const [versionsLoading, setVersionsLoading] = useState(false);
 
   const load = useCallback(async (append = false) => {
-    if (append && loadingMore) return;
+    if (!enabled || (append && loadingMore)) return;
     setActionError(null);
     if (append) setLoadingMore(true); else setLoading(true);
     const currentCursor = append && entries.length
@@ -32,23 +32,26 @@ export function useWorkerWorkHistory(profileId: string, period: WorkHistoryPerio
       setHasMore(nextEntries.length < result.count);
     }
     if (append) setLoadingMore(false); else setLoading(false);
-  }, [entries, loadingMore, period]);
+  }, [enabled, entries, loadingMore, period]);
 
   useEffect(() => {
     setEntries([]);
     setHasMore(false);
     setSelectedEntry(null);
+    setLoading(enabled);
+    if (!enabled) return;
     void load(false);
-  }, [profileId, period]);
+  }, [enabled, profileId, period]);
 
   const refresh = useCallback(async () => {
+    if (!enabled) return;
     const result = await listWorkerWorkEntries(INITIAL_PAGE_SIZE, null, period);
     if (result.error) setActionError(result.error.message);
     else {
       setEntries(result.data);
       setHasMore(result.data.length < result.count);
     }
-  }, [period]);
+  }, [enabled, period]);
 
   const openDetails = useCallback(async (entry: WorkEntry) => {
     setSelectedEntry(entry);
