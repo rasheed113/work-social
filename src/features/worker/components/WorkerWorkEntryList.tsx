@@ -1,4 +1,5 @@
 import { formatWorkDecimal } from '../logic/workEntryCalculations';
+import { formatWorkEntrySizes } from '../logic/workEntrySizes';
 import type { WorkEntry } from '../types/workEntry';
 
 interface WorkerWorkEntryListProps {
@@ -28,7 +29,7 @@ export function WorkerWorkEntryList({ entries, emptyTitle = 'No Work Entries yet
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
             <div style={{ minWidth: 0 }}>
               <strong style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 15 }}>{entry.item_name}</strong>
-              <span style={{ display: 'block', marginTop: 4, color: '#64748b', fontSize: 12 }}>{entry.size || 'No size'} · {entry.quantity} pcs · {formatDate(entry.occurred_at)}</span>
+              <span style={{ display: 'block', marginTop: 4, color: '#64748b', fontSize: 12 }}>{formatWorkEntrySizes(entry.size)} · {entry.quantity} pcs · {formatDate(entry.occurred_at)}</span>
             </div>
             <span style={{ flex: '0 0 auto', fontWeight: 900, fontSize: 15 }}>{formatWorkDecimal(entry.total)}</span>
           </div>
