@@ -1,15 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { getWorkerProfile } from '../api/workerProfile';
-import { createWorkerWorkEntry, getWorkerWorkTotals, listWorkerWorkEntries } from '../api/workEntries';
+import { createWorkerWorkEntry, getWorkerWorkTotals } from '../api/workEntries';
 import { getWorkerWorkPeriodBounds } from '../logic/workEntryCalculations';
-import type { WorkEntry, WorkEntryInput, WorkerWorkTotals } from '../types/workEntry';
+import type { WorkEntryInput, WorkerWorkTotals } from '../types/workEntry';
 
 const EMPTY_TOTALS: WorkerWorkTotals = { daily_total: '0', weekly_total: '0', monthly_total: '0', lifetime_total: '0' };
-const RECENT_LIMIT = 5;
 
 export function useWorkerWorkDashboard(profileId: string) {
   const [workerProfileId, setWorkerProfileId] = useState<string | null>(null);
-  const [entries, setEntries] = useState<WorkEntry[]>([]);
   const [totals, setTotals] = useState<WorkerWorkTotals>(EMPTY_TOTALS);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -22,7 +20,6 @@ export function useWorkerWorkDashboard(profileId: string) {
     if (workerResult.error) {
       setError(workerResult.error.message);
       setWorkerProfileId(null);
-      setEntries([]);
       setTotals(EMPTY_TOTALS);
       setLoading(false);
       return;
@@ -30,20 +27,13 @@ export function useWorkerWorkDashboard(profileId: string) {
     const nextWorkerProfileId = workerResult.data?.id ?? null;
     setWorkerProfileId(nextWorkerProfileId);
     if (!nextWorkerProfileId) {
-      setEntries([]);
       setTotals(EMPTY_TOTALS);
       setLoading(false);
       return;
     }
     const bounds = getWorkerWorkPeriodBounds();
-    const [entriesResult, totalsResult] = await Promise.all([listWorkerWorkEntries(RECENT_LIMIT), getWorkerWorkTotals(bounds)]);
-    if (entriesResult.error) setError(entriesResult.error.message); else setEntries(entriesResult.data);
-    if (totalsResult.error) {
-      const totalsError = totalsResult.error;
-      setError((current) => current ?? totalsError.message);
-    } else {
-      setTotals(totalsResult.data);
-    }
+    const totalsResult = await getWorkerWorkTotals(bounds);
+    if (totalsResult.error) setError(totalsResult.error.message); else setTotals(totalsResult.data);
     setLoading(false);
   }, [profileId]);
 
@@ -69,5 +59,5 @@ export function useWorkerWorkDashboard(profileId: string) {
     };
   }, []);
 
-  return { workerProfileId, entries, totals, periodLabels, loading, saving, error, reload: load, createEntry };
+  return { workerProfileId, totals, periodLabels, loading, saving, error, reload: load, createEntry };
 }
