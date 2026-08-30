@@ -123,6 +123,11 @@ BEGIN
 END;
 $$;
 
+-- PostgreSQL prevents changing a column's type while an UPDATE OF trigger
+-- depends on that column. Temporarily remove only the existing audit trigger;
+-- it is recreated verbatim below with the same event semantics and function.
+DROP TRIGGER work_entries_record_version ON public.work_entries;
+
 ALTER TABLE public.work_entries
   DROP CONSTRAINT IF EXISTS work_entries_size_check;
 
@@ -175,3 +180,9 @@ ALTER TABLE public.work_entries
 ALTER TABLE public.work_entry_versions
   ADD CONSTRAINT work_entry_versions_size_values_check
   CHECK (private.is_valid_work_entry_sizes(size));
+
+CREATE TRIGGER work_entries_record_version
+AFTER INSERT OR UPDATE OF item_name, size, quantity, rate, special_note
+ON public.work_entries
+FOR EACH ROW
+EXECUTE FUNCTION private.record_work_entry_version();
