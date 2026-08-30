@@ -3,7 +3,8 @@ import { getWorkerWorkEntry, getWorkerWorkEntryVersions, listWorkerWorkEntries, 
 import type { WorkHistoryPeriod } from '../api/workEntries';
 import type { WorkEntry, WorkEntryUpdateInput, WorkEntryVersion } from '../types/workEntry';
 
-const PAGE_SIZE = 20;
+const INITIAL_PAGE_SIZE = 5;
+const MORE_PAGE_SIZE = 10;
 
 export function useWorkerWorkHistory(profileId: string, period: WorkHistoryPeriod = 'lifetime') {
   const [entries, setEntries] = useState<WorkEntry[]>([]);
@@ -16,19 +17,21 @@ export function useWorkerWorkHistory(profileId: string, period: WorkHistoryPerio
   const [versionsLoading, setVersionsLoading] = useState(false);
 
   const load = useCallback(async (append = false) => {
+    if (append && loadingMore) return;
     setActionError(null);
     if (append) setLoadingMore(true); else setLoading(true);
     const currentCursor = append && entries.length
       ? { occurred_at: entries[entries.length - 1].occurred_at, id: entries[entries.length - 1].id }
       : null;
-    const result = await listWorkerWorkEntries(PAGE_SIZE, currentCursor, period);
+    const pageSize = append ? MORE_PAGE_SIZE : INITIAL_PAGE_SIZE;
+    const result = await listWorkerWorkEntries(pageSize, currentCursor, period);
     if (result.error) setActionError(result.error.message);
     else {
       setEntries((current) => append ? [...current, ...result.data] : result.data);
-      setHasMore(result.data.length === PAGE_SIZE);
+      setHasMore(result.data.length === pageSize);
     }
     if (append) setLoadingMore(false); else setLoading(false);
-  }, [entries, period]);
+  }, [entries, loadingMore, period]);
 
   useEffect(() => {
     setEntries([]);
@@ -38,11 +41,11 @@ export function useWorkerWorkHistory(profileId: string, period: WorkHistoryPerio
   }, [profileId, period]);
 
   const refresh = useCallback(async () => {
-    const result = await listWorkerWorkEntries(PAGE_SIZE, null, period);
+    const result = await listWorkerWorkEntries(INITIAL_PAGE_SIZE, null, period);
     if (result.error) setActionError(result.error.message);
     else {
       setEntries(result.data);
-      setHasMore(result.data.length === PAGE_SIZE);
+      setHasMore(result.data.length === INITIAL_PAGE_SIZE);
     }
   }, [period]);
 
