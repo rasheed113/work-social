@@ -56,7 +56,7 @@ export function WorkerHome({ profileId }: WorkerHomeProps) {
       {notice && <p role="status" style={{ ...cardStyle, margin: '0 0 14px', color: '#166534', background: '#f0fdf4', fontSize: 13, fontWeight: 800 }}>{notice}</p>}
       {(dashboard.error || history.actionError) && <p role="alert" style={{ ...cardStyle, margin: '0 0 14px', color: '#b91c1c', fontSize: 13, fontWeight: 700 }}>{dashboard.error || history.actionError}</p>}
 
-      {!dashboard.loading && !dashboard.workerProfileId ? (
+      {!dashboard.loading && !dashboard.workerProfileId && !dashboard.error ? (
         <section style={{ ...cardStyle, marginBottom: 14 }}>
           <h2 style={{ margin: 0, fontSize: 18 }}>Set up Work Identity first</h2>
           <p style={{ margin: '7px 0 0', color: '#64748b', lineHeight: 1.5, fontSize: 13 }}>A Worker Work Entry belongs to a real Worker Identity. No placeholder entries or fake totals are created before that identity exists.</p>
