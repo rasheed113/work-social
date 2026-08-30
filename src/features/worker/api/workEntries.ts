@@ -18,8 +18,16 @@ interface WorkEntryVersionRow extends Omit<WorkEntryVersion, 'quantity' | 'rate'
 }
 
 export type WorkHistoryPeriod = 'lifetime' | 'day' | 'week' | 'month';
+export type WorkerWorkPeriod = Exclude<WorkHistoryPeriod, 'lifetime'>;
 export interface WorkHistoryCursor { occurred_at: string; id: string; }
 export interface WorkHistoryPeriodBounds { start: string; end: string; }
+export interface WorkerWorkPeriodHistoryRow {
+  period_start: string;
+  period_end: string;
+  period_total: string | number;
+  entry_count: number;
+  has_more: boolean;
+}
 type WorkPeriodBounds = ReturnType<typeof getWorkerWorkPeriodBounds>;
 
 function normalizeDecimal(value: string | number): string { return canonicalizeWorkDecimal(String(value)); }
@@ -53,6 +61,24 @@ export async function listWorkerWorkEntries(limit: number, cursor: WorkHistoryCu
   if (cursor) query = query.or(`occurred_at.lt.${cursor.occurred_at},and(occurred_at.eq.${cursor.occurred_at},id.lt.${cursor.id})`);
   const result = await query.returns<WorkEntryRow[]>();
   return { data: result.data?.map(normalizeEntry) ?? [], count: result.count ?? 0, error: result.error };
+}
+
+export async function listWorkerWorkEntriesBetween(limit: number, bounds: WorkHistoryPeriodBounds, cursor: WorkHistoryCursor | null = null) {
+  let query = supabase.from('work_entries').select(WORK_ENTRY_COLUMNS, { count: 'exact' }).eq('lifecycle_state', 'active').gte('occurred_at', bounds.start).lt('occurred_at', bounds.end).order('occurred_at', { ascending: false }).order('id', { ascending: false }).limit(limit);
+  if (cursor) query = query.or(`occurred_at.lt.${cursor.occurred_at},and(occurred_at.eq.${cursor.occurred_at},id.lt.${cursor.id})`);
+  const result = await query.returns<WorkEntryRow[]>();
+  return { data: result.data?.map(normalizeEntry) ?? [], count: result.count ?? 0, error: result.error };
+}
+
+export async function getWorkerWorkPeriodHistory(period: WorkerWorkPeriod, timezone: string, cursorStart: string | null = null, limit = 5) {
+  const result = await supabase.rpc('get_worker_work_period_history', {
+    p_period: period,
+    p_timezone: timezone,
+    p_cursor_start: cursorStart,
+    p_limit: limit,
+  });
+  const rows = (Array.isArray(result.data) ? result.data : result.data ? [result.data] : []) as WorkerWorkPeriodHistoryRow[];
+  return { data: rows, error: result.error };
 }
 
 export async function listWorkerTrash(limit = 50) {
