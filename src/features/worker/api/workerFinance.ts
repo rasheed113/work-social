@@ -37,7 +37,7 @@ function getStableSubmissionKey(input: WorkerFinanceCreateInput) {
   const fingerprint = JSON.stringify([
     input.transaction_type,
     input.amount,
-    input.occurred_at,
+    input.occurred_at.slice(0, 10),
     input.note?.trim() || null,
   ]);
   const storageKey = `${IDEMPOTENCY_PREFIX}${fingerprint}`;
