@@ -25,11 +25,41 @@ export interface WorkerFinanceCreateInput {
   amount: string;
   occurred_at: string;
   note?: string | null;
-  idempotency_key: string;
 }
+
+const IDEMPOTENCY_PREFIX = 'work-social:worker-finance:idempotency:';
 
 function normalize(value: string | number | null | undefined) {
   return canonicalizeWorkDecimal(String(value ?? '0'));
+}
+
+function getStableSubmissionKey(input: WorkerFinanceCreateInput) {
+  const fingerprint = JSON.stringify([
+    input.transaction_type,
+    input.amount,
+    input.occurred_at,
+    input.note?.trim() || null,
+  ]);
+  const storageKey = `${IDEMPOTENCY_PREFIX}${fingerprint}`;
+
+  try {
+    const existing = sessionStorage.getItem(storageKey);
+    if (existing) return { storageKey, idempotencyKey: existing };
+    const created = crypto.randomUUID();
+    sessionStorage.setItem(storageKey, created);
+    return { storageKey, idempotencyKey: created };
+  } catch {
+    return { storageKey: null, idempotencyKey: crypto.randomUUID() };
+  }
+}
+
+function clearStableSubmissionKey(storageKey: string | null) {
+  if (!storageKey) return;
+  try {
+    sessionStorage.removeItem(storageKey);
+  } catch {
+    // The persisted server-side transaction remains authoritative.
+  }
 }
 
 export async function getWorkerFinanceSummary() {
@@ -45,13 +75,16 @@ export async function getWorkerFinanceSummary() {
 }
 
 export async function createWorkerFinanceTransaction(input: WorkerFinanceCreateInput) {
+  const { storageKey, idempotencyKey } = getStableSubmissionKey(input);
   const result = await supabase.rpc('create_worker_finance_transaction', {
     p_transaction_type: input.transaction_type,
     p_amount: input.amount,
     p_occurred_at: input.occurred_at,
     p_note: input.note?.trim() || null,
-    p_idempotency_key: input.idempotency_key,
+    p_idempotency_key: idempotencyKey,
   });
+
+  if (!result.error) clearStableSubmissionKey(storageKey);
   return { data: result.data, error: result.error };
 }
 
