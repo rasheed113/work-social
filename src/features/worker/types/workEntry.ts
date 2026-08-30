@@ -1,5 +1,7 @@
 export type WorkContext = 'my_work';
 
+export type WorkEntryLifecycleState = 'active' | 'trashed';
+
 /** Exact decimal values from PostgreSQL numeric columns stay as strings. */
 export type WorkDecimal = string;
 
@@ -9,6 +11,7 @@ export interface WorkEntry {
   id: string;
   worker_profile_id: string;
   work_context: WorkContext;
+  lifecycle_state: WorkEntryLifecycleState;
   item_name: string;
   size: WorkEntrySizes;
   quantity: WorkDecimal;
@@ -41,6 +44,7 @@ export interface WorkEntryUpdateInput {
 export interface WorkEntryVersion {
   id: string;
   work_entry_id: string;
+  worker_profile_id: string;
   revision_no: number;
   item_name: string;
   size: WorkEntrySizes;
