@@ -24,11 +24,11 @@ export function WorkerWorkSummaryCards({ totals, periodLabels, onOpenHistory }: 
           <span style={{ display: 'block', marginTop: 5, color: '#94a3b8', fontSize: 10 }}>{card.period}</span>
         </button>
       ))}
-      <article style={{ gridColumn: '1 / -1', padding: 17, border: '1px solid rgba(14,116,144,.18)', borderRadius: 18, background: 'linear-gradient(145deg,rgba(239,246,255,.96),rgba(240,253,250,.94))' }}>
-        <div style={{ color: '#475569', fontSize: 11, fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase' }}>Lifetime / Grand Total</div>
-        <div style={{ marginTop: 4, fontSize: 'clamp(27px, 8vw, 40px)', fontWeight: 950, letterSpacing: '-.045em', overflowWrap: 'anywhere' }}>{formatWorkDecimal(totals.lifetime_total)}</div>
-        <div style={{ marginTop: 4, color: '#64748b', fontSize: 12 }}>Cumulative total from visible persisted Work Entries.</div>
-      </article>
+      <button type="button" onClick={() => onOpenHistory('lifetime')} aria-label="Open Work History" style={{ gridColumn: '1 / -1', padding: 17, border: '1px solid rgba(14,116,144,.18)', borderRadius: 18, background: 'linear-gradient(145deg,rgba(239,246,255,.96),rgba(240,253,250,.94))', textAlign: 'left', cursor: 'pointer', font: 'inherit' }}>
+        <span style={{ display: 'block', color: '#475569', fontSize: 11, fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase' }}>Lifetime / Grand Total</span>
+        <span style={{ display: 'block', marginTop: 4, fontSize: 'clamp(27px, 8vw, 40px)', fontWeight: 950, letterSpacing: '-.045em', overflowWrap: 'anywhere' }}>{formatWorkDecimal(totals.lifetime_total)}</span>
+        <span style={{ display: 'block', marginTop: 4, color: '#64748b', fontSize: 12 }}>Cumulative total from persisted Work Entries. Tap to view Work History →</span>
+      </button>
     </section>
   );
 }
