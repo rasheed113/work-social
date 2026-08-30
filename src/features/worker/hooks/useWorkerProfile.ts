@@ -13,10 +13,8 @@ export function useWorkerProfile(profileId: string) {
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
-    const [socialResult, workerResult] = await Promise.all([
-      getProfile(profileId),
-      getWorkerProfile(profileId),
-    ]);
+    const workerResult = await getWorkerProfile(profileId);
+    const socialResult = await getProfile(profileId);
 
     if (socialResult.error) setError(socialResult.error.message);
     else setProfile(socialResult.data);
