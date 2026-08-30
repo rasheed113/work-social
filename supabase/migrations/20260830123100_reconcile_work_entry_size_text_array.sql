@@ -14,8 +14,6 @@ DO $$
 DECLARE
   invalid_value text;
 BEGIN
-  -- A JSON-looking value must be a JSON array of strings, with at least one
-  -- non-empty, <=100-character trimmed element and no duplicate trimmed values.
   SELECT size
     INTO invalid_value
   FROM public.work_entries
@@ -96,6 +94,35 @@ EXCEPTION
 END
 $$;
 
+-- ALTER TABLE ... USING expressions cannot contain subqueries. Keep the JSON
+-- parsing in a narrowly scoped helper so the conversion remains exact and
+-- transactional. The helper is removed before the migration completes.
+CREATE OR REPLACE FUNCTION private.reconcile_work_entry_size_text_value(p_size text)
+RETURNS text[]
+LANGUAGE plpgsql
+IMMUTABLE
+SET search_path = ''
+AS $$
+DECLARE
+  parsed jsonb;
+  converted text[];
+BEGIN
+  IF p_size IS NULL THEN
+    RETURN NULL;
+  END IF;
+
+  IF btrim(p_size) LIKE '[%]' THEN
+    parsed := btrim(p_size)::jsonb;
+    SELECT array_agg(btrim(element #>> '{}') ORDER BY ordinality)
+      INTO converted
+    FROM jsonb_array_elements(parsed) WITH ORDINALITY AS elements(element, ordinality);
+    RETURN converted;
+  END IF;
+
+  RETURN ARRAY[btrim(p_size)];
+END;
+$$;
+
 ALTER TABLE public.work_entries
   DROP CONSTRAINT IF EXISTS work_entries_size_check;
 
@@ -110,27 +137,13 @@ ALTER TABLE public.work_entry_versions
 
 ALTER TABLE public.work_entries
   ALTER COLUMN size TYPE text[]
-  USING CASE
-    WHEN size IS NULL THEN NULL
-    WHEN btrim(size) LIKE '[%]'
-      THEN (
-        SELECT array_agg(btrim(element #>> '{}') ORDER BY ordinality)
-        FROM jsonb_array_elements(btrim(size)::jsonb) WITH ORDINALITY AS elements(element, ordinality)
-      )
-    ELSE ARRAY[btrim(size)]
-  END;
+  USING private.reconcile_work_entry_size_text_value(size);
 
 ALTER TABLE public.work_entry_versions
   ALTER COLUMN size TYPE text[]
-  USING CASE
-    WHEN size IS NULL THEN NULL
-    WHEN btrim(size) LIKE '[%]'
-      THEN (
-        SELECT array_agg(btrim(element #>> '{}') ORDER BY ordinality)
-        FROM jsonb_array_elements(btrim(size)::jsonb) WITH ORDINALITY AS elements(element, ordinality)
-      )
-    ELSE ARRAY[btrim(size)]
-  END;
+  USING private.reconcile_work_entry_size_text_value(size);
+
+DROP FUNCTION private.reconcile_work_entry_size_text_value(text);
 
 CREATE OR REPLACE FUNCTION private.is_valid_work_entry_sizes(p_sizes text[])
 RETURNS boolean
