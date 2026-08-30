@@ -1,25 +1,26 @@
 import { supabase } from '../../../lib/supabase/client';
-import { refreshSessionAfterJwtClockError } from '../../auth/api/refreshSessionAfterJwtClockError';
 import type { WorkerProfile, WorkerProfileUpdateInput } from '../types/workerProfile';
 
 const WORKER_PROFILE_COLUMNS =
   'id, profile_id, work_id, work_role, work_description, skills, created_at, updated_at';
+const JWT_ISSUED_AT_FUTURE = 'jwt issued at future';
+
+async function refreshIfJwtIssuedAtFuture(error: { message?: string } | null | undefined) {
+  if (!error?.message?.trim().toLowerCase().includes(JWT_ISSUED_AT_FUTURE)) return false;
+  const { error: refreshError } = await supabase.auth.refreshSession();
+  return !refreshError;
+}
 
 export async function getWorkerProfile(profileId: string) {
-  const result = await supabase
-    .from('worker_profiles')
-    .select(WORKER_PROFILE_COLUMNS)
-    .eq('profile_id', profileId)
-    .maybeSingle<WorkerProfile>();
-
-  if (await refreshSessionAfterJwtClockError(result.error)) {
-    return supabase
+  const run = () =>
+    supabase
       .from('worker_profiles')
       .select(WORKER_PROFILE_COLUMNS)
       .eq('profile_id', profileId)
       .maybeSingle<WorkerProfile>();
-  }
 
+  const result = await run();
+  if (await refreshIfJwtIssuedAtFuture(result.error)) return run();
   return result;
 }
 
@@ -43,6 +44,6 @@ export async function saveWorkerProfile(profileId: string, input: WorkerProfileU
       .single<WorkerProfile>();
 
   const result = await run();
-  if (await refreshSessionAfterJwtClockError(result.error)) return run();
+  if (await refreshIfJwtIssuedAtFuture(result.error)) return run();
   return result;
 }
