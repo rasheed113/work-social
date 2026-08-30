@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { getWorkerWorkEntry, getWorkerWorkEntryVersions, hideWorkerWorkEntry, listWorkerWorkEntries, updateWorkerWorkEntry } from '../api/workEntries';
+import { getWorkerWorkEntry, getWorkerWorkEntryVersions, listWorkerWorkEntries, restoreWorkerWorkEntry, removeWorkerWorkEntryPermanently, trashWorkerWorkEntry, updateWorkerWorkEntry } from '../api/workEntries';
 import type { WorkHistoryPeriod } from '../api/workEntries';
 import type { WorkEntry, WorkEntryUpdateInput, WorkEntryVersion } from '../types/workEntry';
 
@@ -68,14 +68,28 @@ export function useWorkerWorkHistory(profileId: string, period: WorkHistoryPerio
     return result;
   }, [refresh]);
 
-  const deleteForMe = useCallback(async (entryId: string) => {
+  const trashEntry = useCallback(async (entryId: string) => {
     setActionError(null);
-    const result = await hideWorkerWorkEntry(entryId, profileId);
+    const result = await trashWorkerWorkEntry(entryId);
     if (result.error) { setActionError(result.error.message); return result; }
     setSelectedEntry(null);
     await refresh();
     return result;
-  }, [profileId, refresh]);
+  }, [refresh]);
+
+  const restoreEntry = useCallback(async (entryId: string) => {
+    setActionError(null);
+    const result = await restoreWorkerWorkEntry(entryId);
+    if (result.error) setActionError(result.error.message);
+    return result;
+  }, []);
+
+  const removePermanently = useCallback(async (entryId: string) => {
+    setActionError(null);
+    const result = await removeWorkerWorkEntryPermanently(entryId);
+    if (result.error) setActionError(result.error.message);
+    return result;
+  }, []);
 
   const reloadSelectedEntry = useCallback(async () => {
     if (!selectedEntry) return;
@@ -95,7 +109,9 @@ export function useWorkerWorkHistory(profileId: string, period: WorkHistoryPerio
     openDetails,
     closeDetails: () => setSelectedEntry(null),
     editEntry,
-    deleteForMe,
+    trashEntry,
+    restoreEntry,
+    removePermanently,
     reloadSelectedEntry,
     loadMore: () => load(true),
     refresh,
