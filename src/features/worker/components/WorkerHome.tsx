@@ -14,6 +14,7 @@ interface WorkerHomeProps { profileId: string; }
 export function WorkerHome({ profileId }: WorkerHomeProps) {
   const [historyPeriod, setHistoryPeriod] = useState<WorkHistoryPeriod | null>(null);
   const [newEntryOpen, setNewEntryOpen] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
   const dashboard = useWorkerWorkDashboard(profileId);
   const history = useWorkerWorkHistory(profileId, historyPeriod ?? 'lifetime');
 
@@ -27,9 +28,12 @@ export function WorkerHome({ profileId }: WorkerHomeProps) {
     if (!result.error) await dashboard.reload();
     return result;
   };
-  const deleteForMe = async (entryId: string) => {
-    const result = await history.deleteForMe(entryId);
-    if (!result.error) await dashboard.reload();
+  const trashEntry = async (entryId: string) => {
+    const result = await history.trashEntry(entryId);
+    if (!result.error) {
+      await dashboard.reload();
+      setNotice('🗑️ Moved to Trash');
+    }
     return result;
   };
   const historyTitle = historyPeriod === 'day' ? 'Daily Work History' : historyPeriod === 'week' ? 'Weekly Work History' : historyPeriod === 'month' ? 'Monthly Work History' : 'My Work History';
@@ -44,10 +48,12 @@ export function WorkerHome({ profileId }: WorkerHomeProps) {
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
           {historyPeriod && <button type="button" onClick={() => setHistoryPeriod(null)} style={{ minHeight: 42, padding: '0 11px', borderRadius: 12, fontWeight: 800, cursor: 'pointer' }}>← Home</button>}
+          <button type="button" onClick={() => navigate('/work/trash')} style={{ minHeight: 42, padding: '0 12px', borderRadius: 12, fontWeight: 900, cursor: 'pointer' }}>🗑️ Trash</button>
           <button type="button" onClick={() => setNewEntryOpen(true)} disabled={!dashboard.workerProfileId || dashboard.loading} style={{ minHeight: 46, padding: '0 15px', borderRadius: 14, fontWeight: 900, cursor: dashboard.workerProfileId && !dashboard.loading ? 'pointer' : 'not-allowed' }}>+ New Entry</button>
         </div>
       </header>
 
+      {notice && <p role="status" style={{ ...cardStyle, margin: '0 0 14px', color: '#166534', background: '#f0fdf4', fontSize: 13, fontWeight: 800 }}>{notice}</p>}
       {(dashboard.error || history.actionError) && <p role="alert" style={{ ...cardStyle, margin: '0 0 14px', color: '#b91c1c', fontSize: 13, fontWeight: 700 }}>{dashboard.error || history.actionError}</p>}
 
       {!dashboard.loading && !dashboard.workerProfileId ? (
@@ -106,7 +112,7 @@ export function WorkerHome({ profileId }: WorkerHomeProps) {
       )}
 
       <WorkerNewWorkEntryModal open={newEntryOpen} saving={dashboard.saving} onClose={() => setNewEntryOpen(false)} onSave={saveEntry} />
-      <WorkerWorkEntryDetails entry={history.selectedEntry} versions={history.versions} versionsLoading={history.versionsLoading} actionError={history.actionError} onClose={history.closeDetails} onEdit={editEntry} onDeleteForMe={deleteForMe} />
+      <WorkerWorkEntryDetails entry={history.selectedEntry} versions={history.versions} versionsLoading={history.versionsLoading} actionError={history.actionError} onClose={history.closeDetails} onEdit={editEntry} onTrash={trashEntry} />
     </main>
   );
 }
