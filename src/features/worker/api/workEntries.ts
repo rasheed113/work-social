@@ -48,11 +48,11 @@ function periodQuery<T>(query: T, period: WorkHistoryPeriod) {
 }
 
 export async function listWorkerWorkEntries(limit: number, cursor: WorkHistoryCursor | null = null, period: WorkHistoryPeriod = 'lifetime') {
-  let query = supabase.from('work_entries').select(WORK_ENTRY_COLUMNS).eq('lifecycle_state', 'active').order('occurred_at', { ascending: false }).order('id', { ascending: false }).limit(limit);
+  let query = supabase.from('work_entries').select(WORK_ENTRY_COLUMNS, { count: 'exact' }).eq('lifecycle_state', 'active').order('occurred_at', { ascending: false }).order('id', { ascending: false }).limit(limit);
   query = periodQuery(query, period);
   if (cursor) query = query.or(`occurred_at.lt.${cursor.occurred_at},and(occurred_at.eq.${cursor.occurred_at},id.lt.${cursor.id})`);
   const result = await query.returns<WorkEntryRow[]>();
-  return { data: result.data?.map(normalizeEntry) ?? [], error: result.error };
+  return { data: result.data?.map(normalizeEntry) ?? [], count: result.count ?? 0, error: result.error };
 }
 
 export async function listWorkerTrash(limit = 50) {
