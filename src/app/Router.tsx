@@ -16,6 +16,7 @@ import { WorkNavigation } from './components/WorkNavigation';
 import { playNotificationSound, requestNotificationPermission, showBrowserNotification } from './services/notificationAudio';
 import { WorkerIdentityPage } from '../features/worker/pages/WorkerIdentityPage';
 import { WorkerWorkHousePage } from '../features/worker/pages/WorkerWorkHousePage';
+import { WorkerWorkHistoryPage } from '../features/worker/pages/WorkerWorkHistoryPage';
 import { WorkerFinancePage } from '../features/worker/pages/WorkerFinancePage';
 import { WorkerSettingsPage } from '../features/worker/pages/WorkerSettingsPage';
 import { WorkerNavigation } from '../features/worker/components/WorkerNavigation';
@@ -62,7 +63,9 @@ export function Router({ profileId }: RouterProps) {
         ?<WorkerSettingsPage teamJoining/>
         :pathname==='/work/settings'
           ?<WorkerSettingsPage/>
-          :<WorkerWorkHousePage/>;
+          :pathname==='/work/history'
+            ?<WorkerWorkHistoryPage/>
+            :<WorkerWorkHousePage/>;
   const pages:Record<Route,ReactNode>={home:<HomePage profileId={profileId}/>,friends:<FriendsPage/>,notifications:<NotificationsPage/>,profile:<ProfilePage profileId={profileId}/>,settings:<SettingsPage/>,inbox:inboxPage,blockedUsers:<BlockedUsersPage/>,publicProfile:publicId?<ProfilePage profileId={publicId} viewerId={profileId}/>:<ProfilePage profileId={profileId}/>,work:workPage};
   const navItems=[{route:'home' as Route,path:'/',icon:'⌂',label:'Home'},{route:'friends' as Route,path:'/friends',icon:'♧',label:'Friends'},{route:'notifications' as Route,path:'/notifications',icon:'♢',label:'Activity',count:notificationUnread},{route:'profile' as Route,path:'/profile',icon:'◉',label:'Profile'}];
   const isWorkRoute=window.location.pathname==='/work'||window.location.pathname.startsWith('/work/');
