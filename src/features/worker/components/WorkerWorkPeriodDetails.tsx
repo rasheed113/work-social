@@ -37,7 +37,7 @@ export function WorkerWorkPeriodDetails({ period, bounds, timezone, onBack }: Wo
     let active = true;
     setLoading(true);
     setError(null);
-    const cursor = new Date(new Date(bounds.start).getTime() + 1).toISOString();
+    const cursor = bounds.end;
     void Promise.all([
       getWorkerWorkPeriodHistory(period, timezone, cursor, 1),
       listWorkerWorkEntriesBetween(50, bounds),
