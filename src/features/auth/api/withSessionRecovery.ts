@@ -1,9 +1,21 @@
 import { supabase } from '../../../lib/supabase/client';
 
 const JWT_ISSUED_AT_FUTURE = 'jwt issued at future';
+let refreshInFlight: Promise<boolean> | null = null;
 
 function isJwtIssuedAtFutureError(error: { message?: string } | null | undefined) {
   return error?.message?.trim().toLowerCase().includes(JWT_ISSUED_AT_FUTURE) ?? false;
+}
+
+async function refreshSessionOnce() {
+  if (!refreshInFlight) {
+    refreshInFlight = supabase.auth.refreshSession()
+      .then(({ error }) => !error)
+      .finally(() => {
+        refreshInFlight = null;
+      });
+  }
+  return refreshInFlight;
 }
 
 /**
@@ -13,6 +25,7 @@ function isJwtIssuedAtFutureError(error: { message?: string } | null | undefined
  * for a newly issued token; it does not disable JWT validation or alter RLS.
  *
  * Retry at most once and only for this exact server-side JWT clock error.
+ * Concurrent requests share one refresh so refresh-token rotation cannot race.
  */
 export async function withSessionRecovery<T extends { error: { message?: string } | null }>(
   operation: () => Promise<T>,
@@ -20,8 +33,7 @@ export async function withSessionRecovery<T extends { error: { message?: string 
   const first = await operation();
   if (!isJwtIssuedAtFutureError(first.error)) return first;
 
-  const { error: refreshError } = await supabase.auth.refreshSession();
-  if (refreshError) return first;
+  if (!(await refreshSessionOnce())) return first;
 
   return operation();
 }
