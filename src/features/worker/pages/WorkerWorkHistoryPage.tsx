@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { navigate } from '../../../app/Router';
 import { useCurrentWorkerProfileId } from '../hooks/useCurrentWorkerProfileId';
 import { useWorkerWorkHistory } from '../hooks/useWorkerWorkHistory';
@@ -33,7 +33,7 @@ export function WorkerWorkHistoryPage() {
   const [period, setPeriod] = useState<WorkHistoryPeriod>(() => readPeriod());
   const [totals, setTotals] = useState<WorkerWorkTotals>(EMPTY_TOTALS);
   const [totalsLoading, setTotalsLoading] = useState(true);
-  const selectedPeriod = useMemo(() => readSelectedPeriod(period), [period]);
+  const selectedPeriod = readSelectedPeriod(period);
 
   const history = useWorkerWorkHistory(session.profileId ?? '', period, period === 'lifetime');
   const periodHistory = useWorkerWorkPeriodHistory(period as WorkerWorkPeriod, period !== 'lifetime' && !selectedPeriod);
