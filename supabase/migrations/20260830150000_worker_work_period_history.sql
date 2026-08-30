@@ -1,4 +1,6 @@
-create or replace function public.get_worker_work_period_history(
+drop function if exists public.get_worker_work_period_history(text, text, timestamptz, integer);
+
+create function public.get_worker_work_period_history(
   p_period text,
   p_timezone text,
   p_cursor_start timestamptz default null,
@@ -7,23 +9,36 @@ create or replace function public.get_worker_work_period_history(
 returns table (
   period_start timestamptz,
   period_end timestamptz,
-  period_total numeric(24,4)
+  period_total numeric(24,4),
+  entry_count bigint,
+  has_more boolean
 )
 language sql
 security invoker
 stable
 set search_path = ''
 as $$
-  with worker_entries as (
+  with recursive
+  params as (
     select
-      e.occurred_at,
-      e.total
+      p_period as period,
+      p_timezone as timezone,
+      greatest(1, least(coalesce(p_limit, 5), 10)) as limit_count,
+      case p_period
+        when 'day' then date_trunc('day', now() at time zone p_timezone) at time zone p_timezone
+        when 'week' then date_trunc('week', now() at time zone p_timezone) at time zone p_timezone
+        when 'month' then date_trunc('month', now() at time zone p_timezone) at time zone p_timezone
+      end as current_bucket_start
+  ),
+  worker as (
+    select wp.id as worker_profile_id
+    from public.worker_profiles wp
+    where wp.profile_id = (select auth.uid())
+  ),
+  oldest as (
+    select e.occurred_at as oldest_occurred_at
     from public.work_entries e
-    where e.worker_profile_id in (
-      select wp.id
-      from public.worker_profiles wp
-      where wp.profile_id = (select auth.uid())
-    )
+    where e.worker_profile_id in (select worker_profile_id from worker)
       and e.lifecycle_state = 'active'
       and not exists (
         select 1
@@ -31,51 +46,168 @@ as $$
         where hidden.work_entry_id = e.id
           and hidden.profile_id = (select auth.uid())
       )
+    order by e.occurred_at asc, e.id asc
+    limit 1
   ),
-  bucketed as (
+  seed as (
     select
-      case p_period
-        when 'day' then date_trunc('day', occurred_at at time zone p_timezone)
-        when 'week' then date_trunc('week', occurred_at at time zone p_timezone)
-        when 'month' then date_trunc('month', occurred_at at time zone p_timezone)
-      end as bucket_local,
-      total
-    from worker_entries
-    where p_period in ('day', 'week', 'month')
+      case
+        when p_cursor_start is null then p.current_bucket_start
+        when p.period = 'day' then date_trunc('day', p_cursor_start at time zone p.timezone) at time zone p.timezone - interval '1 day'
+        when p.period = 'week' then date_trunc('week', p_cursor_start at time zone p.timezone) at time zone p.timezone - interval '7 days'
+        when p.period = 'month' then date_trunc('month', p_cursor_start at time zone p.timezone) at time zone p.timezone - interval '1 month'
+      end as bucket_start,
+      p.*
+    from params p
+    where p.period in ('day', 'week', 'month')
   ),
-  grouped as (
+  walk as (
     select
-      bucket_local at time zone p_timezone as bucket_start,
-      sum(total)::numeric(24,4) as bucket_total
-    from bucketed
-    where bucket_local is not null
-    group by bucket_local
+      s.bucket_start,
+      s.period,
+      s.timezone,
+      s.limit_count,
+      case
+        when o.oldest_occurred_at is null then 1
+        when s.bucket_start < date_trunc(s.period, o.oldest_occurred_at at time zone s.timezone) at time zone s.timezone then 1
+        else 0
+      end as exhausted,
+      case
+        when exists (
+          select 1
+          from public.work_entries e
+          where e.worker_profile_id in (select worker_profile_id from worker)
+            and e.lifecycle_state = 'active'
+            and e.occurred_at >= s.bucket_start
+            and e.occurred_at < case s.period
+              when 'day' then (s.bucket_start at time zone s.timezone + interval '1 day') at time zone s.timezone
+              when 'week' then (s.bucket_start at time zone s.timezone + interval '7 days') at time zone s.timezone
+              when 'month' then (s.bucket_start at time zone s.timezone + interval '1 month') at time zone s.timezone
+            end
+            and not exists (
+              select 1
+              from public.work_entry_hidden_for hidden
+              where hidden.work_entry_id = e.id
+                and hidden.profile_id = (select auth.uid())
+            )
+        ) then 1 else 0
+      end as found_count,
+      1 as step
+    from seed s
+    left join oldest o on true
+
+    union all
+
+    select
+      next_bucket.bucket_start,
+      w.period,
+      w.timezone,
+      w.limit_count,
+      case
+        when o.oldest_occurred_at is null then 1
+        when next_bucket.bucket_start < date_trunc(w.period, o.oldest_occurred_at at time zone w.timezone) at time zone w.timezone then 1
+        else 0
+      end as exhausted,
+      w.found_count + case
+        when exists (
+          select 1
+          from public.work_entries e
+          where e.worker_profile_id in (select worker_profile_id from worker)
+            and e.lifecycle_state = 'active'
+            and e.occurred_at >= next_bucket.bucket_start
+            and e.occurred_at < w.bucket_start
+            and not exists (
+              select 1
+              from public.work_entry_hidden_for hidden
+              where hidden.work_entry_id = e.id
+                and hidden.profile_id = (select auth.uid())
+            )
+        ) then 1 else 0
+      end as found_count,
+      w.step + 1
+    from walk w
+    cross join lateral (
+      select case w.period
+        when 'day' then (w.bucket_start at time zone w.timezone - interval '1 day') at time zone w.timezone
+        when 'week' then (w.bucket_start at time zone w.timezone - interval '7 days') at time zone w.timezone
+        when 'month' then (w.bucket_start at time zone w.timezone - interval '1 month') at time zone w.timezone
+      end as bucket_start
+    ) next_bucket
+    left join oldest o on true
+    where w.found_count < w.limit_count
+      and w.exhausted = 0
   ),
-  bounded as (
+  marked as (
     select
-      g.bucket_start,
-      g.bucket_total,
-      case p_period
-        when 'day' then (g.bucket_start at time zone p_timezone + interval '1 day') at time zone p_timezone
-        when 'week' then (g.bucket_start at time zone p_timezone + interval '7 days') at time zone p_timezone
-        when 'month' then (g.bucket_start at time zone p_timezone + interval '1 month') at time zone p_timezone
+      w.*,
+      w.found_count - lag(w.found_count, 1, 0) over (order by w.step) as newly_found
+    from walk w
+  ),
+  selected as (
+    select bucket_start, period, timezone
+    from marked
+    where newly_found > 0
+    order by step
+    limit (select limit_count from params)
+  ),
+  last_selected as (
+    select max(bucket_start) as last_bucket_start
+    from selected
+  ),
+  has_more_row as (
+    select exists (
+      select 1
+      from public.work_entries e
+      cross join last_selected l
+      where l.last_bucket_start is not null
+        and e.worker_profile_id in (select worker_profile_id from worker)
+        and e.lifecycle_state = 'active'
+        and e.occurred_at < l.last_bucket_start
+        and not exists (
+          select 1
+          from public.work_entry_hidden_for hidden
+          where hidden.work_entry_id = e.id
+            and hidden.profile_id = (select auth.uid())
+        )
+    ) as has_more
+  ),
+  aggregated as (
+    select
+      s.bucket_start,
+      case s.period
+        when 'day' then (s.bucket_start at time zone s.timezone + interval '1 day') at time zone s.timezone
+        when 'week' then (s.bucket_start at time zone s.timezone + interval '7 days') at time zone s.timezone
+        when 'month' then (s.bucket_start at time zone s.timezone + interval '1 month') at time zone s.timezone
       end as bucket_end,
-      case p_period
-        when 'day' then date_trunc('day', now() at time zone p_timezone) at time zone p_timezone
-        when 'week' then date_trunc('week', now() at time zone p_timezone) at time zone p_timezone
-        when 'month' then date_trunc('month', now() at time zone p_timezone) at time zone p_timezone
-      end as current_bucket_start
-    from grouped g
+      sum(e.total)::numeric(24,4) as bucket_total,
+      count(*)::bigint as bucket_entry_count
+    from selected s
+    join public.work_entries e
+      on e.worker_profile_id in (select worker_profile_id from worker)
+     and e.lifecycle_state = 'active'
+     and e.occurred_at >= s.bucket_start
+     and e.occurred_at < case s.period
+       when 'day' then (s.bucket_start at time zone s.timezone + interval '1 day') at time zone s.timezone
+       when 'week' then (s.bucket_start at time zone s.timezone + interval '7 days') at time zone s.timezone
+       when 'month' then (s.bucket_start at time zone s.timezone + interval '1 month') at time zone s.timezone
+     end
+    where not exists (
+      select 1
+      from public.work_entry_hidden_for hidden
+      where hidden.work_entry_id = e.id
+        and hidden.profile_id = (select auth.uid())
+    )
+    group by s.bucket_start, s.period, s.timezone
   )
   select
-    bucket_start as period_start,
-    bucket_end as period_end,
-    bucket_total as period_total
-  from bounded
-  where bucket_start <= current_bucket_start
-    and (p_cursor_start is null or bucket_start < p_cursor_start)
-  order by bucket_start desc
-  limit greatest(1, least(p_limit, 10));
+    a.bucket_start as period_start,
+    a.bucket_end as period_end,
+    a.bucket_total as period_total,
+    a.bucket_entry_count as entry_count,
+    h.has_more
+  from aggregated a
+  cross join has_more_row h
+  order by a.bucket_start desc;
 $$;
 
 revoke all on function public.get_worker_work_period_history(text, text, timestamptz, integer) from public, anon;

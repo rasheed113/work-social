@@ -55,6 +55,13 @@ export async function listWorkerWorkEntries(limit: number, cursor: WorkHistoryCu
   return { data: result.data?.map(normalizeEntry) ?? [], count: result.count ?? 0, error: result.error };
 }
 
+export async function listWorkerWorkEntriesForRange(start: string, end: string, limit: number, cursor: WorkHistoryCursor | null = null) {
+  let query = supabase.from('work_entries').select(WORK_ENTRY_COLUMNS, { count: 'exact' }).eq('lifecycle_state', 'active').gte('occurred_at', start).lt('occurred_at', end).order('occurred_at', { ascending: false }).order('id', { ascending: false }).limit(limit);
+  if (cursor) query = query.or(`occurred_at.lt.${cursor.occurred_at},and(occurred_at.eq.${cursor.occurred_at},id.lt.${cursor.id})`);
+  const result = await query.returns<WorkEntryRow[]>();
+  return { data: result.data?.map(normalizeEntry) ?? [], count: result.count ?? 0, error: result.error };
+}
+
 export async function listWorkerTrash(limit = 50) {
   const result = await supabase.from('work_entries').select(WORK_ENTRY_COLUMNS).eq('lifecycle_state', 'trashed').order('updated_at', { ascending: false }).order('id', { ascending: false }).limit(limit).returns<WorkEntryRow[]>();
   return { data: result.data?.map(normalizeEntry) ?? [], error: result.error };
