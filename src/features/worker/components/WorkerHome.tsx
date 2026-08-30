@@ -39,12 +39,6 @@ export function WorkerHome({ profileId }: WorkerHomeProps) {
         <>
           <WorkerWorkSummaryCards totals={dashboard.totals} periodLabels={dashboard.periodLabels} onOpenHistory={(period) => navigate(period === 'lifetime' ? '/work/history' : `/work/history?period=${period}`)} />
 
-          <section aria-labelledby="worker-home-history-entry" style={{ ...cardStyle, marginTop: 16 }}>
-            <h2 id="worker-home-history-entry" style={{ margin: 0, fontSize: 17 }}>Work History</h2>
-            <p style={{ margin: '6px 0 0', color: '#64748b', fontSize: 13 }}>Open the dedicated history screen to browse persisted Work Entries progressively.</p>
-            <button type="button" onClick={() => navigate('/work/history')} style={{ marginTop: 12, minHeight: 42, padding: '0 13px', borderRadius: 11, fontWeight: 800, cursor: 'pointer' }}>Open Work History →</button>
-          </section>
-
           <section aria-labelledby="worker-home-team" style={{ ...cardStyle, marginTop: 16 }}>
             <h2 id="worker-home-team" style={{ margin: 0, fontSize: 17 }}>Team Work</h2>
             <p style={{ margin: '6px 0 0', color: '#64748b', fontSize: 13 }}>Teams and approved Team Work are intentionally outside Phase 3C.</p>
