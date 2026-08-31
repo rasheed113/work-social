@@ -21,9 +21,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-          cache: npm
 
-      - run: npm ci
+      - run: npm install
 
       - name: Find and repair the JSX parse error
         run: |
@@ -54,7 +53,7 @@ jobs:
             for (let p = start; p <= end; p++) positions.add(p);
           }
 
-          const inserts = ['', '}', '{', '>', '<', '/', ' />', '</>', '</>}', ')}', ')}'];
+          const inserts = ['}', '{', '>', '<', '/', ' />', '</>', '</>}', ')}'];
           const candidates = [];
           for (const p of positions) {
             candidates.push(original.slice(0, p) + original.slice(p + 1));
