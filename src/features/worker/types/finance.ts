@@ -9,6 +9,7 @@ export interface FinanceReceivedRecord {
   amount: WorkDecimal;
   received_at: string;
   created_at: string;
+  deleted_at: string | null;
 }
 
 export interface WorkerFinanceSummary {
