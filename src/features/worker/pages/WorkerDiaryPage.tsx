@@ -25,7 +25,7 @@ function isoToLocalInput(iso: string | null, timezone: string) {
   const get = (name: string) => parts.find(p => p.type === name)?.value ?? '';
   return `${get('year')}-${get('month')}-${get('day')}T${get('hour')}:${get('minute')}`;
 }
-function localInputToIso(value: string, timezone: string) { if (!value) return null; try { return parseZonedDateTime(`${value.length === 16 ? `${value}:00` : value}[${timezone}]`).toDate(timezone).toISOString(); } catch { return null; } }
+function localInputToIso(value: string, timezone: string) { if (!value) return null; try { return parseZonedDateTime(`${value.length === 16 ? `${value}:00` : value}[${timezone}]`).toDate().toISOString(); } catch { return null; } }
 function calendarDateFromIso(iso: string, timezone: string, calendar: WorkerDiaryCalendarSystem) { return toCalendar(fromDate(new Date(iso), timezone), createCalendar(calendar)); }
 function gregorianDateForCalendarDate(date: CalendarDate) { return toCalendar(date, createCalendar('gregory')); }
 function dateKeyFromIso(iso: string, timezone: string) { const date = calendarDateFromIso(iso, timezone, 'gregory'); return `${date.year}-${String(date.month).padStart(2, '0')}-${String(date.day).padStart(2, '0')}`; }
