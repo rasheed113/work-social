@@ -18,9 +18,8 @@ function matchesFilter(entry: FinanceListEntry, filter: Filter) { if (filter ===
 function amountTone(value: string): 'positive' | 'negative' | 'neutral' { const normalized = value.trim(); if (/^-0+(?:\.0+)?$/.test(normalized) || /^0+(?:\.0+)?$/.test(normalized)) return 'neutral'; return normalized.startsWith('-') ? 'negative' : 'positive'; }
 
 export function WorkerFinance() {
-  const finance = useWorkerFinance();
   const [filter, setFilter] = useState<Filter>('all');
-  const [visibleCount, setVisibleCount] = useState(5);
+  const finance = useWorkerFinance(filter);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<FinanceReceivedRecord | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<FinanceReceivedRecord | null>(null);
@@ -37,11 +36,10 @@ export function WorkerFinance() {
     if (!modalOpen) { setEditing(null); setAmount(''); setType('payment'); setFormError(null); }
   }, [modalOpen]);
   useEffect(() => { if (!undoTarget) return; const timer = window.setTimeout(() => setUndoTarget(null), 8000); return () => window.clearTimeout(timer); }, [undoTarget]);
-  useEffect(() => { setVisibleCount(5); }, [filter]);
 
   const visibleEntries = useMemo(() => finance.entries.filter((entry) => matchesFilter(entry, filter)), [finance.entries, filter]);
-  const displayedEntries = visibleEntries.slice(0, visibleCount);
-  const hasMore = visibleCount < visibleEntries.length;
+  const displayedEntries = visibleEntries;
+  const hasMore = finance.historyHasMore;
 
   const openAdd = () => { setEditing(null); setType('payment'); setAmount(''); setFormError(null); setModalOpen(true); };
   const openEdit = (record: FinanceReceivedRecord) => { setEditing(record); setType(record.entry_type); setAmount(record.amount); setFormError(null); setModalOpen(true); };
@@ -78,7 +76,7 @@ export function WorkerFinance() {
     {notice && <div role="status" aria-live="polite" style={{ ...card, marginBottom: 12, padding: '10px 13px', color: undoTarget ? '#991b1b' : '#166534', background: undoTarget ? '#fef2f2' : '#f0fdf4', borderColor: undoTarget ? '#fecaca' : '#bbf7d0', fontSize: 13, fontWeight: 850, display: 'flex', alignItems: 'center', gap: 10 }}><span style={{ flex: 1 }}>{notice}</span>{undoTarget && <button type="button" onClick={() => void undoDelete()} disabled={finance.saving} style={{ ...button, minHeight: 36, padding: '0 11px', color: '#991b1b', borderColor: '#fecaca', background: '#fff' }}>Undo</button>}<button type="button" onClick={dismissNotice} aria-label="Dismiss message" style={{ border: 0, background: 'transparent', fontSize: 18, cursor: 'pointer', padding: 2 }}>×</button></div>}
     <section aria-label="Finance summary" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 10, marginBottom: 16 }}><SummaryCard label="Total Earnings" value={amountLabel(finance.summary.total_earnings)} tone="positive" /><SummaryCard label="Received" value={amountLabel(finance.summary.received)} tone="negative" /><SummaryCard label="Remaining" value={amountLabel(finance.summary.remaining)} tone={amountTone(finance.summary.remaining)} /></section>
     <section style={{ ...card, padding: 12, marginBottom: 14 }} aria-label="Finance filter"><label htmlFor="finance-filter" style={{ display: 'grid', gap: 6, fontSize: 12, fontWeight: 850, color: '#475569' }}>Filter<select id="finance-filter" value={filter} onChange={(event) => setFilter(event.target.value as Filter)} style={{ minHeight: 44, borderRadius: 12, border: '1px solid #cbd5e1', padding: '0 11px', background: '#fff', font: 'inherit', fontWeight: 750 }}>{(['all', 'earnings', 'payments', 'advances', 'received'] as Filter[]).map((item) => <option key={item} value={item}>{filterLabel(item)}</option>)}</select></label></section>
-    <section aria-labelledby="finance-list-heading"><h2 id="finance-list-heading" style={{ margin: '0 0 10px', fontSize: 19 }}>{filterLabel(filter)}</h2>{visibleEntries.length === 0 ? <section style={{ ...card, padding: 24, textAlign: 'center' }}><h3 style={{ margin: 0, fontSize: 17 }}>{finance.entries.length ? 'No matching finance records' : 'No finance records yet'}</h3><p style={{ margin: '7px 0 0', color: '#64748b', fontSize: 13, lineHeight: 1.5 }}>{finance.entries.length ? 'Try another filter.' : 'Your earnings and received amounts will appear here.'}</p></section> : <><div style={{ display: 'grid', gap: 10 }}>{displayedEntries.map((entry) => <FinanceRow key={entry.id} entry={entry} onDetails={openDetails} onEdit={openEdit} onDelete={setDeleteTarget} />)}</div>{hasMore && <button type="button" onClick={() => setVisibleCount((count) => count + 5)} style={{ ...button, width: '100%', minHeight: 38, marginTop: 10, background: 'linear-gradient(180deg,#fff,#f3f6fa)', boxShadow: 'inset 0 1px 0 #fff, 0 3px 8px rgba(15,23,42,.08)' }}>Show 5 more</button>}</>}</section>
+    <section aria-labelledby="finance-list-heading"><h2 id="finance-list-heading" style={{ margin: '0 0 10px', fontSize: 19 }}>{filterLabel(filter)}</h2>{visibleEntries.length === 0 ? <section style={{ ...card, padding: 24, textAlign: 'center' }}><h3 style={{ margin: 0, fontSize: 17 }}>{finance.entries.length ? 'No matching finance records' : 'No finance records yet'}</h3><p style={{ margin: '7px 0 0', color: '#64748b', fontSize: 13, lineHeight: 1.5 }}>{finance.entries.length ? 'Try another filter.' : 'Your earnings and received amounts will appear here.'}</p></section> : <><div style={{ display: 'grid', gap: 10 }}>{displayedEntries.map((entry) => <FinanceRow key={entry.id} entry={entry} onDetails={openDetails} onEdit={openEdit} onDelete={setDeleteTarget} />)}</div>{hasMore && <button type="button" onClick={() => void finance.loadMoreHistory()} disabled={finance.historyLoadingMore} style={{ ...button, width: '100%', minHeight: 38, marginTop: 10, background: 'linear-gradient(180deg,#fff,#f3f6fa)', boxShadow: 'inset 0 1px 0 #fff, 0 3px 8px rgba(15,23,42,.08)', opacity: finance.historyLoadingMore ? .7 : 1 }}>{finance.historyLoadingMore ? 'Loading…' : 'Load More'}</button>}</>}</section>
     {modalOpen && <AddReceivedModal editing={editing} type={type} setType={setType} amount={amount} setAmount={setAmount} formError={formError} saving={finance.saving} onCancel={() => setModalOpen(false)} onSave={() => void submit()} />}
     {deleteTarget && <DeleteModal saving={finance.saving} onCancel={() => setDeleteTarget(null)} onDelete={() => void confirmDelete()} />}
     {(selectedEntry || detailsLoading || detailsError) && <WorkEntryDetails entry={selectedEntry} loading={detailsLoading} error={detailsError} onClose={() => { setSelectedEntry(null); setDetailsError(null); }} />}
