@@ -5,6 +5,9 @@ on:
   push:
     branches:
       - feat-worker-diary-organizer-final
+  pull_request:
+    branches:
+      - main
 
 jobs:
   repair:
