@@ -84,9 +84,8 @@ export function WorkerFinance() {
     <section aria-label="Finance summary" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 10, marginBottom: 16 }}><SummaryCard label="Total Earnings" value={amountLabel(finance.summary.total_earnings)} tone="positive" /><SummaryCard label="Received" value={amountLabel(finance.summary.received)} tone="negative" /><SummaryCard label="Remaining" value={amountLabel(finance.summary.remaining)} tone={amountTone(finance.summary.remaining)} /></section>
     <section className="finance-filter-shell" aria-label="Finance filter">
       <div className="finance-filter-bar">
-        <div><div className="finance-filter-eyebrow">Filter</div><div className="finance-filter-current">{filterLabel(filter)}</div></div>
         <button type="button" className="finance-filter-trigger" aria-haspopup="dialog" aria-expanded={filterOpen} aria-controls="finance-filter-dialog" onClick={() => setFilterOpen((open) => !open)}>
-          <svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M4 6h16M7 12h10M10 18h4" /></svg><span>Filter</span>{filter !== 'all' && <span className="finance-filter-dot" aria-label="Filter selected" />}
+          <span>Filter</span><span className="finance-filter-current">{filterLabel(filter)}</span><span className="finance-filter-chevron" aria-hidden="true">⌄</span>{filter !== 'all' && <span className="finance-filter-dot" aria-label="Filter selected" />}
         </button>
       </div>
       {filterOpen && <FilterPopup filter={filter} onSelect={(next) => { setFilter(next); setFilterOpen(false); }} onClose={() => setFilterOpen(false)} />}
@@ -103,7 +102,7 @@ function FilterPopup({ filter, onSelect, onClose }: { filter: Filter; onSelect: 
   return <div className="finance-filter-overlay" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
     <section id="finance-filter-dialog" className="finance-filter-popup" role="dialog" aria-modal="true" aria-labelledby="finance-filter-title">
       <div className="finance-filter-reflection" aria-hidden="true" />
-      <div className="finance-filter-heading"><div><div className="finance-filter-eyebrow">Finance</div><h3 id="finance-filter-title">Choose filter</h3></div><button type="button" className="finance-filter-close" onClick={onClose} aria-label="Close filter">×</button></div>
+      <div className="finance-filter-heading"><div><h3 id="finance-filter-title">Filter</h3></div><button type="button" className="finance-filter-close" onClick={onClose} aria-label="Close filter">×</button></div>
       <div className="finance-filter-options" role="listbox" aria-label="Finance filters">
         {options.map((item) => { const selected = item === filter; return <button key={item} type="button" role="option" aria-selected={selected} className={`finance-filter-option${selected ? ' is-selected' : ''}`} onClick={() => onSelect(item)}>
           <span className="finance-filter-option-icon" aria-hidden="true">{selected ? '✓' : '•'}</span><span className="finance-filter-option-label">{filterLabel(item)}</span>{selected && <span className="finance-filter-option-state">Selected</span>}
@@ -112,15 +111,15 @@ function FilterPopup({ filter, onSelect, onClose }: { filter: Filter; onSelect: 
     </section>
     <style>{`
       .finance-filter-shell{position:relative;margin-bottom:14px;padding:9px 10px;border:1px solid rgba(99,102,241,.13);border-radius:16px;background:linear-gradient(180deg,#ffffff 0%,#f7fafc 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.98),inset 0 -1px 0 rgba(148,163,184,.08),0 3px 9px rgba(15,23,42,.055);}
-      .finance-filter-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0;}
-      .finance-filter-eyebrow{position:relative;display:inline-block;font-size:10px;font-weight:950;letter-spacing:.105em;text-transform:uppercase;color:#52637a;text-shadow:0 1px 0 #fff,0 2px 1px rgba(15,23,42,.10);}
-      .finance-filter-current{position:relative;display:inline-block;margin-top:3px;font-size:13px;font-weight:950;letter-spacing:-.012em;color:#18243a;text-shadow:0 1px 0 #fff,0 2px 1px rgba(15,23,42,.10);}
-      .finance-filter-trigger{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:38px;padding:0 12px;border:1px solid rgba(37,99,235,.27);border-radius:11px;background:linear-gradient(180deg,#ffffff 0%,#f8fdff 38%,#e9f5fa 100%);color:#164e63;font:inherit;font-size:12px;font-weight:950;letter-spacing:.015em;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.99),inset 0 -1px 0 rgba(14,116,144,.16),0 1px 0 rgba(148,163,184,.30),0 3px 5px rgba(15,23,42,.08),0 7px 13px rgba(14,116,144,.10),0 0 13px rgba(45,212,191,.07);text-shadow:0 1px 0 #fff,0 2px 1px rgba(15,23,42,.07);transition:transform .12s ease,box-shadow .12s ease;}
+      .finance-filter-bar{display:flex;align-items:center;justify-content:flex-start;gap:10px;min-width:0;}
+      .finance-filter-current{position:relative;display:inline-block;font-size:12px;font-weight:950;letter-spacing:-.012em;color:#18243a;text-shadow:0 1px 0 #fff,0 2px 1px rgba(15,23,42,.10);}
+      .finance-filter-trigger{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:38px;max-width:100%;padding:0 12px;border:1px solid rgba(37,99,235,.27);border-radius:11px;background:linear-gradient(180deg,#ffffff 0%,#f8fdff 38%,#e9f5fa 100%);color:#164e63;font:inherit;font-size:12px;font-weight:950;letter-spacing:.015em;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.99),inset 0 -1px 0 rgba(14,116,144,.16),0 1px 0 rgba(148,163,184,.30),0 3px 5px rgba(15,23,42,.08),0 7px 13px rgba(14,116,144,.10),0 0 13px rgba(45,212,191,.07);text-shadow:0 1px 0 #fff,0 2px 1px rgba(15,23,42,.07);transition:transform .12s ease,box-shadow .12s ease;}
       .finance-filter-trigger::before{content:"";position:absolute;left:3px;right:3px;top:2px;height:40%;border-radius:8px 8px 50% 50%;background:linear-gradient(180deg,rgba(255,255,255,.78),transparent);pointer-events:none;}
       .finance-filter-trigger:hover{transform:translateY(-1px);box-shadow:inset 0 1px 0 #fff,inset 0 -1px 0 rgba(14,116,144,.16),0 2px 0 rgba(148,163,184,.30),0 6px 10px rgba(15,23,42,.09),0 10px 17px rgba(14,116,144,.12),0 0 15px rgba(45,212,191,.09);}
       .finance-filter-trigger:active{transform:translateY(2px) scale(.975);box-shadow:inset 0 2px 4px rgba(15,23,42,.14),inset 0 -1px 0 rgba(255,255,255,.65),0 1px 2px rgba(15,23,42,.07);}
       .finance-filter-trigger:focus-visible,.finance-filter-option:focus-visible,.finance-filter-close:focus-visible{outline:3px solid rgba(37,99,235,.22);outline-offset:2px;}
-      .finance-filter-trigger svg,.finance-filter-trigger span{position:relative;z-index:1;filter:drop-shadow(0 1px 0 rgba(255,255,255,.95));}
+      .finance-filter-trigger span{position:relative;z-index:1;filter:drop-shadow(0 1px 0 rgba(255,255,255,.95));}
+      .finance-filter-chevron{font-size:14px;line-height:1;transform:translateY(-1px);}
       .finance-filter-dot{width:6px;height:6px;border-radius:50%;background:#0f9fa5;box-shadow:0 1px 1px rgba(15,23,42,.16),0 0 7px rgba(20,184,166,.28);}
       .finance-filter-overlay{position:fixed;inset:0;z-index:1400;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(241,245,249,.46);backdrop-filter:blur(4px);}
       .finance-filter-popup{position:relative;width:min(420px,calc(100vw - 36px));box-sizing:border-box;padding:12px;border:1px solid rgba(71,85,105,.14);border-radius:20px;background:linear-gradient(180deg,#ffffff 0%,#f8fbfd 55%,#eef4f7 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.98),inset 0 -2px 0 rgba(148,163,184,.1),0 2px 0 rgba(148,163,184,.24),0 10px 20px rgba(15,23,42,.12),0 28px 58px rgba(15,23,42,.16),0 0 22px rgba(45,212,191,.09);overflow:visible;}
