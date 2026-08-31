@@ -1,313 +1,104 @@
 import { useEffect, useMemo, useState } from 'react';
+import { CalendarDate, createCalendar, fromDate, getLocalTimeZone, parseZonedDateTime, startOfWeek, today, toCalendar } from '@internationalized/date';
 import { navigate } from '../../../app/Router';
 import { useCurrentWorkerProfileId } from '../hooks/useCurrentWorkerProfileId';
 import { useWorkerDiary } from '../hooks/useWorkerDiary';
-import type { WorkerDiaryEntry, WorkerDiaryEntryInput, WorkerDiaryEntryType } from '../types/diary';
+import { getWorkerDiaryPreferences, listWorkerDiaryCalendarEntries, removeWorkerDiaryPushSubscription, saveWorkerDiaryPushSubscription, updateWorkerDiaryPreferences } from '../api/diary';
+import { getDiaryNotificationCapability, getDiaryPushSubscription, subscribeDiaryPush, unsubscribeDiaryPush } from '../services/diaryPush';
+import type { WorkerDiaryCalendarSystem, WorkerDiaryEntry, WorkerDiaryEntryInput, WorkerDiaryPreferences, WorkerDiaryReminderMode } from '../types/diary';
 
-const TYPE_META: Record<WorkerDiaryEntryType, { icon: string; label: string; hint: string }> = {
-  note: { icon: '📝', label: 'Note', hint: 'Capture something useful.' },
-  todo: { icon: '☑', label: 'To-do', hint: 'Keep a task in view.' },
-  idea: { icon: '💡', label: 'Idea', hint: 'Save a thought worth revisiting.' },
-  journal: { icon: '📓', label: 'Journal', hint: 'Write freely.' },
-  anything: { icon: '✨', label: 'Anything', hint: 'No category needed.' },
-};
+const CALENDARS: Array<{ id: WorkerDiaryCalendarSystem; label: string }> = [
+  { id: 'gregory', label: 'Gregorian' }, { id: 'islamic', label: 'Islamic / Hijri' }, { id: 'islamic-umalqura', label: 'Islamic / Umm al-Qura' },
+  { id: 'islamic-civil', label: 'Islamic Civil' }, { id: 'islamic-tbla', label: 'Islamic Tabular' }, { id: 'persian', label: 'Persian' },
+  { id: 'hebrew', label: 'Hebrew' }, { id: 'buddhist', label: 'Buddhist' }, { id: 'indian', label: 'Indian National' },
+  { id: 'japanese', label: 'Japanese' }, { id: 'chinese', label: 'Chinese' }, { id: 'coptic', label: 'Coptic' }, { id: 'ethiopic', label: 'Ethiopic' }, { id: 'roc', label: 'Republic of China' },
+];
+const TYPE_META = { note: ['📝', 'Note'], todo: ['☑', 'To-do'], idea: ['💡', 'Idea'], journal: ['📓', 'Journal'], anything: ['✨', 'Anything'], event: ['📅', 'Event'] } as const;
+const DEFAULT_TIMEZONE = () => Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+const VISIBLE_DAYS = 42;
 
-const emptyForm: WorkerDiaryEntryInput = { entry_type: 'note', title: '', content: '', completed: false };
+type FormState = { entry_type: WorkerDiaryEntryInput['entry_type']; title: string; content: string; completed: boolean; event_start_local: string; event_end_local: string; event_timezone: string; reminder_enabled: boolean; reminder_mode: WorkerDiaryReminderMode; reminder_local: string; reminder_offset: number };
+type LibraryCalendarIdentifier = Parameters<typeof createCalendar>[0];
 
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
+function libraryCalendar(calendar: WorkerDiaryCalendarSystem): LibraryCalendarIdentifier {
+  if (calendar === 'ethiopic-amete-alem' || calendar === 'dangi') return 'gregory';
+  return calendar;
 }
 
-function formatDay(value: string) {
-  const date = new Date(value);
-  const today = new Date();
-  if (date.toDateString() === today.toDateString()) return 'Today';
-  const yesterday = new Date(today);
-  yesterday.setDate(today.getDate() - 1);
-  if (date.toDateString() === yesterday.toDateString()) return 'Yesterday';
-  return new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric', year: 'numeric' }).format(date);
+function isoToLocalInput(iso: string | null, timezone: string) {
+  if (!iso) return '';
+  const parts = new Intl.DateTimeFormat('en-CA', { timeZone: timezone, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(new Date(iso));
+  const get = (name: string) => parts.find(p => p.type === name)?.value ?? '';
+  return `${get('year')}-${get('month')}-${get('day')}T${get('hour')}:${get('minute')}`;
+}
+function localInputToIso(value: string, timezone: string) { if (!value) return null; try { return parseZonedDateTime(`${value.length === 16 ? `${value}:00` : value}[${timezone}]`).toDate().toISOString(); } catch { return null; } }
+function calendarDateFromIso(iso: string, timezone: string, calendar: WorkerDiaryCalendarSystem) { const zoned = toCalendar(fromDate(new Date(iso), timezone), createCalendar(libraryCalendar(calendar))); return new CalendarDate(zoned.calendar, zoned.year, zoned.month, zoned.day); }
+function gregorianDateForCalendarDate(date: CalendarDate) { return toCalendar(date, createCalendar('gregory')); }
+function dateKeyFromIso(iso: string, timezone: string) { const date = calendarDateFromIso(iso, timezone, 'gregory'); return `${date.year}-${String(date.month).padStart(2, '0')}-${String(date.day).padStart(2, '0')}`; }
+function formatDisplayDate(iso: string, timezone: string, calendar: WorkerDiaryCalendarSystem, options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' }) { return new Intl.DateTimeFormat(`en-US-u-ca-${calendar}`, { ...options, timeZone: timezone }).format(new Date(iso)); }
+function makeDefaultForm(): FormState { const timezone = DEFAULT_TIMEZONE(); const rounded = new Date(Math.ceil((Date.now() + 30 * 60 * 1000) / (15 * 60 * 1000)) * (15 * 60 * 1000)); const start = isoToLocalInput(rounded.toISOString(), timezone); return { entry_type: 'note', title: '', content: '', completed: false, event_start_local: start, event_end_local: '', event_timezone: timezone, reminder_enabled: false, reminder_mode: 'at_time', reminder_local: start, reminder_offset: 15 }; }
+function formFromEntry(entry: WorkerDiaryEntry, timezone: string): FormState { const eventTimezone = entry.event_timezone ?? timezone; return { entry_type: entry.entry_type, title: entry.title ?? '', content: entry.content, completed: Boolean(entry.completed), event_start_local: isoToLocalInput(entry.event_start_at, eventTimezone), event_end_local: isoToLocalInput(entry.event_end_at, eventTimezone), event_timezone: eventTimezone, reminder_enabled: Boolean(entry.reminder?.enabled), reminder_mode: entry.reminder?.reminder_mode ?? 'custom', reminder_local: isoToLocalInput(entry.reminder?.scheduled_at ?? null, entry.reminder?.timezone ?? timezone), reminder_offset: entry.reminder?.offset_minutes ?? 15 }; }
+function buildInput(form: FormState): WorkerDiaryEntryInput | null {
+  if (!form.content.trim()) return null;
+  if (form.entry_type !== 'event') return { entry_type: form.entry_type, title: form.title, content: form.content, completed: form.entry_type === 'todo' ? form.completed : null, reminder: form.entry_type === 'todo' && form.reminder_enabled ? { enabled: true, scheduled_at: localInputToIso(form.reminder_local, form.event_timezone) ?? '', timezone: form.event_timezone, reminder_mode: 'custom', offset_minutes: null } : null };
+  const start = localInputToIso(form.event_start_local, form.event_timezone); const end = localInputToIso(form.event_end_local, form.event_timezone); if (!form.title.trim() || !start) return null;
+  let reminder = null; if (form.reminder_enabled) { const scheduled = form.reminder_mode === 'at_time' ? start : form.reminder_mode === 'before_event' ? new Date(new Date(start).getTime() - form.reminder_offset * 60000).toISOString() : localInputToIso(form.reminder_local, form.event_timezone); if (!scheduled) return null; reminder = { enabled: true, scheduled_at: scheduled, timezone: form.event_timezone, reminder_mode: form.reminder_mode, offset_minutes: form.reminder_mode === 'before_event' ? form.reminder_offset : null }; }
+  return { entry_type: 'event', title: form.title, content: form.content, event_start_at: start, event_end_at: end, event_timezone: form.event_timezone, reminder };
 }
 
-function formFor(entry: WorkerDiaryEntry): WorkerDiaryEntryInput {
-  return {
-    entry_type: entry.entry_type,
-    title: entry.title ?? '',
-    content: entry.content,
-    completed: entry.completed ?? false,
-  };
+function CalendarCell({ date, selected, currentMonth, hasEntries, onSelect, calendar }: { date: CalendarDate; selected: boolean; currentMonth: number; hasEntries: boolean; onSelect: () => void; calendar: WorkerDiaryCalendarSystem }) {
+  const now = today(getLocalTimeZone()); const isToday = date.compare(now) === 0; const inCurrentMonth = date.month === currentMonth;
+  return <button type="button" onClick={onSelect} aria-label={new Intl.DateTimeFormat(`en-US-u-ca-${calendar}`, { dateStyle: 'full' }).format(date.toDate(getLocalTimeZone()))} style={{ minHeight: 66, border: selected ? '2px solid #4f46e5' : '1px solid rgba(15,23,42,.07)', borderRadius: 12, background: selected ? 'rgba(79,70,229,.08)' : 'rgba(255,255,255,.78)', color: inCurrentMonth ? '#0f172a' : '#94a3b8', font: 'inherit', cursor: 'pointer', padding: 7, textAlign: 'left' }}>
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><strong style={{ fontSize: 13, width: 26, height: 26, display: 'grid', placeItems: 'center', borderRadius: '50%', background: isToday ? '#4f46e5' : 'transparent', color: isToday ? '#fff' : 'inherit' }}>{date.day}</strong>{hasEntries && <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#4f46e5' }} />}</div>
+    {hasEntries && <div style={{ marginTop: 8, fontSize: 10, fontWeight: 800, color: '#4f46e5' }}>• organizer</div>}
+  </button>;
 }
 
 export function WorkerDiaryPage() {
-  const session = useCurrentWorkerProfileId();
-  const diary = useWorkerDiary(Boolean(session.profileId));
-  const [captureOpen, setCaptureOpen] = useState(false);
-  const [viewing, setViewing] = useState<WorkerDiaryEntry | null>(null);
-  const [editing, setEditing] = useState<WorkerDiaryEntry | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<WorkerDiaryEntry | null>(null);
-  const [form, setForm] = useState<WorkerDiaryEntryInput>(emptyForm);
-  const [saved, setSaved] = useState(false);
+  const session = useCurrentWorkerProfileId(); const diary = useWorkerDiary(Boolean(session.profileId));
+  const [preferences, setPreferences] = useState<WorkerDiaryPreferences | null>(null); const [view, setView] = useState<'timeline' | 'calendar'>('timeline'); const [calendarEntries, setCalendarEntries] = useState<WorkerDiaryEntry[]>([]); const [viewDate, setViewDate] = useState<CalendarDate>(() => today(getLocalTimeZone())); const [selectedDate, setSelectedDate] = useState<CalendarDate>(() => today(getLocalTimeZone()));
+  const [captureOpen, setCaptureOpen] = useState(false); const [editing, setEditing] = useState<WorkerDiaryEntry | null>(null); const [viewing, setViewing] = useState<WorkerDiaryEntry | null>(null); const [deleteTarget, setDeleteTarget] = useState<WorkerDiaryEntry | null>(null); const [form, setForm] = useState<FormState>(() => makeDefaultForm()); const [message, setMessage] = useState<string | null>(null); const [notificationState, setNotificationState] = useState(() => getDiaryNotificationCapability()); const [savingNotifications, setSavingNotifications] = useState(false);
+  const timezone = preferences?.timezone ?? DEFAULT_TIMEZONE(); const calendar = preferences?.calendar_system ?? 'gregory'; const first = viewDate.set({ day: 1 }); const gridStart = startOfWeek(first, 'en-US'); const gridDates = Array.from({ length: VISIBLE_DAYS }, (_, i) => gridStart.add({ days: i })); const selectedKey = `${selectedDate.year}-${selectedDate.month}-${selectedDate.day}`;
 
-  useEffect(() => {
-    if (!saved) return;
-    const timer = window.setTimeout(() => setSaved(false), 2200);
-    return () => window.clearTimeout(timer);
-  }, [saved]);
+  useEffect(() => { if (!session.profileId) return; void getWorkerDiaryPreferences().then(result => { if (result.data) { setPreferences(result.data); const now = new Date().toISOString(); setViewDate(calendarDateFromIso(now, result.data.timezone, result.data.calendar_system)); setSelectedDate(calendarDateFromIso(now, result.data.timezone, result.data.calendar_system)); } }); }, [session.profileId]);
+  useEffect(() => { if (view !== 'calendar') return; const g = gregorianDateForCalendarDate(first); const start = new CalendarDate(g.year, g.month, 1).toDate(timezone).toISOString(); const end = new CalendarDate(g.year, g.month, 1).add({ months: 1 }).toDate(timezone).toISOString(); void listWorkerDiaryCalendarEntries(start, end).then(result => { if (!result.error) setCalendarEntries(result.data); }); }, [view, first.year, first.month, calendar, timezone]);
+  const calendarMap = useMemo(() => { const map = new Map<string, WorkerDiaryEntry[]>(); for (const entry of calendarEntries) { const source = entry.event_start_at ?? entry.reminder?.scheduled_at; if (!source) continue; const key = dateKeyFromIso(source, timezone); map.set(key, [...(map.get(key) ?? []), entry]); } return map; }, [calendarEntries, timezone]);
+  const selectedEntries = calendarMap.get(selectedKey) ?? [];
 
-  const groups = useMemo(() => {
-    const result: Array<{ key: string; label: string; entries: WorkerDiaryEntry[] }> = [];
-    for (const entry of diary.entries) {
-      const key = new Date(entry.created_at).toDateString();
-      const existing = result[result.length - 1];
-      if (existing?.key === key) existing.entries.push(entry);
-      else result.push({ key, label: formatDay(entry.created_at), entries: [entry] });
-    }
-    return result;
-  }, [diary.entries]);
+  const openCreate = (type: FormState['entry_type'] = 'note') => { const next = makeDefaultForm(); next.entry_type = type; setEditing(null); setViewing(null); setForm(next); setCaptureOpen(true); };
+  const openEdit = (entry: WorkerDiaryEntry) => { setViewing(null); setEditing(entry); setForm(formFromEntry(entry, timezone)); setCaptureOpen(true); };
+  const save = async () => { const input = buildInput(form); if (!input || diary.saving) { setMessage('Please complete the required fields.'); return; } const result = editing ? await diary.update(editing.id, input) : await diary.create(input); if (result.error) { setMessage(result.error.message); return; } setCaptureOpen(false); setEditing(null); setMessage(input.reminder ? '✓ Reminder set' : editing ? '✓ Entry updated' : '✓ Saved successfully'); };
+  const remove = async () => { if (!deleteTarget) return; const result = await diary.remove(deleteTarget.id); if (result.error) { setMessage(result.error.message); return; } setDeleteTarget(null); setViewing(null); setMessage('✓ Deleted successfully'); setCalendarEntries(current => current.filter(entry => entry.id !== deleteTarget.id)); };
+  const changeCalendar = async (next: WorkerDiaryCalendarSystem) => { const result = await updateWorkerDiaryPreferences({ calendar_system: next }); if (result.error || !result.data) { setMessage(result.error?.message ?? 'Calendar preference could not be saved.'); return; } setPreferences(result.data); const now = new Date().toISOString(); setViewDate(calendarDateFromIso(now, result.data.timezone, next)); setSelectedDate(calendarDateFromIso(now, result.data.timezone, next)); setMessage('✓ Calendar preference saved'); };
+  const enablePush = async () => { setSavingNotifications(true); const result = await subscribeDiaryPush(); setSavingNotifications(false); setNotificationState(getDiaryNotificationCapability()); if (result.error) { setMessage(result.error); return; } if (result.subscription) { const json = result.subscription.toJSON(); if (json.endpoint && json.keys?.p256dh && json.keys.auth) { const saved = await saveWorkerDiaryPushSubscription({ endpoint: json.endpoint, p256dh: json.keys.p256dh, auth: json.keys.auth, expiration_time: json.expirationTime ? new Date(json.expirationTime).toISOString() : null }); setMessage(saved.error ? saved.error.message : '✓ Reminders enabled'); } } };
+  const disablePush = async () => { setSavingNotifications(true); const sub = await getDiaryPushSubscription(); if (sub?.endpoint) await removeWorkerDiaryPushSubscription(sub.endpoint); await unsubscribeDiaryPush(); setSavingNotifications(false); setNotificationState(getDiaryNotificationCapability()); setMessage('✓ Notifications disabled'); };
 
-  const openCreate = () => {
-    setEditing(null);
-    setViewing(null);
-    setForm({ ...emptyForm });
-    setCaptureOpen(true);
-  };
+  if (session.loading) return <main style={pageStyle}><p>Loading your private diary…</p></main>; if (session.error || !session.profileId) return <main style={pageStyle}><p role="alert">{session.error ?? 'Authenticated Worker is unavailable.'}</p></main>;
+  return <main style={pageStyle}>
+    <header style={headerStyle}><button type="button" onClick={() => navigate('/work')} style={backStyle}>← Work House</button><div style={{ flex: 1 }} /><span style={privacyStyle}>🔒 Private</span></header>
+    <section style={heroStyle}><div><div style={eyebrowStyle}>Personal organizer</div><h1 style={titleStyle}>Personal Diary</h1><p style={mutedStyle}>Private notes, tasks, ideas, journal entries and real events.</p></div></section>
+    <section style={toolbarStyle}><input className="worker-diary-search" value={diary.search} onChange={e => diary.setSearch(e.target.value)} placeholder="Search your diary…" aria-label="Search your diary" style={searchStyle} /><div style={{ display: 'flex', gap: 8 }}><button type="button" onClick={() => setView('timeline')} style={view === 'timeline' ? activeTab : tabStyle}>Timeline</button><button type="button" onClick={() => setView('calendar')} style={view === 'calendar' ? activeTab : tabStyle}>Calendar</button><button type="button" onClick={() => openCreate()} style={primaryStyle}>+ Add</button></div></section>
+    {message && <div role="status" style={messageStyle}>{message}<button type="button" onClick={() => setMessage(null)} style={messageClose}>×</button></div>}
+    <section style={settingsCard}><div><strong>Calendar</strong><div style={mutedSmall}>Preferred date system is saved privately.</div></div><select value={calendar} onChange={e => void changeCalendar(e.target.value as WorkerDiaryCalendarSystem)} style={selectStyle}>{CALENDARS.map(item => <option key={item.id} value={item.id}>{item.label}</option>)}</select><div style={{ minWidth: 220 }}><strong>🔔 Reminders</strong><div style={mutedSmall}>{notificationState.supported ? notificationState.permission === 'granted' ? 'Push notifications are enabled.' : notificationState.permission === 'denied' ? 'Permission denied; change site notification settings.' : 'Enable real device reminders.' : notificationState.reason}</div></div>{notificationState.supported && notificationState.permission === 'granted' ? <button type="button" onClick={() => void disablePush()} disabled={savingNotifications} style={secondaryStyle}>{savingNotifications ? 'Working…' : 'Disable'}</button> : <button type="button" onClick={() => void enablePush()} disabled={savingNotifications || notificationState.permission === 'denied'} style={primaryStyle}>{savingNotifications ? 'Working…' : '🔔 Enable reminders'}</button>}</section>
 
-  const openEdit = (entry: WorkerDiaryEntry) => {
-    setViewing(null);
-    setEditing(entry);
-    setForm(formFor(entry));
-    setCaptureOpen(true);
-  };
+    {view === 'calendar' ? <section style={calendarCard}>
+      <div style={calendarHeader}><button type="button" onClick={() => setViewDate(viewDate.subtract({ months: 1 }))} style={navButton}>‹</button><div><strong style={{ fontSize: 20 }}>{formatDisplayDate(gregorianDateForCalendarDate(viewDate).toDate(timezone).toISOString(), timezone, calendar, { month: 'long', year: 'numeric' })}</strong><div style={mutedSmall}>{calendar === 'gregory' ? 'Gregorian calendar' : `${CALENDARS.find(c => c.id === calendar)?.label ?? calendar} · Gregorian equivalent available`}</div></div><div style={{ display: 'flex', gap: 7 }}><button type="button" onClick={() => { const next = calendarDateFromIso(new Date().toISOString(), timezone, calendar); setViewDate(next); setSelectedDate(next); }} style={secondaryStyle}>Today</button><button type="button" onClick={() => setViewDate(viewDate.add({ months: 1 }))} style={navButton}>›</button></div></div>
+      <div style={weekStyle}>{['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d => <span key={d}>{d}</span>)}</div><div style={gridStyle}>{gridDates.map(date => { const key = `${date.year}-${date.month}-${date.day}`; const iso = gregorianDateForCalendarDate(date).toDate(timezone).toISOString(); return <CalendarCell key={key} date={date} currentMonth={first.month} selected={key === selectedKey} hasEntries={Boolean(calendarMap.get(dateKeyFromIso(iso, timezone))?.length)} onSelect={() => setSelectedDate(date)} calendar={calendar} />; })}</div>
+      <div style={selectedPanel}><strong>{formatDisplayDate(gregorianDateForCalendarDate(selectedDate).toDate(timezone).toISOString(), timezone, calendar, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</strong>{calendar !== 'gregory' && <div style={mutedSmall}>Gregorian: {formatDisplayDate(gregorianDateForCalendarDate(selectedDate).toDate(timezone).toISOString(), timezone, 'gregory', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</div>}{selectedEntries.length === 0 ? <p style={mutedSmall}>No Events or reminded To-dos on this date.</p> : selectedEntries.map(entry => <button key={entry.id} type="button" onClick={() => setViewing(entry)} style={calendarEntryButton}><span>{TYPE_META[entry.entry_type][0]}</span><span style={{ textAlign: 'left', minWidth: 0 }}><strong>{entry.title || entry.content.slice(0, 50)}</strong><small>{entry.entry_type === 'event' ? formatDisplayDate(entry.event_start_at!, timezone, 'gregory', { hour: 'numeric', minute: '2-digit' }) : `Reminder · ${formatDisplayDate(entry.reminder!.scheduled_at, timezone, 'gregory', { hour: 'numeric', minute: '2-digit' })}`}</small></span></button>)}</div>
+    </section> : <section>{diary.loading ? <div style={emptyCard}>Loading diary…</div> : diary.entries.length === 0 ? <div style={emptyCard}>Nothing here yet. Use <strong>+ Add</strong> to create your first private entry.</div> : <div style={{ display: 'grid', gap: 10 }}>{diary.entries.map(entry => <article key={entry.id} style={entryCard}><button type="button" onClick={() => setViewing(entry)} style={entryMain}><span style={{ fontSize: 24 }}>{TYPE_META[entry.entry_type][0]}</span><span style={{ minWidth: 0, flex: 1, textAlign: 'left' }}><small style={metaStyle}>{TYPE_META[entry.entry_type][1]} · {formatDisplayDate(entry.created_at, timezone, 'gregory', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</small>{entry.title && <strong style={entryTitle}>{entry.title}</strong>}<span style={{ ...contentStyle, textDecoration: entry.entry_type === 'todo' && entry.completed ? 'line-through' : undefined }}>{entry.content}</span>{entry.entry_type === 'event' && entry.event_start_at && <small style={reminderText}>📅 {formatDisplayDate(entry.event_start_at, entry.event_timezone ?? timezone, calendar, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}</small>}{entry.reminder?.enabled && <small style={reminderText}>🔔 {formatDisplayDate(entry.reminder.scheduled_at, entry.reminder.timezone, 'gregory', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</small>}</span></button><div style={actionsStyle}>{entry.entry_type === 'todo' && <button type="button" onClick={() => void diary.toggleTodo(entry.id, !entry.completed)} style={actionStyle}>{entry.completed ? '↶ Uncomplete' : '✓ Complete'}</button>}<button type="button" onClick={() => openEdit(entry)} style={actionStyle}>Edit</button><button type="button" onClick={() => setDeleteTarget(entry)} style={{ ...actionStyle, color: '#b91c1c' }}>Delete</button></div></article>)}</div>}</section>}
 
-  const chooseType = (entryType: WorkerDiaryEntryType) => {
-    setForm(current => ({
-      ...current,
-      entry_type: entryType,
-      completed: entryType === 'todo' ? false : null,
-    }));
-  };
-
-  const save = async () => {
-    if (diary.saving || !form.content.trim()) return;
-    const result = editing
-      ? await diary.update(editing.id, form)
-      : await diary.create(form);
-    if (!result.error) {
-      setCaptureOpen(false);
-      setEditing(null);
-      setForm({ ...emptyForm });
-      setSaved(true);
-    }
-  };
-
-  const remove = async () => {
-    if (!deleteTarget || diary.saving) return;
-    const result = await diary.remove(deleteTarget.id);
-    if (!result.error) {
-      setDeleteTarget(null);
-      setViewing(null);
-      setSaved(true);
-    }
-  };
-
-  if (session.loading) {
-    return <main style={pageStyle}><p style={mutedStyle}>Loading your private diary…</p></main>;
-  }
-
-  if (session.error || !session.profileId) {
-    return <main style={pageStyle}><p role="alert" style={errorStyle}>{session.error ?? 'Authenticated Worker is unavailable.'}</p></main>;
-  }
-
-  const hasSearch = diary.search.trim().length > 0;
-
-  return (
-    <main style={pageStyle}>
-      <header style={headerStyle}>
-        <button type="button" onClick={() => navigate('/work')} style={backButtonStyle}>← Work House</button>
-        <span style={{ flex: 1 }} />
-        <span style={privacyBadgeStyle}>🔒 Private</span>
-      </header>
-
-      <section style={heroStyle}>
-        <div style={eyebrowStyle}>Personal workspace</div>
-        <h1 style={titleStyle}>Personal Diary</h1>
-        <p style={subtitleStyle}>Your private space for thoughts, notes, plans and everything in between.</p>
-      </section>
-
-      <section style={searchStyle} aria-label="Diary search">
-        <span aria-hidden="true">⌕</span>
-        <input value={diary.search} onChange={event => diary.setSearch(event.target.value)} placeholder="Search your diary…" aria-label="Search your diary" style={searchInputStyle} />
-        {diary.search && <button type="button" onClick={() => diary.setSearch('')} style={clearButtonStyle} aria-label="Clear search">×</button>}
-      </section>
-
-      {diary.error && <section role="alert" style={errorCardStyle}>{diary.error}</section>}
-      {saved && <div role="status" style={savedStyle}>✓ Saved</div>}
-
-      {diary.loading ? (
-        <section style={stateCardStyle}>Loading diary…</section>
-      ) : groups.length === 0 ? (
-        <section style={emptyStyle}>
-          <div style={emptyIconStyle}>{hasSearch ? '⌕' : '✦'}</div>
-          <h2 style={{ margin: '0 0 8px' }}>{hasSearch ? 'No matches found.' : 'Nothing here yet.'}</h2>
-          <p style={subtitleStyle}>{hasSearch ? 'Try another word or clear the search.' : 'Start a private note, task, idea, journal entry or anything at all.'}</p>
-          {!hasSearch && <button type="button" onClick={openCreate} style={primaryButtonStyle}>+ Add</button>}
-        </section>
-      ) : (
-        <div>
-          {groups.map(group => (
-            <section key={group.key} style={{ marginBottom: 24 }}>
-              <div style={dateHeadingStyle}>{group.label}</div>
-              <div style={{ display: 'grid', gap: 10 }}>
-                {group.entries.map(entry => {
-                  const meta = TYPE_META[entry.entry_type];
-                  const completed = entry.entry_type === 'todo' && entry.completed;
-                  return (
-                    <article key={entry.id} style={entryCardStyle}>
-                      <button type="button" onClick={() => setViewing(entry)} style={entryMainStyle}>
-                        <span style={iconStyle}>{meta.icon}</span>
-                        <span style={{ minWidth: 0, flex: 1, textAlign: 'left' }}>
-                          <span style={metaStyle}>{meta.label} · {formatDate(entry.created_at)}</span>
-                          {entry.title && <strong style={entryTitleStyle}>{entry.title}</strong>}
-                          <span style={{ ...contentStyle, textDecoration: completed ? 'line-through' : undefined, opacity: completed ? 0.6 : 1 }}>{entry.content}</span>
-                        </span>
-                      </button>
-                      <div style={actionsStyle}>
-                        {entry.entry_type === 'todo' && <button type="button" onClick={() => void diary.toggleTodo(entry.id, !entry.completed)} style={actionButtonStyle}>{entry.completed ? '↶ Uncomplete' : '✓ Complete'}</button>}
-                        <button type="button" onClick={() => openEdit(entry)} style={actionButtonStyle}>Edit</button>
-                        <button type="button" onClick={() => setDeleteTarget(entry)} style={{ ...actionButtonStyle, color: '#b91c1c' }}>Delete</button>
-                      </div>
-                    </article>
-                  );
-                })}
-              </div>
-            </section>
-          ))}
-          {diary.hasMore && <button type="button" onClick={() => void diary.loadMore()} disabled={diary.loadingMore} style={loadMoreStyle}>{diary.loadingMore ? 'Loading…' : 'Load more'}</button>}
-        </div>
-      )}
-
-      <button type="button" onClick={openCreate} aria-label="Add diary entry" style={fabStyle}>+</button>
-
-      {captureOpen && (
-        <div style={overlayStyle} role="dialog" aria-modal="true" aria-labelledby="capture-title">
-          <div style={modalStyle}>
-            <div style={modalHeaderStyle}>
-              <div>
-                <div style={eyebrowStyle}>{editing ? 'Edit entry' : 'Quick capture'}</div>
-                <h2 id="capture-title" style={modalTitleStyle}>{editing ? `Edit ${TYPE_META[form.entry_type].label}` : 'What do you want to add?'}</h2>
-              </div>
-              <button type="button" onClick={() => setCaptureOpen(false)} style={closeButtonStyle}>×</button>
-            </div>
-
-            {!editing && (
-              <div style={typeGridStyle}>
-                {(Object.keys(TYPE_META) as WorkerDiaryEntryType[]).map(type => (
-                  <button key={type} type="button" onClick={() => chooseType(type)} style={{ ...typeButtonStyle, ...(form.entry_type === type ? selectedTypeStyle : {}) }}>
-                    <span style={{ fontSize: 22 }}>{TYPE_META[type].icon}</span>
-                    <strong>{TYPE_META[type].label}</strong>
-                    <small>{TYPE_META[type].hint}</small>
-                  </button>
-                ))}
-              </div>
-            )}
-
-            <div style={formStyle}>
-              <div style={selectedTypeStyleText}><span>{TYPE_META[form.entry_type].icon}</span><strong>{TYPE_META[form.entry_type].label}</strong></div>
-              {(form.entry_type === 'note' || form.entry_type === 'idea') && (
-                <input value={form.title ?? ''} onChange={event => setForm(current => ({ ...current, title: event.target.value }))} placeholder="Title (optional)" maxLength={200} style={inputStyle} />
-              )}
-              <textarea autoFocus value={form.content} onChange={event => setForm(current => ({ ...current, content: event.target.value }))} placeholder={form.entry_type === 'journal' ? "What's on your mind?" : 'Write something…'} maxLength={20000} rows={form.entry_type === 'journal' ? 9 : 6} style={{ ...inputStyle, resize: 'vertical', minHeight: form.entry_type === 'journal' ? 190 : 135 }} />
-              {form.entry_type === 'todo' && (
-                <label style={todoLabelStyle}><input type="checkbox" checked={Boolean(form.completed)} onChange={event => setForm(current => ({ ...current, completed: event.target.checked }))} /> Mark as complete</label>
-              )}
-              <div style={modalActionsStyle}>
-                <button type="button" onClick={() => setCaptureOpen(false)} style={secondaryButtonStyle}>Cancel</button>
-                <button type="button" onClick={() => void save()} disabled={diary.saving || !form.content.trim()} style={primaryButtonStyle}>{diary.saving ? 'Saving…' : editing ? 'Save changes' : 'Save'}</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {viewing && (
-        <div style={overlayStyle} role="dialog" aria-modal="true" aria-labelledby="view-title">
-          <div style={modalStyle}>
-            <div style={modalHeaderStyle}>
-              <div>
-                <div style={eyebrowStyle}>{TYPE_META[viewing.entry_type].icon} {TYPE_META[viewing.entry_type].label}</div>
-                <h2 id="view-title" style={modalTitleStyle}>{viewing.title || 'Diary entry'}</h2>
-              </div>
-              <button type="button" onClick={() => setViewing(null)} style={closeButtonStyle}>×</button>
-            </div>
-            <p style={metaStyle}>{formatDate(viewing.created_at)}{viewing.updated_at !== viewing.created_at ? ' · edited' : ''}</p>
-            <div style={viewContentStyle}>{viewing.content}</div>
-            {viewing.entry_type === 'todo' && <div style={{ marginTop: 14, fontWeight: 800 }}>{viewing.completed ? '✓ Completed' : '○ Pending'}</div>}
-            <div style={modalActionsStyle}>
-              <button type="button" onClick={() => openEdit(viewing)} style={secondaryButtonStyle}>Edit</button>
-              <button type="button" onClick={() => setDeleteTarget(viewing)} style={{ ...secondaryButtonStyle, color: '#b91c1c' }}>Delete</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {deleteTarget && (
-        <div style={overlayStyle} role="dialog" aria-modal="true" aria-labelledby="delete-title">
-          <div style={{ ...modalStyle, maxWidth: 430 }}>
-            <div style={eyebrowStyle}>Permanent deletion</div>
-            <h2 id="delete-title" style={modalTitleStyle}>Delete this entry?</h2>
-            <p style={subtitleStyle}>This permanently removes the selected Diary entry. It cannot be recovered from the Diary.</p>
-            <div style={modalActionsStyle}>
-              <button type="button" onClick={() => setDeleteTarget(null)} style={secondaryButtonStyle}>Cancel</button>
-              <button type="button" onClick={() => void remove()} disabled={diary.saving} style={{ ...primaryButtonStyle, background: '#b91c1c' }}>{diary.saving ? 'Deleting…' : 'Delete permanently'}</button>
-            </div>
-          </div>
-        </div>
-      )}
-    </main>
-  );
+    {captureOpen && <div style={overlay}><div style={modal}><div style={modalHead}><div><div style={eyebrowStyle}>{editing ? 'Edit entry' : 'Quick capture'}</div><h2 style={{ margin: '4px 0 0' }}>{editing ? `Edit ${TYPE_META[form.entry_type][1]}` : 'Add to Personal Diary'}</h2></div><button type="button" onClick={() => setCaptureOpen(false)} style={closeStyle}>×</button></div>{!editing && <div style={typeGrid}>{(Object.keys(TYPE_META) as FormState['entry_type'][]).map(type => <button key={type} type="button" onClick={() => setForm(current => ({ ...current, entry_type: type }))} style={{ ...typeButton, ...(form.entry_type === type ? selectedType : {}) }}><span>{TYPE_META[type][0]}</span><strong>{TYPE_META[type][1]}</strong></button>)}</div>}<label style={labelStyle}>Title<input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} placeholder={form.entry_type === 'event' ? 'Meeting' : 'Optional title'} style={inputStyle} /></label><label style={labelStyle}>Details / content<textarea value={form.content} onChange={e => setForm({ ...form, content: e.target.value })} rows={5} style={{ ...inputStyle, resize: 'vertical' }} /></label>{form.entry_type === 'todo' && <><label style={checkStyle}><input type="checkbox" checked={form.completed} onChange={e => setForm({ ...form, completed: e.target.checked })} /> Completed</label><label style={checkStyle}><input type="checkbox" checked={form.reminder_enabled} onChange={e => setForm({ ...form, reminder_enabled: e.target.checked })} /> 🔔 Reminder enabled</label>{form.reminder_enabled && <label style={labelStyle}>Reminder date/time<input type="datetime-local" value={form.reminder_local} onChange={e => setForm({ ...form, reminder_local: e.target.value })} style={inputStyle} /></label>}</>}{form.entry_type === 'event' && <><label style={labelStyle}>Event date & start time<input type="datetime-local" value={form.event_start_local} onChange={e => setForm({ ...form, event_start_local: e.target.value })} style={inputStyle} /></label><label style={labelStyle}>Optional end time<input type="datetime-local" value={form.event_end_local} onChange={e => setForm({ ...form, event_end_local: e.target.value })} style={inputStyle} /></label><label style={labelStyle}>Timezone<input value={form.event_timezone} onChange={e => setForm({ ...form, event_timezone: e.target.value })} style={inputStyle} /></label><label style={checkStyle}><input type="checkbox" checked={form.reminder_enabled} onChange={e => setForm({ ...form, reminder_enabled: e.target.checked })} /> 🔔 Reminder enabled</label>{form.reminder_enabled && <><label style={labelStyle}>Reminder type<select value={form.reminder_mode} onChange={e => setForm({ ...form, reminder_mode: e.target.value as WorkerDiaryReminderMode })} style={inputStyle}><option value="at_time">At event time</option><option value="before_event">Before event</option><option value="custom">Custom date/time</option></select></label>{form.reminder_mode === 'before_event' ? <label style={labelStyle}>Before event<select value={form.reminder_offset} onChange={e => setForm({ ...form, reminder_offset: Number(e.target.value) })} style={inputStyle}><option value={5}>5 minutes</option><option value={15}>15 minutes</option><option value={30}>30 minutes</option><option value={60}>1 hour</option><option value={1440}>1 day</option></select></label> : form.reminder_mode === 'custom' ? <label style={labelStyle}>Reminder date/time<input type="datetime-local" value={form.reminder_local} onChange={e => setForm({ ...form, reminder_local: e.target.value })} style={inputStyle} /></label> : null}</>}</>}<div style={modalActions}><button type="button" onClick={() => setCaptureOpen(false)} style={secondaryStyle}>Cancel</button><button type="button" onClick={() => void save()} disabled={diary.saving} style={primaryStyle}>{diary.saving ? 'Saving…' : editing ? 'Save changes' : 'Save'}</button></div></div></div>}
+    {viewing && <div style={overlay}><div style={modal}><div style={modalHead}><div><div style={eyebrowStyle}>{TYPE_META[viewing.entry_type][1]}</div><h2 style={{ margin: '4px 0 0' }}>{viewing.title || viewing.content.slice(0, 60)}</h2></div><button type="button" onClick={() => setViewing(null)} style={closeStyle}>×</button></div><div style={{ display: 'grid', gap: 12 }}>{viewing.entry_type === 'event' && viewing.event_start_at && <div style={detailLine}>📅 <strong>{formatDisplayDate(viewing.event_start_at, viewing.event_timezone ?? timezone, calendar, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</strong><span>{formatDisplayDate(viewing.event_start_at, viewing.event_timezone ?? timezone, 'gregory', { hour: 'numeric', minute: '2-digit' })}{viewing.event_end_at ? ` – ${formatDisplayDate(viewing.event_end_at, viewing.event_timezone ?? timezone, 'gregory', { hour: 'numeric', minute: '2-digit' })}` : ''} · {viewing.event_timezone}</span></div>}<p style={{ whiteSpace: 'pre-wrap', lineHeight: 1.65, margin: 0 }}>{viewing.content}</p>{viewing.reminder?.enabled && <div style={detailLine}>🔔 <strong>Reminder enabled</strong><span>{formatDisplayDate(viewing.reminder.scheduled_at, viewing.reminder.timezone, 'gregory', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}</span></div>}</div><div style={modalActions}><button type="button" onClick={() => openEdit(viewing)} style={secondaryStyle}>Edit</button><button type="button" onClick={() => setDeleteTarget(viewing)} style={{ ...secondaryStyle, color: '#b91c1c' }}>Delete</button></div></div></div>}
+    {deleteTarget && <div style={overlay}><div style={confirmModal}><h3>Delete this private entry?</h3><p style={mutedStyle}>This permanently deletes the Diary entry and its pending reminder.</p><div style={modalActions}><button type="button" onClick={() => setDeleteTarget(null)} style={secondaryStyle}>Cancel</button><button type="button" onClick={() => void remove()} style={{ ...primaryStyle, background: '#b91c1c' }}>Delete</button></div></div></div>}
+  </main>;
 }
 
-const pageStyle: React.CSSProperties = { width: '100%', maxWidth: 900, margin: '0 auto', padding: '18px 14px 140px', boxSizing: 'border-box', color: '#0f172a' };
-const headerStyle: React.CSSProperties = { display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 };
-const backButtonStyle: React.CSSProperties = { border: 0, background: 'transparent', color: '#475569', padding: '7px 0', fontWeight: 800, cursor: 'pointer', fontSize: 13 };
-const privacyBadgeStyle: React.CSSProperties = { border: '1px solid rgba(34,197,94,.2)', background: 'rgba(34,197,94,.08)', color: '#15803d', borderRadius: 999, padding: '7px 10px', fontSize: 11, fontWeight: 900 };
-const heroStyle: React.CSSProperties = { padding: '22px 20px', borderRadius: 24, border: '1px solid rgba(99,102,241,.12)', background: 'linear-gradient(145deg,rgba(255,255,255,.97),rgba(248,250,252,.94))', boxShadow: '0 16px 40px rgba(15,23,42,.07)', marginBottom: 12 };
-const eyebrowStyle: React.CSSProperties = { color: '#6366f1', fontSize: 10, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase' };
-const titleStyle: React.CSSProperties = { margin: '5px 0 0', fontSize: 'clamp(30px,7vw,44px)', lineHeight: 1.02, letterSpacing: '-.045em' };
-const subtitleStyle: React.CSSProperties = { margin: '9px 0 0', color: '#64748b', lineHeight: 1.55, fontSize: 14, maxWidth: 610 };
-const searchStyle: React.CSSProperties = { display: 'flex', alignItems: 'center', gap: 8, minHeight: 50, padding: '0 13px', borderRadius: 16, border: '1px solid rgba(100,116,139,.18)', background: '#fff', boxShadow: '0 8px 22px rgba(15,23,42,.05)', marginBottom: 16 };
-const searchInputStyle: React.CSSProperties = { width: '100%', border: 0, outline: 0, background: 'transparent', color: '#0f172a', fontSize: 14, fontWeight: 650 };
-const clearButtonStyle: React.CSSProperties = { width: 28, height: 28, border: 0, borderRadius: 999, background: '#f1f5f9', color: '#475569', cursor: 'pointer', fontSize: 18 };
-const errorStyle: React.CSSProperties = { color: '#b91c1c', fontSize: 12, lineHeight: 1.45, fontWeight: 750 };
-const errorCardStyle: React.CSSProperties = { padding: 12, borderRadius: 14, background: '#fef2f2', border: '1px solid #fecaca', marginBottom: 12 };
-const savedStyle: React.CSSProperties = { position: 'fixed', left: '50%', bottom: 24, transform: 'translateX(-50%)', zIndex: 1400, background: '#0f172a', color: '#fff', borderRadius: 999, padding: '10px 14px', fontSize: 12, fontWeight: 850, boxShadow: '0 12px 30px rgba(15,23,42,.25)' };
-const stateCardStyle: React.CSSProperties = { padding: 28, textAlign: 'center', color: '#64748b', borderRadius: 20, border: '1px solid rgba(100,116,139,.12)', background: '#fff' };
-const emptyStyle: React.CSSProperties = { textAlign: 'center', padding: '54px 20px', borderRadius: 24, border: '1px dashed rgba(99,102,241,.22)', background: '#f8fafc' };
-const emptyIconStyle: React.CSSProperties = { width: 48, height: 48, display: 'grid', placeItems: 'center', margin: '0 auto 14px', borderRadius: 16, background: 'rgba(99,102,241,.09)', color: '#6366f1', fontSize: 23 };
-const primaryButtonStyle: React.CSSProperties = { minHeight: 44, padding: '0 16px', border: 0, borderRadius: 13, background: 'linear-gradient(145deg,#4f46e5,#2563eb)', color: '#fff', fontWeight: 900, cursor: 'pointer', boxShadow: '0 9px 20px rgba(37,99,235,.18)' };
-const secondaryButtonStyle: React.CSSProperties = { minHeight: 44, padding: '0 15px', border: '1px solid rgba(100,116,139,.2)', borderRadius: 13, background: 'transparent', color: '#334155', fontWeight: 850, cursor: 'pointer' };
-const dateHeadingStyle: React.CSSProperties = { margin: '0 4px 9px', color: '#64748b', fontSize: 11, fontWeight: 900, letterSpacing: '.08em', textTransform: 'uppercase' };
-const entryCardStyle: React.CSSProperties = { border: '1px solid rgba(99,102,241,.11)', borderRadius: 19, background: '#fff', boxShadow: '0 9px 24px rgba(15,23,42,.055)', overflow: 'hidden' };
-const entryMainStyle: React.CSSProperties = { width: '100%', display: 'flex', gap: 12, alignItems: 'flex-start', padding: '15px 15px 12px', border: 0, background: 'transparent', cursor: 'pointer', color: 'inherit' };
-const iconStyle: React.CSSProperties = { width: 34, height: 34, flex: '0 0 34px', display: 'grid', placeItems: 'center', borderRadius: 11, background: '#f8fafc', fontSize: 17 };
-const metaStyle: React.CSSProperties = { display: 'block', color: '#64748b', fontSize: 10, fontWeight: 850, marginBottom: 5 };
-const entryTitleStyle: React.CSSProperties = { display: 'block', fontSize: 15, lineHeight: 1.35, marginBottom: 3 };
-const contentStyle: React.CSSProperties = { display: '-webkit-box', WebkitLineClamp: 4, WebkitBoxOrient: 'vertical', overflow: 'hidden', color: '#475569', fontSize: 13, lineHeight: 1.55, whiteSpace: 'pre-wrap' };
-const actionsStyle: React.CSSProperties = { display: 'flex', justifyContent: 'flex-end', gap: 3, flexWrap: 'wrap', padding: '0 9px 9px 60px' };
-const actionButtonStyle: React.CSSProperties = { minHeight: 31, padding: '0 8px', border: 0, borderRadius: 9, background: 'transparent', color: '#475569', fontSize: 11, fontWeight: 800, cursor: 'pointer' };
-const loadMoreStyle: React.CSSProperties = { display: 'block', margin: '4px auto 0', minHeight: 42, padding: '0 16px', border: '1px solid rgba(99,102,241,.18)', borderRadius: 12, background: 'transparent', color: '#4f46e5', fontWeight: 850, cursor: 'pointer' };
-const fabStyle: React.CSSProperties = { position: 'fixed', right: 18, bottom: 86, zIndex: 1250, width: 62, height: 62, border: 0, borderRadius: 22, background: 'linear-gradient(145deg,#4f46e5,#2563eb)', color: '#fff', display: 'grid', placeItems: 'center', boxShadow: '0 18px 34px rgba(37,99,235,.3)', fontSize: 30, cursor: 'pointer' };
-const overlayStyle: React.CSSProperties = { position: 'fixed', inset: 0, zIndex: 1300, background: 'rgba(15,23,42,.56)', backdropFilter: 'blur(5px)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', padding: 12 };
-const modalStyle: React.CSSProperties = { width: 'min(100%, 680px)', maxHeight: 'calc(100dvh - 24px)', overflowY: 'auto', borderRadius: 24, padding: 18, background: '#fff', color: '#0f172a', boxShadow: '0 24px 70px rgba(15,23,42,.35)', boxSizing: 'border-box' };
-const modalHeaderStyle: React.CSSProperties = { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, marginBottom: 18 };
-const modalTitleStyle: React.CSSProperties = { margin: '4px 0 0', fontSize: 23 };
-const closeButtonStyle: React.CSSProperties = { width: 36, height: 36, border: 0, borderRadius: 11, background: '#f1f5f9', color: '#475569', cursor: 'pointer', fontSize: 23 };
-const typeGridStyle: React.CSSProperties = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(135px,1fr))', gap: 8, marginBottom: 16 };
-const typeButtonStyle: React.CSSProperties = { minHeight: 94, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 4, padding: 12, border: '1px solid rgba(100,116,139,.15)', borderRadius: 15, background: '#f8fafc', color: '#0f172a', textAlign: 'left', cursor: 'pointer' };
-const selectedTypeStyle: React.CSSProperties = { borderColor: 'rgba(99,102,241,.45)', background: 'rgba(99,102,241,.08)' };
-const formStyle: React.CSSProperties = { display: 'grid', gap: 10 };
-const selectedTypeStyleText: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 7, color: '#334155', fontSize: 13 };
-const inputStyle: React.CSSProperties = { width: '100%', boxSizing: 'border-box', border: '1px solid rgba(100,116,139,.2)', borderRadius: 14, padding: '12px 13px', background: '#f8fafc', color: '#0f172a', font: 'inherit', lineHeight: 1.55, outline: 0 };
-const todoLabelStyle: React.CSSProperties = { display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 750, color: '#475569' };
-const modalActionsStyle: React.CSSProperties = { display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 8 };
-const viewContentStyle: React.CSSProperties = { padding: 15, borderRadius: 15, background: '#f8fafc', color: '#334155', lineHeight: 1.7, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' };
-const mutedStyle: React.CSSProperties = { color: '#64748b', padding: '24px 14px' };
+const pageStyle: React.CSSProperties = { maxWidth: 980, margin: '0 auto', padding: '10px 14px 130px', color: '#0f172a' };
+const headerStyle: React.CSSProperties = { display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }; const backStyle: React.CSSProperties = { border: 0, background: 'transparent', fontWeight: 800, cursor: 'pointer', padding: 8 }; const privacyStyle: React.CSSProperties = { padding: '6px 10px', borderRadius: 999, background: 'rgba(79,70,229,.08)', color: '#4f46e5', fontWeight: 800, fontSize: 12 };
+const heroStyle: React.CSSProperties = { padding: 20, borderRadius: 22, background: 'linear-gradient(145deg,#eef2ff,#f8fafc)', border: '1px solid rgba(79,70,229,.12)', marginBottom: 12 }; const eyebrowStyle: React.CSSProperties = { fontSize: 11, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '.12em', color: '#6366f1' }; const titleStyle: React.CSSProperties = { margin: '5px 0', fontSize: 'clamp(28px,7vw,42px)', letterSpacing: '-.04em' }; const mutedStyle: React.CSSProperties = { margin: 0, color: '#64748b', lineHeight: 1.55 }; const mutedSmall: React.CSSProperties = { marginTop: 4, color: '#64748b', fontSize: 12, lineHeight: 1.45 };
+const toolbarStyle: React.CSSProperties = { display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', marginBottom: 12 }; const searchStyle: React.CSSProperties = { flex: '1 1 260px', minWidth: 180, border: '1px solid rgba(15,23,42,.1)', borderRadius: 14, padding: '12px 14px', font: 'inherit', background: '#fff' }; const tabStyle: React.CSSProperties = { border: '1px solid rgba(15,23,42,.1)', borderRadius: 12, padding: '10px 12px', background: '#fff', fontWeight: 800, cursor: 'pointer' }; const activeTab: React.CSSProperties = { ...tabStyle, background: '#eef2ff', color: '#4f46e5', borderColor: 'rgba(79,70,229,.25)' }; const primaryStyle: React.CSSProperties = { border: 0, borderRadius: 12, padding: '10px 14px', background: 'linear-gradient(135deg,#6d5dfc,#3b82f6)', color: '#fff', fontWeight: 850, cursor: 'pointer', boxShadow: '0 7px 18px rgba(79,70,229,.18)' }; const secondaryStyle: React.CSSProperties = { border: '1px solid rgba(15,23,42,.1)', borderRadius: 12, padding: '10px 14px', background: '#fff', fontWeight: 800, cursor: 'pointer' };
+const messageStyle: React.CSSProperties = { display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, padding: '10px 12px', borderRadius: 12, background: '#ecfdf5', color: '#166534', fontWeight: 800 }; const messageClose: React.CSSProperties = { marginLeft: 'auto', border: 0, background: 'transparent', cursor: 'pointer', fontSize: 18 };
+const settingsCard: React.CSSProperties = { display: 'grid', gridTemplateColumns: 'minmax(180px,1fr) auto minmax(220px,1fr) auto', gap: 12, alignItems: 'center', padding: 14, marginBottom: 12, borderRadius: 18, border: '1px solid rgba(15,23,42,.08)', background: '#fff' }; const selectStyle: React.CSSProperties = { border: '1px solid rgba(15,23,42,.12)', borderRadius: 10, padding: 9, background: '#fff', font: 'inherit' };
+const calendarCard: React.CSSProperties = { padding: 14, borderRadius: 20, background: '#fff', border: '1px solid rgba(15,23,42,.08)', boxShadow: '0 10px 28px rgba(15,23,42,.05)' }; const calendarHeader: React.CSSProperties = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginBottom: 14 }; const navButton: React.CSSProperties = { width: 40, height: 40, border: '1px solid rgba(15,23,42,.1)', borderRadius: 12, background: '#fff', fontSize: 24, cursor: 'pointer' }; const weekStyle: React.CSSProperties = { display: 'grid', gridTemplateColumns: 'repeat(7,minmax(0,1fr))', gap: 7, marginBottom: 7, color: '#64748b', fontSize: 11, fontWeight: 900, textAlign: 'center' }; const gridStyle: React.CSSProperties = { display: 'grid', gridTemplateColumns: 'repeat(7,minmax(0,1fr))', gap: 7 }; const selectedPanel: React.CSSProperties = { marginTop: 14, padding: 14, borderRadius: 16, background: '#f8fafc', border: '1px solid rgba(15,23,42,.06)' }; const calendarEntryButton: React.CSSProperties = { width: '100%', display: 'flex', gap: 10, alignItems: 'center', marginTop: 8, padding: 10, border: '1px solid rgba(79,70,229,.12)', borderRadius: 12, background: '#fff', cursor: 'pointer', font: 'inherit' };
+const emptyCard: React.CSSProperties = { padding: 28, textAlign: 'center', borderRadius: 18, background: '#fff', border: '1px solid rgba(15,23,42,.08)', color: '#64748b' }; const entryCard: React.CSSProperties = { display: 'flex', gap: 8, alignItems: 'stretch', padding: 10, borderRadius: 16, background: '#fff', border: '1px solid rgba(15,23,42,.08)', boxShadow: '0 7px 20px rgba(15,23,42,.04)' }; const entryMain: React.CSSProperties = { flex: 1, display: 'flex', gap: 12, minWidth: 0, border: 0, background: 'transparent', padding: 5, cursor: 'pointer', font: 'inherit' }; const metaStyle: React.CSSProperties = { display: 'block', color: '#64748b', fontSize: 11, fontWeight: 800 }; const entryTitle: React.CSSProperties = { display: 'block', marginTop: 3, fontSize: 16 }; const contentStyle: React.CSSProperties = { display: 'block', marginTop: 4, color: '#334155', lineHeight: 1.45, overflowWrap: 'anywhere' }; const reminderText: React.CSSProperties = { display: 'block', marginTop: 5, color: '#4f46e5', fontWeight: 800, fontSize: 11 }; const actionsStyle: React.CSSProperties = { display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap', justifyContent: 'flex-end' }; const actionStyle: React.CSSProperties = { border: 0, background: 'transparent', color: '#4f46e5', fontWeight: 800, padding: '7px 8px', cursor: 'pointer' };
+const overlay: React.CSSProperties = { position: 'fixed', inset: 0, zIndex: 3000, background: 'rgba(15,23,42,.46)', display: 'grid', placeItems: 'center', padding: 14 }; const modal: React.CSSProperties = { width: 'min(720px,100%)', maxHeight: '90vh', overflow: 'auto', background: '#fff', borderRadius: 22, padding: 18, boxShadow: '0 24px 70px rgba(15,23,42,.28)' }; const confirmModal: React.CSSProperties = { width: 'min(420px,100%)', background: '#fff', borderRadius: 20, padding: 20, boxShadow: '0 24px 70px rgba(15,23,42,.28)' }; const modalHead: React.CSSProperties = { display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', marginBottom: 16 }; const closeStyle: React.CSSProperties = { width: 36, height: 36, border: 0, borderRadius: 10, background: '#f1f5f9', fontSize: 22, cursor: 'pointer' }; const typeGrid: React.CSSProperties = { display: 'grid', gridTemplateColumns: 'repeat(3,minmax(0,1fr))', gap: 8, marginBottom: 16 }; const typeButton: React.CSSProperties = { display: 'grid', gap: 4, placeItems: 'center', minHeight: 74, border: '1px solid rgba(15,23,42,.08)', borderRadius: 14, background: '#fff', cursor: 'pointer', font: 'inherit' }; const selectedType: React.CSSProperties = { borderColor: 'rgba(79,70,229,.3)', background: '#eef2ff', color: '#4338ca' }; const labelStyle: React.CSSProperties = { display: 'grid', gap: 6, marginBottom: 12, fontWeight: 800, fontSize: 13 }; const inputStyle: React.CSSProperties = { width: '100%', boxSizing: 'border-box', border: '1px solid rgba(15,23,42,.12)', borderRadius: 11, padding: '10px 11px', font: 'inherit', fontWeight: 500, background: '#fff' }; const checkStyle: React.CSSProperties = { display: 'flex', gap: 8, alignItems: 'center', margin: '10px 0', fontWeight: 750 }; const modalActions: React.CSSProperties = { display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 16 }; const detailLine: React.CSSProperties = { display: 'grid', gap: 3, padding: 12, borderRadius: 13, background: '#f8fafc' };
