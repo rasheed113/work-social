@@ -55,9 +55,9 @@ export function useWorkerDiary(enabled: boolean) {
     const result = await updateWorkerDiaryEntry(entryId, input);
     setSaving(false);
     if (result.error) { setError(result.error.message); return { data: null, error: result.error }; }
-    setEntries(current => current.map(entry => entry.id === entryId && result.data ? result.data : entry));
+    await refresh();
     return result;
-  }, []);
+  }, [refresh]);
 
   const remove = useCallback(async (entryId: string) => {
     setSaving(true); setError(null);

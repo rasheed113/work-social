@@ -35,7 +35,7 @@ export async function listWorkerDiaryEntries(limit = DEFAULT_LIMIT, cursor: Work
 
 export async function getWorkerDiaryEntry(entryId: string) {
   const result = await supabase.from('worker_diary_entries').select(DIARY_COLUMNS).eq('id', entryId).maybeSingle<WorkerDiaryEntry>();
-  return { data: result.data ?? null, error: result.error };
+  return { data: result.data ?? null, error: result.error ?? (!result.data ? new Error('Diary entry was not found.') : null) };
 }
 
 export async function createWorkerDiaryEntry(input: WorkerDiaryEntryInput) {
@@ -44,22 +44,22 @@ export async function createWorkerDiaryEntry(input: WorkerDiaryEntryInput) {
   const payload = normalizeInput(input);
   if (!payload.content) return { data: null, error: new Error('Content is required.') };
   const result = await supabase.from('worker_diary_entries').insert({ id: crypto.randomUUID(), worker_profile_id: owner.data, ...payload }).select(DIARY_COLUMNS).maybeSingle<WorkerDiaryEntry>();
-  return { data: result.data ?? null, error: result.error };
+  return { data: result.data ?? null, error: result.error ?? (!result.data ? new Error('Diary entry could not be saved.') : null) };
 }
 
 export async function updateWorkerDiaryEntry(entryId: string, input: WorkerDiaryEntryInput) {
   const payload = normalizeInput(input);
   if (!payload.content) return { data: null, error: new Error('Content is required.') };
   const result = await supabase.from('worker_diary_entries').update(payload).eq('id', entryId).select(DIARY_COLUMNS).maybeSingle<WorkerDiaryEntry>();
-  return { data: result.data ?? null, error: result.error };
+  return { data: result.data ?? null, error: result.error ?? (!result.data ? new Error('Diary entry could not be updated.') : null) };
 }
 
 export async function deleteWorkerDiaryEntry(entryId: string) {
-  const result = await supabase.from('worker_diary_entries').delete().eq('id', entryId);
-  return { error: result.error };
+  const result = await supabase.from('worker_diary_entries').delete().eq('id', entryId).select('id').maybeSingle<{ id: string }>();
+  return { error: result.error ?? (!result.data ? new Error('Diary entry could not be deleted.') : null) };
 }
 
 export async function setWorkerDiaryTodoCompleted(entryId: string, completed: boolean) {
   const result = await supabase.from('worker_diary_entries').update({ completed }).eq('id', entryId).eq('entry_type', 'todo').select(DIARY_COLUMNS).maybeSingle<WorkerDiaryEntry>();
-  return { data: result.data ?? null, error: result.error };
+  return { data: result.data ?? null, error: result.error ?? (!result.data ? new Error('To-do could not be updated.') : null) };
 }
