@@ -28,7 +28,8 @@ jobs:
         run: |
           node <<'NODE'
           const fs = require('fs');
-          const ts = require('typescript');
+          const moduleValue = require('typescript');
+          const ts = moduleValue.default ?? moduleValue;
           const path = 'src/features/worker/pages/WorkerDiaryPage.tsx';
           const original = fs.readFileSync(path, 'utf8');
 
@@ -54,18 +55,15 @@ jobs:
           }
 
           const inserts = ['}', '{', '>', '<', '/', ' />', '</>', '</>}', ')}'];
-          const candidates = [];
-          for (const p of positions) {
-            candidates.push(original.slice(0, p) + original.slice(p + 1));
-            for (const token of inserts) candidates.push(original.slice(0, p) + token + original.slice(p));
-          }
-
           let repaired = null;
-          for (const candidate of candidates) {
-            if (diagnostics(candidate).length === 0) {
-              repaired = candidate;
-              break;
+          for (const p of positions) {
+            const deleted = original.slice(0, p) + original.slice(p + 1);
+            if (diagnostics(deleted).length === 0) { repaired = deleted; break; }
+            for (const token of inserts) {
+              const candidate = original.slice(0, p) + token + original.slice(p);
+              if (diagnostics(candidate).length === 0) { repaired = candidate; break; }
             }
+            if (repaired) break;
           }
 
           if (!repaired) {
