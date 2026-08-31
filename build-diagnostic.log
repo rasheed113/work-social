@@ -2,9 +2,9 @@
 > work-social@0.1.0 build
 > tsc -b && vite build
 
-src/features/worker/pages/WorkerDiaryPage.tsx(84,3619): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
-src/features/worker/pages/WorkerDiaryPage.tsx(84,3922): error TS1005: '}' expected.
-src/features/worker/pages/WorkerDiaryPage.tsx(84,3924): error TS17002: Expected corresponding JSX closing tag for 'main'.
+src/features/worker/pages/WorkerDiaryPage.tsx(84,3613): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/features/worker/pages/WorkerDiaryPage.tsx(84,3916): error TS1005: '}' expected.
+src/features/worker/pages/WorkerDiaryPage.tsx(84,3918): error TS17002: Expected corresponding JSX closing tag for 'main'.
 src/features/worker/pages/WorkerDiaryPage.tsx(87,3): error TS1128: Declaration or statement expected.
 src/features/worker/pages/WorkerDiaryPage.tsx(87,10): error TS1109: Expression expected.
 src/features/worker/pages/WorkerDiaryPage.tsx(88,1): error TS1128: Declaration or statement expected.
