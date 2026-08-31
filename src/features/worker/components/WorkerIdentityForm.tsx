@@ -35,7 +35,7 @@ export function WorkerIdentityForm({ workerProfile, profile, saving, onSave }: W
   };
 
   return (
-    <form onSubmit={submit} style={{ display: 'grid', gap: 16 }}>
+    <form className="worker-identity-form" onSubmit={submit} style={{ display: 'grid', gap: 16 }}>
       <section className="foundation-card" style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
         {profile?.avatar_url ? (
           <img src={profile.avatar_url} alt="" width={56} height={56} style={{ borderRadius: '50%', objectFit: 'cover' }} />
