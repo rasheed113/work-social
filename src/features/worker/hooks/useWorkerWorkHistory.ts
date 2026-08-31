@@ -37,7 +37,9 @@ export function useWorkerWorkHistory(profileId: string, period: WorkHistoryPerio
     setHasMore(false);
     setSelectedEntry(null);
     void load(false);
-  }, [profileId, period, selectedBounds, load]);
+    // The period/bounds are the query identity. `load` also depends on the accumulated page state for Load More.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profileId, period, selectedBounds]);
 
   const refresh = useCallback(async () => {
     const result = await listWorkerWorkEntries(INITIAL_PAGE_SIZE, null, period, selectedBounds);
