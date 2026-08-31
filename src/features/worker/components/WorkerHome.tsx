@@ -95,7 +95,7 @@ export function WorkerHome({ profileId }: WorkerHomeProps) {
 
             <section className="worker-home__section worker-home__resource worker-home__resource--finance" aria-labelledby="worker-home-finance">
               <div className="worker-home__resource-title">
-                <span className="worker-home__resource-icon" aria-hidden="true">₹</span>
+                <span className="worker-home__resource-icon" aria-hidden="true">🪙</span>
                 <h2 id="worker-home-finance">Finance</h2>
               </div>
               <p className="worker-home__section-copy">Finance remains a separate Worker domain and is not implemented here.</p>
