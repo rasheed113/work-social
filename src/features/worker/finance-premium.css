@@ -1,0 +1,476 @@
+/* Worker Finance only — presentation layer. No data, routing, or business logic. */
+main:has(> section[aria-label="Finance summary"]) {
+  --finance-ink: #172033;
+  --finance-muted: #64748b;
+  --finance-surface: #ffffff;
+  --finance-surface-soft: #f7faff;
+  --finance-line: rgba(99, 102, 241, 0.14);
+  --finance-blue: #4f46e5;
+  --finance-blue-soft: rgba(79, 70, 229, 0.13);
+  --finance-green: #15803d;
+  --finance-red: #b91c1c;
+}
+
+/* Page-local title area only. The application's global header/footer are outside this scope. */
+main:has(> section[aria-label="Finance summary"]) > header {
+  margin-bottom: 14px !important;
+}
+
+main:has(> section[aria-label="Finance summary"]) > header h1 {
+  font-size: clamp(25px, 6vw, 34px) !important;
+  line-height: 1.05 !important;
+  font-weight: 900 !important;
+  color: var(--finance-ink) !important;
+  text-shadow: 0 1px 0 #fff, 0 2px 0 rgba(15,23,42,.05) !important;
+  letter-spacing: -.035em !important;
+}
+
+/* Raised compact back/add controls. */
+main:has(> section[aria-label="Finance summary"]) > header button,
+main:has(> section[aria-label="Finance summary"]) > main button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+main:has(> section[aria-label="Finance summary"]) > header button {
+  position: relative !important;
+  min-height: 38px !important;
+  border-radius: 11px !important;
+  border: 1px solid rgba(148,163,184,.48) !important;
+  background: linear-gradient(180deg, #ffffff 0%, #f4f7fb 100%) !important;
+  color: #243044 !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.98),
+    inset 0 -1px 0 rgba(148,163,184,.16),
+    0 1px 0 rgba(255,255,255,.9),
+    0 2px 3px rgba(15,23,42,.08),
+    0 7px 14px rgba(30,64,175,.09) !important;
+  text-shadow: 0 1px 0 #fff !important;
+  transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease !important;
+}
+
+main:has(> section[aria-label="Finance summary"]) > header button:last-child {
+  border-color: rgba(79,70,229,.34) !important;
+  background: linear-gradient(180deg, #6366f1 0%, #4f46e5 56%, #4338ca 100%) !important;
+  color: #fff !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.36),
+    inset 0 -2px 0 rgba(30,27,75,.20),
+    0 2px 0 rgba(49,46,129,.25),
+    0 5px 10px rgba(79,70,229,.18),
+    0 11px 20px rgba(79,70,229,.12) !important;
+  text-shadow: 0 1px 1px rgba(30,27,75,.22) !important;
+}
+
+main:has(> section[aria-label="Finance summary"]) > header button::before {
+  content: "";
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  top: 2px;
+  height: 36%;
+  border-radius: 9px;
+  background: linear-gradient(180deg, rgba(255,255,255,.40), rgba(255,255,255,0));
+  pointer-events: none;
+}
+
+main:has(> section[aria-label="Finance summary"]) > header button:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.98),
+    inset 0 -1px 0 rgba(148,163,184,.18),
+    0 3px 5px rgba(15,23,42,.09),
+    0 10px 18px rgba(30,64,175,.12) !important;
+}
+
+main:has(> section[aria-label="Finance summary"]) > header button:last-child:hover {
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.38),
+    inset 0 -2px 0 rgba(30,27,75,.20),
+    0 3px 0 rgba(49,46,129,.24),
+    0 9px 16px rgba(79,70,229,.19),
+    0 14px 24px rgba(79,70,229,.11) !important;
+}
+
+main:has(> section[aria-label="Finance summary"]) > header button:active {
+  transform: translateY(1px) scale(.985) !important;
+  box-shadow:
+    inset 0 2px 4px rgba(15,23,42,.12),
+    0 1px 2px rgba(15,23,42,.08) !important;
+}
+
+main:has(> section[aria-label="Finance summary"]) button:focus-visible,
+main:has(> section[aria-label="Finance summary"]) select:focus-visible,
+main:has(> section[aria-label="Finance summary"]) input:focus-visible {
+  outline: 3px solid rgba(79,70,229,.22) !important;
+  outline-offset: 2px !important;
+}
+
+/* Summary cards: compact bevelled physical surfaces. */
+main:has(> section[aria-label="Finance summary"]) section[aria-label="Finance summary"] {
+  gap: 9px !important;
+  margin-bottom: 13px !important;
+}
+
+main:has(> section[aria-label="Finance summary"]) section[aria-label="Finance summary"] > section {
+  position: relative;
+  min-height: 78px;
+  padding: 12px 13px !important;
+  box-sizing: border-box;
+  overflow: visible;
+  border: 1px solid rgba(148,163,184,.24) !important;
+  border-radius: 15px !important;
+  background:
+    radial-gradient(circle at 12% 0%, rgba(255,255,255,.98), transparent 44%),
+    linear-gradient(145deg, #ffffff 0%, #f8fbff 58%, #eef5fb 100%) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.98),
+    inset 1px 0 0 rgba(255,255,255,.72),
+    inset 0 -2px 0 rgba(148,163,184,.10),
+    0 2px 3px rgba(15,23,42,.07),
+    0 6px 10px rgba(15,23,42,.055),
+    0 12px 22px rgba(30,64,175,.07) !important;
+  transform: translateZ(0);
+  transition: transform .18s ease, box-shadow .18s ease !important;
+}
+
+main:has(> section[aria-label="Finance summary"]) section[aria-label="Finance summary"] > section::before {
+  content: "";
+  position: absolute;
+  inset: 1px 1px auto;
+  height: 38%;
+  border-radius: 14px 14px 50% 50%;
+  background: linear-gradient(180deg, rgba(255,255,255,.76), rgba(255,255,255,0));
+  pointer-events: none;
+}
+
+main:has(> section[aria-label="Finance summary"]) section[aria-label="Finance summary"] > section::after {
+  content: "";
+  position: absolute;
+  left: 9px;
+  right: 9px;
+  bottom: -3px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(30,64,175,.09);
+  filter: blur(4px);
+  z-index: -1;
+}
+
+main:has(> section[aria-label="Finance summary"]) section[aria-label="Finance summary"] > section:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,1),
+    inset 0 -2px 0 rgba(148,163,184,.10),
+    0 3px 4px rgba(15,23,42,.07),
+    0 9px 15px rgba(15,23,42,.07),
+    0 16px 28px rgba(30,64,175,.09) !important;
+}
+
+main:has(> section[aria-label="Finance summary"]) section[aria-label="Finance summary"] > section > div:first-child {
+  position: relative;
+  z-index: 1;
+  color: #64748b !important;
+  text-shadow: 0 1px 0 #fff !important;
+}
+
+main:has(> section[aria-label="Finance summary"]) section[aria-label="Finance summary"] > section > div:last-child {
+  position: relative;
+  z-index: 1;
+  margin-top: 3px !important;
+  font-size: clamp(19px, 5vw, 25px) !important;
+  line-height: 1.1 !important;
+  font-weight: 900 !important;
+  letter-spacing: -.025em !important;
+  text-shadow: 0 1px 0 rgba(255,255,255,.9), 0 2px 2px rgba(15,23,42,.07) !important;
+}
+
+/* Filter surface stays compact and physical. */
+main:has(> section[aria-label="Finance summary"]) section[aria-label="Finance filter"] {
+  margin-bottom: 12px !important;
+  padding: 9px 10px !important;
+  border: 1px solid rgba(148,163,184,.22) !important;
+  border-radius: 14px !important;
+  background: linear-gradient(145deg,#fff 0%,#f7faff 100%) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.98),
+    inset 0 -1px 0 rgba(148,163,184,.10),
+    0 2px 3px rgba(15,23,42,.06),
+    0 8px 16px rgba(30,64,175,.055) !important;
+}
+
+main:has(> section[aria-label="Finance summary"]) section[aria-label="Finance filter"] label {
+  gap: 5px !important;
+  font-size: 11px !important;
+  text-shadow: 0 1px 0 #fff;
+}
+
+main:has(> section[aria-label="Finance summary"]) section[aria-label="Finance filter"] select {
+  min-height: 38px !important;
+  border-radius: 10px !important;
+  border-color: rgba(148,163,184,.45) !important;
+  background: linear-gradient(180deg,#fff,#f5f8fc) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.98),
+    inset 0 -1px 0 rgba(148,163,184,.12),
+    0 2px 4px rgba(15,23,42,.06) !important;
+}
+
+/* Section heading has restrained raised type, not oversized lettering. */
+main:has(> section[aria-label="Finance summary"]) h2 {
+  margin-bottom: 8px !important;
+  font-size: 17px !important;
+  line-height: 1.2 !important;
+  font-weight: 900 !important;
+  color: var(--finance-ink) !important;
+  text-shadow: 0 1px 0 #fff, 0 2px 1px rgba(15,23,42,.05) !important;
+}
+
+/* Transaction cards: compact stacked construction with multiple physical depth layers. */
+main:has(> section[aria-label="Finance summary"]) article {
+  position: relative;
+  padding: 11px 12px !important;
+  border: 1px solid rgba(148,163,184,.23) !important;
+  border-left-width: 3px !important;
+  border-radius: 14px !important;
+  background:
+    radial-gradient(circle at 8% 0%, rgba(255,255,255,.98), transparent 38%),
+    linear-gradient(145deg,#fff 0%,#f8fbff 62%,#eef5fa 100%) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,1),
+    inset 1px 0 0 rgba(255,255,255,.65),
+    inset 0 -2px 0 rgba(148,163,184,.09),
+    0 2px 3px rgba(15,23,42,.06),
+    0 6px 11px rgba(15,23,42,.045),
+    0 12px 22px rgba(30,64,175,.055) !important;
+  transform: translateZ(0);
+  transition: transform .17s ease, box-shadow .17s ease !important;
+}
+
+main:has(> section[aria-label="Finance summary"]) article::before {
+  content: "";
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  top: 1px;
+  height: 27%;
+  border-radius: 12px 12px 45% 45%;
+  background: linear-gradient(180deg,rgba(255,255,255,.72),rgba(255,255,255,0));
+  pointer-events: none;
+}
+
+main:has(> section[aria-label="Finance summary"]) article::after {
+  content: "";
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: -3px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(30,64,175,.075);
+  filter: blur(4px);
+  z-index: -1;
+  pointer-events: none;
+}
+
+main:has(> section[aria-label="Finance summary"]) article:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,1),
+    inset 0 -2px 0 rgba(148,163,184,.10),
+    0 3px 4px rgba(15,23,42,.065),
+    0 9px 15px rgba(15,23,42,.06),
+    0 16px 26px rgba(30,64,175,.075) !important;
+}
+
+main:has(> section[aria-label="Finance summary"]) article > div:first-child {
+  position: relative;
+  z-index: 1;
+}
+
+main:has(> section[aria-label="Finance summary"]) article > div:first-child > div:first-child {
+  font-size: 17px !important;
+  line-height: 1.15 !important;
+  font-weight: 900 !important;
+  letter-spacing: -.02em !important;
+  text-shadow: 0 1px 0 rgba(255,255,255,.92), 0 2px 2px rgba(15,23,42,.06) !important;
+}
+
+main:has(> section[aria-label="Finance summary"]) article > div:first-child > div:nth-child(2) {
+  margin-top: 2px !important;
+  font-size: 11px !important;
+  font-weight: 900 !important;
+  text-shadow: 0 1px 0 #fff !important;
+}
+
+main:has(> section[aria-label="Finance summary"]) article > div:first-child span {
+  padding: 4px 7px !important;
+  border: 1px solid rgba(148,163,184,.15);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.85),
+    inset 0 -1px 0 rgba(15,23,42,.05),
+    0 2px 4px rgba(15,23,42,.05) !important;
+  text-shadow: 0 1px 0 rgba(255,255,255,.8) !important;
+}
+
+main:has(> section[aria-label="Finance summary"]) article > div:nth-child(2) {
+  margin-top: 7px !important;
+  font-size: 11px !important;
+  line-height: 1.35 !important;
+  text-shadow: 0 1px 0 #fff !important;
+}
+
+/* View details is deliberately small but tactile. */
+main:has(> section[aria-label="Finance summary"]) article > button {
+  position: relative;
+  min-height: 32px !important;
+  margin-top: 7px !important;
+  padding: 0 10px !important;
+  border: 1px solid rgba(79,70,229,.22) !important;
+  border-radius: 9px !important;
+  background: linear-gradient(180deg,#ffffff 0%,#eef2ff 100%) !important;
+  color: #4338ca !important;
+  font-size: 11px !important;
+  font-weight: 900 !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.98),
+    inset 0 -1px 0 rgba(79,70,229,.08),
+    0 2px 2px rgba(15,23,42,.07),
+    0 5px 9px rgba(79,70,229,.09) !important;
+  text-shadow: 0 1px 0 #fff !important;
+  transition: transform .14s ease, box-shadow .14s ease !important;
+}
+
+main:has(> section[aria-label="Finance summary"]) article > button::before,
+main:has(> section[aria-label="Finance summary"]) article button::before {
+  content: "";
+  position: absolute;
+  left: 5px;
+  right: 5px;
+  top: 2px;
+  height: 34%;
+  border-radius: 7px;
+  background: linear-gradient(180deg,rgba(255,255,255,.65),transparent);
+  pointer-events: none;
+}
+
+main:has(> section[aria-label="Finance summary"]) article > button:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,1),
+    0 2px 3px rgba(15,23,42,.07),
+    0 7px 12px rgba(79,70,229,.12) !important;
+}
+
+main:has(> section[aria-label="Finance summary"]) article > button:active {
+  transform: translateY(1px) scale(.985) !important;
+  box-shadow: inset 0 2px 3px rgba(79,70,229,.12), 0 1px 2px rgba(15,23,42,.07) !important;
+}
+
+/* Edit/Delete controls use the same physical language and remain compact. */
+main:has(> section[aria-label="Finance summary"]) article > div:nth-child(4) {
+  gap: 6px !important;
+  margin-top: 8px !important;
+}
+
+main:has(> section[aria-label="Finance summary"]) article > div:nth-child(4) button {
+  min-height: 34px !important;
+  padding: 0 10px !important;
+  border-radius: 9px !important;
+  background: linear-gradient(180deg,#fff 0%,#f1f5f9 100%) !important;
+  border-color: rgba(148,163,184,.42) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.98),
+    inset 0 -1px 0 rgba(148,163,184,.12),
+    0 2px 3px rgba(15,23,42,.07),
+    0 5px 9px rgba(15,23,42,.05) !important;
+  font-size: 11px !important;
+  text-shadow: 0 1px 0 #fff !important;
+  transition: transform .14s ease, box-shadow .14s ease !important;
+}
+
+main:has(> section[aria-label="Finance summary"]) article > div:nth-child(4) button:hover {
+  transform: translateY(-1px);
+}
+
+main:has(> section[aria-label="Finance summary"]) article > div:nth-child(4) button:active {
+  transform: translateY(1px) scale(.985) !important;
+  box-shadow: inset 0 2px 3px rgba(15,23,42,.11), 0 1px 2px rgba(15,23,42,.06) !important;
+}
+
+/* Compact empty/error/notice surfaces inside Finance. */
+main:has(> section[aria-label="Finance summary"]) [role="alert"],
+main:has(> section[aria-label="Finance summary"]) [role="status"] {
+  border-radius: 13px !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.98),
+    inset 0 -1px 0 rgba(148,163,184,.10),
+    0 3px 5px rgba(15,23,42,.06),
+    0 9px 16px rgba(30,64,175,.055) !important;
+}
+
+/* Finance modal/detail surfaces only; global header/footer are unaffected. */
+main:has(> section[aria-label="Finance summary"]) [role="dialog"] {
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.98),
+    inset 0 -2px 0 rgba(148,163,184,.09),
+    0 -3px 8px rgba(15,23,42,.07),
+    0 -12px 30px rgba(15,23,42,.13) !important;
+}
+
+@media (max-width: 520px) {
+  main:has(> section[aria-label="Finance summary"]) {
+    padding-left: 11px !important;
+    padding-right: 11px !important;
+  }
+
+  main:has(> section[aria-label="Finance summary"]) section[aria-label="Finance summary"] {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  main:has(> section[aria-label="Finance summary"]) section[aria-label="Finance summary"] > section {
+    min-width: 0;
+    padding: 10px 9px !important;
+  }
+
+  main:has(> section[aria-label="Finance summary"]) section[aria-label="Finance summary"] > section > div:first-child {
+    font-size: 9px !important;
+    letter-spacing: .035em !important;
+    white-space: nowrap;
+  }
+
+  main:has(> section[aria-label="Finance summary"]) section[aria-label="Finance summary"] > section > div:last-child {
+    font-size: clamp(15px, 4.8vw, 21px) !important;
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (max-width: 360px) {
+  main:has(> section[aria-label="Finance summary"]) > header {
+    gap: 7px !important;
+  }
+
+  main:has(> section[aria-label="Finance summary"]) > header button {
+    padding-left: 9px !important;
+    padding-right: 9px !important;
+    font-size: 12px !important;
+  }
+
+  main:has(> section[aria-label="Finance summary"]) section[aria-label="Finance summary"] > section > div:first-child {
+    font-size: 8px !important;
+  }
+
+  main:has(> section[aria-label="Finance summary"]) section[aria-label="Finance summary"] > section > div:last-child {
+    font-size: 14px !important;
+  }
+
+  main:has(> section[aria-label="Finance summary"]) article {
+    padding: 10px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  main:has(> section[aria-label="Finance summary"]) * {
+    scroll-behavior: auto !important;
+    transition: none !important;
+  }
+}
