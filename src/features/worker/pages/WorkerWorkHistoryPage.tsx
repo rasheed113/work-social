@@ -4,7 +4,7 @@ import { useCurrentWorkerProfileId } from '../hooks/useCurrentWorkerProfileId';
 import { useWorkerWorkHistory } from '../hooks/useWorkerWorkHistory';
 import type { WorkHistoryPeriod, WorkHistoryPeriodBounds } from '../api/workEntries';
 import { getWorkerWorkTotals } from '../api/workEntries';
-import { formatWorkDecimal, getWorkerWorkPeriodBounds, getWorkerWorkWeekBounds, getWorkerWorkWeekStart } from '../logic/workEntryCalculations';
+import { formatWorkDecimal, getWorkerWorkDayBounds, getWorkerWorkMonthBounds, getWorkerWorkPeriodBounds, getWorkerWorkWeekBounds, getWorkerWorkWeekStart } from '../logic/workEntryCalculations';
 import type { WorkerWorkTotals } from '../types/workEntry';
 import { WorkerWorkEntryDetails } from '../components/WorkerWorkEntryDetails';
 import { WorkerWorkEntryList } from '../components/WorkerWorkEntryList';
@@ -12,52 +12,80 @@ import { WorkerWorkEntryList } from '../components/WorkerWorkEntryList';
 const cardStyle = { padding: 18, border: '1px solid rgba(99,102,241,.14)', borderRadius: 18, background: 'rgba(255,255,255,.92)', boxShadow: '0 10px 28px rgba(15,23,42,.07)' };
 const EMPTY_TOTALS: WorkerWorkTotals = { daily_total: '0', weekly_total: '0', monthly_total: '0', lifetime_total: '0' };
 
+type SelectedPeriod = Date;
+
 function readPeriod(): WorkHistoryPeriod { const value = new URLSearchParams(window.location.search).get('period'); return value === 'day' || value === 'week' || value === 'month' ? value : 'lifetime'; }
-function readWeekStart() {
-  const raw = new URLSearchParams(window.location.search).get('week');
-  if (!raw) return getWorkerWorkWeekStart();
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(raw);
-  if (!match) return getWorkerWorkWeekStart();
-  const date = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
-  return Number.isNaN(date.getTime()) ? getWorkerWorkWeekStart() : getWorkerWorkWeekStart(date);
+function parseDateKey(raw: string | null): Date | null {
+  if (!raw || !/^\d{4}-\d{2}-\d{2}$/.test(raw)) return null;
+  const [year, month, day] = raw.split('-').map(Number);
+  const date = new Date(year, month - 1, day);
+  return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day ? date : null;
+}
+function readSelectedPeriod(period: WorkHistoryPeriod): SelectedPeriod {
+  const params = new URLSearchParams(window.location.search);
+  const raw = period === 'week' ? params.get('week') : period === 'day' ? params.get('day') : period === 'month' ? params.get('month') : null;
+  const parsed = parseDateKey(raw);
+  if (parsed) return period === 'week' ? getWorkerWorkWeekStart(parsed) : period === 'month' ? new Date(parsed.getFullYear(), parsed.getMonth(), 1) : parsed;
+  return period === 'week' ? getWorkerWorkWeekStart() : period === 'month' ? new Date(new Date().getFullYear(), new Date().getMonth(), 1) : new Date();
 }
 function formatDate(value: Date) { return value.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }); }
-function weekKey(value: Date) { return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, '0')}-${String(value.getDate()).padStart(2, '0')}`; }
+function dateKey(value: Date) { return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, '0')}-${String(value.getDate()).padStart(2, '0')}`; }
+function monthKey(value: Date) { return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, '0')}-01`; }
+function shiftDay(value: Date, amount: number) { const next = new Date(value); next.setDate(next.getDate() + amount); return next; }
+function shiftMonth(value: Date, amount: number) { return new Date(value.getFullYear(), value.getMonth() + amount, 1); }
 function shiftWeek(value: Date, amount: number) { const next = new Date(value); next.setDate(next.getDate() + amount * 7); return getWorkerWorkWeekStart(next); }
 
 export function WorkerWorkHistoryPage() {
   const session = useCurrentWorkerProfileId();
   const [period, setPeriod] = useState<WorkHistoryPeriod>(() => readPeriod());
-  const [selectedWeekStart, setSelectedWeekStart] = useState<Date>(() => readWeekStart());
+  const [selectedPeriod, setSelectedPeriod] = useState<SelectedPeriod>(() => readSelectedPeriod(readPeriod()));
   const [totals, setTotals] = useState<WorkerWorkTotals>(EMPTY_TOTALS);
   const [totalsLoading, setTotalsLoading] = useState(true);
+  const isDay = period === 'day';
   const isWeek = period === 'week';
+  const isMonth = period === 'month';
+  const currentDay = useMemo(() => { const now = new Date(); return new Date(now.getFullYear(), now.getMonth(), now.getDate()); }, []);
+  const currentMonth = useMemo(() => { const now = new Date(); return new Date(now.getFullYear(), now.getMonth(), 1); }, []);
   const currentWeekStart = useMemo(() => getWorkerWorkWeekStart(), []);
-  const selectedWeekBounds: WorkHistoryPeriodBounds | null = useMemo(() => isWeek ? (() => { const bounds = getWorkerWorkWeekBounds(selectedWeekStart); return { start: bounds.weekStart, end: bounds.weekEnd }; })() : null, [isWeek, selectedWeekStart]);
-  const history = useWorkerWorkHistory(session.profileId ?? '', period, selectedWeekBounds);
+  const selectedBounds: WorkHistoryPeriodBounds | null = useMemo(() => {
+    if (isDay) { const bounds = getWorkerWorkDayBounds(selectedPeriod); return { start: bounds.dayStart, end: bounds.dayEnd }; }
+    if (isWeek) { const bounds = getWorkerWorkWeekBounds(selectedPeriod); return { start: bounds.weekStart, end: bounds.weekEnd }; }
+    if (isMonth) { const bounds = getWorkerWorkMonthBounds(selectedPeriod); return { start: bounds.monthStart, end: bounds.monthEnd }; }
+    return null;
+  }, [isDay, isWeek, isMonth, selectedPeriod]);
+  const history = useWorkerWorkHistory(session.profileId ?? '', period, selectedBounds);
 
   useEffect(() => {
     if (!session.profileId) return;
     let active = true;
     setTotalsLoading(true);
-    const bounds = isWeek ? (() => { const selected = getWorkerWorkWeekBounds(selectedWeekStart); const base = getWorkerWorkPeriodBounds(selectedWeekStart); return { ...base, weekStart: selected.weekStart, weekEnd: selected.weekEnd }; })() : getWorkerWorkPeriodBounds();
+    const bounds = getWorkerWorkPeriodBounds(selectedPeriod);
+    if (isDay) { const selected = getWorkerWorkDayBounds(selectedPeriod); bounds.dayStart = selected.dayStart; bounds.dayEnd = selected.dayEnd; }
+    if (isWeek) { const selected = getWorkerWorkWeekBounds(selectedPeriod); bounds.weekStart = selected.weekStart; bounds.weekEnd = selected.weekEnd; }
+    if (isMonth) { const selected = getWorkerWorkMonthBounds(selectedPeriod); bounds.monthStart = selected.monthStart; bounds.monthEnd = selected.monthEnd; }
     void getWorkerWorkTotals(bounds).then((result) => { if (!active) return; if (!result.error) setTotals(result.data); setTotalsLoading(false); });
     return () => { active = false; };
-  }, [session.profileId, isWeek, selectedWeekStart]);
+  }, [session.profileId, isDay, isWeek, isMonth, selectedPeriod]);
 
   const changePeriod = (next: WorkHistoryPeriod) => {
     setPeriod(next);
-    if (next === 'week') {
-      const week = weekKey(selectedWeekStart);
-      navigate(`/work/history?period=week&week=${week}`);
-    } else navigate(next === 'lifetime' ? '/work/history' : `/work/history?period=${next}`);
+    const nextSelected = readSelectedPeriod(next);
+    setSelectedPeriod(nextSelected);
+    if (next === 'week') navigate(`/work/history?period=week&week=${dateKey(nextSelected)}`);
+    else if (next === 'day') navigate(`/work/history?period=day&day=${dateKey(nextSelected)}`);
+    else if (next === 'month') navigate(`/work/history?period=month&month=${monthKey(nextSelected)}`);
+    else navigate('/work/history');
   };
-  const changeWeek = (amount: number) => {
-    const next = shiftWeek(selectedWeekStart, amount);
-    setSelectedWeekStart(next);
-    navigate(`/work/history?period=week&week=${weekKey(next)}`);
+  const changeSelectedPeriod = (amount: number) => {
+    const next = isDay ? shiftDay(selectedPeriod, amount) : isWeek ? shiftWeek(selectedPeriod, amount) : shiftMonth(selectedPeriod, amount);
+    setSelectedPeriod(next);
+    if (isDay) navigate(`/work/history?period=day&day=${dateKey(next)}`);
+    else if (isWeek) navigate(`/work/history?period=week&week=${dateKey(next)}`);
+    else navigate(`/work/history?period=month&month=${monthKey(next)}`);
   };
-  const isCurrentWeek = selectedWeekStart.getTime() === currentWeekStart.getTime();
+  const isCurrentDay = selectedPeriod.getTime() === currentDay.getTime();
+  const isCurrentWeek = selectedPeriod.getTime() === currentWeekStart.getTime();
+  const isCurrentMonth = selectedPeriod.getTime() === currentMonth.getTime();
 
   const editEntry = async (...args: Parameters<typeof history.editEntry>) => history.editEntry(...args);
   const trashEntry = async (entryId: string) => history.trashEntry(entryId);
@@ -65,7 +93,10 @@ export function WorkerWorkHistoryPage() {
   if (session.loading) return <main style={{ width: '100%', maxWidth: 900, margin: '0 auto', padding: '24px 14px 112px' }}><p style={{ color: '#64748b' }}>Loading Work History…</p></main>;
   if (session.error || !session.profileId) return <main style={{ width: '100%', maxWidth: 900, margin: '0 auto', padding: '24px 14px 112px' }}><p role="alert" style={{ color: '#b91c1c', fontWeight: 700 }}>{session.error ?? 'Authenticated profile is unavailable.'}</p></main>;
 
-  const weekEnd = new Date(selectedWeekStart); weekEnd.setDate(weekEnd.getDate() + 6);
+  let periodLabel = '';
+  if (isDay) periodLabel = formatDate(selectedPeriod);
+  else if (isWeek) { const end = new Date(selectedPeriod); end.setDate(end.getDate() + 6); periodLabel = `${formatDate(selectedPeriod)} – ${formatDate(end)}`; }
+  else if (isMonth) periodLabel = selectedPeriod.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
 
   return (
     <main style={{ width: '100%', maxWidth: 900, margin: '0 auto', padding: '24px 14px 112px', boxSizing: 'border-box' }}>
@@ -85,14 +116,16 @@ export function WorkerWorkHistoryPage() {
         {(['lifetime', 'day', 'week', 'month'] as const).map((item) => <button key={item} type="button" onClick={() => changePeriod(item)} aria-pressed={period === item} style={{ minHeight: 42, borderRadius: 11, border: period === item ? '1px solid rgba(37,99,235,.5)' : '1px solid rgba(99,102,241,.14)', background: period === item ? 'rgba(219,234,254,.9)' : 'rgba(255,255,255,.94)', fontWeight: 800, cursor: 'pointer' }}>{item === 'lifetime' ? 'All' : item[0].toUpperCase() + item.slice(1)}</button>)}
       </nav>
 
-      {isWeek && <section style={{ ...cardStyle, marginBottom: 16 }} aria-label="Selected week">
-        <div style={{ color: '#475569', fontSize: 11, fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase' }}>Selected Week</div>
-        <div style={{ marginTop: 6, fontSize: 20, fontWeight: 900 }}>{formatDate(selectedWeekStart)} – {formatDate(weekEnd)}</div>
+      {(isDay || isWeek || isMonth) && <section style={{ ...cardStyle, marginBottom: 16 }} aria-label={`Selected ${period}`}>
+        <div style={{ color: '#475569', fontSize: 11, fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase' }}>Selected {isDay ? 'Day' : isWeek ? 'Week' : 'Month'}</div>
+        <div style={{ marginTop: 6, fontSize: 20, fontWeight: 900 }}>{periodLabel}</div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 12 }}>
-          <button type="button" onClick={() => changeWeek(-1)} style={{ minHeight: 44, borderRadius: 12, fontWeight: 800, cursor: 'pointer' }}>← Previous Week</button>
-          <button type="button" onClick={() => changeWeek(1)} disabled={isCurrentWeek} style={{ minHeight: 44, borderRadius: 12, fontWeight: 800, cursor: isCurrentWeek ? 'not-allowed' : 'pointer', opacity: isCurrentWeek ? .5 : 1 }}>Next Week →</button>
+          <button type="button" onClick={() => changeSelectedPeriod(-1)} style={{ minHeight: 44, borderRadius: 12, fontWeight: 800, cursor: 'pointer' }}>{isDay ? '← Previous Day' : isWeek ? '← Previous Week' : '← Previous Month'}</button>
+          <button type="button" onClick={() => changeSelectedPeriod(1)} disabled={isDay ? isCurrentDay : isWeek ? isCurrentWeek : isCurrentMonth} style={{ minHeight: 44, borderRadius: 12, fontWeight: 800, cursor: (isDay ? isCurrentDay : isWeek ? isCurrentWeek : isCurrentMonth) ? 'not-allowed' : 'pointer', opacity: (isDay ? isCurrentDay : isWeek ? isCurrentWeek : isCurrentMonth) ? .5 : 1 }}>{isDay ? 'Next Day →' : isWeek ? 'Next Week →' : 'Next Month →'}</button>
         </div>
-        <div style={{ marginTop: 14, color: '#64748b', fontSize: 12 }}>Weekly Total: <strong style={{ color: '#0f172a' }}>{totalsLoading ? 'Loading…' : formatWorkDecimal(totals.weekly_total)}</strong></div>
+        {isDay && <div style={{ marginTop: 14, color: '#64748b', fontSize: 12 }}>Daily Total: <strong style={{ color: '#0f172a' }}>{totalsLoading ? 'Loading…' : formatWorkDecimal(totals.daily_total)}</strong></div>}
+        {isWeek && <div style={{ marginTop: 14, color: '#64748b', fontSize: 12 }}>Weekly Total: <strong style={{ color: '#0f172a' }}>{totalsLoading ? 'Loading…' : formatWorkDecimal(totals.weekly_total)}</strong></div>}
+        {isMonth && <div style={{ marginTop: 14, color: '#64748b', fontSize: 12 }}>Monthly Total: <strong style={{ color: '#0f172a' }}>{totalsLoading ? 'Loading…' : formatWorkDecimal(totals.monthly_total)}</strong></div>}
       </section>}
 
       <section aria-labelledby="worker-history-list-heading">
