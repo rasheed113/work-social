@@ -2,10 +2,18 @@
    while allowing the settings card to stack on narrow screens. */
 @media (max-width: 760px) {
   main:has(.worker-diary-search) > section:has(> select) {
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: center;
+    gap: 10px;
+  }
+
+  main:has(.worker-diary-search) > section:has(> select) > div:first-child {
+    grid-column: 1 / -1;
+    min-width: 0;
   }
 
   main:has(.worker-diary-search) > section:has(> select) > select {
+    grid-column: 1;
     width: auto;
     min-width: 0;
     max-width: 100%;
@@ -14,19 +22,31 @@
     font-size: 13px;
   }
 
-  main:has(.worker-diary-search) > section:has(> select) > div:last-child {
-    width: fit-content;
+  main:has(.worker-diary-search) > section:has(> select) > div:last-of-type {
+    grid-column: 2;
+    width: auto;
     min-width: 0 !important;
     max-width: 100%;
+    overflow-wrap: anywhere;
   }
 
-  main:has(.worker-diary-search) > section:has(> select) > div:last-child > button {
+  main:has(.worker-diary-search) > section:has(> select) > div:last-of-type > strong {
+    font-size: 13px;
+  }
+
+  main:has(.worker-diary-search) > section:has(> select) > div:last-of-type > div {
+    font-size: 12px;
+    line-height: 1.35;
+  }
+
+  main:has(.worker-diary-search) > section:has(> select) > button {
+    grid-column: 1 / -1;
+    justify-self: start;
     width: auto !important;
     min-width: 0 !important;
     max-width: 100%;
     box-sizing: border-box;
     padding: 8px 10px !important;
-    gap: 6px !important;
     font-size: 13px !important;
     white-space: nowrap;
   }
