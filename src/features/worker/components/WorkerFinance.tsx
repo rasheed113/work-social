@@ -21,6 +21,7 @@ export function WorkerFinance() {
   const [filter, setFilter] = useState<Filter>('all');
   const finance = useWorkerFinance(filter);
   const [modalOpen, setModalOpen] = useState(false);
+  const [filterOpen, setFilterOpen] = useState(false);
   const [editing, setEditing] = useState<FinanceReceivedRecord | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<FinanceReceivedRecord | null>(null);
   const [undoTarget, setUndoTarget] = useState<UndoTarget | null>(null);
@@ -36,6 +37,12 @@ export function WorkerFinance() {
     if (!modalOpen) { setEditing(null); setAmount(''); setType('payment'); setFormError(null); }
   }, [modalOpen]);
   useEffect(() => { if (!undoTarget) return; const timer = window.setTimeout(() => setUndoTarget(null), 8000); return () => window.clearTimeout(timer); }, [undoTarget]);
+  useEffect(() => {
+    if (!filterOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => { if (event.key === 'Escape') setFilterOpen(false); };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [filterOpen]);
 
   const visibleEntries = useMemo(() => finance.entries.filter((entry) => matchesFilter(entry, filter)), [finance.entries, filter]);
   const displayedEntries = visibleEntries;
@@ -75,12 +82,62 @@ export function WorkerFinance() {
     <header style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 18 }}><div><button type="button" onClick={() => navigate('/work')} style={{ ...button, minHeight: 38, padding: '0 11px', fontSize: 13 }}>← Work House</button><div style={{ marginTop: 12, color: '#64748b', fontSize: 11, fontWeight: 850, letterSpacing: '.08em', textTransform: 'uppercase' }}>Worker Finance</div><h1 style={{ margin: '4px 0 0', fontSize: 'clamp(28px, 7vw, 42px)', letterSpacing: '-.04em' }}>Finance</h1></div><button type="button" onClick={openAdd} style={{ ...button, flex: '0 0 auto', padding: '0 15px', border: '1px solid rgba(79,70,229,.3)', background: '#4f46e5', color: '#fff', boxShadow: '0 8px 18px rgba(79,70,229,.18)' }}>+ Add</button></header>
     {notice && <div role="status" aria-live="polite" style={{ ...card, marginBottom: 12, padding: '10px 13px', color: undoTarget ? '#991b1b' : '#166534', background: undoTarget ? '#fef2f2' : '#f0fdf4', borderColor: undoTarget ? '#fecaca' : '#bbf7d0', fontSize: 13, fontWeight: 850, display: 'flex', alignItems: 'center', gap: 10 }}><span style={{ flex: 1 }}>{notice}</span>{undoTarget && <button type="button" onClick={() => void undoDelete()} disabled={finance.saving} style={{ ...button, minHeight: 36, padding: '0 11px', color: '#991b1b', borderColor: '#fecaca', background: '#fff' }}>Undo</button>}<button type="button" onClick={dismissNotice} aria-label="Dismiss message" style={{ border: 0, background: 'transparent', fontSize: 18, cursor: 'pointer', padding: 2 }}>×</button></div>}
     <section aria-label="Finance summary" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 10, marginBottom: 16 }}><SummaryCard label="Total Earnings" value={amountLabel(finance.summary.total_earnings)} tone="positive" /><SummaryCard label="Received" value={amountLabel(finance.summary.received)} tone="negative" /><SummaryCard label="Remaining" value={amountLabel(finance.summary.remaining)} tone={amountTone(finance.summary.remaining)} /></section>
-    <section style={{ ...card, padding: 12, marginBottom: 14 }} aria-label="Finance filter"><label htmlFor="finance-filter" style={{ display: 'grid', gap: 6, fontSize: 12, fontWeight: 850, color: '#475569' }}>Filter<select id="finance-filter" value={filter} onChange={(event) => setFilter(event.target.value as Filter)} style={{ minHeight: 44, borderRadius: 12, border: '1px solid #cbd5e1', padding: '0 11px', background: '#fff', font: 'inherit', fontWeight: 750 }}>{(['all', 'earnings', 'payments', 'advances', 'received'] as Filter[]).map((item) => <option key={item} value={item}>{filterLabel(item)}</option>)}</select></label></section>
+    <section className="finance-filter-shell" aria-label="Finance filter">
+      <div className="finance-filter-bar">
+        <div><div className="finance-filter-eyebrow">Filter</div><div className="finance-filter-current">{filterLabel(filter)}</div></div>
+        <button type="button" className="finance-filter-trigger" aria-haspopup="dialog" aria-expanded={filterOpen} aria-controls="finance-filter-dialog" onClick={() => setFilterOpen((open) => !open)}>
+          <svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M4 6h16M7 12h10M10 18h4" /></svg><span>Filter</span>{filter !== 'all' && <span className="finance-filter-dot" aria-label="Filter selected" />}
+        </button>
+      </div>
+      {filterOpen && <FilterPopup filter={filter} onSelect={(next) => { setFilter(next); setFilterOpen(false); }} onClose={() => setFilterOpen(false)} />}
+    </section>
     <section aria-labelledby="finance-list-heading"><h2 id="finance-list-heading" style={{ margin: '0 0 10px', fontSize: 19 }}>{filterLabel(filter)}</h2>{visibleEntries.length === 0 ? <section style={{ ...card, padding: 24, textAlign: 'center' }}><h3 style={{ margin: 0, fontSize: 17 }}>{finance.entries.length ? 'No matching finance records' : 'No finance records yet'}</h3><p style={{ margin: '7px 0 0', color: '#64748b', fontSize: 13, lineHeight: 1.5 }}>{finance.entries.length ? 'Try another filter.' : 'Your earnings and received amounts will appear here.'}</p></section> : <><div style={{ display: 'grid', gap: 10 }}>{displayedEntries.map((entry) => <FinanceRow key={entry.id} entry={entry} onDetails={openDetails} onEdit={openEdit} onDelete={setDeleteTarget} />)}</div>{hasMore && <button type="button" onClick={() => void finance.loadMoreHistory()} disabled={finance.historyLoadingMore} style={{ ...button, width: '100%', minHeight: 38, marginTop: 10, background: 'linear-gradient(180deg,#fff,#f3f6fa)', boxShadow: 'inset 0 1px 0 #fff, 0 3px 8px rgba(15,23,42,.08)', opacity: finance.historyLoadingMore ? .7 : 1 }}>{finance.historyLoadingMore ? 'Loading…' : 'Load More'}</button>}</>}</section>
     {modalOpen && <AddReceivedModal editing={editing} type={type} setType={setType} amount={amount} setAmount={setAmount} formError={formError} saving={finance.saving} onCancel={() => setModalOpen(false)} onSave={() => void submit()} />}
     {deleteTarget && <DeleteModal saving={finance.saving} onCancel={() => setDeleteTarget(null)} onDelete={() => void confirmDelete()} />}
     {(selectedEntry || detailsLoading || detailsError) && <WorkEntryDetails entry={selectedEntry} loading={detailsLoading} error={detailsError} onClose={() => { setSelectedEntry(null); setDetailsError(null); }} />}
   </main>;
+}
+
+function FilterPopup({ filter, onSelect, onClose }: { filter: Filter; onSelect: (filter: Filter) => void; onClose: () => void }) {
+  const options: Filter[] = ['all', 'earnings', 'payments', 'advances', 'received'];
+  return <div className="finance-filter-overlay" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
+    <section id="finance-filter-dialog" className="finance-filter-popup" role="dialog" aria-modal="true" aria-labelledby="finance-filter-title">
+      <div className="finance-filter-reflection" aria-hidden="true" />
+      <div className="finance-filter-heading"><div><div className="finance-filter-eyebrow">Finance</div><h3 id="finance-filter-title">Choose filter</h3></div><button type="button" className="finance-filter-close" onClick={onClose} aria-label="Close filter">×</button></div>
+      <div className="finance-filter-options" role="listbox" aria-label="Finance filters">
+        {options.map((item) => { const selected = item === filter; return <button key={item} type="button" role="option" aria-selected={selected} className={`finance-filter-option${selected ? ' is-selected' : ''}`} onClick={() => onSelect(item)}>
+          <span className="finance-filter-option-icon" aria-hidden="true">{selected ? '✓' : '•'}</span><span className="finance-filter-option-label">{filterLabel(item)}</span>{selected && <span className="finance-filter-option-state">Selected</span>}
+        </button>; })}
+      </div>
+    </section>
+    <style>{`
+      .finance-filter-shell{position:relative;margin-bottom:14px;padding:9px 10px;border:1px solid rgba(99,102,241,.13);border-radius:16px;background:linear-gradient(180deg,#ffffff 0%,#f7fafc 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.98),inset 0 -1px 0 rgba(148,163,184,.08),0 3px 9px rgba(15,23,42,.055);}
+      .finance-filter-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0;}
+      .finance-filter-eyebrow{font-size:10px;font-weight:900;letter-spacing:.09em;text-transform:uppercase;color:#64748b;}
+      .finance-filter-current{margin-top:2px;font-size:13px;font-weight:900;letter-spacing:-.01em;color:#172033;text-shadow:0 1px 0 #fff;}
+      .finance-filter-trigger{display:inline-flex;align-items:center;gap:7px;min-height:38px;padding:0 11px;border:1px solid rgba(37,99,235,.22);border-radius:11px;background:linear-gradient(180deg,#ffffff 0%,#edf7fb 100%);color:#164e63;font:inherit;font-size:12px;font-weight:900;letter-spacing:.01em;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.98),inset 0 -1px 0 rgba(14,116,144,.12),0 2px 0 rgba(148,163,184,.32),0 6px 13px rgba(14,116,144,.12),0 0 14px rgba(45,212,191,.08);text-shadow:0 1px 0 #fff;transition:transform .12s ease,box-shadow .12s ease;}
+      .finance-filter-trigger:hover{transform:translateY(-1px);box-shadow:inset 0 1px 0 #fff,inset 0 -1px 0 rgba(14,116,144,.14),0 3px 0 rgba(148,163,184,.34),0 9px 17px rgba(14,116,144,.14),0 0 16px rgba(45,212,191,.11);}
+      .finance-filter-trigger:active{transform:translateY(2px);box-shadow:inset 0 2px 4px rgba(15,23,42,.09),0 1px 0 rgba(148,163,184,.3),0 3px 8px rgba(14,116,144,.1);}
+      .finance-filter-trigger:focus-visible,.finance-filter-option:focus-visible,.finance-filter-close:focus-visible{outline:3px solid rgba(37,99,235,.22);outline-offset:2px;}
+      .finance-filter-dot{width:6px;height:6px;border-radius:50%;background:#0f9fa5;box-shadow:0 0 0 2px rgba(15,159,165,.1),0 0 9px rgba(15,159,165,.28);}
+      .finance-filter-overlay{position:fixed;inset:0;z-index:1400;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(241,245,249,.46);backdrop-filter:blur(4px);}
+      .finance-filter-popup{position:relative;width:min(420px,calc(100vw - 36px));box-sizing:border-box;padding:12px;border:1px solid rgba(71,85,105,.14);border-radius:20px;background:linear-gradient(180deg,#ffffff 0%,#f8fbfd 55%,#eef4f7 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.98),inset 0 -2px 0 rgba(148,163,184,.1),0 2px 0 rgba(148,163,184,.24),0 10px 20px rgba(15,23,42,.12),0 28px 58px rgba(15,23,42,.16),0 0 22px rgba(45,212,191,.09);overflow:visible;}
+      .finance-filter-reflection{position:absolute;left:12px;right:12px;top:7px;height:18px;border-radius:14px 14px 50% 50%;background:linear-gradient(180deg,rgba(255,255,255,.86),rgba(255,255,255,0));pointer-events:none;}
+      .finance-filter-heading{position:relative;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:1px 1px 9px;}
+      .finance-filter-heading h3{margin:2px 0 0;font-size:16px;font-weight:950;letter-spacing:-.025em;color:#172033;text-shadow:0 1px 0 #fff,0 1px 1px rgba(15,23,42,.08);}
+      .finance-filter-close{width:32px;height:32px;border:1px solid rgba(148,163,184,.24);border-radius:10px;background:linear-gradient(180deg,#fff,#edf2f5);color:#475569;font:inherit;font-size:18px;font-weight:800;line-height:1;cursor:pointer;box-shadow:inset 0 1px 0 #fff,0 2px 0 rgba(148,163,184,.22),0 4px 9px rgba(15,23,42,.08);}
+      .finance-filter-options{display:grid;gap:6px;}
+      .finance-filter-option{position:relative;display:flex;align-items:center;gap:9px;width:100%;min-height:43px;padding:0 10px;border:1px solid rgba(148,163,184,.18);border-radius:12px;box-sizing:border-box;background:linear-gradient(180deg,#f9fbfc,#eef3f5);color:#334155;font:inherit;font-size:12px;font-weight:900;letter-spacing:.005em;text-align:left;cursor:pointer;box-shadow:inset 0 2px 4px rgba(15,23,42,.06),inset 0 1px 0 rgba(255,255,255,.8),0 1px 0 rgba(255,255,255,.9);text-shadow:0 1px 0 #fff;transition:transform .1s ease,box-shadow .1s ease,background .1s ease;}
+      .finance-filter-option:hover{transform:translateY(-1px);box-shadow:inset 0 2px 4px rgba(15,23,42,.045),inset 0 1px 0 #fff,0 3px 7px rgba(15,23,42,.07);}
+      .finance-filter-option:active{transform:translateY(2px);box-shadow:inset 0 3px 6px rgba(15,23,42,.1),0 1px 0 rgba(255,255,255,.8);}
+      .finance-filter-option.is-selected{border-color:rgba(14,116,144,.25);background:linear-gradient(180deg,#f2ffff 0%,#e5f7f7 100%);color:#155e75;box-shadow:inset 0 1px 0 rgba(255,255,255,.98),inset 0 -1px 0 rgba(13,148,136,.1),0 2px 0 rgba(148,163,184,.2),0 6px 12px rgba(13,148,136,.1),0 0 15px rgba(45,212,191,.08);}
+      .finance-filter-option-icon{display:inline-flex;align-items:center;justify-content:center;width:21px;height:21px;flex:0 0 21px;border-radius:7px;background:linear-gradient(180deg,#fff,#e8eef1);color:#94a3b8;font-size:12px;font-weight:950;box-shadow:inset 0 1px 2px rgba(15,23,42,.08),0 1px 0 #fff;}
+      .finance-filter-option.is-selected .finance-filter-option-icon{background:linear-gradient(180deg,#d9ffff,#bceceb);color:#0f766e;box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 2px 6px rgba(13,148,136,.16),0 0 9px rgba(45,212,191,.16);}
+      .finance-filter-option-label{flex:1;min-width:0;}
+      .finance-filter-option-state{font-size:9px;font-weight:950;letter-spacing:.07em;text-transform:uppercase;color:#0f766e;}
+      @media (max-width:520px){.finance-filter-overlay{align-items:flex-end;padding:0;background:rgba(241,245,249,.52)}.finance-filter-popup{width:100%;max-width:none;border-radius:22px 22px 0 0;padding:11px 12px calc(12px + env(safe-area-inset-bottom));box-shadow:inset 0 1px 0 rgba(255,255,255,.98),inset 0 -2px 0 rgba(148,163,184,.1),0 -2px 0 rgba(148,163,184,.2),0 -10px 24px rgba(15,23,42,.12),0 -26px 58px rgba(15,23,42,.16),0 0 20px rgba(45,212,191,.08)}.finance-filter-heading{padding-bottom:8px}.finance-filter-option{min-height:42px}.finance-filter-option-state{display:none}}
+    `}</style>
+  </div>;
 }
 
 function SummaryCard({ label, value, tone = 'neutral' }: { label: string; value: string; tone?: 'positive' | 'negative' | 'neutral' }) { const valueColor = tone === 'positive' ? '#15803d' : tone === 'negative' ? '#b91c1c' : '#0f172a'; return <section style={{ ...card, padding: 17 }}><div style={{ color: '#64748b', fontSize: 11, fontWeight: 850, letterSpacing: '.06em', textTransform: 'uppercase' }}>{label}</div><div style={{ marginTop: 6, fontSize: 'clamp(23px,6vw,32px)', fontWeight: 950, letterSpacing: '-.04em', color: valueColor }}>{value}</div></section>; }
