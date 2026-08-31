@@ -76,6 +76,20 @@ export function getWorkerWorkPeriodBounds(now = new Date()) {
   };
 }
 
+export function getWorkerWorkDayBounds(day: Date) {
+  const dayStart = startOfDay(day);
+  const dayEnd = new Date(dayStart);
+  dayEnd.setDate(dayEnd.getDate() + 1);
+  return { dayStart: dayStart.toISOString(), dayEnd: dayEnd.toISOString() };
+}
+
+export function getWorkerWorkMonthBounds(month: Date) {
+  const monthStart = startOfMonth(month);
+  const monthEnd = new Date(monthStart);
+  monthEnd.setMonth(monthEnd.getMonth() + 1);
+  return { monthStart: monthStart.toISOString(), monthEnd: monthEnd.toISOString() };
+}
+
 /** Build a Work History week from its local calendar Monday, using the app's existing local-time convention. */
 export function getWorkerWorkWeekBounds(weekStartDate: Date) {
   const weekStart = startOfWeek(weekStartDate);
