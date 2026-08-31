@@ -68,3 +68,33 @@ export async function createWorkerFinanceReceived(profileId: string, entryType: 
     .single<ReceivedRow>();
   return { data: result.data ? normalizeReceived(result.data) : null, error: result.error };
 }
+
+export async function updateWorkerFinanceReceived(profileId: string, id: string, entryType: FinanceReceivedType, amount: string) {
+  const workerResult = await resolveWorkerProfileId(profileId);
+  if (workerResult.error || !workerResult.data) {
+    return { data: null, error: workerResult.error ?? new Error('Worker Identity is unavailable.') };
+  }
+
+  const result = await supabase
+    .from('worker_finance_received')
+    .update({ entry_type: entryType, amount: canonicalizeWorkDecimal(amount) })
+    .eq('id', id)
+    .eq('worker_profile_id', workerResult.data)
+    .select(RECEIVED_COLUMNS)
+    .single<ReceivedRow>();
+  return { data: result.data ? normalizeReceived(result.data) : null, error: result.error };
+}
+
+export async function deleteWorkerFinanceReceived(profileId: string, id: string) {
+  const workerResult = await resolveWorkerProfileId(profileId);
+  if (workerResult.error || !workerResult.data) {
+    return { error: workerResult.error ?? new Error('Worker Identity is unavailable.') };
+  }
+
+  const result = await supabase
+    .from('worker_finance_received')
+    .delete()
+    .eq('id', id)
+    .eq('worker_profile_id', workerResult.data);
+  return { error: result.error };
+}
