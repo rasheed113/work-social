@@ -76,6 +76,18 @@ export function getWorkerWorkPeriodBounds(now = new Date()) {
   };
 }
 
+/** Build a Work History week from its local calendar Monday, using the app's existing local-time convention. */
+export function getWorkerWorkWeekBounds(weekStartDate: Date) {
+  const weekStart = startOfWeek(weekStartDate);
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekEnd.getDate() + 7);
+  return { weekStart: weekStart.toISOString(), weekEnd: weekEnd.toISOString() };
+}
+
+export function getWorkerWorkWeekStart(now = new Date()) {
+  return startOfWeek(now);
+}
+
 export function normalizeWorkerWorkTotals(value: Partial<Record<keyof WorkerWorkTotals, unknown>> | null | undefined): WorkerWorkTotals {
   const normalize = (entry: unknown) => typeof entry === 'string' ? canonicalizeWorkDecimal(entry) : String(entry ?? '0');
   return {
