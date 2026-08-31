@@ -49,8 +49,14 @@ export function WorkerHome({ profileId }: WorkerHomeProps) {
             <button type="button" onClick={() => navigate('/work/finance')} style={{ marginTop: 12, minHeight: 40, padding: '0 13px', borderRadius: 11, fontWeight: 800, cursor: 'pointer' }}>Open Finance</button>
           </section>
           <section aria-labelledby="worker-home-diary" style={{ ...cardStyle, marginTop: 12 }}>
-            <h2 id="worker-home-diary" style={{ margin: 0, fontSize: 17 }}>Personal Diary</h2>
-            <p style={{ margin: '6px 0 0', color: '#64748b', fontSize: 13 }}>Personal Diary remains an independent future Worker feature.</p>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+              <div>
+                <h2 id="worker-home-diary" style={{ margin: 0, fontSize: 17 }}>Personal Diary</h2>
+                <p style={{ margin: '6px 0 0', color: '#64748b', fontSize: 13 }}>A private space for notes, tasks, ideas, journal writing and anything in between.</p>
+              </div>
+              <span aria-label="Private" title="Private Worker-owned workspace" style={{ flex: '0 0 auto', borderRadius: 999, padding: '6px 8px', background: 'rgba(34,197,94,.08)', color: '#15803d', fontSize: 10, fontWeight: 900 }}>🔒 Private</span>
+            </div>
+            <button type="button" onClick={() => navigate('/work/diary')} style={{ marginTop: 12, minHeight: 40, padding: '0 13px', borderRadius: 11, fontWeight: 800, cursor: 'pointer' }}>Open Personal Diary</button>
           </section>
         </>
       )}
