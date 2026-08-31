@@ -1,57 +1,378 @@
-/* Personal Organizer calendar controls: keep the preference controls compact
-   while allowing the settings card to stack on narrow screens. */
+/* Personal Diary — light premium 3D presentation layer.
+   Functionality remains in WorkerDiaryPage; this stylesheet only reshapes presentation. */
+
+main:has(.worker-diary-search) {
+  width: min(100%, 980px);
+  box-sizing: border-box;
+  padding: 12px 14px 112px !important;
+  color: #172033 !important;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+}
+
+main:has(.worker-diary-search) button,
+main:has(.worker-diary-search) input,
+main:has(.worker-diary-search) textarea,
+main:has(.worker-diary-search) select {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Header */
+main:has(.worker-diary-search) > header {
+  min-height: 34px;
+  margin-bottom: 9px !important;
+}
+main:has(.worker-diary-search) > header button {
+  border: 1px solid rgba(30, 64, 175, .10) !important;
+  border-radius: 10px !important;
+  padding: 7px 10px !important;
+  background: linear-gradient(180deg, #fff, #f7faff) !important;
+  color: #334155 !important;
+  box-shadow: 0 2px 0 rgba(15, 23, 42, .04), 0 5px 12px rgba(30, 64, 175, .06), inset 0 1px 0 rgba(255,255,255,.95) !important;
+  font-size: 12px !important;
+  transition: transform .16s ease, box-shadow .16s ease !important;
+}
+main:has(.worker-diary-search) > header button:hover { transform: translateY(-1px); box-shadow: 0 3px 0 rgba(15,23,42,.04), 0 8px 16px rgba(30,64,175,.08), inset 0 1px 0 rgba(255,255,255,.95) !important; }
+main:has(.worker-diary-search) > header button:active { transform: translateY(1px); }
+main:has(.worker-diary-search) > header button:focus-visible { outline: 3px solid rgba(14, 165, 233, .20); outline-offset: 2px; }
+main:has(.worker-diary-search) > header span {
+  border: 1px solid rgba(13, 148, 136, .14) !important;
+  background: linear-gradient(180deg, #f0fdfa, #e6fffb) !important;
+  color: #0f766e !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.9), 0 3px 9px rgba(13,148,136,.07) !important;
+}
+
+/* Hero */
+main:has(.worker-diary-search) > section:nth-of-type(1) {
+  position: relative;
+  overflow: visible;
+  padding: 15px 17px !important;
+  margin-bottom: 9px !important;
+  border: 1px solid rgba(59, 130, 246, .12) !important;
+  border-radius: 17px !important;
+  background: linear-gradient(145deg, #f7fbff 0%, #eef7ff 55%, #f8fbff 100%) !important;
+  box-shadow: 0 2px 0 rgba(30,64,175,.035), 0 10px 24px rgba(30,64,175,.075), inset 0 1px 0 rgba(255,255,255,.95) !important;
+}
+main:has(.worker-diary-search) > section:nth-of-type(1)::before {
+  content: "";
+  position: absolute;
+  left: 13px;
+  right: 13px;
+  top: 0;
+  height: 1px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.95);
+}
+main:has(.worker-diary-search) > section:nth-of-type(1) h1 {
+  margin: 3px 0 2px !important;
+  font-size: clamp(25px, 6vw, 34px) !important;
+  line-height: 1.06 !important;
+  letter-spacing: -.035em !important;
+  color: #172554 !important;
+  text-shadow: 0 1px 0 rgba(255,255,255,.9), 0 2px 3px rgba(30,64,175,.08) !important;
+}
+main:has(.worker-diary-search) > section:nth-of-type(1) p { font-size: 12.5px !important; line-height: 1.45 !important; max-width: 620px; }
+main:has(.worker-diary-search) > section:nth-of-type(1) div:first-child > div:first-child { color: #0f766e !important; font-size: 10px !important; letter-spacing: .14em !important; }
+
+/* Toolbar */
+main:has(.worker-diary-search) > section:nth-of-type(2) {
+  gap: 7px !important;
+  margin-bottom: 9px !important;
+  align-items: stretch !important;
+}
+main:has(.worker-diary-search) .worker-diary-search {
+  min-width: 0 !important;
+  min-height: 39px;
+  box-sizing: border-box;
+  padding: 9px 12px !important;
+  border: 1px solid rgba(30, 64, 175, .12) !important;
+  border-radius: 12px !important;
+  background: linear-gradient(180deg, #ffffff, #f8fbff) !important;
+  color: #172033 !important;
+  font-size: 13px !important;
+  box-shadow: inset 0 2px 4px rgba(15,23,42,.035), 0 3px 10px rgba(30,64,175,.055) !important;
+  outline: none !important;
+}
+main:has(.worker-diary-search) .worker-diary-search::placeholder { color: #94a3b8; }
+main:has(.worker-diary-search) .worker-diary-search:focus { border-color: rgba(14,165,233,.42) !important; box-shadow: 0 0 0 3px rgba(14,165,233,.10), inset 0 2px 4px rgba(15,23,42,.025), 0 5px 14px rgba(14,165,233,.08) !important; }
+main:has(.worker-diary-search) > section:nth-of-type(2) > div { gap: 6px !important; }
+main:has(.worker-diary-search) > section:nth-of-type(2) button {
+  min-height: 39px;
+  box-sizing: border-box;
+  border-radius: 10px !important;
+  padding: 8px 11px !important;
+  font-size: 12px !important;
+  transition: transform .16s ease, box-shadow .16s ease, background .16s ease !important;
+}
+main:has(.worker-diary-search) > section:nth-of-type(2) button:not(:last-child) {
+  border: 1px solid rgba(30,64,175,.10) !important;
+  background: linear-gradient(180deg,#fff,#f6f9fd) !important;
+  color: #475569 !important;
+  box-shadow: 0 2px 0 rgba(15,23,42,.035), 0 4px 10px rgba(15,23,42,.045), inset 0 1px 0 rgba(255,255,255,.95) !important;
+}
+main:has(.worker-diary-search) > section:nth-of-type(2) button:not(:last-child):hover { transform: translateY(-1px); }
+main:has(.worker-diary-search) > section:nth-of-type(2) button:not(:last-child):active { transform: translateY(1px); }
+main:has(.worker-diary-search) > section:nth-of-type(2) button:not(:last-child):focus-visible { outline: 3px solid rgba(14,165,233,.16); outline-offset: 1px; }
+main:has(.worker-diary-search) > section:nth-of-type(2) button:nth-last-child(2) {
+  background: linear-gradient(180deg,#eef8ff,#e9f4ff) !important;
+  color: #075985 !important;
+  border-color: rgba(14,165,233,.20) !important;
+}
+main:has(.worker-diary-search) > section:nth-of-type(2) button:last-child {
+  border: 1px solid rgba(37,99,235,.24) !important;
+  background: linear-gradient(180deg,#3b82f6,#2563eb) !important;
+  color: #fff !important;
+  box-shadow: 0 3px 0 #1d4ed8, 0 7px 14px rgba(37,99,235,.18), inset 0 1px 0 rgba(255,255,255,.35) !important;
+  text-shadow: 0 1px 1px rgba(15,23,42,.15);
+}
+main:has(.worker-diary-search) > section:nth-of-type(2) button:last-child:hover { transform: translateY(-1px); box-shadow: 0 4px 0 #1d4ed8, 0 10px 18px rgba(37,99,235,.20), inset 0 1px 0 rgba(255,255,255,.38) !important; }
+main:has(.worker-diary-search) > section:nth-of-type(2) button:last-child:active { transform: translateY(2px); box-shadow: 0 1px 0 #1d4ed8, 0 4px 9px rgba(37,99,235,.14), inset 0 2px 3px rgba(15,23,42,.10) !important; }
+main:has(.worker-diary-search) > section:nth-of-type(2) button:last-child:focus-visible { outline: 3px solid rgba(37,99,235,.18); outline-offset: 2px; }
+
+/* Status */
+main:has(.worker-diary-search) > div[role="status"] {
+  margin-bottom: 9px !important;
+  padding: 8px 10px !important;
+  min-height: 36px;
+  box-sizing: border-box;
+  border: 1px solid rgba(16,185,129,.14) !important;
+  border-radius: 11px !important;
+  background: linear-gradient(180deg,#f0fdf9,#eafaf5) !important;
+  color: #166534 !important;
+  box-shadow: 0 4px 12px rgba(16,185,129,.07), inset 0 1px 0 rgba(255,255,255,.9) !important;
+  font-size: 12px !important;
+}
+
+/* Settings */
+main:has(.worker-diary-search) > section:has(> select) {
+  padding: 11px 12px !important;
+  margin-bottom: 9px !important;
+  border: 1px solid rgba(30,64,175,.09) !important;
+  border-radius: 15px !important;
+  background: linear-gradient(145deg,#fff,#f8fbff) !important;
+  box-shadow: 0 2px 0 rgba(15,23,42,.03), 0 7px 18px rgba(30,64,175,.055), inset 0 1px 0 rgba(255,255,255,.96) !important;
+}
+main:has(.worker-diary-search) > section:has(> select) strong { color: #1e293b; font-size: 13px; }
+main:has(.worker-diary-search) > section:has(> select) select {
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 8px 28px 8px 9px !important;
+  border: 1px solid rgba(30,64,175,.13) !important;
+  border-radius: 9px !important;
+  background: #fff !important;
+  color: #334155 !important;
+  font-size: 12px !important;
+  box-shadow: inset 0 1px 3px rgba(15,23,42,.035), 0 2px 6px rgba(15,23,42,.035) !important;
+}
+main:has(.worker-diary-search) > section:has(> select) select:focus { outline: 3px solid rgba(14,165,233,.12); border-color: rgba(14,165,233,.35) !important; }
+main:has(.worker-diary-search) > section:has(> select) button {
+  min-height: 35px;
+  border-radius: 9px !important;
+  padding: 7px 10px !important;
+  font-size: 11.5px !important;
+  transition: transform .16s ease, box-shadow .16s ease !important;
+}
+main:has(.worker-diary-search) > section:has(> select) button:hover { transform: translateY(-1px); }
+main:has(.worker-diary-search) > section:has(> select) button:active { transform: translateY(1px); }
+main:has(.worker-diary-search) > section:has(> select) button:focus-visible { outline: 3px solid rgba(14,165,233,.14); outline-offset: 2px; }
+
+/* Calendar */
+main:has(.worker-diary-search) > section:has(.worker-diary-search) { box-sizing: border-box; }
+main:has(.worker-diary-search) > section:has(.worker-diary-search) + section {}
+main:has(.worker-diary-search) section:has(.worker-diary-search) {}
+main:has(.worker-diary-search) > section:has(.worker-diary-search) {}
+main:has(.worker-diary-search) > section:has(.worker-diary-search) {}
+main:has(.worker-diary-search) > section:has(.worker-diary-search) {}
+/* The calendar card is the only section containing the seven weekday labels. */
+main:has(.worker-diary-search) > section:has(> .worker-diary-calendar-marker) {}
+main:has(.worker-diary-search) > section:has(.worker-diary-search) {}
+main:has(.worker-diary-search) > section:has(.worker-diary-search) {}
+main:has(.worker-diary-search) > section:has(> div > div > button) {}
+
+/* Calendar styles through stable inline-layout fingerprints. */
+main:has(.worker-diary-search) > section > div[style*="grid-template-columns: repeat(7"] {
+  gap: 5px !important;
+}
+main:has(.worker-diary-search) > section > div[style*="grid-template-columns: repeat(7"] + div {
+  margin-top: 10px !important;
+}
+main:has(.worker-diary-search) > section > div[style*="grid-template-columns: repeat(7"] button {
+  min-height: 54px !important;
+  padding: 5px !important;
+  border-radius: 10px !important;
+  box-shadow: 0 2px 6px rgba(15,23,42,.035), inset 0 1px 0 rgba(255,255,255,.95) !important;
+  transition: transform .14s ease, box-shadow .14s ease !important;
+}
+main:has(.worker-diary-search) > section > div[style*="grid-template-columns: repeat(7"] button:hover { transform: translateY(-1px); box-shadow: 0 4px 9px rgba(30,64,175,.08), inset 0 1px 0 rgba(255,255,255,.95) !important; }
+main:has(.worker-diary-search) > section > div[style*="grid-template-columns: repeat(7"] button:active { transform: translateY(1px); }
+main:has(.worker-diary-search) > section > div[style*="grid-template-columns: repeat(7"] button:focus-visible { outline: 3px solid rgba(14,165,233,.14); outline-offset: 1px; }
+
+/* Timeline entries and empty/loading surfaces */
+main:has(.worker-diary-search) article {
+  padding: 8px 9px !important;
+  gap: 7px !important;
+  border: 1px solid rgba(30,64,175,.09) !important;
+  border-radius: 14px !important;
+  background: linear-gradient(145deg,#fff,#f9fbfe) !important;
+  box-shadow: 0 2px 0 rgba(15,23,42,.025), 0 7px 16px rgba(15,23,42,.045), inset 0 1px 0 rgba(255,255,255,.95) !important;
+  transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease !important;
+}
+main:has(.worker-diary-search) article:hover { transform: translateY(-1px); border-color: rgba(14,165,233,.16) !important; box-shadow: 0 3px 0 rgba(15,23,42,.025), 0 10px 20px rgba(30,64,175,.07), inset 0 1px 0 rgba(255,255,255,.95) !important; }
+main:has(.worker-diary-search) article > button:first-child { gap: 9px !important; padding: 4px !important; }
+main:has(.worker-diary-search) article > button:first-child > span:first-child { flex: 0 0 auto; width: 30px; height: 30px; display: grid; place-items: center; border-radius: 9px; background: linear-gradient(145deg,#eff8ff,#eaf2ff); box-shadow: inset 0 1px 0 rgba(255,255,255,.9), 0 2px 5px rgba(30,64,175,.07); font-size: 17px !important; }
+main:has(.worker-diary-search) article small { font-size: 10.5px !important; }
+main:has(.worker-diary-search) article strong { font-size: 14px !important; }
+main:has(.worker-diary-search) article span[style*="overflowWrap"] { font-size: 12.5px !important; line-height: 1.42 !important; }
+main:has(.worker-diary-search) article > div:last-child { gap: 2px !important; }
+main:has(.worker-diary-search) article > div:last-child button {
+  border: 1px solid rgba(30,64,175,.08) !important;
+  border-radius: 8px !important;
+  padding: 6px 7px !important;
+  background: linear-gradient(180deg,#fff,#f5f8fc) !important;
+  color: #2563eb !important;
+  box-shadow: 0 2px 5px rgba(15,23,42,.035), inset 0 1px 0 rgba(255,255,255,.95) !important;
+  font-size: 10.5px !important;
+  transition: transform .14s ease, box-shadow .14s ease !important;
+}
+main:has(.worker-diary-search) article > div:last-child button:hover { transform: translateY(-1px); box-shadow: 0 4px 8px rgba(37,99,235,.08), inset 0 1px 0 rgba(255,255,255,.95) !important; }
+main:has(.worker-diary-search) article > div:last-child button:active { transform: translateY(1px); }
+main:has(.worker-diary-search) article > div:last-child button:focus-visible { outline: 3px solid rgba(14,165,233,.13); outline-offset: 1px; }
+main:has(.worker-diary-search) article > div:last-child button:last-child { color: #b91c1c !important; }
+main:has(.worker-diary-search) > section > div[style*="textAlign: 'center'"] { padding: 20px 14px !important; border-radius: 14px !important; box-shadow: 0 6px 15px rgba(15,23,42,.045), inset 0 1px 0 rgba(255,255,255,.95) !important; font-size: 12px !important; }
+
+/* Editor/view/delete dialogs */
+main:has(.worker-diary-search) > div[style*="position: fixed"] {
+  padding: 10px !important;
+  background: rgba(15,23,42,.30) !important;
+  backdrop-filter: blur(3px);
+}
+main:has(.worker-diary-search) > div[style*="position: fixed"] > div {
+  box-sizing: border-box;
+  width: min(680px, 100%) !important;
+  max-height: min(88vh, 760px) !important;
+  padding: 15px !important;
+  border: 1px solid rgba(30,64,175,.12) !important;
+  border-radius: 18px !important;
+  background: linear-gradient(145deg,#fff,#f8fbff) !important;
+  box-shadow: 0 2px 0 rgba(15,23,42,.04), 0 25px 60px rgba(15,23,42,.22), inset 0 1px 0 rgba(255,255,255,.98) !important;
+}
+main:has(.worker-diary-search) > div[style*="position: fixed"] h2,
+main:has(.worker-diary-search) > div[style*="position: fixed"] h3 { color: #172554; letter-spacing: -.025em; }
+main:has(.worker-diary-search) > div[style*="position: fixed"] h2 { font-size: 20px !important; }
+main:has(.worker-diary-search) > div[style*="position: fixed"] h3 { font-size: 17px !important; }
+main:has(.worker-diary-search) > div[style*="position: fixed"] label { gap: 5px !important; margin-bottom: 9px !important; font-size: 11.5px !important; color: #475569; }
+main:has(.worker-diary-search) > div[style*="position: fixed"] label input,
+main:has(.worker-diary-search) > div[style*="position: fixed"] label textarea,
+main:has(.worker-diary-search) > div[style*="position: fixed"] label select {
+  min-height: 38px;
+  padding: 9px 10px !important;
+  border: 1px solid rgba(30,64,175,.12) !important;
+  border-radius: 10px !important;
+  background: linear-gradient(180deg,#fff,#f9fbff) !important;
+  color: #172033 !important;
+  box-shadow: inset 0 2px 4px rgba(15,23,42,.03), 0 2px 6px rgba(30,64,175,.04) !important;
+  outline: none !important;
+  font-size: 12.5px !important;
+}
+main:has(.worker-diary-search) > div[style*="position: fixed"] label textarea { min-height: 118px; line-height: 1.5 !important; }
+main:has(.worker-diary-search) > div[style*="position: fixed"] label input:focus,
+main:has(.worker-diary-search) > div[style*="position: fixed"] label textarea:focus,
+main:has(.worker-diary-search) > div[style*="position: fixed"] label select:focus { border-color: rgba(14,165,233,.38) !important; box-shadow: 0 0 0 3px rgba(14,165,233,.10), inset 0 2px 4px rgba(15,23,42,.02) !important; }
+main:has(.worker-diary-search) > div[style*="position: fixed"] label input::placeholder,
+main:has(.worker-diary-search) > div[style*="position: fixed"] label textarea::placeholder { color: #a1aec0; }
+main:has(.worker-diary-search) > div[style*="position: fixed"] input[type="checkbox"] { accent-color: #2563eb; }
+main:has(.worker-diary-search) > div[style*="position: fixed"] > div > div[style*="grid-template-columns: repeat(3"] {
+  gap: 6px !important;
+  margin-bottom: 12px !important;
+}
+main:has(.worker-diary-search) > div[style*="position: fixed"] > div > div[style*="grid-template-columns: repeat(3"] button {
+  min-height: 58px !important;
+  border: 1px solid rgba(30,64,175,.09) !important;
+  border-radius: 11px !important;
+  background: linear-gradient(145deg,#fff,#f6f9fd) !important;
+  box-shadow: 0 2px 0 rgba(15,23,42,.03), 0 5px 10px rgba(15,23,42,.04), inset 0 1px 0 rgba(255,255,255,.95) !important;
+  font-size: 11px !important;
+  transition: transform .14s ease, box-shadow .14s ease !important;
+}
+main:has(.worker-diary-search) > div[style*="position: fixed"] > div > div[style*="grid-template-columns: repeat(3"] button:hover { transform: translateY(-1px); }
+main:has(.worker-diary-search) > div[style*="position: fixed"] > div > div[style*="grid-template-columns: repeat(3"] button:active { transform: translateY(1px); }
+main:has(.worker-diary-search) > div[style*="position: fixed"] button:focus-visible { outline: 3px solid rgba(14,165,233,.13); outline-offset: 1px; }
+main:has(.worker-diary-search) > div[style*="position: fixed"] > div > div[style*="display: flex"][style*="justify-content: flex-end"] { margin-top: 12px !important; }
+main:has(.worker-diary-search) > div[style*="position: fixed"] > div > div[style*="display: flex"][style*="justify-content: flex-end"] button {
+  min-height: 37px;
+  border-radius: 9px !important;
+  padding: 8px 12px !important;
+  font-size: 11.5px !important;
+}
+main:has(.worker-diary-search) > div[style*="position: fixed"] > div > div[style*="display: flex"][style*="justify-content: flex-end"] button:last-child {
+  box-shadow: 0 3px 0 #1d4ed8, 0 7px 14px rgba(37,99,235,.17), inset 0 1px 0 rgba(255,255,255,.32) !important;
+  transition: transform .14s ease, box-shadow .14s ease !important;
+}
+main:has(.worker-diary-search) > div[style*="position: fixed"] > div > div[style*="display: flex"][style*="justify-content: flex-end"] button:last-child:hover { transform: translateY(-1px); }
+main:has(.worker-diary-search) > div[style*="position: fixed"] > div > div[style*="display: flex"][style*="justify-content: flex-end"] button:last-child:active { transform: translateY(2px); box-shadow: 0 1px 0 #1d4ed8, 0 4px 8px rgba(37,99,235,.13) !important; }
+
+/* Compact calendar header controls */
+main:has(.worker-diary-search) button[style*="fontSize: 24px"] { box-shadow: 0 2px 0 rgba(15,23,42,.03), 0 5px 10px rgba(30,64,175,.05), inset 0 1px 0 rgba(255,255,255,.95) !important; }
+
+/* Narrow mobile layouts: no overflow hiding, all content remains reachable. */
 @media (max-width: 760px) {
+  main:has(.worker-diary-search) { padding: 8px 10px 92px !important; }
+  main:has(.worker-diary-search) > header { margin-bottom: 7px !important; }
+  main:has(.worker-diary-search) > section:nth-of-type(1) { padding: 13px 13px !important; border-radius: 15px !important; }
+  main:has(.worker-diary-search) > section:nth-of-type(1) h1 { font-size: clamp(23px, 8vw, 30px) !important; }
+  main:has(.worker-diary-search) > section:nth-of-type(1) p { font-size: 11.5px !important; }
+  main:has(.worker-diary-search) > section:nth-of-type(2) { display: grid !important; grid-template-columns: minmax(0,1fr); }
+  main:has(.worker-diary-search) > section:nth-of-type(2) > div { display: grid !important; grid-template-columns: repeat(3,minmax(0,1fr)); width: 100%; }
+  main:has(.worker-diary-search) > section:nth-of-type(2) > div button { width: 100% !important; min-width: 0 !important; }
   main:has(.worker-diary-search) > section:has(> select) {
-    grid-template-columns: max-content minmax(0, 1fr);
-    align-items: center;
-    gap: 8px 10px;
+    grid-template-columns: minmax(0,1fr) minmax(0,auto) !important;
+    gap: 8px !important;
+    align-items: center !important;
   }
+  main:has(.worker-diary-search) > section:has(> select) > div:first-child { grid-column: 1 / -1 !important; }
+  main:has(.worker-diary-search) > section:has(> select) > select { grid-column: 1 !important; width: 100% !important; }
+  main:has(.worker-diary-search) > section:has(> select) > div:last-of-type { grid-column: 2 !important; width: auto !important; }
+  main:has(.worker-diary-search) > section:has(> select) > div:last-of-type > div { max-width: 190px; }
+  main:has(.worker-diary-search) > section:has(> select) > button { grid-column: 1 / -1 !important; justify-self: start; }
+  main:has(.worker-diary-search) article { display: grid !important; grid-template-columns: minmax(0,1fr); }
+  main:has(.worker-diary-search) article > div:last-child { justify-content: flex-start !important; padding-left: 39px; }
+  main:has(.worker-diary-search) article > div:last-child button { min-height: 32px; }
+  main:has(.worker-diary-search) > section > div[style*="grid-template-columns: repeat(7"] button { min-height: 48px !important; }
+  main:has(.worker-diary-search) > section > div[style*="grid-template-columns: repeat(7"] button div:last-child { display: none; }
+  main:has(.worker-diary-search) > div[style*="position: fixed"] { place-items: end center !important; padding: 7px !important; }
+  main:has(.worker-diary-search) > div[style*="position: fixed"] > div { max-height: 92vh !important; border-radius: 17px !important; padding: 13px !important; }
+  main:has(.worker-diary-search) > div[style*="position: fixed"] > div > div[style*="grid-template-columns: repeat(3"] { grid-template-columns: repeat(3,minmax(0,1fr)) !important; }
+}
 
-  main:has(.worker-diary-search) > section:has(> select) > div:first-child {
-    grid-column: 1 / -1;
-    min-width: 0;
-  }
+@media (max-width: 390px) {
+  main:has(.worker-diary-search) { padding-left: 8px !important; padding-right: 8px !important; }
+  main:has(.worker-diary-search) > section:nth-of-type(2) > div { gap: 4px !important; }
+  main:has(.worker-diary-search) > section:nth-of-type(2) button { padding-left: 7px !important; padding-right: 7px !important; font-size: 11px !important; }
+  main:has(.worker-diary-search) > section:has(> select) { grid-template-columns: minmax(0,1fr) !important; }
+  main:has(.worker-diary-search) > section:has(> select) > div:last-of-type,
+  main:has(.worker-diary-search) > section:has(> select) > select,
+  main:has(.worker-diary-search) > section:has(> select) > button { grid-column: 1 !important; }
+  main:has(.worker-diary-search) > section:has(> select) > div:last-of-type > div { max-width: none; }
+  main:has(.worker-diary-search) article > div:last-child { padding-left: 0; }
+  main:has(.worker-diary-search) > section > div[style*="grid-template-columns: repeat(7"] { gap: 3px !important; }
+  main:has(.worker-diary-search) > section > div[style*="grid-template-columns: repeat(7"] button { min-height: 43px !important; font-size: 11px !important; }
+  main:has(.worker-diary-search) > div[style*="position: fixed"] > div { padding: 11px !important; }
+  main:has(.worker-diary-search) > div[style*="position: fixed"] h2 { font-size: 18px !important; }
+  main:has(.worker-diary-search) > div[style*="position: fixed"] > div > div[style*="grid-template-columns: repeat(3"] button { min-height: 53px !important; }
+}
 
-  main:has(.worker-diary-search) > section:has(> select) > select {
-    grid-column: 1;
-    width: auto;
-    min-width: 0;
-    max-width: 100%;
-    box-sizing: border-box;
-    padding: 7px 10px;
-    font-size: 13px;
-  }
+@media (max-width: 340px) {
+  main:has(.worker-diary-search) > section:nth-of-type(2) > div { grid-template-columns: repeat(3,minmax(0,1fr)); }
+  main:has(.worker-diary-search) > section:nth-of-type(2) button { padding-left: 5px !important; padding-right: 5px !important; }
+  main:has(.worker-diary-search) > section > div[style*="grid-template-columns: repeat(7"] button { min-height: 39px !important; padding: 3px !important; }
+}
 
-  main:has(.worker-diary-search) > section:has(> select) > div:last-of-type {
-    grid-column: 2;
-    width: auto;
-    min-width: 0 !important;
-    max-width: 100%;
-  }
+@media (min-width: 761px) {
+  main:has(.worker-diary-search) > section:nth-of-type(2) { align-items: center !important; }
+  main:has(.worker-diary-search) article { min-width: 0; }
+}
 
-  main:has(.worker-diary-search) > section:has(> select) > div:last-of-type > strong {
-    display: block;
-    font-size: 13px;
-    line-height: 1.25;
-    white-space: nowrap;
-  }
-
-  main:has(.worker-diary-search) > section:has(> select) > div:last-of-type > div {
-    font-size: 12px;
-    line-height: 1.35;
-    overflow-wrap: normal;
-    word-break: normal;
-  }
-
-  main:has(.worker-diary-search) > section:has(> select) > button {
-    grid-column: 1 / -1;
-    justify-self: start;
-    width: auto !important;
-    min-width: 0 !important;
-    max-width: 100%;
-    box-sizing: border-box;
-    padding: 8px 10px !important;
-    font-size: 13px !important;
-    white-space: nowrap;
-  }
+@media (prefers-reduced-motion: reduce) {
+  main:has(.worker-diary-search) *,
+  main:has(.worker-diary-search) *::before,
+  main:has(.worker-diary-search) *::after { transition: none !important; animation: none !important; }
 }
