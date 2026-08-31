@@ -1,9 +1,10 @@
 import { WorkerSettings } from '../components/WorkerSettings';
 
 interface WorkerSettingsPageProps {
+  profileId: string;
   teamJoining?: boolean;
 }
 
-export function WorkerSettingsPage({ teamJoining = false }: WorkerSettingsPageProps) {
-  return <WorkerSettings teamJoining={teamJoining} />;
+export function WorkerSettingsPage({ profileId, teamJoining = false }: WorkerSettingsPageProps) {
+  return <WorkerSettings profileId={profileId} teamJoining={teamJoining} />;
 }
