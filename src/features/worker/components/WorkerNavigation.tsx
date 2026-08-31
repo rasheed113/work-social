@@ -1,4 +1,5 @@
 import { navigate } from '../../../app/Router';
+import '../worker-compact.css';
 
 const destinations = [
   { path: '/work', label: 'Home', icon: '⌂' },
