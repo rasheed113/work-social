@@ -22,8 +22,9 @@ export function useWorkerDiary(enabled: boolean) {
     const cursor = append ? cursorRef.current : null;
     const result = await listWorkerDiaryEntries(PAGE_SIZE, cursor, term);
     if (requestId !== requestRef.current) return;
-    if (result.error) setError(result.error.message);
-    else {
+    if (result.error) {
+      setError(result.error.message);
+    } else {
       setEntries(current => append ? [...current, ...result.data] : result.data);
       const last = result.data.at(-1);
       cursorRef.current = last ? { created_at: last.created_at, id: last.id } : cursor;
@@ -39,30 +40,37 @@ export function useWorkerDiary(enabled: boolean) {
   }, [enabled, search, load]);
 
   const refresh = useCallback(() => load(search, false), [load, search]);
+
   const create = useCallback(async (input: WorkerDiaryEntryInput) => {
     setSaving(true); setError(null);
     const result = await createWorkerDiaryEntry(input);
     setSaving(false);
-    if (result.error) setError(result.error.message); else await refresh();
+    if (result.error) { setError(result.error.message); return { data: null, error: result.error }; }
+    await refresh();
     return result;
   }, [refresh]);
+
   const update = useCallback(async (entryId: string, input: WorkerDiaryEntryInput) => {
     setSaving(true); setError(null);
     const result = await updateWorkerDiaryEntry(entryId, input);
     setSaving(false);
-    if (result.error) setError(result.error.message); else await refresh();
+    if (result.error) { setError(result.error.message); return { data: null, error: result.error }; }
+    await refresh();
     return result;
   }, [refresh]);
+
   const remove = useCallback(async (entryId: string) => {
     setSaving(true); setError(null);
     const result = await deleteWorkerDiaryEntry(entryId);
     setSaving(false);
-    if (result.error) setError(result.error.message); else setEntries(current => current.filter(entry => entry.id !== entryId));
+    if (result.error) { setError(result.error.message); return result; }
+    setEntries(current => current.filter(entry => entry.id !== entryId));
     return result;
   }, []);
+
   const toggleTodo = useCallback(async (entryId: string, completed: boolean) => {
     const result = await setWorkerDiaryTodoCompleted(entryId, completed);
-    if (result.error) setError(result.error.message);
+    if (result.error) { setError(result.error.message); return result; }
     if (result.data) setEntries(current => current.map(entry => entry.id === entryId ? result.data! : entry));
     return result;
   }, []);
