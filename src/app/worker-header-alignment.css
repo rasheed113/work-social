@@ -6,7 +6,9 @@
    ancestor <main>, which included the authenticated app shell. That moved the
    shared Router header down on those two routes. Keep page styling inside the
    page content boundary by neutralising only the authenticated outer shell. */
-main.app-shell:has(.work-social-router-shell) {
+main.app-shell:has(.work-social-router-shell),
+main.app-shell:has(#worker-profile-title),
+main.app-shell:has(#team-joining-title) {
   width: 100% !important;
   max-width: none !important;
   margin: 0 !important;
