@@ -1,17 +1,261 @@
-/* Worker Settings + Personal Diary header vertical alignment only. */
-main:has(#worker-profile-title) > header,
-main:has(#team-joining-title) > header {
-  position: relative;
-  top: -2px;
+/* Shared Worker Work House header alignment + presentation layer.
+   The Router owns the actual global header; this stylesheet only controls its
+   shared presentation and protects it from page-scoped main padding. */
+
+/* Settings and Personal Diary previously scoped their page styles to any
+   ancestor <main>, which included the authenticated app shell. That moved the
+   shared Router header down on those two routes. Keep page styling inside the
+   page content boundary by neutralising only the authenticated outer shell. */
+main.app-shell:has(.work-social-router-shell) {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
 }
 
-main:has(.worker-diary-search) > section:nth-of-type(1) {
-  top: -2px;
+/* One shared header source for every Worker Work House route. */
+.work-social-router-shell > header.ws-main-header {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 900 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  min-height: 58px !important;
+  height: auto !important;
+  margin: 0 0 12px !important;
+  padding: 7px 10px !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  overflow: visible !important;
+  border: 1px solid rgba(71, 85, 105, .14) !important;
+  border-top-color: rgba(255,255,255,.96) !important;
+  border-radius: 0 0 16px 16px !important;
+  background: linear-gradient(145deg, rgba(255,255,255,.99) 0%, rgba(247,250,253,.98) 52%, rgba(239,248,249,.97) 100%) !important;
+  box-shadow: 0 1px 0 rgba(255,255,255,.98), 0 4px 9px rgba(15,23,42,.055), 0 10px 20px rgba(15,23,42,.055), inset 0 1px 0 rgba(255,255,255,1), inset 0 -1px 0 rgba(71,85,105,.08) !important;
+  backdrop-filter: blur(14px) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
 }
 
-@media (max-width: 699px) {
-  main:has(#worker-profile-title) > header,
-  main:has(#team-joining-title) > header {
-    top: 0;
+.work-social-router-shell > header.ws-main-header::before {
+  content: '' !important;
+  position: absolute !important;
+  inset: 0 !important;
+  border-radius: inherit !important;
+  pointer-events: none !important;
+  background: linear-gradient(105deg, rgba(255,255,255,.72), transparent 34%, rgba(20,184,166,.035) 72%, rgba(59,130,246,.035)) !important;
+  opacity: 1 !important;
+}
+
+.work-social-router-shell > header.ws-main-header::after {
+  content: '' !important;
+  position: absolute !important;
+  left: 18px !important;
+  right: 18px !important;
+  top: 0 !important;
+  height: 1px !important;
+  border-radius: 999px !important;
+  pointer-events: none !important;
+  background: linear-gradient(90deg, rgba(255,255,255,1), rgba(59,130,246,.26), rgba(20,184,166,.2), rgba(255,255,255,0)) !important;
+}
+
+.work-social-router-shell > header.ws-main-header .ws-main-header__brand,
+.work-social-router-shell > header.ws-main-header .ws-main-header__work,
+.work-social-router-shell > header.ws-main-header .ws-main-header__chat {
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+.work-social-router-shell > header.ws-main-header .ws-main-header__brand {
+  gap: 9px !important;
+  padding: 2px 3px 2px 1px !important;
+  color: #172033 !important;
+}
+
+.work-social-router-shell > header.ws-main-header .ws-main-header__brand:hover {
+  background: rgba(59,130,246,.045) !important;
+}
+
+.work-social-router-shell > header.ws-main-header .ws-main-header__logo {
+  width: 38px !important;
+  height: 38px !important;
+  flex-basis: 38px !important;
+  border: 1px solid rgba(59,130,246,.22) !important;
+  border-radius: 12px !important;
+  background: linear-gradient(145deg, #e8fdff 0%, #70cfff 42%, #4f7bea 72%, #6c5bdc 100%) !important;
+  box-shadow: inset 0 1px 1px rgba(255,255,255,.95), inset 0 -2px 4px rgba(30,64,175,.12), 0 5px 11px rgba(37,99,235,.13) !important;
+  color: #fff !important;
+  font-size: 17px !important;
+  text-shadow: 0 1px 0 rgba(255,255,255,.5), 0 2px 3px rgba(30,64,175,.28) !important;
+}
+
+.work-social-router-shell > header.ws-main-header .ws-main-header__logo::after {
+  inset: 1px !important;
+  border-radius: 11px !important;
+  background: linear-gradient(145deg, rgba(255,255,255,.5), transparent 44%) !important;
+}
+
+.work-social-router-shell > header.ws-main-header .ws-main-header__title {
+  color: #172033 !important;
+  font-size: 17px !important;
+  line-height: 1.05 !important;
+  font-weight: 900 !important;
+  letter-spacing: -.035em !important;
+  text-shadow: 0 1px 0 #fff, 0 2px 4px rgba(15,23,42,.06) !important;
+}
+
+.work-social-router-shell > header.ws-main-header .ws-main-header__tagline {
+  color: #527083 !important;
+  font-size: 7px !important;
+  line-height: 1.2 !important;
+  font-weight: 800 !important;
+  letter-spacing: .11em !important;
+  text-shadow: 0 1px 0 #fff !important;
+}
+
+.work-social-router-shell > header.ws-main-header .ws-main-header__work,
+.work-social-router-shell > header.ws-main-header .ws-main-header__chat {
+  min-height: 38px !important;
+  height: 38px !important;
+  padding: 0 11px !important;
+  border: 1px solid rgba(71,85,105,.15) !important;
+  border-radius: 11px !important;
+  color: #334155 !important;
+  font-size: 12px !important;
+  font-weight: 900 !important;
+  background: linear-gradient(145deg, #fff 0%, #f5f8fb 58%, #edf4f5 100%) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,1), inset 0 -1px 0 rgba(100,116,139,.08), 0 2px 0 rgba(255,255,255,.95), 0 5px 10px rgba(15,23,42,.055) !important;
+  text-shadow: 0 1px 0 #fff !important;
+}
+
+.work-social-router-shell > header.ws-main-header .ws-main-header__work {
+  border-color: rgba(59,130,246,.22) !important;
+  color: #2457a6 !important;
+  background: linear-gradient(145deg, #fafdff 0%, #eef7ff 58%, #e9f4ff 100%) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,1), inset 0 -1px 0 rgba(59,130,246,.08), 0 2px 0 rgba(255,255,255,.95), 0 5px 11px rgba(37,99,235,.09) !important;
+}
+
+.work-social-router-shell > header.ws-main-header .ws-main-header__chat {
+  border-color: rgba(13,148,136,.2) !important;
+  color: #0f766e !important;
+  background: linear-gradient(145deg, #fbfffe 0%, #f0fdfa 58%, #e6f8f5 100%) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,1), inset 0 -1px 0 rgba(13,148,136,.08), 0 2px 0 rgba(255,255,255,.95), 0 5px 11px rgba(13,148,136,.08) !important;
+}
+
+.work-social-router-shell > header.ws-main-header .ws-main-header__work:hover,
+.work-social-router-shell > header.ws-main-header .ws-main-header__chat:hover {
+  filter: none !important;
+  transform: translateY(-1px) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,1), 0 3px 0 rgba(255,255,255,.96), 0 8px 14px rgba(15,23,42,.075) !important;
+}
+
+.work-social-router-shell > header.ws-main-header .ws-main-header__work:active,
+.work-social-router-shell > header.ws-main-header .ws-main-header__chat:active {
+  transform: translateY(1px) !important;
+  box-shadow: inset 0 2px 4px rgba(15,23,42,.08), 0 1px 0 rgba(255,255,255,.95) !important;
+}
+
+.work-social-router-shell > header.ws-main-header .ws-main-header__work-icon {
+  width: 17px !important;
+  height: 17px !important;
+  flex-basis: 17px !important;
+}
+
+.work-social-router-shell > header.ws-main-header .ws-main-header__badge {
+  min-width: 18px !important;
+  height: 18px !important;
+  padding: 0 4px !important;
+  border-color: rgba(13,148,136,.16) !important;
+  background: rgba(15,118,110,.08) !important;
+  color: #0f766e !important;
+  font-size: 9px !important;
+}
+
+@media (max-width: 430px) {
+  .work-social-router-shell > header.ws-main-header {
+    min-height: 55px !important;
+    margin-bottom: 10px !important;
+    padding: 6px 8px !important;
+    gap: 6px !important;
+  }
+
+  .work-social-router-shell > header.ws-main-header .ws-main-header__brand {
+    gap: 7px !important;
+  }
+
+  .work-social-router-shell > header.ws-main-header .ws-main-header__logo {
+    width: 36px !important;
+    height: 36px !important;
+    flex-basis: 36px !important;
+    font-size: 16px !important;
+  }
+
+  .work-social-router-shell > header.ws-main-header .ws-main-header__title {
+    font-size: 15px !important;
+  }
+
+  .work-social-router-shell > header.ws-main-header .ws-main-header__tagline {
+    font-size: 6px !important;
+    letter-spacing: .085em !important;
+  }
+
+  .work-social-router-shell > header.ws-main-header .ws-main-header__work,
+  .work-social-router-shell > header.ws-main-header .ws-main-header__chat {
+    min-height: 36px !important;
+    height: 36px !important;
+    padding: 0 9px !important;
+    font-size: 11px !important;
+  }
+}
+
+@media (max-width: 360px) {
+  .work-social-router-shell > header.ws-main-header {
+    gap: 4px !important;
+    padding-left: 7px !important;
+    padding-right: 7px !important;
+  }
+
+  .work-social-router-shell > header.ws-main-header .ws-main-header__brand {
+    gap: 5px !important;
+  }
+
+  .work-social-router-shell > header.ws-main-header .ws-main-header__logo {
+    width: 33px !important;
+    height: 33px !important;
+    flex-basis: 33px !important;
+    font-size: 14px !important;
+  }
+
+  .work-social-router-shell > header.ws-main-header .ws-main-header__title {
+    font-size: 13px !important;
+  }
+
+  .work-social-router-shell > header.ws-main-header .ws-main-header__tagline {
+    font-size: 5px !important;
+    letter-spacing: .06em !important;
+  }
+
+  .work-social-router-shell > header.ws-main-header .ws-main-header__work,
+  .work-social-router-shell > header.ws-main-header .ws-main-header__chat {
+    padding: 0 6px !important;
+    font-size: 10px !important;
+    gap: 3px !important;
+  }
+
+  .work-social-router-shell > header.ws-main-header .ws-main-header__work-icon {
+    width: 15px !important;
+    height: 15px !important;
+    flex-basis: 15px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .work-social-router-shell > header.ws-main-header .ws-main-header__brand,
+  .work-social-router-shell > header.ws-main-header .ws-main-header__work,
+  .work-social-router-shell > header.ws-main-header .ws-main-header__chat {
+    transition: none !important;
   }
 }
