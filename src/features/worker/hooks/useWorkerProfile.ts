@@ -6,23 +6,37 @@ import type { WorkerProfile, WorkerProfileUpdateInput } from '../types/workerPro
 export function useWorkerProfile(profileId: string) {
   const [workerProfile, setWorkerProfile] = useState<WorkerProfile | null>(null);
   const [profile, setProfile] = useState<Awaited<ReturnType<typeof getProfile>>['data']>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(Boolean(profileId));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
+    if (!profileId) {
+      setWorkerProfile(null);
+      setProfile(null);
+      setError('Your authenticated profile could not be resolved.');
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     setError(null);
-    const workerResult = await getWorkerProfile(profileId);
-    const socialResult = await getProfile(profileId);
+    try {
+      const [workerResult, socialResult] = await Promise.all([
+        getWorkerProfile(profileId),
+        getProfile(profileId),
+      ]);
 
-    if (socialResult.error) setError(socialResult.error.message);
-    else setProfile(socialResult.data);
+      if (socialResult.error) setError(socialResult.error.message);
+      else setProfile(socialResult.data);
 
-    if (workerResult.error) setError((current) => current ?? workerResult.error.message);
-    else setWorkerProfile(workerResult.data);
-
-    setLoading(false);
+      if (workerResult.error) setError((current) => current ?? workerResult.error.message);
+      else setWorkerProfile(workerResult.data);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Unable to load your Worker profile.');
+    } finally {
+      setLoading(false);
+    }
   }, [profileId]);
 
   useEffect(() => {
@@ -32,15 +46,21 @@ export function useWorkerProfile(profileId: string) {
   const save = useCallback(async (input: WorkerProfileUpdateInput) => {
     setSaving(true);
     setError(null);
-    const result = await saveWorkerProfile(profileId, input);
-    if (result.error) {
-      setError(result.error.message);
+    try {
+      const result = await saveWorkerProfile(profileId, input);
+      if (result.error) {
+        setError(result.error.message);
+        return { error: result.error };
+      }
+      setWorkerProfile(result.data);
+      return { data: result.data, error: null };
+    } catch (cause) {
+      const error = cause instanceof Error ? cause : new Error('Unable to save Worker profile.');
+      setError(error.message);
+      return { error };
+    } finally {
       setSaving(false);
-      return { error: result.error };
     }
-    setWorkerProfile(result.data);
-    setSaving(false);
-    return { data: result.data, error: null };
   }, [profileId]);
 
   return { workerProfile, profile, loading, saving, error, reload: load, save };
