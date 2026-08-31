@@ -1,5 +1,7 @@
 name: Repair Diary JSX Syntax
 
+# One-shot parser repair workflow; it removes itself after the verified fix.
+
 on:
   workflow_dispatch:
   push:
