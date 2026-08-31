@@ -93,7 +93,7 @@ export async function listWorkerFinanceHistoryBatch(
 
   let receivedQuery = supabase
     .from('worker_finance_received')
-    .select(RECEIVED_COLUMNS)
+    .select(RECEIVED_COLUMNS, { count: 'exact' })
     .eq('worker_profile_id', workerResult.data)
     .is('deleted_at', null)
     .order('received_at', { ascending: false })
@@ -105,7 +105,7 @@ export async function listWorkerFinanceHistoryBatch(
 
   const receivedPromise = includeReceived
     ? receivedQuery.returns<ReceivedRow[]>()
-    : Promise.resolve({ data: [] as ReceivedRow[], error: null });
+    : Promise.resolve({ data: [] as ReceivedRow[], count: 0, error: null });
 
   const [earningsResult, receivedResult] = await Promise.all([earningsPromise, receivedPromise]);
   const firstError = earningsResult.error ?? receivedResult.error;
@@ -123,7 +123,7 @@ export async function listWorkerFinanceHistoryBatch(
       earnings,
       received,
       nextCursors,
-      hasMore: { earnings: earnings.length === limit, received: received.length === limit },
+      hasMore: { earnings: earningsResult.count > earnings.length, received: (receivedResult.count ?? 0) > received.length },
     },
     error: null,
   };
