@@ -1,0 +1,17 @@
+/* Worker Settings + Personal Diary header vertical alignment only. */
+main:has(#worker-profile-title) > header,
+main:has(#team-joining-title) > header {
+  position: relative;
+  top: -2px;
+}
+
+main:has(.worker-diary-search) > section:nth-of-type(1) {
+  top: -2px;
+}
+
+@media (max-width: 699px) {
+  main:has(#worker-profile-title) > header,
+  main:has(#team-joining-title) > header {
+    top: 0;
+  }
+}
