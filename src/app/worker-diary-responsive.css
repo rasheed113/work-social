@@ -1,0 +1,18 @@
+/* Personal Organizer calendar controls: let the Calendar preference block
+   stack before its fixed-size controls can exceed a narrow viewport. */
+@media (max-width: 760px) {
+  main:has(.worker-diary-search) > section:has(> select) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  main:has(.worker-diary-search) > section:has(> select) > select,
+  main:has(.worker-diary-search) > section:has(> select) > button {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  main:has(.worker-diary-search) > section:has(> select) > div {
+    min-width: 0 !important;
+  }
+}
