@@ -33,7 +33,7 @@ jobs:
           const original = fs.readFileSync(path, 'utf8');
 
           function diagnostics(text) {
-            const sf = ts.createSourceFile(path, text, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+            const sf = ts.createSourceFile(path, text, 99, true, 4);
             return sf.parseDiagnostics || [];
           }
 
@@ -48,8 +48,8 @@ jobs:
 
           const positions = new Set();
           for (const d of before.slice(0, 4)) {
-            const start = Math.max(0, (d.start ?? 0) - 120);
-            const end = Math.min(original.length, (d.start ?? 0) + 160);
+            const start = Math.max(0, (d.start ?? 0) - 160);
+            const end = Math.min(original.length, (d.start ?? 0) + 200);
             for (let p = start; p <= end; p++) positions.add(p);
           }
 
