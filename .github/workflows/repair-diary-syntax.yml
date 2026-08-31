@@ -21,20 +21,6 @@ jobs:
         with:
           node-version: 24
       - run: npm install
-      - name: Capture JSX parser diagnostics
-        run: |
-          node <<'NODE'
-          const fs = require('fs');
-          const moduleValue = require('typescript');
-          const ts = moduleValue.default ?? moduleValue;
-          const path = 'src/features/worker/pages/WorkerDiaryPage.tsx';
-          const text = fs.readFileSync(path, 'utf8');
-          const sf = ts.createSourceFile(path, text, 99, true, 4);
-          const diagnostics = sf.parseDiagnostics || [];
-          const lines = diagnostics.slice(0, 20).map(d => `${ts.flattenDiagnosticMessageText(d.messageText, '\n')} at ${d.start} length ${d.length}`);
-          fs.writeFileSync('jsx-diagnostic.log', [`COUNT=${diagnostics.length}`, ...lines].join('\n') + '\n');
-          console.log(fs.readFileSync('jsx-diagnostic.log', 'utf8'));
-          NODE
       - name: Capture production build diagnostics
         run: |
           set +e
@@ -46,6 +32,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add jsx-diagnostic.log build-diagnostic.log
-          git commit -m "chore: capture Organizer diagnostics" || true
+          git add build-diagnostic.log
+          git commit -m "chore: capture Organizer build diagnostics" || true
           git push origin HEAD:feat-worker-diary-organizer-final
