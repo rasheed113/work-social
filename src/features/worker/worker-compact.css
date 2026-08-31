@@ -65,7 +65,6 @@
   box-sizing: border-box !important;
 }
 
-/* Shared compact type hierarchy across Worker pages. */
 .work-social-router-shell:has(nav[aria-label="Worker navigation"]) > div.work-social-page-content > main h1 {
   font-size: clamp(24px, 5.5vw, 34px) !important;
   line-height: 1.02 !important;
@@ -86,7 +85,6 @@
   line-height: 1.4;
 }
 
-/* Work House overview: reduce the already-shared summary widgets and hero. */
 .work-social-router-shell:has(nav[aria-label="Worker navigation"]) .worker-home {
   max-width: 900px !important;
   padding-top: 10px !important;
@@ -132,7 +130,6 @@
   font-size: 12px !important;
 }
 
-/* Worker totals: compact numbers, tighter cards, retained light 3D depth. */
 .work-social-router-shell:has(nav[aria-label="Worker navigation"]) .worker-summary {
   gap: 8px !important;
 }
@@ -190,8 +187,6 @@
   font-size: 10px !important;
 }
 
-/* Finance uses inline presentation values; these selectors deliberately only
-   compact visible presentation, never state, handlers, data or contracts. */
 .work-social-router-shell:has(nav[aria-label="Worker navigation"]) > div.work-social-page-content > main > header {
   margin-bottom: 10px !important;
   gap: 9px !important;
@@ -218,15 +213,15 @@
   font-size: 11px !important;
 }
 
-/* Common Worker navigation: smaller footprint, same premium light treatment. */
+/* Footer stays flush to the bottom edge; no artificial lift from the page bottom. */
 .work-social-router-shell:has(nav[aria-label="Worker navigation"]) > nav[aria-label="Worker navigation"] {
   left: 8px !important;
   right: 8px !important;
-  bottom: calc(8px + env(safe-area-inset-bottom)) !important;
+  bottom: env(safe-area-inset-bottom) !important;
   gap: 6px !important;
   padding: 6px !important;
-  border-radius: 17px !important;
-  box-shadow: 0 10px 24px rgba(15,23,42,.18) !important;
+  border-radius: 17px 17px 0 0 !important;
+  box-shadow: 0 -4px 14px rgba(15,23,42,.12) !important;
 }
 
 .work-social-router-shell:has(nav[aria-label="Worker navigation"]) > nav[aria-label="Worker navigation"] button {
