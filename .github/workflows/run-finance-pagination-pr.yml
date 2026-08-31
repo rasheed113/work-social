@@ -1,0 +1,37 @@
+name: Run Finance History Pagination
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm install
+      - run: python3 scripts/apply-finance-pagination.py
+      - run: npm run build
+
+      - name: Commit verified pagination and remove temporary automation
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/features/worker/api/finance.ts src/features/worker/hooks/useWorkerFinance.ts src/features/worker/components/WorkerFinance.tsx
+          git rm .github/workflows/apply-finance-pagination.yml .github/workflows/run-finance-pagination-pr.yml scripts/apply-finance-pagination.py
+          git diff --cached --check
+          git commit -m "fix: paginate finance history 5 then 10"
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
