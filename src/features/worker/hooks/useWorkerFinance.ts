@@ -2,9 +2,10 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useCurrentWorkerProfileId } from './useCurrentWorkerProfileId';
 import {
   createWorkerFinanceReceived,
-  deleteWorkerFinanceReceived,
   listWorkerFinanceEarnings,
   listWorkerFinanceReceived,
+  restoreWorkerFinanceReceived,
+  softDeleteWorkerFinanceReceived,
   updateWorkerFinanceReceived,
 } from '../api/finance';
 import { canonicalizeWorkDecimal } from '../logic/workEntryCalculations';
@@ -98,9 +99,18 @@ export function useWorkerFinance() {
   }, [load, session.profileId]);
 
   const removeReceived = useCallback(async (id: string) => {
-    if (!session.profileId) return { error: new Error('Authenticated profile is unavailable.') };
+    if (!session.profileId) return { data: null, error: new Error('Authenticated profile is unavailable.') };
     setSaving(true);
-    const result = await deleteWorkerFinanceReceived(session.profileId, id);
+    const result = await softDeleteWorkerFinanceReceived(session.profileId, id);
+    if (!result.error) await load();
+    setSaving(false);
+    return result;
+  }, [load, session.profileId]);
+
+  const restoreReceived = useCallback(async (id: string) => {
+    if (!session.profileId) return { data: null, error: new Error('Authenticated profile is unavailable.') };
+    setSaving(true);
+    const result = await restoreWorkerFinanceReceived(session.profileId, id);
     if (!result.error) await load();
     setSaving(false);
     return result;
@@ -120,5 +130,6 @@ export function useWorkerFinance() {
     addReceived,
     editReceived,
     removeReceived,
-  }), [session, summary, entries, loading, saving, error, hasEntries, reload, addReceived, editReceived, removeReceived]);
+    restoreReceived,
+  }), [session, summary, entries, loading, saving, error, hasEntries, reload, addReceived, editReceived, removeReceived, restoreReceived]);
 }
