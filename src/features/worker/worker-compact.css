@@ -213,15 +213,15 @@
   font-size: 11px !important;
 }
 
-/* Footer stays flush to the bottom edge; no artificial lift from the page bottom. */
+/* Only adjust the footer's vertical placement: keep its existing size and visual treatment. */
 .work-social-router-shell:has(nav[aria-label="Worker navigation"]) > nav[aria-label="Worker navigation"] {
   left: 8px !important;
   right: 8px !important;
   bottom: env(safe-area-inset-bottom) !important;
   gap: 6px !important;
   padding: 6px !important;
-  border-radius: 17px 17px 0 0 !important;
-  box-shadow: 0 -4px 14px rgba(15,23,42,.12) !important;
+  border-radius: 17px !important;
+  box-shadow: 0 10px 24px rgba(15,23,42,.18) !important;
 }
 
 .work-social-router-shell:has(nav[aria-label="Worker navigation"]) > nav[aria-label="Worker navigation"] button {
