@@ -45,7 +45,8 @@ WHERE entry_type IN ('PAYMENT', 'ADVANCE');
 
 ALTER TABLE public.worker_finance_received
   DROP CONSTRAINT IF EXISTS worker_finance_transactions_transaction_type_check,
-  DROP CONSTRAINT IF EXISTS worker_finance_transactions_note_check;
+  DROP CONSTRAINT IF EXISTS worker_finance_transactions_note_check,
+  DROP CONSTRAINT IF EXISTS worker_finance_received_entry_type_check;
 
 ALTER TABLE public.worker_finance_received
   ADD CONSTRAINT worker_finance_received_entry_type_check CHECK (entry_type IN ('payment', 'advance'));
