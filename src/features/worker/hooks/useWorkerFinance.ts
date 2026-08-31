@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useCurrentWorkerProfileId } from './useCurrentWorkerProfileId';
-import { createWorkerFinanceReceived, listWorkerFinanceEarnings, listWorkerFinanceReceived } from '../api/finance';
+import {
+  createWorkerFinanceReceived,
+  deleteWorkerFinanceReceived,
+  listWorkerFinanceEarnings,
+  listWorkerFinanceReceived,
+  updateWorkerFinanceReceived,
+} from '../api/finance';
 import { canonicalizeWorkDecimal } from '../logic/workEntryCalculations';
 import type { FinanceListEntry, FinanceReceivedType, WorkerFinanceSummary } from '../types/finance';
 
@@ -55,9 +61,8 @@ export function useWorkerFinance() {
       return;
     }
 
-    const receivedAmounts = receivedResult.data.map((record) => record.amount);
     const totalEarnings = sumAmounts(earningsResult.data.map((entry) => entry.total));
-    const received = sumAmounts(receivedAmounts);
+    const received = sumAmounts(receivedResult.data.map((record) => record.amount));
     const remaining = formatAmount(parseAmount(totalEarnings) - parseAmount(received));
     const nextEntries: FinanceListEntry[] = [
       ...earningsResult.data.map((entry) => ({ kind: 'earning' as const, id: `earning:${entry.id}`, amount: entry.total, occurred_at: entry.occurred_at, workEntry: entry })),
@@ -85,7 +90,41 @@ export function useWorkerFinance() {
     return result;
   }, [load, session.profileId]);
 
+  const editReceived = useCallback(async (id: string, type: FinanceReceivedType, amount: string) => {
+    if (!session.profileId) return { data: null, error: new Error('Authenticated profile is unavailable.') };
+    setSaving(true);
+    setError(null);
+    const result = await updateWorkerFinanceReceived(session.profileId, id, type, amount);
+    if (result.error) setError(result.error.message);
+    else await load();
+    setSaving(false);
+    return result;
+  }, [load, session.profileId]);
+
+  const removeReceived = useCallback(async (id: string) => {
+    if (!session.profileId) return { error: new Error('Authenticated profile is unavailable.') };
+    setSaving(true);
+    setError(null);
+    const result = await deleteWorkerFinanceReceived(session.profileId, id);
+    if (result.error) setError(result.error.message);
+    else await load();
+    setSaving(false);
+    return result;
+  }, [load, session.profileId]);
+
   const hasEntries = entries.length > 0;
   const reload = load;
-  return useMemo(() => ({ ...session, summary, entries, loading: session.loading || loading, saving, error: session.error ?? error, hasEntries, reload, addReceived }), [session, summary, entries, loading, saving, error, hasEntries, reload, addReceived]);
+  return useMemo(() => ({
+    ...session,
+    summary,
+    entries,
+    loading: session.loading || loading,
+    saving,
+    error: session.error ?? error,
+    hasEntries,
+    reload,
+    addReceived,
+    editReceived,
+    removeReceived,
+  }), [session, summary, entries, loading, saving, error, hasEntries, reload, addReceived, editReceived, removeReceived]);
 }
