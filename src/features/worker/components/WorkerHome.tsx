@@ -43,6 +43,20 @@ export function WorkerHome({ profileId }: WorkerHomeProps) {
         .worker-home__card-button{margin-top:11px;min-height:38px;padding:0 12px;border:1px solid rgba(71,85,105,.14);border-radius:11px;background:linear-gradient(145deg,#fff,#f5f7fa);color:#273449;font:inherit;font-size:11px;font-weight:900;cursor:pointer;box-shadow:0 6px 11px rgba(15,23,42,.055),0 2px 4px rgba(15,23,42,.03),inset 0 1px 0 #fff;transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease}
         .worker-home__card-button:hover{transform:translateY(-1px);border-color:rgba(79,70,229,.2);box-shadow:0 9px 15px rgba(15,23,42,.08),inset 0 1px 0 #fff}
         .worker-home__card-button:active{transform:translateY(1px);box-shadow:0 4px 7px rgba(15,23,42,.06),inset 0 2px 3px rgba(15,23,42,.035)}
+        .worker-home__card-button--finance,.worker-home__card-button--diary{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:36px;width:auto;max-width:100%;padding:0 12px;margin-top:11px;border-radius:10px;overflow:visible;font-size:11px;font-weight:950;letter-spacing:-.01em;white-space:nowrap;transition:transform .16s cubic-bezier(.2,.8,.2,1),box-shadow .16s cubic-bezier(.2,.8,.2,1),border-color .16s ease,filter .16s ease}
+        .worker-home__card-button--finance::before,.worker-home__card-button--diary::before{display:grid;place-items:center;width:20px;height:20px;flex:0 0 20px;border-radius:7px;font-size:11px;line-height:1;box-shadow:inset 0 1px 0 rgba(255,255,255,.72),0 2px 4px rgba(15,23,42,.10)}
+        .worker-home__card-button--finance{border-color:rgba(16,185,129,.32);color:#047857;background:linear-gradient(145deg,#ffffff 0%,#f4fffa 52%,#dcfce9 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,1),inset 0 -2px 0 rgba(5,150,105,.10),0 5px 0 rgba(5,150,105,.13),0 8px 13px rgba(5,150,105,.12),0 2px 5px rgba(15,23,42,.06)}
+        .worker-home__card-button--finance::before{content:'🪙';background:linear-gradient(145deg,#ecfdf5,#a7f3d0);border:1px solid rgba(5,150,105,.18)}
+        .worker-home__card-button--finance::after,.worker-home__card-button--diary::after{content:'';position:absolute;top:1px;left:10px;right:10px;height:1px;border-radius:999px;pointer-events:none}
+        .worker-home__card-button--finance::after{background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.98),rgba(255,255,255,0))}
+        .worker-home__card-button--diary{border-color:rgba(20,184,166,.34);color:#0f766e;background:linear-gradient(145deg,#ffffff 0%,#f2fffc 52%,#ccfbf1 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,1),inset 0 -2px 0 rgba(13,148,136,.10),0 5px 0 rgba(13,148,136,.13),0 8px 13px rgba(13,148,136,.12),0 2px 5px rgba(15,23,42,.06)}
+        .worker-home__card-button--diary::before{content:'✎';background:linear-gradient(145deg,#f0fdfa,#99f6e4);border:1px solid rgba(13,148,136,.18)}
+        .worker-home__card-button--diary::after{background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.98),rgba(255,255,255,0))}
+        .worker-home__card-button--finance:hover{transform:translateY(-2px);border-color:rgba(5,150,105,.48);filter:saturate(1.04);box-shadow:inset 0 1px 0 rgba(255,255,255,1),inset 0 -2px 0 rgba(5,150,105,.11),0 7px 0 rgba(5,150,105,.14),0 12px 18px rgba(5,150,105,.16),0 3px 7px rgba(15,23,42,.07)}
+        .worker-home__card-button--diary:hover{transform:translateY(-2px);border-color:rgba(13,148,136,.5);filter:saturate(1.04);box-shadow:inset 0 1px 0 rgba(255,255,255,1),inset 0 -2px 0 rgba(13,148,136,.11),0 7px 0 rgba(13,148,136,.14),0 12px 18px rgba(13,148,136,.16),0 3px 7px rgba(15,23,42,.07)}
+        .worker-home__card-button--finance:active,.worker-home__card-button--diary:active{transform:translateY(3px);filter:saturate(.98);box-shadow:inset 0 2px 4px rgba(15,23,42,.08),inset 0 -1px 0 rgba(255,255,255,.7),0 1px 2px rgba(15,23,42,.08)}
+        .worker-home__card-button--finance:focus-visible{outline:2px solid rgba(5,150,105,.82);outline-offset:3px}
+        .worker-home__card-button--diary:focus-visible{outline:2px solid rgba(13,148,136,.82);outline-offset:3px}
         .worker-home__resource-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;margin-top:12px}
         .worker-home__resource{--resource-accent:99,102,241;position:relative;padding:15px;min-width:0;overflow:visible}
         .worker-home__resource::before{content:'';position:absolute;z-index:-1;inset:8px 9px -6px;border-radius:18px;background:rgba(var(--resource-accent),.10);filter:blur(9px);opacity:.6}
@@ -57,7 +71,7 @@ export function WorkerHome({ profileId }: WorkerHomeProps) {
         .worker-home__private{flex:0 0 auto;border:1px solid rgba(22,163,74,.16);border-radius:999px;padding:5px 8px;background:linear-gradient(145deg,rgba(240,253,244,.98),rgba(220,252,231,.72));color:#15803d;font-size:9px;font-weight:950;white-space:nowrap;box-shadow:0 3px 6px rgba(22,163,74,.07),inset 0 1px 0 #fff}
         @media (min-width:760px){.worker-home__hero{display:flex;align-items:center;justify-content:space-between;gap:20px}.worker-home__actions{flex:0 0 auto;margin-top:0;max-width:300px}.worker-home__description{font-size:12px}}
         @media (max-width:759px){.worker-home__resource-grid{grid-template-columns:1fr}}
-        @media (max-width:430px){.worker-home{padding-left:9px;padding-right:9px}.worker-home__hero{padding:15px;border-radius:18px}.worker-home__title{font-size:clamp(29px,11vw,38px)}.worker-home__description{font-size:12px}.worker-home__actions{display:grid;grid-template-columns:1fr 1.2fr;gap:7px}.worker-home__button{width:100%;min-height:39px;padding:0 9px}.worker-home__resource{padding:14px}.worker-home__resource-icon{flex-basis:29px;width:29px;height:29px}.worker-home__private{font-size:8px;padding:5px 7px}}
+        @media (max-width:430px){.worker-home{padding-left:9px;padding-right:9px}.worker-home__hero{padding:15px;border-radius:18px}.worker-home__title{font-size:clamp(29px,11vw,38px)}.worker-home__description{font-size:12px}.worker-home__actions{display:grid;grid-template-columns:1fr 1.2fr;gap:7px}.worker-home__button{width:100%;min-height:39px;padding:0 9px}.worker-home__resource{padding:14px}.worker-home__resource-icon{flex-basis:29px;width:29px;height:29px}.worker-home__private{font-size:8px;padding:5px 7px}.worker-home__card-button--finance,.worker-home__card-button--diary{min-height:35px;padding:0 10px;gap:6px}.worker-home__card-button--finance::before,.worker-home__card-button--diary::before{width:19px;height:19px;flex-basis:19px}}
       `}</style>
 
       <header className="worker-home__hero">
@@ -99,7 +113,7 @@ export function WorkerHome({ profileId }: WorkerHomeProps) {
                 <h2 id="worker-home-finance">Finance</h2>
               </div>
               <p className="worker-home__section-copy">Finance remains a separate Worker domain and is not implemented here.</p>
-              <button className="worker-home__card-button" type="button" onClick={() => navigate('/work/finance')}>Open Finance</button>
+              <button className="worker-home__card-button worker-home__card-button--finance" type="button" onClick={() => navigate('/work/finance')}>Open Finance</button>
             </section>
 
             <section className="worker-home__section worker-home__resource worker-home__resource--diary" aria-labelledby="worker-home-diary">
@@ -111,7 +125,7 @@ export function WorkerHome({ profileId }: WorkerHomeProps) {
                 <span className="worker-home__private" aria-label="Private" title="Private Worker-owned workspace">🔒 Private</span>
               </div>
               <p className="worker-home__section-copy">A private space for notes, tasks, ideas, journal writing and anything in between.</p>
-              <button className="worker-home__card-button" type="button" onClick={() => navigate('/work/diary')}>Open Personal Diary</button>
+              <button className="worker-home__card-button worker-home__card-button--diary" type="button" onClick={() => navigate('/work/diary')}>Open Personal Diary</button>
             </section>
           </div>
         </>
