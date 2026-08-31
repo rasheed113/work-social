@@ -1,0 +1,32 @@
+name: repair diary syntax
+on:
+  push:
+    branches: [feat-worker-diary-organizer-final]
+permissions:
+  contents: write
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Repair JSX fragment closure
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('src/features/worker/pages/WorkerDiaryPage.tsx')
+          s = p.read_text()
+          old = ': null}</>}</div>}'
+          new = ': null}</>}</>}</div>}'
+          if old not in s:
+              raise SystemExit('expected malformed JSX sequence not found')
+          p.write_text(s.replace(old, new, 1))
+          PY
+          npm install
+          npm run build
+      - name: Commit repair
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/features/worker/pages/WorkerDiaryPage.tsx
+          git commit -m 'fix: close Worker Diary event form fragment' || exit 0
+          git push origin HEAD:feat-worker-diary-organizer-final
