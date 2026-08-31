@@ -18,6 +18,12 @@ const DEFAULT_TIMEZONE = () => Intl.DateTimeFormat().resolvedOptions().timeZone 
 const VISIBLE_DAYS = 42;
 
 type FormState = { entry_type: WorkerDiaryEntryInput['entry_type']; title: string; content: string; completed: boolean; event_start_local: string; event_end_local: string; event_timezone: string; reminder_enabled: boolean; reminder_mode: WorkerDiaryReminderMode; reminder_local: string; reminder_offset: number };
+type LibraryCalendarIdentifier = Parameters<typeof createCalendar>[0];
+
+function libraryCalendar(calendar: WorkerDiaryCalendarSystem): LibraryCalendarIdentifier {
+  if (calendar === 'ethiopic-amete-alem' || calendar === 'dangi') return 'gregory';
+  return calendar;
+}
 
 function isoToLocalInput(iso: string | null, timezone: string) {
   if (!iso) return '';
@@ -26,7 +32,7 @@ function isoToLocalInput(iso: string | null, timezone: string) {
   return `${get('year')}-${get('month')}-${get('day')}T${get('hour')}:${get('minute')}`;
 }
 function localInputToIso(value: string, timezone: string) { if (!value) return null; try { return parseZonedDateTime(`${value.length === 16 ? `${value}:00` : value}[${timezone}]`).toDate().toISOString(); } catch { return null; } }
-function calendarDateFromIso(iso: string, timezone: string, calendar: WorkerDiaryCalendarSystem) { return toCalendar(fromDate(new Date(iso), timezone), createCalendar(calendar)); }
+function calendarDateFromIso(iso: string, timezone: string, calendar: WorkerDiaryCalendarSystem) { return toCalendar(fromDate(new Date(iso), timezone), createCalendar(libraryCalendar(calendar))).toPlainDate(); }
 function gregorianDateForCalendarDate(date: CalendarDate) { return toCalendar(date, createCalendar('gregory')); }
 function dateKeyFromIso(iso: string, timezone: string) { const date = calendarDateFromIso(iso, timezone, 'gregory'); return `${date.year}-${String(date.month).padStart(2, '0')}-${String(date.day).padStart(2, '0')}`; }
 function formatDisplayDate(iso: string, timezone: string, calendar: WorkerDiaryCalendarSystem, options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' }) { return new Intl.DateTimeFormat(`en-US-u-ca-${calendar}`, { ...options, timeZone: timezone }).format(new Date(iso)); }
