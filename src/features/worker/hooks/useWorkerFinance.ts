@@ -82,10 +82,8 @@ export function useWorkerFinance() {
   const addReceived = useCallback(async (type: FinanceReceivedType, amount: string) => {
     if (!session.profileId) return { data: null, error: new Error('Authenticated profile is unavailable.') };
     setSaving(true);
-    setError(null);
     const result = await createWorkerFinanceReceived(session.profileId, type, amount);
-    if (result.error) setError(result.error.message);
-    else await load();
+    if (!result.error) await load();
     setSaving(false);
     return result;
   }, [load, session.profileId]);
@@ -93,10 +91,8 @@ export function useWorkerFinance() {
   const editReceived = useCallback(async (id: string, type: FinanceReceivedType, amount: string) => {
     if (!session.profileId) return { data: null, error: new Error('Authenticated profile is unavailable.') };
     setSaving(true);
-    setError(null);
     const result = await updateWorkerFinanceReceived(session.profileId, id, type, amount);
-    if (result.error) setError(result.error.message);
-    else await load();
+    if (!result.error) await load();
     setSaving(false);
     return result;
   }, [load, session.profileId]);
@@ -104,10 +100,8 @@ export function useWorkerFinance() {
   const removeReceived = useCallback(async (id: string) => {
     if (!session.profileId) return { error: new Error('Authenticated profile is unavailable.') };
     setSaving(true);
-    setError(null);
     const result = await deleteWorkerFinanceReceived(session.profileId, id);
-    if (result.error) setError(result.error.message);
-    else await load();
+    if (!result.error) await load();
     setSaving(false);
     return result;
   }, [load, session.profileId]);
