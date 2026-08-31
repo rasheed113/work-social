@@ -21,17 +21,27 @@ jobs:
         with:
           node-version: 24
       - run: npm install
-      - name: Capture build after JSX simplification
+      - name: Apply reminder JSX simplification and persist it
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const path = 'src/features/worker/pages/WorkerDiaryPage.tsx';
+          const text = fs.readFileSync(path, 'utf8');
+          const oldText = `{form.reminder_mode === 'before_event' ? <label style={labelStyle}>Before event<select value={form.reminder_offset} onChange={e => setForm({ ...form, reminder_offset: Number(e.target.value) })} style={inputStyle}><option value={5}>5 minutes</option><option value={15}>15 minutes</option><option value={30}>30 minutes</option><option value={60}>1 hour</option><option value={1440}>1 day</option></select></label> : form.reminder_mode === 'custom' ? <label style={labelStyle}>Reminder date/time<input type="datetime-local" value={form.reminder_local} onChange={e => setForm({ ...form, reminder_local: e.target.value })} style={inputStyle} /></label> : null}`;
+          const newText = `{form.reminder_mode === 'before_event' && <label style={labelStyle}>Before event<select value={form.reminder_offset} onChange={e => setForm({ ...form, reminder_offset: Number(e.target.value) })} style={inputStyle}><option value={5}>5 minutes</option><option value={15}>15 minutes</option><option value={30}>30 minutes</option><option value={60}>1 hour</option><option value={1440}>1 day</option></select></label>}{form.reminder_mode === 'custom' && <label style={labelStyle}>Reminder date/time<input type="datetime-local" value={form.reminder_local} onChange={e => setForm({ ...form, reminder_local: e.target.value })} style={inputStyle} /></label>}`;
+          if (text.includes(oldText)) fs.writeFileSync(path, text.replace(oldText, newText));
+          NODE
+      - name: Capture build result
         run: |
           set +e
           npm run build > build-diagnostic.log 2>&1
           status=$?
           echo "BUILD_EXIT_CODE=$status" >> build-diagnostic.log
           exit 0
-      - name: Commit diagnostics
+      - name: Persist page and diagnostics
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add build-diagnostic.log
-          git commit -m "chore: capture post-repair build diagnostics" || true
+          git add src/features/worker/pages/WorkerDiaryPage.tsx build-diagnostic.log
+          git commit -m "fix: persist Organizer JSX repair attempt" || true
           git push origin HEAD:feat-worker-diary-organizer-final
