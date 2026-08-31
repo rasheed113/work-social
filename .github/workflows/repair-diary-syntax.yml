@@ -22,12 +22,14 @@ jobs:
           else:
               print('JSX sequence already repaired; continuing')
           PY
-          npm install
-          npm run build
       - name: Commit repair if needed
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add src/features/worker/pages/WorkerDiaryPage.tsx
-          git commit -m 'fix: close Worker Diary event form fragment' || exit 0
-          git push origin HEAD:feat-worker-diary-organizer-final
+          git commit -m 'fix: close Worker Diary event form fragment' || true
+          git push origin HEAD:feat-worker-diary-organizer-final || true
+      - name: Build repaired tree
+        run: |
+          npm install
+          npm run build
