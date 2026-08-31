@@ -21,17 +21,17 @@ jobs:
         with:
           node-version: 24
       - run: npm install
-      - name: Apply targeted Organizer JSX parse repair
+      - name: Simplify nested reminder JSX conditionals
         run: |
           node <<'NODE'
           const fs = require('fs');
           const path = 'src/features/worker/pages/WorkerDiaryPage.tsx';
           const text = fs.readFileSync(path, 'utf8');
-          const oldText = `{form.reminder_mode === 'before_event' ? <label style={labelStyle}>Before event<select value={form.reminder_offset} onChange={e => setForm({ ...form, reminder_offset: Number(e.target.value) })} style={inputStyle}><option value={5}>5 minutes</option><option value={15}>15 minutes</option><option value={30}>30 minutes</option><option value={60}>1 hour</option><option value={1440}>1 day</option></select></label> : form.reminder_mode === 'custom' ? <label style={labelStyle}>Reminder date/time<input type="datetime-local" value={form.reminder_local} onChange={e => setForm({ ...form, reminder_local: e.target.value })} style={inputStyle} /></label> : null}`;
-          const newText = `{(form.reminder_mode === 'before_event' ? (<label style={labelStyle}>Before event<select value={form.reminder_offset} onChange={e => setForm({ ...form, reminder_offset: Number(e.target.value) })} style={inputStyle}><option value={5}>5 minutes</option><option value={15}>15 minutes</option><option value={30}>30 minutes</option><option value={60}>1 hour</option><option value={1440}>1 day</option></select></label>) : form.reminder_mode === 'custom' ? (<label style={labelStyle}>Reminder date/time<input type="datetime-local" value={form.reminder_local} onChange={e => setForm({ ...form, reminder_local: e.target.value })} style={inputStyle} /></label>) : null)}`;
-          if (!text.includes(oldText)) { console.log('Target JSX expression not found; leaving file unchanged.'); process.exit(0); }
+          const oldText = `{(form.reminder_mode === 'before_event' ? (<label style={labelStyle}>Before event<select value={form.reminder_offset} onChange={e => setForm({ ...form, reminder_offset: Number(e.target.value) })} style={inputStyle}><option value={5}>5 minutes</option><option value={15}>15 minutes</option><option value={30}>30 minutes</option><option value={60}>1 hour</option><option value={1440}>1 day</option></select></label>) : form.reminder_mode === 'custom' ? (<label style={labelStyle}>Reminder date/time<input type="datetime-local" value={form.reminder_local} onChange={e => setForm({ ...form, reminder_local: e.target.value })} style={inputStyle} /></label>) : null)}`;
+          const newText = `{form.reminder_mode === 'before_event' && <label style={labelStyle}>Before event<select value={form.reminder_offset} onChange={e => setForm({ ...form, reminder_offset: Number(e.target.value) })} style={inputStyle}><option value={5}>5 minutes</option><option value={15}>15 minutes</option><option value={30}>30 minutes</option><option value={60}>1 hour</option><option value={1440}>1 day</option></select></label>}{form.reminder_mode === 'custom' && <label style={labelStyle}>Reminder date/time<input type="datetime-local" value={form.reminder_local} onChange={e => setForm({ ...form, reminder_local: e.target.value })} style={inputStyle} /></label>}`;
+          if (!text.includes(oldText)) { console.log('Target parenthesized JSX not found.'); process.exit(0); }
           fs.writeFileSync(path, text.replace(oldText, newText));
-          console.log('Applied targeted JSX repair.');
+          console.log('Applied conditional simplification.');
           NODE
       - name: Verify production build
         run: npm run build
@@ -41,9 +41,5 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add src/features/worker/pages/WorkerDiaryPage.tsx
           git rm .github/workflows/repair-diary-syntax.yml
-          if git diff --cached --quiet; then
-            echo "No repair changes to commit."
-            exit 0
-          fi
           git commit -m "fix: repair Worker Organizer JSX syntax"
           git push origin HEAD:feat-worker-diary-organizer-final
