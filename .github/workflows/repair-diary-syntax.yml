@@ -17,13 +17,14 @@ jobs:
           s = p.read_text()
           old = ': null}</>}</div>}'
           new = ': null}</>}</>}</div>}'
-          if old not in s:
-              raise SystemExit('expected malformed JSX sequence not found')
-          p.write_text(s.replace(old, new, 1))
+          if old in s:
+              p.write_text(s.replace(old, new, 1))
+          else:
+              print('JSX sequence already repaired; continuing')
           PY
           npm install
           npm run build
-      - name: Commit repair
+      - name: Commit repair if needed
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
