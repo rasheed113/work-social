@@ -1,9 +1,29 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useCurrentWorkerProfileId } from './useCurrentWorkerProfileId';
-import { createWorkerFinanceReceived, getWorkerFinanceSummary, listWorkerFinanceEarnings, listWorkerFinanceReceived } from '../api/finance';
+import { createWorkerFinanceReceived, listWorkerFinanceEarnings, listWorkerFinanceReceived } from '../api/finance';
+import { canonicalizeWorkDecimal } from '../logic/workEntryCalculations';
 import type { FinanceListEntry, FinanceReceivedType, WorkerFinanceSummary } from '../types/finance';
 
 const EMPTY_SUMMARY: WorkerFinanceSummary = { total_earnings: '0', received: '0', remaining: '0' };
+
+function parseAmount(value: string): bigint {
+  const normalized = canonicalizeWorkDecimal(value);
+  const [integerPart, fractionPart = ''] = normalized.split('.');
+  return BigInt(integerPart) * 10000n + BigInt((fractionPart + '0000').slice(0, 4));
+}
+
+function formatAmount(value: bigint): string {
+  const negative = value < 0n;
+  const absolute = negative ? -value : value;
+  const integerPart = absolute / 10000n;
+  const fractionPart = (absolute % 10000n).toString().padStart(4, '0').replace(/0+$/, '');
+  const result = fractionPart ? `${integerPart}.${fractionPart}` : integerPart.toString();
+  return negative ? `-${result}` : result;
+}
+
+function sumAmounts(values: string[]): string {
+  return formatAmount(values.reduce((total, value) => total + parseAmount(value), 0n));
+}
 
 export function useWorkerFinance() {
   const session = useCurrentWorkerProfileId();
@@ -17,16 +37,16 @@ export function useWorkerFinance() {
     if (!session.profileId) {
       setSummary(EMPTY_SUMMARY);
       setEntries([]);
+      setLoading(false);
       return;
     }
     setLoading(true);
     setError(null);
-    const [earningsResult, receivedResult, summaryResult] = await Promise.all([
+    const [earningsResult, receivedResult] = await Promise.all([
       listWorkerFinanceEarnings(),
-      session.profileId ? listWorkerFinanceReceivedForProfile(session.profileId) : Promise.resolve({ data: [], error: null }),
-      getWorkerFinanceSummary(),
+      listWorkerFinanceReceived(session.profileId),
     ]);
-    const firstError = earningsResult.error ?? receivedResult.error ?? summaryResult.error;
+    const firstError = earningsResult.error ?? receivedResult.error;
     if (firstError) {
       setError(firstError.message);
       setEntries([]);
@@ -34,6 +54,11 @@ export function useWorkerFinance() {
       setLoading(false);
       return;
     }
+
+    const receivedAmounts = receivedResult.data.map((record) => record.amount);
+    const totalEarnings = sumAmounts(earningsResult.data.map((entry) => entry.total));
+    const received = sumAmounts(receivedAmounts);
+    const remaining = formatAmount(parseAmount(totalEarnings) - parseAmount(received));
     const nextEntries: FinanceListEntry[] = [
       ...earningsResult.data.map((entry) => ({ kind: 'earning' as const, id: `earning:${entry.id}`, amount: entry.total, occurred_at: entry.occurred_at, workEntry: entry })),
       ...receivedResult.data.map((record) => ({ kind: record.entry_type, id: `received:${record.id}`, amount: record.amount, occurred_at: record.received_at, record })),
@@ -43,7 +68,7 @@ export function useWorkerFinance() {
       return time || b.id.localeCompare(a.id);
     });
     setEntries(nextEntries);
-    setSummary(summaryResult.data);
+    setSummary({ total_earnings: totalEarnings, received, remaining });
     setLoading(false);
   }, [session.profileId]);
 
@@ -63,8 +88,4 @@ export function useWorkerFinance() {
   const hasEntries = entries.length > 0;
   const reload = load;
   return useMemo(() => ({ ...session, summary, entries, loading: session.loading || loading, saving, error: session.error ?? error, hasEntries, reload, addReceived }), [session, summary, entries, loading, saving, error, hasEntries, reload, addReceived]);
-}
-
-async function listWorkerFinanceReceivedForProfile(profileId: string) {
-  return listWorkerFinanceReceived(profileId);
 }
