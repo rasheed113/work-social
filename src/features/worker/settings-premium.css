@@ -1,0 +1,256 @@
+/* Worker Settings premium light 3D presentation. Scoped only to the Settings page markers. */
+main:has(#worker-profile-title),
+main:has(#team-joining-title) {
+  width: 100% !important;
+  max-width: 680px !important;
+  margin: 0 auto !important;
+  padding: 18px 12px 96px !important;
+  box-sizing: border-box !important;
+  color: #172033 !important;
+}
+
+main:has(#worker-profile-title) > header,
+main:has(#team-joining-title) > header {
+  margin-bottom: 12px !important;
+  padding: 0 2px !important;
+}
+
+main:has(#worker-profile-title) > header > div,
+main:has(#team-joining-title) > header > div {
+  color: #527083 !important;
+  font-size: 10px !important;
+  font-weight: 900 !important;
+  letter-spacing: .09em !important;
+  text-transform: uppercase !important;
+  text-shadow: 0 1px 0 #fff !important;
+}
+
+main:has(#worker-profile-title) > header h1,
+main:has(#team-joining-title) > header h1 {
+  margin: 4px 0 0 !important;
+  font-size: clamp(25px, 7vw, 34px) !important;
+  line-height: 1.05 !important;
+  font-weight: 950 !important;
+  letter-spacing: -.04em !important;
+  color: #172033 !important;
+  text-shadow: 0 -1px 0 #fff, 0 1px 0 rgba(100,116,139,.18), 0 3px 6px rgba(15,23,42,.08) !important;
+}
+
+main:has(#worker-profile-title) > p:first-of-type {
+  margin: -2px 2px 12px !important;
+  color: #64748b !important;
+  font-size: 12px !important;
+  line-height: 1.45 !important;
+}
+
+main:has(#worker-profile-title) section[aria-labelledby="worker-profile-title"],
+main:has(#worker-profile-title) section[aria-labelledby="worker-settings-section-title"],
+main:has(#team-joining-title) section[aria-labelledby="team-joining-title"] {
+  position: relative !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+  border: 1px solid rgba(79,142,160,.2) !important;
+  border-radius: 16px !important;
+  background: linear-gradient(180deg,#fff 0%,#fbfdfe 52%,#eef5f7 100%) !important;
+  box-shadow: inset 0 2px 0 rgba(255,255,255,.98), inset 0 -2px 0 rgba(100,116,139,.08), 0 2px 0 rgba(255,255,255,.94), 0 5px 0 rgba(148,163,184,.1), 0 10px 24px rgba(15,23,42,.08) !important;
+}
+
+main:has(#worker-profile-title) section[aria-labelledby="worker-profile-title"]::before,
+main:has(#worker-profile-title) section[aria-labelledby="worker-settings-section-title"]::before,
+main:has(#team-joining-title) section[aria-labelledby="team-joining-title"]::before {
+  content: '' !important;
+  position: absolute !important;
+  left: 9px !important;
+  right: 9px !important;
+  top: 1px !important;
+  height: 1px !important;
+  border-radius: 99px !important;
+  background: rgba(255,255,255,.98) !important;
+  pointer-events: none !important;
+}
+
+main:has(#worker-profile-title) section[aria-labelledby="worker-profile-title"] {
+  margin-bottom: 14px !important;
+  padding: 14px !important;
+}
+
+main:has(#worker-profile-title) section[aria-labelledby="worker-profile-title"] > div:first-child {
+  gap: 11px !important;
+}
+
+main:has(#worker-profile-title) section[aria-labelledby="worker-profile-title"] img,
+main:has(#worker-profile-title) section[aria-labelledby="worker-profile-title"] > div:first-child > div[aria-hidden="true"] {
+  width: 62px !important;
+  height: 62px !important;
+  flex-basis: 62px !important;
+  border-width: 2px !important;
+  border-color: rgba(20,184,166,.2) !important;
+  box-shadow: inset 0 2px 0 rgba(255,255,255,.9), 0 4px 10px rgba(15,23,42,.1) !important;
+}
+
+main:has(#worker-profile-title) #worker-profile-title {
+  margin: 3px 0 0 !important;
+  font-size: clamp(19px, 5.5vw, 25px) !important;
+  line-height: 1.08 !important;
+  font-weight: 900 !important;
+  color: #172033 !important;
+  text-shadow: 0 -1px 0 #fff, 0 2px 4px rgba(15,23,42,.08) !important;
+}
+
+main:has(#worker-profile-title) section[aria-labelledby="worker-profile-title"] .worker-settings-label,
+main:has(#worker-profile-title) section[aria-labelledby="worker-profile-title"] div[style*="textTransform: 'uppercase'"] {
+  color: #527083 !important;
+}
+
+main:has(#worker-profile-title) section[aria-labelledby="worker-profile-title"] > div:nth-child(2) {
+  gap: 6px !important;
+  margin-top: 12px !important;
+  padding-top: 11px !important;
+  border-top-color: rgba(71,112,127,.14) !important;
+}
+
+main:has(#worker-profile-title) section[aria-labelledby="worker-profile-title"] > div:last-child {
+  margin-top: 12px !important;
+  padding: 10px 11px !important;
+  border-radius: 11px !important;
+  background: linear-gradient(145deg,#f2f9ff,#e9fbfa) !important;
+  border: 1px solid rgba(56,189,248,.2) !important;
+  box-shadow: inset 0 2px 0 rgba(255,255,255,.98), inset 0 -2px 0 rgba(13,148,136,.06), 0 3px 8px rgba(14,116,144,.07) !important;
+}
+
+main:has(#worker-profile-title) section[aria-labelledby="worker-profile-title"] code {
+  font-size: 12px !important;
+  color: #17465a !important;
+}
+
+main:has(#worker-profile-title) section[aria-labelledby="worker-profile-title"] button,
+main:has(#team-joining-title) section[aria-labelledby="team-joining-title"] button,
+main:has(#worker-profile-title) section[aria-labelledby="worker-settings-section-title"] button {
+  min-height: 38px !important;
+  box-sizing: border-box !important;
+  border: 1px solid rgba(71,112,127,.24) !important;
+  border-radius: 10px !important;
+  background: linear-gradient(180deg,#fff,#f7fafb 52%,#e8eef1) !important;
+  color: #334155 !important;
+  box-shadow: inset 0 2px 0 #fff, inset 0 -2px 0 rgba(100,116,139,.09), 0 2px 0 #fff, 0 4px 8px rgba(15,23,42,.07) !important;
+  transition: transform .13s ease, box-shadow .13s ease, border-color .13s ease !important;
+}
+
+main:has(#worker-profile-title) section[aria-labelledby="worker-profile-title"] button:hover:not(:disabled),
+main:has(#team-joining-title) section[aria-labelledby="team-joining-title"] button:hover:not(:disabled),
+main:has(#worker-profile-title) section[aria-labelledby="worker-settings-section-title"] button:hover:not(:disabled) {
+  transform: translateY(-1px) !important;
+  border-color: rgba(13,148,136,.34) !important;
+  box-shadow: inset 0 2px 0 #fff, 0 3px 0 #fff, 0 6px 11px rgba(15,118,110,.11) !important;
+}
+
+main:has(#worker-profile-title) section[aria-labelledby="worker-profile-title"] button:active:not(:disabled),
+main:has(#team-joining-title) section[aria-labelledby="team-joining-title"] button:active:not(:disabled),
+main:has(#worker-profile-title) section[aria-labelledby="worker-settings-section-title"] button:active:not(:disabled) {
+  transform: translateY(1px) !important;
+  box-shadow: inset 0 2px 5px rgba(15,23,42,.12), 0 1px 0 #fff !important;
+}
+
+main:has(#worker-profile-title) section[aria-labelledby="worker-profile-title"] button:focus-visible,
+main:has(#team-joining-title) section[aria-labelledby="team-joining-title"] button:focus-visible,
+main:has(#worker-profile-title) section[aria-labelledby="worker-settings-section-title"] button:focus-visible {
+  outline: 3px solid rgba(20,184,166,.16) !important;
+  outline-offset: 2px !important;
+}
+
+main:has(#worker-profile-title) section[aria-labelledby="worker-settings-section-title"] {
+  display: grid !important;
+  gap: 8px !important;
+  padding: 11px !important;
+}
+
+main:has(#worker-profile-title) #worker-settings-section-title {
+  margin: 0 2px 1px !important;
+  color: #527083 !important;
+  font-size: 10px !important;
+  font-weight: 900 !important;
+  letter-spacing: .09em !important;
+}
+
+main:has(#worker-profile-title) section[aria-labelledby="worker-settings-section-title"] > button {
+  width: 100% !important;
+  padding: 11px 12px !important;
+  text-align: left !important;
+  border-radius: 12px !important;
+  background: linear-gradient(180deg,#fff,#f8fbfc 50%,#edf4f6) !important;
+}
+
+main:has(#worker-profile-title) section[aria-labelledby="worker-settings-section-title"] > button strong {
+  color: #172033 !important;
+  font-size: 14px !important;
+  font-weight: 900 !important;
+}
+
+main:has(#worker-profile-title) section[aria-labelledby="worker-settings-section-title"] > button span {
+  font-size: 12px !important;
+  line-height: 1.4 !important;
+}
+
+main:has(#worker-profile-title) section[aria-labelledby="worker-settings-section-title"] > button span:last-child {
+  margin-top: 7px !important;
+  color: #0f766e !important;
+}
+
+main:has(#team-joining-title) section[aria-labelledby="team-joining-title"] {
+  margin-top: 11px !important;
+  padding: 14px !important;
+}
+
+main:has(#team-joining-title) #team-joining-title {
+  margin: 0 !important;
+  font-size: clamp(22px, 6vw, 30px) !important;
+  line-height: 1.08 !important;
+  font-weight: 900 !important;
+  color: #172033 !important;
+  text-shadow: 0 -1px 0 #fff, 0 2px 4px rgba(15,23,42,.08) !important;
+}
+
+main:has(#team-joining-title) section[aria-labelledby="team-joining-title"] p {
+  margin: 8px 0 0 !important;
+  color: #64748b !important;
+  font-size: 12px !important;
+  line-height: 1.5 !important;
+}
+
+@media (max-width: 430px) {
+  main:has(#worker-profile-title), main:has(#team-joining-title) {
+    max-width: 100% !important;
+    padding: 14px 10px 84px !important;
+  }
+}
+
+@media (max-width: 360px) {
+  main:has(#worker-profile-title), main:has(#team-joining-title) {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+  main:has(#worker-profile-title) section[aria-labelledby="worker-profile-title"] {
+    padding: 12px !important;
+  }
+  main:has(#worker-profile-title) section[aria-labelledby="worker-profile-title"] img,
+  main:has(#worker-profile-title) section[aria-labelledby="worker-profile-title"] > div:first-child > div[aria-hidden="true"] {
+    width: 56px !important;
+    height: 56px !important;
+    flex-basis: 56px !important;
+  }
+}
+
+@media (min-width: 700px) {
+  main:has(#worker-profile-title), main:has(#team-joining-title) {
+    padding-top: 22px !important;
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  main:has(#worker-profile-title) button,
+  main:has(#team-joining-title) button {
+    transition: none !important;
+  }
+}

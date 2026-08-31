@@ -6,6 +6,7 @@ import './app/styles.css';
 import './app/auth-premium.css';
 import './app/worker-diary-responsive.css';
 import './features/worker/finance-premium.css';
+import './features/worker/settings-premium.css';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
