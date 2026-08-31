@@ -13,6 +13,16 @@ function normalizeReceived(row: ReceivedRow): FinanceReceivedRecord {
   return { ...row, amount: canonicalizeWorkDecimal(String(row.amount)) };
 }
 
+async function resolveWorkerProfileId(profileId: string) {
+  const workerResult = await getWorkerProfile(profileId);
+  if (workerResult.error) return { data: null, error: workerResult.error };
+  const workerProfileId = workerResult.data?.id;
+  if (!workerProfileId) {
+    return { data: null, error: new Error('Set up Work Identity before using Finance.') };
+  }
+  return { data: workerProfileId, error: null };
+}
+
 export async function listWorkerFinanceEarnings(): Promise<{ data: WorkEntry[]; error: Error | null }> {
   const entries: WorkEntry[] = [];
   let cursor: { occurred_at: string; id: string } | null = null;
@@ -29,11 +39,16 @@ export async function listWorkerFinanceEarnings(): Promise<{ data: WorkEntry[]; 
   return { data: entries, error: null };
 }
 
-export async function listWorkerFinanceReceived(workerProfileId: string) {
+export async function listWorkerFinanceReceived(profileId: string) {
+  const workerResult = await resolveWorkerProfileId(profileId);
+  if (workerResult.error || !workerResult.data) {
+    return { data: [], error: workerResult.error ?? new Error('Worker Identity is unavailable.') };
+  }
+
   const result = await supabase
     .from('worker_finance_received')
     .select(RECEIVED_COLUMNS)
-    .eq('worker_profile_id', workerProfileId)
+    .eq('worker_profile_id', workerResult.data)
     .order('received_at', { ascending: false })
     .order('id', { ascending: false })
     .returns<ReceivedRow[]>();
@@ -41,14 +56,14 @@ export async function listWorkerFinanceReceived(workerProfileId: string) {
 }
 
 export async function createWorkerFinanceReceived(profileId: string, entryType: FinanceReceivedType, amount: string) {
-  const workerResult = await getWorkerProfile(profileId);
-  if (workerResult.error) return { data: null, error: workerResult.error };
-  const workerProfileId = workerResult.data?.id;
-  if (!workerProfileId) return { data: null, error: new Error('Set up Work Identity before recording a received amount.') };
+  const workerResult = await resolveWorkerProfileId(profileId);
+  if (workerResult.error || !workerResult.data) {
+    return { data: null, error: workerResult.error ?? new Error('Worker Identity is unavailable.') };
+  }
 
   const result = await supabase
     .from('worker_finance_received')
-    .insert({ worker_profile_id: workerProfileId, entry_type: entryType, amount: canonicalizeWorkDecimal(amount) })
+    .insert({ worker_profile_id: workerResult.data, entry_type: entryType, amount: canonicalizeWorkDecimal(amount) })
     .select(RECEIVED_COLUMNS)
     .single<ReceivedRow>();
   return { data: result.data ? normalizeReceived(result.data) : null, error: result.error };
