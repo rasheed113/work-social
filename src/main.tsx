@@ -5,6 +5,7 @@ import { App } from './app/App';
 import './app/styles.css';
 import './app/auth-premium.css';
 import './app/worker-diary-responsive.css';
+import './features/worker/finance-premium.css';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
