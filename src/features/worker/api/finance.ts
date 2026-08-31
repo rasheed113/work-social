@@ -5,7 +5,7 @@ import { canonicalizeWorkDecimal } from '../logic/workEntryCalculations';
 import type { FinanceReceivedRecord, FinanceReceivedType } from '../types/finance';
 import type { WorkEntry } from '../types/workEntry';
 
-const RECEIVED_COLUMNS = 'id, worker_profile_id, entry_type, amount, received_at, created_at';
+const RECEIVED_COLUMNS = 'id, worker_profile_id, entry_type, amount, received_at, created_at, deleted_at';
 
 type ReceivedRow = Omit<FinanceReceivedRecord, 'amount'> & { amount: string | number };
 
@@ -49,6 +49,7 @@ export async function listWorkerFinanceReceived(profileId: string) {
     .from('worker_finance_received')
     .select(RECEIVED_COLUMNS)
     .eq('worker_profile_id', workerResult.data)
+    .is('deleted_at', null)
     .order('received_at', { ascending: false })
     .order('id', { ascending: false })
     .returns<ReceivedRow[]>();
@@ -80,21 +81,42 @@ export async function updateWorkerFinanceReceived(profileId: string, id: string,
     .update({ entry_type: entryType, amount: canonicalizeWorkDecimal(amount) })
     .eq('id', id)
     .eq('worker_profile_id', workerResult.data)
+    .is('deleted_at', null)
     .select(RECEIVED_COLUMNS)
     .single<ReceivedRow>();
   return { data: result.data ? normalizeReceived(result.data) : null, error: result.error };
 }
 
-export async function deleteWorkerFinanceReceived(profileId: string, id: string) {
+export async function softDeleteWorkerFinanceReceived(profileId: string, id: string) {
   const workerResult = await resolveWorkerProfileId(profileId);
   if (workerResult.error || !workerResult.data) {
-    return { error: workerResult.error ?? new Error('Worker Identity is unavailable.') };
+    return { data: null, error: workerResult.error ?? new Error('Worker Identity is unavailable.') };
   }
 
   const result = await supabase
     .from('worker_finance_received')
-    .delete()
+    .update({ deleted_at: new Date().toISOString() })
     .eq('id', id)
-    .eq('worker_profile_id', workerResult.data);
-  return { error: result.error };
+    .eq('worker_profile_id', workerResult.data)
+    .is('deleted_at', null)
+    .select(RECEIVED_COLUMNS)
+    .single<ReceivedRow>();
+  return { data: result.data ? normalizeReceived(result.data) : null, error: result.error };
+}
+
+export async function restoreWorkerFinanceReceived(profileId: string, id: string) {
+  const workerResult = await resolveWorkerProfileId(profileId);
+  if (workerResult.error || !workerResult.data) {
+    return { data: null, error: workerResult.error ?? new Error('Worker Identity is unavailable.') };
+  }
+
+  const result = await supabase
+    .from('worker_finance_received')
+    .update({ deleted_at: null })
+    .eq('id', id)
+    .eq('worker_profile_id', workerResult.data)
+    .not('deleted_at', 'is', null)
+    .select(RECEIVED_COLUMNS)
+    .single<ReceivedRow>();
+  return { data: result.data ? normalizeReceived(result.data) : null, error: result.error };
 }
