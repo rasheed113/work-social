@@ -21,11 +21,11 @@ function normalizeVersion(row: WorkEntryVersionRow): WorkEntryVersion { return {
 function periodQuery<T>(query: T, period: WorkHistoryPeriod, selectedBounds: WorkHistoryPeriodBounds | null = null) {
   const bounds = getWorkerWorkPeriodBounds();
   const periodBounds: WorkHistoryPeriodBounds | null = period === 'day'
-    ? { start: bounds.dayStart, end: bounds.dayEnd }
+    ? selectedBounds ?? { start: bounds.dayStart, end: bounds.dayEnd }
     : period === 'week'
       ? selectedBounds ?? { start: bounds.weekStart, end: bounds.weekEnd }
       : period === 'month'
-        ? { start: bounds.monthStart, end: bounds.monthEnd }
+        ? selectedBounds ?? { start: bounds.monthStart, end: bounds.monthEnd }
         : null;
   if (!periodBounds) return query as T;
   return (query as { gte: (column: string, value: string) => { lt: (column: string, value: string) => T } }).gte('occurred_at', periodBounds.start).lt('occurred_at', periodBounds.end);
