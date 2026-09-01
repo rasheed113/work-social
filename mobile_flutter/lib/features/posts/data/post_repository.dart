@@ -19,6 +19,15 @@ class PostDraft {
 class PostRepository {
   const PostRepository();
 
+  Future<List<Map<String, dynamic>>> listPublicPosts() async {
+    final response = await supabase
+        .from('posts')
+        .select('id, profile_id, content, privacy, latitude, longitude, location_name, created_at, profiles(username, display_name, avatar_url)')
+        .eq('privacy', 'public')
+        .order('created_at', ascending: false);
+    return List<Map<String, dynamic>>.from(response);
+  }
+
   Future<void> createPost({
     required String profileId,
     required PostDraft draft,
