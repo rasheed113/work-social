@@ -1,0 +1,28 @@
+name: work_social_mobile
+description: Native Flutter implementation of the Work Social web application.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.9.0 <4.0.0'
+  flutter: '>=3.35.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  supabase_flutter: ^2.17.2
+  image_picker: ^1.2.1
+  file_picker: ^10.3.3
+  geolocator: ^14.0.2
+
+  # Keep the dependency surface intentionally small until each web feature
+  # has a verified Flutter equivalent.
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
