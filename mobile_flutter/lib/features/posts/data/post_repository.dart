@@ -78,7 +78,7 @@ class PostRepository {
     try {
       for (final attachment in draft.attachments) {
         final safeName = attachment.fileName.replaceAll(RegExp(r'[^a-zA-Z0-9._-]'), '_');
-        final path = '$profileId/$postId/${const Uuid().v4()}-$safeName';
+        final path = '$profileId/$postId/${Uuid().v4()}-$safeName';
         final mimeType = attachment.mimeType ?? lookupMimeType(attachment.fileName);
         await supabase.storage.from('post-media').uploadBinary(
           path,
