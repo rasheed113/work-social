@@ -15,9 +15,8 @@ dependencies:
   image_picker: ^1.2.1
   file_picker: ^10.3.3
   geolocator: ^14.0.2
-
-  # Keep the dependency surface intentionally small until each web feature
-  # has a verified Flutter equivalent.
+  mime: ^2.0.0
+  uuid: ^4.5.1
 
 dev_dependencies:
   flutter_test:
