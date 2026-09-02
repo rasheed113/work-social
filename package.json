@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "scripts": {"dev":"vite","build":"tsc -b && vite build","test":"tsx src/features/ai/model/modelManager.test.ts && tsx src/features/ai/runtime/localInferenceRuntime.test.ts && tsx src/features/ai/providers/localAiProvider.test.ts && tsx src/features/ai/providers/aiRouter.test.ts && tsx src/features/ai/history/indexedDbAiHistoryStore.test.ts && tsx src/features/ai/history/indexedDbAiMemoryStore.test.ts && tsx src/features/ai/context/context.test.ts && tsx src/features/ai/vision/vision.test.ts && tsx src/features/ai/context/visionContext.test.ts","preview":"vite preview"},
+  "scripts": {"dev":"vite","build":"tsc -b && vite build","test":"tsx src/features/ai/model/modelManager.test.ts && tsx src/features/ai/runtime/localInferenceRuntime.test.ts && tsx src/features/ai/providers/localAiProvider.test.ts && tsx src/features/ai/providers/aiRouter.test.ts && tsx src/features/ai/history/indexedDbAiHistoryStore.test.ts && tsx src/features/ai/history/indexedDbAiMemoryStore.test.ts && tsx src/features/ai/context/context.test.ts && tsx src/features/ai/vision/vision.test.ts && tsx src/features/ai/context/visionContext.test.ts && tsx src/features/ai/security/security.test.ts","preview":"vite preview"},
   "dependencies": {"@internationalized/date":"3.12.3","@supabase/supabase-js":"latest","react":"latest","react-dom":"latest"},
   "devDependencies": {"@types/react":"latest","@types/react-dom":"latest","@vitejs/plugin-react":"latest","fake-indexeddb":"^6.2.5","tsx":"latest","typescript":"latest","vite":"latest"}
 }
