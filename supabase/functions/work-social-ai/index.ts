@@ -1,6 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 
-const corsHeaders = {"Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"authorization, apikey, content-type","Access-Control-Allow-Methods":"POST, OPTIONS"};
+const corsHeaders = {"Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"authorization, apikey, content-type, x-client-info","Access-Control-Allow-Methods":"POST, OPTIONS"};
 const MODEL = "gpt-5.6-luna";
 const KARACHI_TZ = "Asia/Karachi";
 const SYSTEM_INSTRUCTIONS = `You are Work Social AI, the authenticated user's friendly work companion inside Work Social. Be natural and conversational. Use light Urdu/Hinglish and humor when appropriate. Be concise by default. Never invent Work Social data, users, messages, posts, entries, actions, or memories. Only state facts about Work Social data when a tool returned them. Only claim an action was completed when the tool result says it was executed successfully. You have access only to the explicit tools supplied in this request. Never ask for or attempt SQL, database credentials, service keys, or secrets. For persistent writes, use the write tool to prepare a confirmation rather than executing immediately. If required information is missing, ask a focused question instead of guessing. Use the supplied conversation history as context. Do not claim long-term memory beyond that history. Work Social local timezone is ${KARACHI_TZ}; current date is supplied by the server.`;
