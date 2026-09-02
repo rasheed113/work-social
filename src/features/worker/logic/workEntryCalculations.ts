@@ -1,5 +1,6 @@
 import type { WorkDecimal, WorkerWorkTotals } from '../types/workEntry';
 
+const WORK_TIME_ZONE = 'Asia/Karachi';
 const INPUT_DECIMAL_RE = /^(?:0|[1-9]\d*)(?:\.\d{1,4})?$/;
 const MAX_INPUT_INTEGER_DIGITS = 14; // numeric(18,4)
 const MAX_TOTAL_INTEGER_DIGITS = 20; // numeric(24,4)
@@ -39,36 +40,52 @@ export function formatWorkDecimal(value: WorkDecimal) {
   return fractionPart ? `${grouped}.${fractionPart}` : grouped;
 }
 
+function karachiDateParts(value: Date) {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: WORK_TIME_ZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(value);
+  const get = (type: string) => parts.find((part) => part.type === type)?.value ?? '';
+  return { year: get('year'), month: get('month'), day: get('day') };
+}
+
+function karachiMidnight(value: Date) {
+  const { year, month, day } = karachiDateParts(value);
+  return new Date(`${year}-${month}-${day}T00:00:00+05:00`);
+}
+
+function addKarachiDays(value: Date, days: number) {
+  const result = new Date(value.getTime() + days * 86400000);
+  return karachiMidnight(result);
+}
+
 function startOfDay(value: Date) {
-  const result = new Date(value);
-  result.setHours(0, 0, 0, 0);
-  return result;
+  return karachiMidnight(value);
 }
 
 function startOfWeek(value: Date) {
   const result = startOfDay(value);
-  const day = result.getDay();
-  const daysSinceMonday = (day + 6) % 7;
-  result.setDate(result.getDate() - daysSinceMonday);
-  return result;
+  const weekday = new Intl.DateTimeFormat('en-US', { timeZone: WORK_TIME_ZONE, weekday: 'short' }).format(result);
+  const daysSinceMonday = ({ Mon: 0, Tue: 1, Wed: 2, Thu: 3, Fri: 4, Sat: 5, Sun: 6 } as Record<string, number>)[weekday] ?? 0;
+  return addKarachiDays(result, -daysSinceMonday);
 }
 
 function startOfMonth(value: Date) {
-  const result = startOfDay(value);
-  result.setDate(1);
-  return result;
+  const { year, month } = karachiDateParts(value);
+  return new Date(`${year}-${month}-01T00:00:00+05:00`);
 }
 
 export function getWorkerWorkPeriodBounds(now = new Date()) {
   const dayStart = startOfDay(now);
-  const dayEnd = new Date(dayStart);
-  dayEnd.setDate(dayEnd.getDate() + 1);
+  const dayEnd = addKarachiDays(dayStart, 1);
   const weekStart = startOfWeek(now);
-  const weekEnd = new Date(weekStart);
-  weekEnd.setDate(weekEnd.getDate() + 7);
+  const weekEnd = addKarachiDays(weekStart, 7);
   const monthStart = startOfMonth(now);
-  const monthEnd = new Date(monthStart);
-  monthEnd.setMonth(monthEnd.getMonth() + 1);
+  const nextMonthSeed = new Date(monthStart.getTime() + 32 * 86400000);
+  const { year, month } = karachiDateParts(nextMonthSeed);
+  const monthEnd = new Date(`${year}-${month}-01T00:00:00+05:00`);
   return {
     dayStart: dayStart.toISOString(), dayEnd: dayEnd.toISOString(),
     weekStart: weekStart.toISOString(), weekEnd: weekEnd.toISOString(),
@@ -78,23 +95,22 @@ export function getWorkerWorkPeriodBounds(now = new Date()) {
 
 export function getWorkerWorkDayBounds(day: Date) {
   const dayStart = startOfDay(day);
-  const dayEnd = new Date(dayStart);
-  dayEnd.setDate(dayEnd.getDate() + 1);
+  const dayEnd = addKarachiDays(dayStart, 1);
   return { dayStart: dayStart.toISOString(), dayEnd: dayEnd.toISOString() };
 }
 
 export function getWorkerWorkMonthBounds(month: Date) {
   const monthStart = startOfMonth(month);
-  const monthEnd = new Date(monthStart);
-  monthEnd.setMonth(monthEnd.getMonth() + 1);
+  const nextMonthSeed = new Date(monthStart.getTime() + 32 * 86400000);
+  const { year, month: nextMonth } = karachiDateParts(nextMonthSeed);
+  const monthEnd = new Date(`${year}-${nextMonth}-01T00:00:00+05:00`);
   return { monthStart: monthStart.toISOString(), monthEnd: monthEnd.toISOString() };
 }
 
-/** Build a Work History week from its local calendar Monday, using the app's existing local-time convention. */
+/** Build a Work History week from its local Karachi calendar Monday. */
 export function getWorkerWorkWeekBounds(weekStartDate: Date) {
   const weekStart = startOfWeek(weekStartDate);
-  const weekEnd = new Date(weekStart);
-  weekEnd.setDate(weekEnd.getDate() + 7);
+  const weekEnd = addKarachiDays(weekStart, 7);
   return { weekStart: weekStart.toISOString(), weekEnd: weekEnd.toISOString() };
 }
 
