@@ -1,4 +1,5 @@
-import type { PostgrestError, FunctionsFetchError, FunctionsHttpError, FunctionsRelayError } from '@supabase/supabase-js';
+import { FunctionsFetchError, FunctionsHttpError, FunctionsRelayError } from '@supabase/supabase-js';
+import type { PostgrestError } from '@supabase/supabase-js';
 import { supabase } from '../../../lib/supabase/client';
 
 export interface AiConversation {
