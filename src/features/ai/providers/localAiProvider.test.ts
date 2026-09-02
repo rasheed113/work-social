@@ -68,10 +68,10 @@ async function run(): Promise<void> {
     await expectCode(() => new LocalAiProvider(readyRuntime(), managerFor({ status: 'INVALID' })).sendMessage([message]), 'MODEL_INVALID');
     await expectCode(() => new LocalAiProvider(readyRuntime(), managerFor({}, { eligible: false, reasons: [{ code: 'UNSUPPORTED_ARCHITECTURE', message: 'CPU architecture is not supported.' }], limitations: [] })).sendMessage([message]), 'MODEL_INCOMPATIBLE');
     await expectCode(() => new LocalAiProvider(readyRuntime(), managerFor({}, { eligible: false, reasons: [{ code: 'INSUFFICIENT_RAM', message: 'Total RAM is below the model requirement.' }], limitations: [] })).sendMessage([message]), 'INSUFFICIENT_RESOURCES');
-    await expectCode(() => new LocalAiProvider(readyRuntime(), managerFor({})).sendMessage([message], [{ kind: 'image', mimeType: 'image/png' }]), 'UNSUPPORTED_ATTACHMENT');
+    await expectCode(() => new LocalAiProvider(readyRuntime(), managerFor({})).sendMessage([message], [{ id: 'image-1', kind: 'image', mimeType: 'image/png', metadata: { reference: 'local-ref', declaredSizeBytes: 123 } }]), 'VISION_RUNTIME_UNAVAILABLE');
     await expectCode(() => new LocalAiProvider(readyRuntime(), managerFor({})).sendMessage([message], [], { contextSize: 16384 }), 'CONTEXT_TOO_LARGE');
 
-    console.log('Phase 5 boundary tests passed: unavailable runtime is explicit, model states are structured, attachments are rejected, bounds are enforced, and no network fallback is used.');
+    console.log('Phase 10 local provider tests passed: text behavior remains bounded, image requests require real vision capability, and no network fallback is used.');
   } finally {
     globalThis.fetch = originalFetch;
   }

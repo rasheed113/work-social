@@ -1,3 +1,4 @@
+export type AiRequestModality = 'TEXT' | 'VISION' | 'MULTIMODAL';
 export type AiProviderId = 'gemini' | 'local';
 export type AiProviderMode = 'online' | 'offline';
 
@@ -10,6 +11,7 @@ export interface AiMessage {
   toolCallId?: string | null;
   metadata?: Record<string, unknown>;
   createdAt?: string;
+  attachments?: AiAttachment[];
 }
 
 export interface AiAttachment {
@@ -34,11 +36,7 @@ export interface AiGenerationOptions {
 export interface AiResponse {
   conversationId: string;
   message: string;
-  pendingActions: Array<{
-    id: string;
-    displaySummary: string;
-    expiresAt: string;
-  }>;
+  pendingActions: Array<{ id: string; displaySummary: string; expiresAt: string }>;
   provider: AiProviderId;
   mode: AiProviderMode;
 }
@@ -56,26 +54,17 @@ export type AiRoutingReasonCode =
   | 'ONLINE_EXPLICIT'
   | 'OFFLINE_EXPLICIT'
   | 'AUTO_LOCAL_SELECTED'
-  | 'AUTO_ONLINE_SELECTED';
-
-export type AiProviderStatusReasonCode =
-  | AiRoutingReasonCode
+  | 'AUTO_ONLINE_SELECTED'
+  | 'VISION_NOT_SUPPORTED'
+  | 'VISION_RUNTIME_UNAVAILABLE'
   | 'OFFLINE_TEXT_AI_UNAVAILABLE'
   | 'RUNTIME_UNAVAILABLE';
 
+export type AiProviderStatusReasonCode = AiRoutingReasonCode | 'OFFLINE_TEXT_AI_UNAVAILABLE' | 'RUNTIME_UNAVAILABLE';
+
 export type AiRoute =
-  | {
-      provider: 'gemini';
-      mode: 'online';
-      reason: string;
-      reasonCode: AiRoutingReasonCode;
-    }
-  | {
-      provider: 'local';
-      mode: 'offline';
-      reason: string;
-      reasonCode: AiRoutingReasonCode;
-    };
+  | { provider: 'gemini'; mode: 'online'; reason: string; reasonCode: AiRoutingReasonCode }
+  | { provider: 'local'; mode: 'offline'; reason: string; reasonCode: AiRoutingReasonCode };
 
 export class AiRoutingError extends Error {
   constructor(

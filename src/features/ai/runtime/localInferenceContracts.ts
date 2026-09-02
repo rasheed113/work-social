@@ -1,5 +1,21 @@
-import type { AiMessage } from '../providers/contracts';
+import type { AiAttachment, AiMessage, AiRequestModality } from '../providers/contracts';
 import type { AiModel } from '../model/modelContracts';
+
+export interface LocalInferenceCapabilities {
+  textGeneration: boolean;
+  visionInput: boolean;
+  multimodalInput: boolean;
+  streaming: boolean;
+  cancellation: boolean;
+}
+
+export const BROWSER_LOCAL_INFERENCE_CAPABILITIES: LocalInferenceCapabilities = Object.freeze({
+  textGeneration: false,
+  visionInput: false,
+  multimodalInput: false,
+  streaming: false,
+  cancellation: false,
+});
 
 export type LocalInferenceRuntimeStatus =
   | 'UNAVAILABLE' | 'UNINITIALIZED' | 'INITIALIZING' | 'READY' | 'LOADING_MODEL'
@@ -8,6 +24,8 @@ export type InferenceFinishReason = 'STOP' | 'LENGTH' | 'CANCELLED' | 'ERROR';
 
 export interface InferenceRequest {
   messages: AiMessage[];
+  modality?: AiRequestModality;
+  attachments?: AiAttachment[];
   maxTokens?: number;
   temperature?: number;
   topP?: number;
@@ -38,14 +56,17 @@ export interface LocalInferenceRuntime {
   stream(request: InferenceRequest): AsyncIterable<InferenceStreamEvent>;
   cancel(): Promise<void>;
   getStatus(): LocalInferenceRuntimeStatus;
+  /** Optional for backward-compatible injected runtimes; the default runtime always exposes it. */
+  getCapabilities?(): LocalInferenceCapabilities;
   dispose(): Promise<void>;
 }
 
-/** Platform adapter boundary. No llama.cpp/native-specific API is exposed here. */
+/** Platform adapter boundary. No Android/JNI/native-specific API is exposed here. */
 export interface LocalInferenceEngineAdapter {
   readonly name: string;
   readonly streaming: boolean;
   readonly cancellation: boolean;
+  readonly capabilities?: Partial<LocalInferenceCapabilities>;
   initialize(): Promise<void>;
   loadModel(model: VerifiedLocalModelReference): Promise<void>;
   unloadModel(): Promise<void>;
@@ -69,11 +90,17 @@ export type LocalInferenceErrorCode =
   | 'UNSUPPORTED_ATTACHMENT'
   | 'INVALID_STATE'
   | 'INVALID_MODEL_REFERENCE'
-  | 'MODEL_NOT_READY';
+  | 'MODEL_NOT_READY'
+  | 'VISION_NOT_SUPPORTED'
+  | 'VISION_RUNTIME_UNAVAILABLE'
+  | 'UNSUPPORTED_IMAGE_TYPE'
+  | 'IMAGE_TOO_LARGE'
+  | 'IMAGE_COUNT_EXCEEDED'
+  | 'INVALID_IMAGE_METADATA';
 
 export class LocalInferenceRuntimeError extends Error {
-  constructor(
-    readonly code: LocalInferenceErrorCode,
-    message: string,
-  ) { super(message); this.name = 'LocalInferenceRuntimeError'; }
+  constructor(readonly code: LocalInferenceErrorCode, message: string) {
+    super(message);
+    this.name = 'LocalInferenceRuntimeError';
+  }
 }
