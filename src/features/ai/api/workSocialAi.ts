@@ -88,7 +88,7 @@ export async function sendAiMessage(message: string, conversationId: string | nu
   if ('error' in data && typeof data.error === 'string') throw new Error(data.error);
 
   const reply = data as Partial<AiReply> & {
-    pending_actions?: Array<AiPendingAction & { action_id?: string; confirmation_id?: string }>;
+    pending_actions?: Array<Partial<AiPendingAction> & { action_id?: string; confirmation_id?: string }>;
   };
   if (typeof reply.conversation_id !== 'string' || typeof reply.message !== 'string') {
     throw new Error('The AI service returned an incomplete response.');
@@ -101,8 +101,8 @@ export async function sendAiMessage(message: string, conversationId: string | nu
       ? reply.pending_actions
           .map((action) => ({
             id: action.id || action.confirmation_id || action.action_id || '',
-            display_summary: action.display_summary,
-            expires_at: action.expires_at,
+            display_summary: action.display_summary || '',
+            expires_at: action.expires_at || '',
           }))
           .filter((action) => Boolean(action.id))
       : [],
