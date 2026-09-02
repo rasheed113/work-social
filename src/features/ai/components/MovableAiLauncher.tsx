@@ -53,12 +53,21 @@ export function MovableAiLauncher() {
         .ws-ai-launcher.ws-ai-brand-logo {
           width: 44px !important;
           height: 44px !important;
-          border-radius: 50% !important;
+          min-width: 44px !important;
+          min-height: 44px !important;
+          border-radius: 13px !important;
           overflow: hidden !important;
+          position: fixed !important;
+          display: grid !important;
+          place-items: center !important;
+          box-sizing: border-box !important;
+          background: #16a34a !important;
+          background-image: none !important;
+          border: 1px solid rgba(255,255,255,.34) !important;
           opacity: .48 !important;
           transform: scale(.94) !important;
-          transition: opacity .22s ease, transform .22s ease, filter .22s ease !important;
-          box-shadow: 0 5px 18px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.25) !important;
+          transition: opacity .22s ease, transform .22s ease, filter .22s ease, box-shadow .22s ease !important;
+          box-shadow: 0 6px 18px rgba(22,163,74,.28), inset 0 1px 0 rgba(255,255,255,.28), inset 0 -2px 5px rgba(0,0,0,.12) !important;
         }
         .ws-ai-launcher.ws-ai-brand-logo::before {
           content: 'AI';
@@ -68,19 +77,20 @@ export function MovableAiLauncher() {
           place-items: center;
           font-family: Inter, ui-sans-serif, system-ui, sans-serif;
           font-size: 13px;
-          font-weight: 950;
-          letter-spacing: -.07em;
+          font-weight: 900;
+          letter-spacing: -.06em;
           line-height: 1;
-          color: rgba(255,255,255,.97);
-          text-shadow: 0 1px 2px rgba(0,0,0,.4);
+          color: #fff !important;
+          text-shadow: 0 1px 2px rgba(0,0,0,.28);
           pointer-events: none;
         }
-        .ws-ai-launcher.ws-ai-brand-logo::after { display: none !important; }
-        .ws-ai-launcher.ws-ai-brand-logo > * { opacity: 0 !important; }
+        .ws-ai-launcher.ws-ai-brand-logo::after { display: none !important; content: none !important; }
+        .ws-ai-launcher.ws-ai-brand-logo > * { opacity: 0 !important; visibility: hidden !important; }
         .ws-ai-launcher.ws-ai-brand-logo.ws-ai-awake {
           opacity: 1 !important;
           transform: scale(1.08) !important;
-          filter: brightness(1.08) saturate(1.08) !important;
+          filter: brightness(1.06) saturate(1.05) !important;
+          box-shadow: 0 8px 24px rgba(22,163,74,.42), 0 0 0 3px rgba(34,197,94,.14), inset 0 1px 0 rgba(255,255,255,.34), inset 0 -2px 5px rgba(0,0,0,.1) !important;
         }
       `;
       document.head.appendChild(style);
