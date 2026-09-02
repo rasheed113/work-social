@@ -1,4 +1,4 @@
-import type { PostgrestError } from '@supabase/supabase-js';
+import type { PostgrestError, FunctionsFetchError, FunctionsHttpError, FunctionsRelayError } from '@supabase/supabase-js';
 import { supabase } from '../../../lib/supabase/client';
 
 export interface AiConversation {
@@ -41,6 +41,34 @@ function readableError(error: unknown): string {
   return 'Work Social AI could not complete that request.';
 }
 
+async function functionErrorMessage(error: unknown, fallback: string): Promise<string> {
+  if (error instanceof FunctionsHttpError) {
+    const status = error.context.status;
+    const sbErrorCode = error.context.headers.get('sb-error-code');
+    let payload: Record<string, unknown> = {};
+    try {
+      const parsed = await error.context.clone().json();
+      if (parsed && typeof parsed === 'object') payload = parsed as Record<string, unknown>;
+    } catch {
+      // Keep the diagnostic safe even if the function did not return JSON.
+    }
+
+    const code = typeof payload.code === 'string' ? payload.code : null;
+    const message = typeof payload.error === 'string' ? payload.error : null;
+    const upstreamStatus = typeof payload.upstream_status === 'number' ? payload.upstream_status : null;
+    const parts = [`HTTP ${status}`];
+    if (sbErrorCode) parts.push(`sb-error-code ${sbErrorCode}`);
+    if (code) parts.push(`server ${code}`);
+    if (upstreamStatus) parts.push(`upstream HTTP ${upstreamStatus}`);
+    if (message) parts.push(message);
+    return parts.join(' — ');
+  }
+
+  if (error instanceof FunctionsRelayError) return `Supabase Functions relay error — ${readableError(error)}`;
+  if (error instanceof FunctionsFetchError) return `Supabase Functions fetch error — ${readableError(error)}`;
+  return readableError(error) || fallback;
+}
+
 export async function sendAiMessage(message: string, conversationId: string | null): Promise<AiReply> {
   const trimmed = message.trim();
   if (!trimmed) throw new Error('Message cannot be empty.');
@@ -54,7 +82,7 @@ export async function sendAiMessage(message: string, conversationId: string | nu
     headers: { Authorization: `Bearer ${sessionData.session.access_token}` },
   });
 
-  if (error) throw new Error(readableError(error));
+  if (error) throw new Error(await functionErrorMessage(error, 'Work Social AI could not complete that request.'));
   if (!data || typeof data !== 'object') throw new Error('The AI service returned an invalid response.');
   if ('error' in data && typeof data.error === 'string') throw new Error(data.error);
 
@@ -79,7 +107,7 @@ export async function confirmAiAction(actionId: string): Promise<{ success: bool
     body: { action: 'confirm', action_id: actionId },
     headers: { Authorization: `Bearer ${sessionData.session.access_token}` },
   });
-  if (error) throw new Error(readableError(error));
+  if (error) throw new Error(await functionErrorMessage(error, 'Work Social AI could not complete that confirmation.'));
   if (!data || typeof data !== 'object') throw new Error('The AI service returned an invalid confirmation response.');
   if ('error' in data && typeof data.error === 'string') throw new Error(data.error);
   return data as { success: boolean; entry?: Record<string, unknown> };
