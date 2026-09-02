@@ -68,10 +68,17 @@ export function WorkSocialAiVoiceBridge() {
     };
   }, []);
 
+  const finishRecognition = (recognition: SpeechRecognitionLike) => {
+    if (recognitionRef.current !== recognition) return;
+    recognitionRef.current = null;
+    setListening(false);
+    try { recognition.stop(); } catch { /* already ended */ }
+  };
+
   const startRecognition = () => {
     const Recognition = RecognitionRef.current;
-    if (!Recognition) return;
-    try { recognitionRef.current?.stop(); } catch { /* reset stale instance */ }
+    if (!Recognition || recognitionRef.current) return;
+    setNotice(null);
 
     const recognition = new Recognition();
     recognition.lang = 'ur-PK';
@@ -97,12 +104,19 @@ export function WorkSocialAiVoiceBridge() {
         .map((result) => result[0].transcript)
         .join(' ')
         .trim();
+
+      // Release the recognition instance immediately after a final transcript.
+      // This is important because the user may press the mic again immediately
+      // after sending the message; the next tap must always create a fresh session.
+      finishRecognition(recognition);
+
       if (!transcript) return;
       openAssistant();
       window.setTimeout(() => {
         if (!setComposerValue(transcript)) setNotice('Open Work Social AI first, then tap the microphone again.');
       }, 120);
     };
+
     recognitionRef.current = recognition;
     try {
       recognition.start();
@@ -128,6 +142,8 @@ export function WorkSocialAiVoiceBridge() {
           setNotice(null);
           if (recognitionRef.current) {
             try { recognitionRef.current.stop(); } catch { /* already stopped */ }
+            recognitionRef.current = null;
+            setListening(false);
           } else {
             startRecognition();
           }
@@ -169,7 +185,7 @@ export function WorkSocialAiVoiceBridge() {
       window.clearInterval(interval);
       document.querySelectorAll('.ws-ai-inline-mic,.ws-ai-inline-speaker').forEach((node) => node.remove());
     };
-  }, [available]);
+  }, [available, listening]);
 
   useEffect(() => {
     if (!notice) return;
