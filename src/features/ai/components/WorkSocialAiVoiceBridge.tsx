@@ -35,13 +35,21 @@ function openAssistant() {
   if (launcher && launcher.getAttribute('aria-label')?.startsWith('Open')) launcher.click();
 }
 
+function speak(text: string, onPlaying?: (value: boolean) => void) {
+  if (!('speechSynthesis' in window) || !text.trim()) return;
+  window.speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(text.trim());
+  utterance.lang = /[\u0600-\u06ff]/.test(text) ? 'ur-PK' : 'en-US';
+  utterance.onstart = () => onPlaying?.(true);
+  utterance.onend = () => onPlaying?.(false);
+  utterance.onerror = () => onPlaying?.(false);
+  window.speechSynthesis.speak(utterance);
+}
+
 export function WorkSocialAiVoiceBridge() {
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const RecognitionRef = useRef<SpeechRecognitionConstructor | null>(null);
-  const speakingRef = useRef(false);
-  const voiceRepliesRef = useRef(false);
   const [listening, setListening] = useState(false);
-  const [voiceReplies, setVoiceReplies] = useState(false);
   const [available, setAvailable] = useState(true);
   const [notice, setNotice] = useState<string | null>(null);
 
@@ -52,7 +60,6 @@ export function WorkSocialAiVoiceBridge() {
       return;
     }
     RecognitionRef.current = Recognition;
-
     return () => {
       try { recognitionRef.current?.stop(); } catch { /* already stopped */ }
       recognitionRef.current = null;
@@ -63,8 +70,7 @@ export function WorkSocialAiVoiceBridge() {
 
   const startRecognition = () => {
     const Recognition = RecognitionRef.current;
-    if (!Recognition) return false;
-
+    if (!Recognition) return;
     try { recognitionRef.current?.stop(); } catch { /* reset stale instance */ }
 
     const recognition = new Recognition();
@@ -97,51 +103,9 @@ export function WorkSocialAiVoiceBridge() {
         if (!setComposerValue(transcript)) setNotice('Open Work Social AI first, then tap the microphone again.');
       }, 120);
     };
-
     recognitionRef.current = recognition;
-    recognition.start();
-    return true;
-  };
-
-  useEffect(() => {
-    voiceRepliesRef.current = voiceReplies;
-  }, [voiceReplies]);
-
-  useEffect(() => {
-    if (!voiceReplies) return;
-    const root = document.querySelector('.ws-ai-messages');
-    if (!root) return;
-    let lastAssistantText = '';
-
-    const speakLatest = () => {
-      if (!voiceRepliesRef.current || speakingRef.current) return;
-      const nodes = root.querySelectorAll<HTMLElement>('.ws-ai-bubble.assistant');
-      const latest = nodes[nodes.length - 1]?.innerText?.trim() ?? '';
-      if (!latest || latest === lastAssistantText) return;
-      lastAssistantText = latest;
-      window.speechSynthesis?.cancel();
-      const utterance = new SpeechSynthesisUtterance(latest);
-      utterance.lang = /[\u0600-\u06ff]/.test(latest) ? 'ur-PK' : 'en-US';
-      utterance.onstart = () => { speakingRef.current = true; };
-      utterance.onend = () => { speakingRef.current = false; };
-      utterance.onerror = () => { speakingRef.current = false; };
-      window.speechSynthesis?.speak(utterance);
-    };
-    const observer = new MutationObserver(speakLatest);
-    observer.observe(root, { childList: true, subtree: true, characterData: true });
-    return () => observer.disconnect();
-  }, [voiceReplies]);
-
-  if (!available) return null;
-
-  const toggleListening = () => {
-    setNotice(null);
-    if (listening) {
-      try { recognitionRef.current?.stop(); } catch { /* already stopped */ }
-      return;
-    }
     try {
-      startRecognition();
+      recognition.start();
     } catch {
       recognitionRef.current = null;
       setListening(false);
@@ -149,22 +113,82 @@ export function WorkSocialAiVoiceBridge() {
     }
   };
 
+  useEffect(() => {
+    if (!available) return;
+    const mountControls = () => {
+      const composer = document.querySelector<HTMLElement>('.ws-ai-composer');
+      if (composer && !composer.querySelector('.ws-ai-inline-mic')) {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'ws-ai-inline-mic';
+        button.setAttribute('aria-label', 'Speak to Work Social AI');
+        button.title = 'Speak to Work Social AI';
+        button.textContent = '🎙️';
+        button.addEventListener('click', () => {
+          setNotice(null);
+          if (recognitionRef.current) {
+            try { recognitionRef.current.stop(); } catch { /* already stopped */ }
+          } else {
+            startRecognition();
+          }
+        });
+        const send = composer.querySelector('.ws-ai-send');
+        if (send) composer.insertBefore(button, send);
+        else composer.appendChild(button);
+      }
+
+      document.querySelectorAll<HTMLElement>('.ws-ai-bubble.assistant').forEach((bubble) => {
+        if (bubble.querySelector('.ws-ai-inline-speaker')) return;
+        const speaker = document.createElement('button');
+        speaker.type = 'button';
+        speaker.className = 'ws-ai-inline-speaker';
+        speaker.setAttribute('aria-label', 'Read this AI reply aloud');
+        speaker.title = 'Read this reply aloud';
+        speaker.textContent = '🔊';
+        speaker.addEventListener('click', () => {
+          const text = Array.from(bubble.childNodes)
+            .filter((node) => node !== speaker)
+            .map((node) => node.textContent ?? '')
+            .join(' ')
+            .trim();
+          speak(text, (playing) => {
+            speaker.textContent = playing ? '■' : '🔊';
+            speaker.classList.toggle('playing', playing);
+          });
+        });
+        bubble.appendChild(speaker);
+      });
+    };
+
+    mountControls();
+    const observer = new MutationObserver(mountControls);
+    observer.observe(document.body, { childList: true, subtree: true });
+    const interval = window.setInterval(mountControls, 500);
+    return () => {
+      observer.disconnect();
+      window.clearInterval(interval);
+      document.querySelectorAll('.ws-ai-inline-mic,.ws-ai-inline-speaker').forEach((node) => node.remove());
+    };
+  }, [available]);
+
+  useEffect(() => {
+    if (!notice) return;
+    const timer = window.setTimeout(() => setNotice(null), 4000);
+    return () => window.clearTimeout(timer);
+  }, [notice]);
+
+  if (!available) return null;
+
   return (
     <>
-      <div className="ws-ai-voice-controls" aria-label="Work Social AI voice controls">
-        <button type="button" className={`ws-ai-voice-button${listening ? ' listening' : ''}`} onClick={toggleListening} aria-label={listening ? 'Stop voice input' : 'Speak to Work Social AI'} title={listening ? 'Stop listening' : 'Speak to Work Social AI'}>
-          {listening ? '■' : '🎙️'}
-        </button>
-      </div>
       {notice ? <div className="ws-ai-voice-notice" role="status">{notice}</div> : null}
       <style>{`
-        .ws-ai-voice-controls{display:contents}
-        .ws-ai-voice-button{width:44px;height:42px;min-width:44px;flex:0 0 44px;border:1px solid rgba(255,255,255,.12);border-radius:13px;background:rgba(255,255,255,.07);color:#fff;cursor:pointer;font-size:17px;display:grid;place-items:center}
-        .ws-ai-voice-button:hover{background:rgba(59,130,246,.2);border-color:rgba(96,165,250,.35)}
-        .ws-ai-voice-button.listening{background:rgba(220,38,38,.2);border-color:rgba(248,113,113,.45);animation:ws-ai-voice-pulse 1.2s infinite}
+        .ws-ai-inline-mic{width:44px;height:42px;min-width:44px;flex:0 0 44px;border:1px solid rgba(255,255,255,.12);border-radius:13px;background:rgba(255,255,255,.07);color:#fff;cursor:pointer;font-size:17px;display:grid;place-items:center}
+        .ws-ai-inline-mic:hover{background:rgba(59,130,246,.2);border-color:rgba(96,165,250,.35)}
+        .ws-ai-inline-speaker{display:inline-grid;place-items:center;margin-top:8px;width:30px;height:30px;border:1px solid rgba(255,255,255,.12);border-radius:10px;background:rgba(255,255,255,.055);color:#cbd5e1;cursor:pointer;font-size:14px;vertical-align:middle}
+        .ws-ai-inline-speaker:hover,.ws-ai-inline-speaker.playing{background:rgba(59,130,246,.2);border-color:rgba(96,165,250,.4);color:#fff}
         .ws-ai-voice-notice{position:fixed;right:18px;bottom:145px;z-index:1502;max-width:min(360px,calc(100vw - 36px));padding:9px 12px;border:1px solid rgba(248,113,113,.25);border-radius:11px;background:rgba(45,16,25,.94);color:#fecaca;font-size:11px;box-shadow:0 12px 28px rgba(0,0,0,.25)}
-        @keyframes ws-ai-voice-pulse{50%{transform:scale(.94);opacity:.72}}
-        @media(max-width:680px){.ws-ai-voice-button{width:42px;min-width:42px;flex-basis:42px}.ws-ai-voice-notice{bottom:132px}}
+        @media(max-width:680px){.ws-ai-inline-mic{width:42px;min-width:42px;flex-basis:42px}.ws-ai-inline-speaker{width:30px;height:30px}.ws-ai-voice-notice{bottom:132px}}
       `}</style>
     </>
   );
