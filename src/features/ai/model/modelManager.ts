@@ -8,6 +8,8 @@ import type { ModelRegistry } from './modelRegistry';
 
 /** Model lifecycle and the only authority allowed to issue a verified runtime handoff. */
 export class ModelManager {
+  private readonly verificationPromises = new Map<string, Promise<VerifiedLocalModelReference>>();
+
   constructor(
     private readonly registry: ModelRegistry,
     private readonly storage: ModelStorage,
@@ -72,8 +74,19 @@ export class ModelManager {
   /**
    * Performs capability, installation, and checksum checks immediately before a runtime load.
    * The returned branded reference is the only model source accepted by LocalInferenceRuntime.
+   * Concurrent callers for the same model share only the in-flight verification; no verification
+   * result is retained after the operation settles.
    */
   async getVerifiedModelReference(modelId: string): Promise<VerifiedLocalModelReference> {
+    const existing = this.verificationPromises.get(modelId);
+    if (existing) return existing;
+    const verification = this.verifyModelReference(modelId);
+    this.verificationPromises.set(modelId, verification);
+    try { return await verification; }
+    finally { if (this.verificationPromises.get(modelId) === verification) this.verificationPromises.delete(modelId); }
+  }
+
+  private async verifyModelReference(modelId: string): Promise<VerifiedLocalModelReference> {
     const model = this.requireModel(modelId);
     const eligibility = await this.checkInstallationEligibility(modelId);
     if (!eligibility.eligible) throw new Error(`LOCAL_MODEL_INELIGIBLE: ${eligibility.reasons.map((r) => r.code).join(', ')}`);

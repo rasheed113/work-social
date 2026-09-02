@@ -10,6 +10,8 @@ const STORAGE_NAMESPACE = 'models/';
  * not an Android app-private filesystem implementation.
  */
 export class WebModelStorage implements ModelStorage {
+  private databasePromise: Promise<IDBDatabase> | null = null;
+
   getModelPath(model: AiModel): string {
     return `${STORAGE_NAMESPACE}${encodeURIComponent(model.id)}/${encodeURIComponent(model.version)}`;
   }
@@ -43,32 +45,54 @@ export class WebModelStorage implements ModelStorage {
     return (await sha256Hex(data)) === model.sha256.toLowerCase();
   }
 
-  private withStore<T = void>(
+  private openDatabase(): Promise<IDBDatabase> {
+    if (this.databasePromise) return this.databasePromise;
+    this.databasePromise = new Promise<IDBDatabase>((resolve, reject) => {
+      if (typeof indexedDB === 'undefined') {
+        reject(new Error('IndexedDB is not available in this runtime.'));
+        return;
+      }
+      let openRequest: IDBOpenDBRequest;
+      try { openRequest = indexedDB.open(DATABASE_NAME, 1); }
+      catch (error) { reject(error); return; }
+      openRequest.onupgradeneeded = () => {
+        if (!openRequest.result.objectStoreNames.contains(STORE_NAME)) openRequest.result.createObjectStore(STORE_NAME);
+      };
+      openRequest.onerror = () => reject(openRequest.error ?? new Error('Unable to open model storage.'));
+      openRequest.onblocked = () => reject(new Error('Model storage is blocked by another database connection.'));
+      openRequest.onsuccess = () => {
+        const database = openRequest.result;
+        database.onversionchange = () => { database.close(); this.databasePromise = null; };
+        database.onclose = () => { if (this.databasePromise) this.databasePromise = null; };
+        resolve(database);
+      };
+    }).catch((error) => {
+      this.databasePromise = null;
+      throw error;
+    });
+    return this.databasePromise;
+  }
+
+  private async withStore<T = void>(
     mode: IDBTransactionMode,
     operation: (store: IDBObjectStore) => IDBRequest<T>,
   ): Promise<T> {
-    if (typeof indexedDB === 'undefined') {
-      return Promise.reject(new Error('IndexedDB is not available in this runtime.'));
-    }
-
+    const database = await this.openDatabase();
     return new Promise((resolve, reject) => {
-      const openRequest = indexedDB.open(DATABASE_NAME, 1);
-      openRequest.onupgradeneeded = () => {
-        if (!openRequest.result.objectStoreNames.contains(STORE_NAME)) {
-          openRequest.result.createObjectStore(STORE_NAME);
-        }
+      let transaction: IDBTransaction;
+      try { transaction = database.transaction(STORE_NAME, mode); }
+      catch (error) { this.databasePromise = null; reject(error); return; }
+      const request = operation(transaction.objectStore(STORE_NAME));
+      let result: T;
+      let requestError: DOMException | null = null;
+      request.onsuccess = () => { result = request.result; };
+      request.onerror = () => { requestError = request.error; };
+      transaction.oncomplete = () => {
+        if (requestError) reject(requestError);
+        else resolve(result!);
       };
-      openRequest.onerror = () => reject(openRequest.error ?? new Error('Unable to open model storage.'));
-      openRequest.onsuccess = () => {
-        const database = openRequest.result;
-        const transaction = database.transaction(STORE_NAME, mode);
-        const request = operation(transaction.objectStore(STORE_NAME));
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = () => reject(request.error ?? new Error('Model storage operation failed.'));
-        transaction.oncomplete = () => database.close();
-        transaction.onerror = () => reject(transaction.error ?? new Error('Model storage transaction failed.'));
-        transaction.onabort = () => reject(transaction.error ?? new Error('Model storage transaction aborted.'));
-      };
+      transaction.onerror = () => reject(transaction.error ?? requestError ?? new Error('Model storage transaction failed.'));
+      transaction.onabort = () => reject(transaction.error ?? requestError ?? new Error('Model storage transaction aborted.'));
     });
   }
 }

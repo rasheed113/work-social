@@ -16,6 +16,7 @@ const capability = (overrides: Partial<DeviceCapability> = {}): DeviceCapability
 class TestStorage implements ModelStorage {
   readonly unrelated = new Blob(['unrelated']);
   private readonly files = new Map<string, Blob>([['unrelated', this.unrelated]]);
+  verifyCalls = 0;
   getModelPath(model: AiModel): string { return `models/${model.id}/${model.version}`; }
   async exists(model: AiModel): Promise<boolean> { return this.files.has(this.getModelPath(model)); }
   async getSize(model: AiModel): Promise<number | null> { return (await this.read(model))?.size ?? null; }
@@ -23,6 +24,7 @@ class TestStorage implements ModelStorage {
   async read(model: AiModel): Promise<Blob | null> { return this.files.get(this.getModelPath(model)) ?? null; }
   async delete(model: AiModel): Promise<void> { this.files.delete(this.getModelPath(model)); }
   async verifyChecksum(model: AiModel): Promise<boolean> {
+    this.verifyCalls += 1;
     if (!model.sha256) return false;
     const data = await this.read(model);
     return data ? (await sha256Hex(data)) === model.sha256.toLowerCase() : false;
@@ -58,6 +60,14 @@ async function run(): Promise<void> {
   assertEqual((await manager.installFromBlob(model.id, data)).status, 'INSTALLED', 'valid file becomes installed');
   assertEqual(manager.getModel(model.id)?.status, 'INSTALLED', 'installed status is retained');
   assertEqual((await manager.discoverInstalledModels())[0]?.status, 'INSTALLED', 'discovery verifies installed file');
+
+  storage.verifyCalls = 0;
+  const verifiedReferences = await Promise.all([
+    manager.getVerifiedModelReference(model.id),
+    manager.getVerifiedModelReference(model.id),
+  ]);
+  assertEqual(storage.verifyCalls, 1, 'concurrent verification shares one in-flight checksum operation');
+  assert(verifiedReferences[0] === verifiedReferences[1], 'concurrent verification returns the shared handoff');
 
   assertEqual((await manager.removeInstalledModel(model.id)).status, 'NOT_INSTALLED', 'remove returns not installed');
   assertEqual(await storage.exists(model), false, 'model file is deleted');
@@ -114,11 +124,11 @@ async function run(): Promise<void> {
   noChecksumManager.registerModel(noChecksum);
   assertEqual((await noChecksumManager.installFromBlob(noChecksum.id, data)).status, 'INVALID', 'missing checksum cannot install');
 
-  assertEqual(manager.removeModelMetadata(model.id), true, 'registered metadata can be removed');
+  assertEqual(manager.removeModelMetadata(model.id), true, 'registered model metadata can be removed');
   assertEqual(manager.getModel(model.id), undefined, 'removed metadata is absent');
   assertEqual(manager.removeModelMetadata('missing'), false, 'unknown metadata removal is false');
 
-  console.log('Model Manager tests passed: registry, eligibility, integrity, lifecycle, and safe deletion.');
+  console.log('Model Manager tests passed: registry, eligibility, integrity, lifecycle, safe deletion, and concurrent verification.');
 }
 
 run().catch((error: unknown) => { console.error(error); throw error; });

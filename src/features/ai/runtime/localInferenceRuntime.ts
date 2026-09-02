@@ -10,6 +10,9 @@ export class DefaultLocalInferenceRuntime implements LocalInferenceRuntime {
   private status: LocalInferenceRuntimeStatus;
   private loadedModel: VerifiedLocalModelReference | null = null;
   private controller: AbortController | null = null;
+  private initializePromise: Promise<void> | null = null;
+  private loadModelPromise: Promise<void> | null = null;
+  private loadingModelKey: string | null = null;
   private readonly capabilities: LocalInferenceCapabilities;
 
   constructor(private readonly adapter: LocalInferenceEngineAdapter | null = null) {
@@ -19,16 +22,41 @@ export class DefaultLocalInferenceRuntime implements LocalInferenceRuntime {
   getStatus(): LocalInferenceRuntimeStatus { return this.status; }
   getCapabilities(): LocalInferenceCapabilities { return { ...this.capabilities }; }
   async initialize(): Promise<void> {
-    this.requireAvailable(); this.requireState('UNINITIALIZED'); this.status = 'INITIALIZING';
-    try { await this.adapter!.initialize(); this.status = 'READY'; }
-    catch (error) { this.status = 'ERROR'; throw this.runtimeError(error, 'Runtime initialization failed.', 'MODEL_LOAD_FAILED'); }
+    this.requireAvailable();
+    if (this.status === 'READY' || this.status === 'MODEL_READY') return;
+    if (this.status === 'INITIALIZING' && this.initializePromise) return this.initializePromise;
+    this.requireState('UNINITIALIZED');
+    this.status = 'INITIALIZING';
+    const operation = this.adapter!.initialize().then(() => {
+      if (this.status !== 'DISPOSED') this.status = 'READY';
+    }).catch((error) => {
+      if (this.status !== 'DISPOSED') this.status = 'ERROR';
+      throw this.runtimeError(error, 'Runtime initialization failed.', 'MODEL_LOAD_FAILED');
+    });
+    this.initializePromise = operation;
+    try { await operation; } finally { if (this.initializePromise === operation) this.initializePromise = null; }
   }
   async loadModel(model: VerifiedLocalModelReference): Promise<void> {
-    this.requireAvailable(); this.requireState('READY', 'MODEL_READY');
+    this.requireAvailable();
     if (!model || model[verifiedModelReferenceBrand] !== true) throw new LocalInferenceRuntimeError('INVALID_MODEL_REFERENCE', 'Model must be issued by ModelManager after checksum verification.');
+    const modelKey = getModelKey(model);
+    if (this.status === 'MODEL_READY' && sameModel(this.loadedModel, model)) return;
+    if (this.status === 'LOADING_MODEL' && this.loadModelPromise) {
+      if (this.loadingModelKey === modelKey) return this.loadModelPromise;
+      throw new LocalInferenceRuntimeError('INVALID_STATE', 'A different model is already loading.');
+    }
+    this.requireState('READY', 'MODEL_READY');
     this.status = 'LOADING_MODEL';
-    try { await model.readVerifiedModel(); await this.adapter!.loadModel(model); this.loadedModel = model; this.status = 'MODEL_READY'; }
-    catch (error) { this.loadedModel = null; this.status = 'ERROR'; throw this.runtimeError(error, 'Verified model loading failed.', 'MODEL_LOAD_FAILED'); }
+    this.loadingModelKey = modelKey;
+    const operation = (async () => {
+      try { await model.readVerifiedModel(); await this.adapter!.loadModel(model); this.loadedModel = model; if (this.status !== 'DISPOSED') this.status = 'MODEL_READY'; }
+      catch (error) { this.loadedModel = null; if (this.status !== 'DISPOSED') this.status = 'ERROR'; throw this.runtimeError(error, 'Verified model loading failed.', 'MODEL_LOAD_FAILED'); }
+    })();
+    this.loadModelPromise = operation;
+    try { await operation; } finally {
+      if (this.loadModelPromise === operation) this.loadModelPromise = null;
+      if (this.loadingModelKey === modelKey) this.loadingModelKey = null;
+    }
   }
   async unloadModel(): Promise<void> {
     this.requireAvailable(); this.requireState('MODEL_READY', 'ERROR');
@@ -40,24 +68,24 @@ export class DefaultLocalInferenceRuntime implements LocalInferenceRuntime {
     this.requireAvailable(); this.requireState('MODEL_READY');
     if (!this.loadedModel) throw new LocalInferenceRuntimeError('MODEL_NOT_READY', 'A verified model must be loaded before generation.');
     this.requireRequestCapability(request);
-    const { controller, signal } = this.createGenerationSignal(request.signal); this.controller = controller; this.status = 'GENERATING';
+    const { controller, signal, cleanup } = this.createGenerationSignal(request.signal); this.controller = controller; this.status = 'GENERATING';
     try { const response = await this.adapter!.generate({ ...request, signal }, signal); this.status = 'MODEL_READY'; return response; }
     catch (error) { this.status = signal.aborted ? 'MODEL_READY' : 'ERROR'; if (signal.aborted) throw new LocalInferenceRuntimeError('INFERENCE_CANCELLED', 'Local generation was cancelled.'); throw this.runtimeError(error, 'Local generation failed.', 'INFERENCE_FAILED'); }
-    finally { if (this.controller === controller) this.controller = null; }
+    finally { cleanup(); if (this.controller === controller) this.controller = null; }
   }
   async *stream(request: InferenceRequest): AsyncIterable<InferenceStreamEvent> {
     this.requireAvailable(); this.requireState('MODEL_READY');
     if (!this.loadedModel) throw new LocalInferenceRuntimeError('MODEL_NOT_READY', 'A verified model must be loaded before streaming.');
     this.requireRequestCapability(request);
     if (!this.capabilities.streaming) throw new LocalInferenceRuntimeError('INFERENCE_FAILED', 'This local runtime does not support streaming.');
-    const { controller, signal } = this.createGenerationSignal(request.signal); this.controller = controller; this.status = 'GENERATING';
+    const { controller, signal, cleanup } = this.createGenerationSignal(request.signal); this.controller = controller; this.status = 'GENERATING';
     try {
       for await (const event of this.adapter!.stream({ ...request, signal }, signal)) { yield event; if (event.type === 'ERROR') { this.status = 'ERROR'; return; } }
       if (this.status === 'GENERATING') this.status = 'MODEL_READY';
     } catch (error) {
       this.status = signal.aborted ? 'MODEL_READY' : 'ERROR';
       yield { type: 'ERROR', error: signal.aborted ? new LocalInferenceRuntimeError('INFERENCE_CANCELLED', 'Local streaming was cancelled.') : this.runtimeError(error, 'Local streaming failed.', 'INFERENCE_FAILED') };
-    } finally { if (this.controller === controller) this.controller = null; }
+    } finally { cleanup(); if (this.controller === controller) this.controller = null; }
   }
   async cancel(): Promise<void> {
     this.requireAvailable(); this.requireState('GENERATING');
@@ -69,7 +97,7 @@ export class DefaultLocalInferenceRuntime implements LocalInferenceRuntime {
   async dispose(): Promise<void> {
     if (this.status === 'DISPOSED') return;
     if (!this.adapter) { this.status = 'DISPOSED'; this.loadedModel = null; return; }
-    try { this.controller?.abort(); if (this.loadedModel) await this.adapter.unloadModel(); await this.adapter.dispose(); this.loadedModel = null; this.controller = null; this.status = 'DISPOSED'; }
+    try { this.controller?.abort(); if (this.capabilities.cancellation && this.controller) await this.adapter.cancel(); if (this.loadedModel) await this.adapter.unloadModel(); await this.adapter.dispose(); this.loadedModel = null; this.controller = null; this.initializePromise = null; this.loadModelPromise = null; this.loadingModelKey = null; this.status = 'DISPOSED'; }
     catch (error) { this.status = 'ERROR'; throw this.runtimeError(error, 'Runtime disposal failed.', 'INFERENCE_FAILED'); }
   }
   private requireRequestCapability(request: InferenceRequest): void {
@@ -85,7 +113,14 @@ export class DefaultLocalInferenceRuntime implements LocalInferenceRuntime {
     if (!this.capabilities.multimodalInput) throw new LocalInferenceRuntimeError('VISION_RUNTIME_UNAVAILABLE', 'The local runtime does not support multimodal input.');
     if (modelType !== 'MULTIMODAL') throw new LocalInferenceRuntimeError('VISION_NOT_SUPPORTED', 'The loaded local model is not multimodal.');
   }
-  private createGenerationSignal(parent?: AbortSignal): { controller: AbortController; signal: AbortSignal } { const controller = new AbortController(); if (parent) { if (parent.aborted) controller.abort(); else parent.addEventListener('abort', () => controller.abort(), { once: true }); } return { controller, signal: controller.signal }; }
+  private createGenerationSignal(parent?: AbortSignal): { controller: AbortController; signal: AbortSignal; cleanup: () => void } {
+    const controller = new AbortController();
+    if (!parent) return { controller, signal: controller.signal, cleanup: () => undefined };
+    if (parent.aborted) { controller.abort(); return { controller, signal: controller.signal, cleanup: () => undefined }; }
+    const onAbort = () => controller.abort();
+    parent.addEventListener('abort', onAbort, { once: true });
+    return { controller, signal: controller.signal, cleanup: () => parent.removeEventListener('abort', onAbort) };
+  }
   private requireAvailable(): void { if (!this.adapter || this.status === 'UNAVAILABLE') throw new LocalInferenceRuntimeError('OFFLINE_TEXT_AI_UNAVAILABLE', UNAVAILABLE_REASON); if (this.status === 'DISPOSED') throw new LocalInferenceRuntimeError('INVALID_STATE', 'Local inference runtime has been disposed.'); }
   private requireState(...allowed: LocalInferenceRuntimeStatus[]): void { if (!allowed.includes(this.status)) throw new LocalInferenceRuntimeError('INVALID_STATE', `Invalid runtime state: ${this.status}.`); }
   private runtimeError(error: unknown, fallback: string, code: 'MODEL_LOAD_FAILED' | 'INFERENCE_FAILED'): LocalInferenceRuntimeError {
@@ -94,4 +129,6 @@ export class DefaultLocalInferenceRuntime implements LocalInferenceRuntime {
     return new LocalInferenceRuntimeError(code, message || fallback);
   }
 }
+function getModelKey(model: VerifiedLocalModelReference): string { return `${model.model.id}|${model.model.version}|${model.model.sha256 ?? ''}`; }
+function sameModel(left: VerifiedLocalModelReference | null, right: VerifiedLocalModelReference): boolean { return !!left && getModelKey(left) === getModelKey(right); }
 export function createLocalInferenceRuntime(adapter?: LocalInferenceEngineAdapter): LocalInferenceRuntime { return new DefaultLocalInferenceRuntime(adapter ?? null); }
