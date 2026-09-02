@@ -65,11 +65,7 @@ export function WorkSocialAiAssistant({ profileId: _profileId }: Props) {
   const pendingActionsRef = useRef<AiPendingAction[]>([]);
   const sendingRef = useRef(false);
 
-  const setVoice = (next: VoiceState) => {
-    voiceStateRef.current = next;
-    setVoiceState(next);
-  };
-
+  const setVoice = (next: VoiceState) => { voiceStateRef.current = next; setVoiceState(next); };
   useEffect(() => { conversationIdRef.current = conversationId; }, [conversationId]);
   useEffect(() => { pendingActionsRef.current = pendingActions; }, [pendingActions]);
   useEffect(() => { sendingRef.current = sending; }, [sending]);
@@ -91,290 +87,110 @@ export function WorkSocialAiAssistant({ profileId: _profileId }: Props) {
     if (!Recognition) { setVoiceAvailable(false); return; }
     recognitionCtorRef.current = Recognition;
     return () => {
-      voiceActiveRef.current = false;
-      voiceSessionRef.current += 1;
+      voiceActiveRef.current = false; voiceSessionRef.current += 1;
       if (restartTimerRef.current !== null) window.clearTimeout(restartTimerRef.current);
       restartTimerRef.current = null;
       try { recognitionRef.current?.stop(); } catch { /* already stopped */ }
-      recognitionRef.current = null;
-      window.speechSynthesis?.cancel();
-      speechRef.current = null;
-      setVoice('IDLE');
+      recognitionRef.current = null; window.speechSynthesis?.cancel(); speechRef.current = null; setVoice('IDLE');
     };
   }, []);
-
   useEffect(() => () => { window.speechSynthesis?.cancel(); }, []);
 
   const stopRecognition = () => {
-    const current = recognitionRef.current;
-    recognitionRef.current = null;
-    if (current) {
-      current.onresult = null;
-      current.onstart = null;
-      current.onerror = null;
-      current.onend = null;
-      try { current.stop(); } catch { /* already stopped */ }
-    }
+    const current = recognitionRef.current; recognitionRef.current = null;
+    if (current) { current.onresult = null; current.onstart = null; current.onerror = null; current.onend = null; try { current.stop(); } catch { /* already stopped */ } }
   };
-
-  const clearRestartTimer = () => {
-    if (restartTimerRef.current !== null) window.clearTimeout(restartTimerRef.current);
-    restartTimerRef.current = null;
-  };
+  const clearRestartTimer = () => { if (restartTimerRef.current !== null) window.clearTimeout(restartTimerRef.current); restartTimerRef.current = null; };
 
   const speakVoiceResponse = (text: string, sessionId: number, messageId: string) => {
     if (!voiceActiveRef.current || sessionId !== voiceSessionRef.current) return;
     const clean = text.trim();
     if (!clean) { scheduleListening(sessionId, 150); return; }
     if (!('speechSynthesis' in window)) { scheduleListening(sessionId, 150); return; }
-    speechTokenRef.current += 1;
-    const token = speechTokenRef.current;
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(clean);
-    utterance.lang = speechLocale(clean);
-    utterance.rate = 0.96;
-    utterance.pitch = 1;
-    speechRef.current = utterance;
-    setSpeakingId(messageId);
-    setVoice('SPEAKING');
-    utterance.onstart = () => {
-      if (!voiceActiveRef.current || token !== speechTokenRef.current || sessionId !== voiceSessionRef.current) return;
-      setSpeakingId(messageId);
-    };
-    const finish = () => {
-      if (token !== speechTokenRef.current || sessionId !== voiceSessionRef.current) return;
-      speechRef.current = null;
-      setSpeakingId(null);
-      if (voiceActiveRef.current) scheduleListening(sessionId, 180);
-      else setVoice('IDLE');
-    };
-    utterance.onend = finish;
-    utterance.onerror = finish;
-    window.speechSynthesis.speak(utterance);
+    speechTokenRef.current += 1; const token = speechTokenRef.current; window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(clean); utterance.lang = speechLocale(clean); utterance.rate = 0.96; utterance.pitch = 1;
+    speechRef.current = utterance; setSpeakingId(messageId); setVoice('SPEAKING');
+    utterance.onstart = () => { if (!voiceActiveRef.current || token !== speechTokenRef.current || sessionId !== voiceSessionRef.current) return; setSpeakingId(messageId); };
+    const finish = () => { if (token !== speechTokenRef.current || sessionId !== voiceSessionRef.current) return; speechRef.current = null; setSpeakingId(null); if (voiceActiveRef.current) scheduleListening(sessionId, 180); else setVoice('IDLE'); };
+    utterance.onend = finish; utterance.onerror = finish; window.speechSynthesis.speak(utterance);
   };
 
   const scheduleListening = (sessionId: number, delay: number) => {
-    clearRestartTimer();
-    if (!voiceActiveRef.current || sessionId !== voiceSessionRef.current) return;
-    setVoice('LISTENING');
-    restartTimerRef.current = window.setTimeout(() => {
-      restartTimerRef.current = null;
-      if (!voiceActiveRef.current || sessionId !== voiceSessionRef.current) return;
-      startListeningSegment(sessionId);
-    }, delay);
+    clearRestartTimer(); if (!voiceActiveRef.current || sessionId !== voiceSessionRef.current) return;
+    setVoice('LISTENING'); restartTimerRef.current = window.setTimeout(() => { restartTimerRef.current = null; if (!voiceActiveRef.current || sessionId !== voiceSessionRef.current) return; startListeningSegment(sessionId); }, delay);
   };
 
   const startListeningSegment = (sessionId: number) => {
     const Recognition = recognitionCtorRef.current;
-    if (!Recognition || !voiceActiveRef.current || sessionId !== voiceSessionRef.current) return;
-    if (recognitionRef.current) return;
-    const recognition = new Recognition();
-    recognitionRef.current = recognition;
-    recognition.lang = 'ur-PK';
-    recognition.continuous = false;
-    recognition.interimResults = true;
-    let finalText = '';
-    let handledFinal = false;
-
-    recognition.onstart = () => {
-      if (!voiceActiveRef.current || sessionId !== voiceSessionRef.current) return;
-      setVoice('LISTENING');
-    };
-
+    if (!Recognition || !voiceActiveRef.current || sessionId !== voiceSessionRef.current || recognitionRef.current) return;
+    const recognition = new Recognition(); recognitionRef.current = recognition; recognition.lang = 'ur-PK'; recognition.continuous = false; recognition.interimResults = true;
+    let finalText = ''; let handledFinal = false;
+    recognition.onstart = () => { if (!voiceActiveRef.current || sessionId !== voiceSessionRef.current) return; setVoice('LISTENING'); };
     recognition.onresult = (event) => {
       if (!voiceActiveRef.current || sessionId !== voiceSessionRef.current || handledFinal) return;
-      let latestFinal = '';
-      let interim = '';
-      for (let i = 0; i < event.results.length; i += 1) {
-        const result = event.results[i];
-        const text = result[0]?.transcript ?? '';
-        if (result.isFinal) latestFinal += `${text} `;
-        else interim += text;
-      }
-      if (latestFinal.trim()) finalText = latestFinal.trim();
-      const visible = `${finalText} ${interim}`.trim();
-      if (visible) setDraft(visible);
-      if (!finalText.trim() || handledFinal) return;
-      handledFinal = true;
-      stopRecognition();
-      setDraft('');
-      setVoice('PROCESSING');
-      void submitText(finalText.trim(), sessionId, true);
+      let latestFinal = ''; let interim = '';
+      for (let i = 0; i < event.results.length; i += 1) { const result = event.results[i]; const text = result[0]?.transcript ?? ''; if (result.isFinal) latestFinal += `${text} `; else interim += text; }
+      if (latestFinal.trim()) finalText = latestFinal.trim(); const visible = `${finalText} ${interim}`.trim(); if (visible) setDraft(visible);
+      if (!finalText.trim() || handledFinal) return; handledFinal = true; stopRecognition(); setDraft(''); setVoice('PROCESSING'); void submitText(finalText.trim(), sessionId, true);
     };
-
     recognition.onerror = (event) => {
       if (recognitionRef.current === recognition) recognitionRef.current = null;
       if (!voiceActiveRef.current || sessionId !== voiceSessionRef.current) return;
       if (event.error === 'aborted') return;
-      if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
-        voiceActiveRef.current = false;
-        setVoice('IDLE');
-        setError('Microphone permission is required.');
-        return;
-      }
-      if (event.error === 'no-speech') {
-        scheduleListening(sessionId, 120);
-        return;
-      }
-      setError('Voice input could not be heard. Voice Chat will retry.');
-      scheduleListening(sessionId, 500);
+      if (event.error === 'not-allowed' || event.error === 'service-not-allowed') { voiceActiveRef.current = false; setVoice('IDLE'); setError('Microphone permission is required.'); return; }
+      if (event.error === 'no-speech') { scheduleListening(sessionId, 120); return; }
+      setError('Voice input could not be heard. Voice Chat will retry.'); scheduleListening(sessionId, 500);
     };
-
-    recognition.onend = () => {
-      if (recognitionRef.current === recognition) recognitionRef.current = null;
-      if (!voiceActiveRef.current || sessionId !== voiceSessionRef.current) return;
-      if (handledFinal) return;
-      if (voiceStateRef.current === 'LISTENING') scheduleListening(sessionId, 120);
-    };
-
-    try { recognition.start(); }
-    catch {
-      if (recognitionRef.current === recognition) recognitionRef.current = null;
-      if (voiceActiveRef.current && sessionId === voiceSessionRef.current) scheduleListening(sessionId, 300);
-    }
+    recognition.onend = () => { if (recognitionRef.current === recognition) recognitionRef.current = null; if (!voiceActiveRef.current || sessionId !== voiceSessionRef.current) return; if (handledFinal) return; if (voiceStateRef.current === 'LISTENING') scheduleListening(sessionId, 120); };
+    try { recognition.start(); } catch { if (recognitionRef.current === recognition) recognitionRef.current = null; if (voiceActiveRef.current && sessionId === voiceSessionRef.current) scheduleListening(sessionId, 300); }
   };
 
-  const stopVoiceMode = () => {
-    voiceActiveRef.current = false;
-    voiceSessionRef.current += 1;
-    setVoice('STOPPING');
-    clearRestartTimer();
-    stopRecognition();
-    speechTokenRef.current += 1;
-    window.speechSynthesis?.cancel();
-    speechRef.current = null;
-    setSpeakingId(null);
-    setDraft('');
-    setVoice('IDLE');
-  };
-
-  const startVoiceMode = () => {
-    if (!voiceAvailable || !recognitionCtorRef.current) {
-      setError('Voice input is not supported by this browser.');
-      return;
-    }
-    if (voiceActiveRef.current) return;
-    setError(null);
-    voiceActiveRef.current = true;
-    const sessionId = ++voiceSessionRef.current;
-    setVoice('LISTENING');
-    scheduleListening(sessionId, 0);
-  };
+  const stopVoiceMode = () => { voiceActiveRef.current = false; voiceSessionRef.current += 1; setVoice('STOPPING'); clearRestartTimer(); stopRecognition(); speechTokenRef.current += 1; window.speechSynthesis?.cancel(); speechRef.current = null; setSpeakingId(null); setDraft(''); setVoice('IDLE'); };
+  const startVoiceMode = () => { if (!voiceAvailable || !recognitionCtorRef.current) { setError('Voice input is not supported by this browser.'); return; } if (voiceActiveRef.current) return; setError(null); voiceActiveRef.current = true; const sessionId = ++voiceSessionRef.current; setVoice('LISTENING'); scheduleListening(sessionId, 0); };
 
   async function selectConversation(id: string) {
-    if (sending || id === conversationId) return;
-    setError(null);
-    try {
-      const items = await listAiMessages(id);
-      setConversationId(id); conversationIdRef.current = id;
-      setMessages(items.filter((item) => item.role === 'user' || item.role === 'assistant').map(({ id: messageId, role, content }) => ({ id: messageId, role, content })));
-      setPendingActions([]); pendingActionsRef.current = [];
-    } catch (reason) { setError(reason instanceof Error ? reason.message : 'Could not load that conversation.'); }
+    if (sending || id === conversationId) return; setError(null);
+    try { const items = await listAiMessages(id); setConversationId(id); conversationIdRef.current = id; setMessages(items.filter((item) => item.role === 'user' || item.role === 'assistant').map(({ id: messageId, role, content }) => ({ id: messageId, role, content }))); setPendingActions([]); pendingActionsRef.current = []; }
+    catch (reason) { setError(reason instanceof Error ? reason.message : 'Could not load that conversation.'); }
   }
-
-  function newConversation() {
-    if (sending) return;
-    setConversationId(null); conversationIdRef.current = null;
-    setMessages([]); setPendingActions([]); pendingActionsRef.current = [];
-    setError(null); setDraft('');
-  }
+  function newConversation() { if (sending) return; setConversationId(null); conversationIdRef.current = null; setMessages([]); setPendingActions([]); pendingActionsRef.current = []; setError(null); setDraft(''); }
 
   async function submitText(text: string, voiceSessionId?: number, fromVoice = false) {
-    const trimmed = text.trim();
-    if (!trimmed || sendingRef.current) return;
-    const activeVoiceSession = fromVoice && voiceActiveRef.current && voiceSessionId === voiceSessionRef.current;
-    const requestId = ++requestRef.current;
-    setError(null); setSending(true); sendingRef.current = true;
-    setMessages((current) => [...current, { id: `local-${requestId}`, role: 'user', content: trimmed }]);
-
+    const trimmed = text.trim(); if (!trimmed || sendingRef.current) return;
+    const activeVoiceSession = fromVoice && voiceActiveRef.current && voiceSessionId === voiceSessionRef.current; const requestId = ++requestRef.current;
+    setError(null); setSending(true); sendingRef.current = true; setMessages((current) => [...current, { id: `local-${requestId}`, role: 'user', content: trimmed }]);
     try {
-      const reply = await sendAiMessage(trimmed, conversationIdRef.current);
-      if (requestId !== requestRef.current) return;
-      setConversationId(reply.conversation_id); conversationIdRef.current = reply.conversation_id;
-      const assistantId = `assistant-${reply.conversation_id}-${requestId}`;
-      setMessages((current) => [...current, { id: assistantId, role: 'assistant', content: reply.message }]);
-      setPendingActions(reply.pending_actions); pendingActionsRef.current = reply.pending_actions;
-      setConversations((current) => {
-        const existing = current.find((item) => item.id === reply.conversation_id);
-        if (existing) return current.map((item) => item.id === existing.id ? { ...item, updated_at: new Date().toISOString() } : item);
-        return [{ id: reply.conversation_id, title: trimmed.slice(0, 80), status: 'active', created_at: new Date().toISOString(), updated_at: new Date().toISOString() }, ...current].slice(0, 30);
-      });
+      const reply = await sendAiMessage(trimmed, conversationIdRef.current); if (requestId !== requestRef.current) return;
+      setConversationId(reply.conversation_id); conversationIdRef.current = reply.conversation_id; const assistantId = `assistant-${reply.conversation_id}-${requestId}`;
+      setMessages((current) => [...current, { id: assistantId, role: 'assistant', content: reply.message }]); setPendingActions(reply.pending_actions); pendingActionsRef.current = reply.pending_actions;
+      setConversations((current) => { const existing = current.find((item) => item.id === reply.conversation_id); if (existing) return current.map((item) => item.id === existing.id ? { ...item, updated_at: new Date().toISOString() } : item); return [{ id: reply.conversation_id, title: trimmed.slice(0, 80), status: 'active', created_at: new Date().toISOString(), updated_at: new Date().toISOString() }, ...current].slice(0, 30); });
       if (activeVoiceSession) speakVoiceResponse(reply.message, voiceSessionId!, assistantId);
-    } catch (reason) {
-      if (requestId === requestRef.current) {
-        setError(reason instanceof Error ? reason.message : 'Work Social AI could not complete the request.');
-        if (activeVoiceSession) scheduleListening(voiceSessionId!, 400);
-      }
-    } finally {
-      if (requestId === requestRef.current) { setSending(false); sendingRef.current = false; }
-    }
+    } catch (reason) { if (requestId === requestRef.current) { setError(reason instanceof Error ? reason.message : 'Work Social AI could not complete the request.'); if (activeVoiceSession) scheduleListening(voiceSessionId!, 400); } }
+    finally { if (requestId === requestRef.current) { setSending(false); sendingRef.current = false; } }
   }
-
-  async function submit() {
-    const text = draft.trim();
-    if (!text || sending) return;
-    setDraft('');
-    await submitText(text);
-  }
+  async function submit() { const text = draft.trim(); if (!text || sending) return; setDraft(''); await submitText(text); }
 
   async function handleVoiceConfirmation(text: string, sessionId: number) {
-    const action = pendingActionsRef.current[0];
-    if (!action) { await submitText(text, sessionId, true); return; }
-    if (isVoiceCancellation(text)) {
-      await submitText(text, sessionId, true);
-      return;
-    }
+    const action = pendingActionsRef.current[0]; if (!action) { await submitText(text, sessionId, true); return; }
+    if (isVoiceCancellation(text)) { await submitText(text, sessionId, true); return; }
     if (isVoiceConfirmation(text)) {
       setVoice('PROCESSING');
-      try {
-        setConfirming(action.id);
-        const result = await confirmAiAction(action.id);
-        if (!result.success) throw new Error('The action was not completed.');
-        setPendingActions((current) => current.filter((item) => item.id !== action.id));
-        pendingActionsRef.current = pendingActionsRef.current.filter((item) => item.id !== action.id);
-        const message = 'Done — the confirmed Work Social action was completed successfully.';
-        const messageId = `confirmed-${action.id}`;
-        setMessages((current) => [...current, { id: messageId, role: 'assistant', content: message }]);
-        speakVoiceResponse(message, sessionId, messageId);
-      } catch (reason) {
-        setError(reason instanceof Error ? reason.message : 'The action could not be confirmed.');
-        scheduleListening(sessionId, 400);
-      } finally { setConfirming(null); }
+      try { setConfirming(action.id); const result = await confirmAiAction(action.id); if (!result.success) throw new Error('The action was not completed.'); setPendingActions((current) => current.filter((item) => item.id !== action.id)); pendingActionsRef.current = pendingActionsRef.current.filter((item) => item.id !== action.id); const message = 'Done — the confirmed Work Social action was completed successfully.'; const messageId = `confirmed-${action.id}`; setMessages((current) => [...current, { id: messageId, role: 'assistant', content: message }]); speakVoiceResponse(message, sessionId, messageId); }
+      catch (reason) { setError(reason instanceof Error ? reason.message : 'The action could not be confirmed.'); scheduleListening(sessionId, 400); } finally { setConfirming(null); }
       return;
     }
     await submitText(text, sessionId, true);
   }
-
   async function confirm(action: AiPendingAction) {
-    if (confirming || sending) return;
-    setConfirming(action.id); setError(null);
-    try {
-      const result = await confirmAiAction(action.id);
-      if (!result.success) throw new Error('The action was not completed.');
-      setPendingActions((current) => current.filter((item) => item.id !== action.id));
-      pendingActionsRef.current = pendingActionsRef.current.filter((item) => item.id !== action.id);
-      setMessages((current) => [...current, { id: `confirmed-${action.id}`, role: 'assistant', content: 'Done — the confirmed Work Social action was completed successfully.' }]);
-    } catch (reason) { setError(reason instanceof Error ? reason.message : 'The action could not be confirmed.'); }
-    finally { setConfirming(null); }
+    if (confirming || sending) return; setConfirming(action.id); setError(null);
+    try { const result = await confirmAiAction(action.id); if (!result.success) throw new Error('The action was not completed.'); setPendingActions((current) => current.filter((item) => item.id !== action.id)); pendingActionsRef.current = pendingActionsRef.current.filter((item) => item.id !== action.id); setMessages((current) => [...current, { id: `confirmed-${action.id}`, role: 'assistant', content: 'Done — the confirmed Work Social action was completed successfully.' }]); }
+    catch (reason) { setError(reason instanceof Error ? reason.message : 'The action could not be confirmed.'); } finally { setConfirming(null); }
   }
-
-  function toggleVoiceMode() {
-    if (voiceActiveRef.current) stopVoiceMode();
-    else startVoiceMode();
-  }
-
+  function toggleVoiceMode() { if (voiceActiveRef.current) stopVoiceMode(); else startVoiceMode(); }
   function toggleSpeak(message: UiMessage) {
     if (!('speechSynthesis' in window)) { setError('Speaker playback is not supported by this browser.'); return; }
     if (speakingId === message.id) { speechTokenRef.current += 1; window.speechSynthesis.cancel(); setSpeakingId(null); return; }
-    speechTokenRef.current += 1;
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(message.content);
-    utterance.lang = speechLocale(message.content);
-    utterance.rate = 0.96; utterance.pitch = 1;
-    utterance.onstart = () => setSpeakingId(message.id);
-    utterance.onend = () => setSpeakingId(null);
-    utterance.onerror = () => setSpeakingId(null);
-    setSpeakingId(message.id); window.speechSynthesis.speak(utterance);
+    speechTokenRef.current += 1; window.speechSynthesis.cancel(); const utterance = new SpeechSynthesisUtterance(message.content); utterance.lang = speechLocale(message.content); utterance.rate = 0.96; utterance.pitch = 1; utterance.onstart = () => setSpeakingId(message.id); utterance.onend = () => setSpeakingId(null); utterance.onerror = () => setSpeakingId(null); setSpeakingId(message.id); window.speechSynthesis.speak(utterance);
   }
 
   const voiceLabel = voiceState === 'LISTENING' ? 'Listening…' : voiceState === 'PROCESSING' ? 'Thinking…' : voiceState === 'SPEAKING' ? 'Speaking…' : voiceState === 'STOPPING' ? 'Stopping…' : 'Voice Chat';
