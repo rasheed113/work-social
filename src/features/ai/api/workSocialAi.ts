@@ -171,8 +171,8 @@ async function sendGeminiMessage(
     ? reply.pending_actions
         .map((action) => ({
           id: action.id || action.confirmation_id || action.action_id || '',
-          display_summary: action.display_summary || '',
-          expires_at: action.expires_at || '',
+          displaySummary: action.display_summary || '',
+          expiresAt: action.expires_at || '',
         }))
         .filter((action) => Boolean(action.id))
     : [];
@@ -204,7 +204,11 @@ export async function sendAiMessage(message: string, conversationId: string | nu
   return {
     conversation_id: response.conversationId,
     message: response.message,
-    pending_actions: response.pendingActions,
+    pending_actions: response.pendingActions.map((action) => ({
+      id: action.id,
+      display_summary: action.displaySummary,
+      expires_at: action.expiresAt,
+    })),
   };
 }
 
