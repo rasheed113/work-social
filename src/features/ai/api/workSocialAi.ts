@@ -105,7 +105,26 @@ async function buildFinanceContext(profileId: string, message: string): Promise<
 
 function getClientTimeContext(): { timeZone: string; nowIso: string } {
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
-  return { timeZone, nowIso: new Date().toISOString() };
+  const now = new Date();
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(now);
+  const get = (type: string) => parts.find((part) => part.type === type)?.value ?? '';
+  const offsetPart = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    timeZoneName: 'longOffset',
+  }).formatToParts(now).find((part) => part.type === 'timeZoneName')?.value ?? 'GMT';
+  const offset = offsetPart === 'GMT' ? '+00:00' : offsetPart.replace(/^GMT/, '');
+  const milliseconds = String(now.getMilliseconds()).padStart(3, '0');
+  const nowIso = `${get('year')}-${get('month')}-${get('day')}T${get('hour')}:${get('minute')}:${get('second')}.${milliseconds}${offset}`;
+  return { timeZone, nowIso };
 }
 
 export async function sendAiMessage(message: string, conversationId: string | null): Promise<AiReply> {
