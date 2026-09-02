@@ -54,7 +54,7 @@ main.premium-chat-page section {
   min-height: 0 !important;
   box-sizing: border-box !important;
   justify-self: stretch !important;
-  overflow: hidden !important;
+  overflow: visible !important;
 }
 main.premium-chat-page section > header {
   display: flex !important;
@@ -68,16 +68,33 @@ main.premium-chat-page section > header {
   box-sizing: border-box !important;
   justify-self: stretch !important;
   align-self: stretch !important;
+  overflow: visible !important;
 }
 main.premium-chat-page section > header > div {
   min-width: 0 !important;
-  max-width: 100% !important;
+  width: auto !important;
+  max-width: none !important;
   flex: 1 1 auto !important;
 }
 main.premium-chat-page section > header .inbox-call-toolbar {
+  position: static !important;
   flex: 0 0 auto !important;
   min-width: 0 !important;
-  max-width: 100% !important;
+  width: auto !important;
+  max-width: none !important;
+}
+main.premium-chat-page section > header [data-ws-group-header-action] {
+  position: static !important;
+  top: auto !important;
+  right: auto !important;
+  transform: none !important;
+  flex: 0 0 auto !important;
+  min-width: 42px !important;
+  width: 42px !important;
+  max-width: 42px !important;
+  height: 42px !important;
+  max-height: 42px !important;
+  margin-left: 8px !important;
 }
 main.premium-chat-page section > div:last-child {
   width: 100% !important;
@@ -86,6 +103,7 @@ main.premium-chat-page section > div:last-child {
   box-sizing: border-box !important;
   justify-self: stretch !important;
   align-self: stretch !important;
+  overflow: visible !important;
 }
 main.premium-chat-page section > div:last-child > input,
 main.premium-chat-page section > div:last-child > button {

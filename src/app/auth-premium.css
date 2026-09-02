@@ -1,0 +1,56 @@
+.ws-auth-card > h1 {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  margin-bottom: 11px !important;
+  color: transparent !important;
+  background: linear-gradient(180deg, #ffffff 0%, #d9d7ff 24%, #786cff 58%, #4437b8 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  text-shadow: 0 1px 0 rgba(255,255,255,.9), 0 2px 0 rgba(79,70,229,.25), 0 8px 18px rgba(79,70,229,.22);
+  filter: drop-shadow(0 5px 10px rgba(79,70,229,.12));
+}
+
+.ws-auth-card > h1::before {
+  content: 'WS';
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 15px;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 950;
+  font-style: normal;
+  letter-spacing: -.08em;
+  line-height: 1;
+  background:
+    linear-gradient(145deg, rgba(255,255,255,.42), transparent 32%),
+    linear-gradient(135deg, #8175ff 0%, #5548df 48%, #18b8d1 100%);
+  border: 1px solid rgba(255,255,255,.48);
+  box-shadow:
+    inset 0 2px 1px rgba(255,255,255,.48),
+    inset 0 -5px 10px rgba(32,28,125,.22),
+    0 7px 14px rgba(79,70,229,.22),
+    0 0 24px rgba(34,193,220,.10);
+  text-shadow: 0 2px 3px rgba(20,16,80,.28);
+}
+
+.ws-auth-card > h1::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -7px;
+  width: 118px;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(109,93,252,.75), rgba(34,193,220,.42), transparent);
+  box-shadow: 0 0 10px rgba(109,93,252,.18);
+}
+
+@media (max-width: 600px) {
+  .ws-auth-card > h1 { gap: 11px; }
+  .ws-auth-card > h1::before { width: 44px; height: 44px; border-radius: 14px; font-size: 14px; }
+}
