@@ -7,7 +7,7 @@ import {
   type AiHistoryStore,
   createAiHistoryId,
 } from './contracts';
-import { AI_HISTORY_DATABASE_NAME, IndexedDbAiHistoryStore } from './indexedDbAiHistoryStore';
+import { AI_HISTORY_DATABASE_NAME, AI_HISTORY_DATABASE_VERSION, AI_MEMORY_STORE_NAME, IndexedDbAiHistoryStore } from './indexedDbAiHistoryStore';
 
 let passed = 0;
 
@@ -27,10 +27,11 @@ function message(content: string, overrides: Partial<AiHistoryMessage> = {}): Ai
 }
 
 async function rawPut(value: unknown): Promise<void> {
-  const openRequest = indexedDB.open(AI_HISTORY_DATABASE_NAME, 1);
+  const openRequest = indexedDB.open(AI_HISTORY_DATABASE_NAME, AI_HISTORY_DATABASE_VERSION);
   await new Promise<void>((resolve, reject) => {
     openRequest.onupgradeneeded = () => {
       if (!openRequest.result.objectStoreNames.contains('conversations')) openRequest.result.createObjectStore('conversations', { keyPath: 'id' });
+      if (!openRequest.result.objectStoreNames.contains(AI_MEMORY_STORE_NAME)) openRequest.result.createObjectStore(AI_MEMORY_STORE_NAME, { keyPath: 'id' });
     };
     openRequest.onsuccess = () => resolve();
     openRequest.onerror = () => reject(openRequest.error);
@@ -60,7 +61,7 @@ async function main(): Promise<void> {
 
   await test('create conversation', async () => {
     const created = await store.createConversation({ id: 'conversation-lifecycle', title: 'First chat' });
-    if (created.id !== 'conversation-lifecycle' || created.messages.length !== 0 || created.title !== 'First chat') throw new Error('Conversation creation failed.');
+    if (created.id !== 'conversation-lifecycle' || created.messages.length !== 0 || created.title !== 'First chat' || created.summary !== null) throw new Error('Conversation creation failed.');
   });
   await test('retrieve conversation', async () => {
     const conversation = await store.getConversation('conversation-lifecycle');
@@ -68,11 +69,15 @@ async function main(): Promise<void> {
   });
   await test('list conversations', async () => {
     const list = await store.listConversations();
-    if (!list.some((item) => item.id === 'conversation-lifecycle' && item.messageCount === 0)) throw new Error('Conversation was not listed.');
+    if (!list.some((item) => item.id === 'conversation-lifecycle' && item.messageCount === 0 && item.summary === null)) throw new Error('Conversation was not listed.');
   });
   await test('update conversation', async () => {
-    const updated = await store.updateConversation('conversation-lifecycle', { title: 'Renamed chat' });
-    if (updated.title !== 'Renamed chat' || updated.updatedAt === '') throw new Error('Conversation update failed.');
+    const updated = await store.updateConversation('conversation-lifecycle', { title: 'Renamed chat', summary: 'Mechanical caller-supplied summary.' });
+    if (updated.title !== 'Renamed chat' || updated.summary !== 'Mechanical caller-supplied summary.' || updated.updatedAt === '') throw new Error('Conversation update failed.');
+  });
+  await test('clear conversation summary explicitly', async () => {
+    const updated = await store.updateConversation('conversation-lifecycle', { summary: null });
+    if (updated.summary !== null) throw new Error('Conversation summary was not cleared.');
   });
   await test('delete conversation', async () => {
     await store.createConversation({ id: 'delete-me' });
@@ -150,6 +155,10 @@ async function main(): Promise<void> {
   await test('maximum conversation/title limits enforced', async () => {
     await store.createConversation({ id: 'limits-title' });
     await expectError(() => store.updateConversation('limits-title', { title: 'x'.repeat(AI_HISTORY_LIMITS.maxTitleLength + 1) }), 'LIMIT_EXCEEDED');
+  });
+  await test('maximum summary limit is enforced', async () => {
+    await store.createConversation({ id: 'limits-summary' });
+    await expectError(() => store.updateConversation('limits-summary', { summary: 'x'.repeat(AI_HISTORY_LIMITS.maxSummaryLength + 1) }), 'LIMIT_EXCEEDED');
   });
   await test('conversation limit is enforced', async () => {
     await store.clear();
@@ -229,7 +238,7 @@ async function main(): Promise<void> {
   });
 
   await store.clear();
-  console.log(`Phase 8 history tests passed: ${passed} deterministic tests.`);
+  console.log(`Phase 9 history tests passed: ${passed} deterministic tests.`);
 }
 
 main().catch((error) => {

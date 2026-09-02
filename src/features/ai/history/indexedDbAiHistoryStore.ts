@@ -6,13 +6,16 @@ import {
   type AiHistoryAttachment,
   type AiHistoryMessage,
   type AiHistoryStore,
+  type CreateConversationInput,
+  type UpdateConversationInput,
   createAiHistoryId,
   nowIso,
 } from './contracts';
 
 const DATABASE_NAME = 'work-social-ai-history';
-const DATABASE_VERSION = 1;
+const DATABASE_VERSION = 2;
 const CONVERSATIONS_STORE = 'conversations';
+const MEMORIES_STORE = 'memories';
 const IDB_KEY_PATH = 'id';
 
 function isRecord(value: unknown): value is Record<string, unknown> { return typeof value === 'object' && value !== null; }
@@ -54,6 +57,8 @@ function validateConversation(value: unknown): AiConversation {
   if (!isRecord(value) || !validString(value.id) || (value.title !== null && !validString(value.title, true))
     || !validIso(value.createdAt) || !validIso(value.updatedAt) || !Array.isArray(value.messages)) throw new AiHistoryError('INVALID_RECORD', 'Stored conversation is malformed.');
   if (value.title !== null && value.title.length > AI_HISTORY_LIMITS.maxTitleLength) throw new AiHistoryError('INVALID_RECORD', 'Stored conversation title exceeds the limit.');
+  const summary = value.summary === undefined ? null : value.summary;
+  if (summary !== null && (!validString(summary, true) || summary.length > AI_HISTORY_LIMITS.maxSummaryLength)) throw new AiHistoryError('INVALID_RECORD', 'Stored conversation summary is malformed or exceeds the limit.');
   if (value.messages.length > AI_HISTORY_LIMITS.maxMessagesPerConversation) throw new AiHistoryError('INVALID_RECORD', 'Stored conversation exceeds the message limit.');
   const messages = value.messages.map(validateMessage);
   const ids = new Set<string>();
@@ -61,7 +66,7 @@ function validateConversation(value: unknown): AiConversation {
     if (ids.has(message.id)) throw new AiHistoryError('INVALID_RECORD', 'Stored conversation contains duplicate message IDs.');
     ids.add(message.id);
   }
-  return { id: value.id, title: value.title as string | null, createdAt: value.createdAt, updatedAt: value.updatedAt, messages };
+  return { id: value.id, title: value.title as string | null, summary: summary as string | null, createdAt: value.createdAt, updatedAt: value.updatedAt, messages };
 }
 
 function validateTitle(title: string | null | undefined): string | null | undefined {
@@ -69,6 +74,13 @@ function validateTitle(title: string | null | undefined): string | null | undefi
   if (title === null) return null;
   if (typeof title !== 'string' || title.length > AI_HISTORY_LIMITS.maxTitleLength) throw new AiHistoryError('LIMIT_EXCEEDED', `Conversation title must be ${AI_HISTORY_LIMITS.maxTitleLength} characters or fewer.`);
   return title;
+}
+
+function validateSummary(summary: string | null | undefined): string | null | undefined {
+  if (summary === undefined) return undefined;
+  if (summary === null) return null;
+  if (typeof summary !== 'string' || summary.length > AI_HISTORY_LIMITS.maxSummaryLength) throw new AiHistoryError('LIMIT_EXCEEDED', `Conversation summary must be ${AI_HISTORY_LIMITS.maxSummaryLength} characters or fewer.`);
+  return summary;
 }
 
 function validateMessageInput(message: AiHistoryMessage): AiHistoryMessage {
@@ -93,7 +105,7 @@ export class IndexedDbAiHistoryStore implements AiHistoryStore {
   async listConversations(): Promise<AiConversationSummary[]> {
     return this.withStore('readonly', async (store) => (await requestAll(store)).map((record) => {
       const conversation = validateConversation(record);
-      return { id: conversation.id, title: conversation.title, createdAt: conversation.createdAt, updatedAt: conversation.updatedAt, messageCount: conversation.messages.length };
+      return { id: conversation.id, title: conversation.title, summary: conversation.summary, createdAt: conversation.createdAt, updatedAt: conversation.updatedAt, messageCount: conversation.messages.length };
     }).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)));
   }
 
@@ -105,13 +117,14 @@ export class IndexedDbAiHistoryStore implements AiHistoryStore {
     });
   }
 
-  async createConversation(input: { id?: string; title?: string | null; createdAt?: string } = {}): Promise<AiConversation> {
+  async createConversation(input: CreateConversationInput = {}): Promise<AiConversation> {
     const id = input.id ?? createAiHistoryId('conversation');
     this.validateId(id, 'conversation');
     const title = validateTitle(input.title) ?? null;
+    const summary = validateSummary(input.summary) ?? null;
     const createdAt = input.createdAt ?? nowIso();
     if (!validIso(createdAt)) throw new AiHistoryError('INVALID_ARGUMENT', 'Conversation createdAt must be a valid timestamp.');
-    const conversation: AiConversation = { id, title, createdAt, updatedAt: createdAt, messages: [] };
+    const conversation: AiConversation = { id, title, summary, createdAt, updatedAt: createdAt, messages: [] };
     return this.withStore('readwrite', async (store) => {
       if (await request(store.count()) >= AI_HISTORY_LIMITS.maxConversations) throw new AiHistoryError('LIMIT_EXCEEDED', `A maximum of ${AI_HISTORY_LIMITS.maxConversations} conversations is supported.`);
       if (await request(store.get(id)) !== undefined) throw new AiHistoryError('DUPLICATE_ID', `Conversation ${id} already exists.`);
@@ -135,14 +148,20 @@ export class IndexedDbAiHistoryStore implements AiHistoryStore {
     });
   }
 
-  async updateConversation(id: string, input: { title?: string | null }): Promise<AiConversation> {
+  async updateConversation(id: string, input: UpdateConversationInput): Promise<AiConversation> {
     this.validateId(id, 'conversation');
     const title = validateTitle(input.title);
+    const summary = validateSummary(input.summary);
     return this.withStore('readwrite', async (store) => {
       const record = await request(store.get(id));
       if (record === undefined) throw new AiHistoryError('CONVERSATION_NOT_FOUND', `Conversation ${id} was not found.`);
       const conversation = validateConversation(record);
-      const updated: AiConversation = { ...conversation, title: title === undefined ? conversation.title : title, updatedAt: nowIso() };
+      const updated: AiConversation = {
+        ...conversation,
+        title: title === undefined ? conversation.title : title,
+        summary: summary === undefined ? conversation.summary : summary,
+        updatedAt: nowIso(),
+      };
       await request(store.put(updated));
       return updated;
     });
@@ -170,8 +189,13 @@ export class IndexedDbAiHistoryStore implements AiHistoryStore {
       requestHandle.onupgradeneeded = () => {
         const database = requestHandle.result;
         if (!database.objectStoreNames.contains(CONVERSATIONS_STORE)) database.createObjectStore(CONVERSATIONS_STORE, { keyPath: IDB_KEY_PATH });
+        if (!database.objectStoreNames.contains(MEMORIES_STORE)) database.createObjectStore(MEMORIES_STORE, { keyPath: IDB_KEY_PATH });
       };
-      requestHandle.onsuccess = () => resolve(requestHandle.result);
+      requestHandle.onsuccess = () => {
+        const database = requestHandle.result;
+        database.onversionchange = () => database.close();
+        resolve(database);
+      };
       requestHandle.onerror = () => reject(new AiHistoryError('STORAGE_FAILED', 'Could not open AI history storage.', requestHandle.error));
       requestHandle.onblocked = () => reject(new AiHistoryError('STORAGE_FAILED', 'AI history storage is blocked by another database connection.'));
     }).catch((error) => {
@@ -211,4 +235,8 @@ function request<T>(requestHandle: IDBRequest<T>): Promise<T> {
   });
 }
 function requestAll(store: IDBObjectStore): Promise<unknown[]> { return request(store.getAll()) as Promise<unknown[]>; }
-export { DATABASE_NAME as AI_HISTORY_DATABASE_NAME };
+export {
+  DATABASE_NAME as AI_HISTORY_DATABASE_NAME,
+  DATABASE_VERSION as AI_HISTORY_DATABASE_VERSION,
+  MEMORIES_STORE as AI_MEMORY_STORE_NAME,
+};

@@ -23,6 +23,7 @@ export interface AiHistoryMessage {
 export interface AiConversation {
   id: string;
   title: string | null;
+  summary: string | null;
   createdAt: string;
   updatedAt: string;
   messages: AiHistoryMessage[];
@@ -31,6 +32,7 @@ export interface AiConversation {
 export interface AiConversationSummary {
   id: string;
   title: string | null;
+  summary: string | null;
   createdAt: string;
   updatedAt: string;
   messageCount: number;
@@ -39,11 +41,13 @@ export interface AiConversationSummary {
 export interface CreateConversationInput {
   id?: string;
   title?: string | null;
+  summary?: string | null;
   createdAt?: string;
 }
 
 export interface UpdateConversationInput {
   title?: string | null;
+  summary?: string | null;
 }
 
 export interface AiHistoryStore {
@@ -61,6 +65,7 @@ export const AI_HISTORY_LIMITS = Object.freeze({
   maxMessagesPerConversation: 200,
   maxMessageContentLength: 12_000,
   maxTitleLength: 200,
+  maxSummaryLength: 1_024,
   maxAttachmentsPerMessage: 8,
   maxAttachmentNameLength: 255,
   maxAttachmentMimeTypeLength: 127,

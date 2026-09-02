@@ -4,7 +4,7 @@ export type AiProviderMode = 'online' | 'offline';
 export interface AiMessage {
   id: string;
   conversationId: string;
-  role: 'user' | 'assistant' | 'tool';
+  role: 'system' | 'user' | 'assistant' | 'tool';
   content: string;
   toolName?: string | null;
   toolCallId?: string | null;
