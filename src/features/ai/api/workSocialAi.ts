@@ -2,6 +2,10 @@ import { FunctionsFetchError, FunctionsHttpError, FunctionsRelayError } from '@s
 import type { PostgrestError } from '@supabase/supabase-js';
 import { supabase } from '../../../lib/supabase/client';
 import { listWorkerFinanceReceived, getWorkerFinanceSummary } from '../../worker/api/finance';
+import { AiRouter } from '../providers/aiRouter';
+import { GeminiAiProvider } from '../providers/geminiAiProvider';
+import { LocalAiProvider } from '../providers/localAiProvider';
+import type { AiAttachment as ProviderAiAttachment, AiGenerationOptions, AiMessage as ProviderAiMessage, AiResponse } from '../providers/contracts';
 
 export interface AiConversation {
   id: string;
@@ -127,8 +131,13 @@ function getClientTimeContext(): { timeZone: string; nowIso: string } {
   return { timeZone, nowIso };
 }
 
-export async function sendAiMessage(message: string, conversationId: string | null): Promise<AiReply> {
-  const trimmed = message.trim();
+async function sendGeminiMessage(
+  messages: ProviderAiMessage[],
+  _attachments: ProviderAiAttachment[] = [],
+  _options?: AiGenerationOptions,
+): Promise<AiResponse> {
+  const latest = [...messages].reverse().find((item) => item.role === 'user');
+  const trimmed = latest?.content.trim() ?? '';
   if (!trimmed) throw new Error('Message cannot be empty.');
   if (trimmed.length > 12000) throw new Error('Message must be 12,000 characters or fewer.');
 
@@ -142,7 +151,7 @@ export async function sendAiMessage(message: string, conversationId: string | nu
   const { data, error } = await supabase.functions.invoke('work-social-ai', {
     body: {
       message: requestMessage,
-      conversation_id: conversationId,
+      conversation_id: latest?.conversationId || null,
       client_timezone: clientTime.timeZone,
       client_now_iso: clientTime.nowIso,
     },
@@ -158,18 +167,44 @@ export async function sendAiMessage(message: string, conversationId: string | nu
     throw new Error('The AI service returned an incomplete response.');
   }
 
+  const pendingActions = Array.isArray(reply.pending_actions)
+    ? reply.pending_actions
+        .map((action) => ({
+          id: action.id || action.confirmation_id || action.action_id || '',
+          display_summary: action.display_summary || '',
+          expires_at: action.expires_at || '',
+        }))
+        .filter((action) => Boolean(action.id))
+    : [];
+
   return {
-    conversation_id: reply.conversation_id,
+    conversationId: reply.conversation_id,
     message: normalizeAiDisplayText(reply.message),
-    pending_actions: Array.isArray(reply.pending_actions)
-      ? reply.pending_actions
-          .map((action) => ({
-            id: action.id || action.confirmation_id || action.action_id || '',
-            display_summary: action.display_summary || '',
-            expires_at: action.expires_at || '',
-          }))
-          .filter((action) => Boolean(action.id))
-      : [],
+    pendingActions,
+    provider: 'gemini',
+    mode: 'online',
+  };
+}
+
+const aiRouter = new AiRouter(
+  new GeminiAiProvider(sendGeminiMessage),
+  new LocalAiProvider(),
+);
+
+export async function sendAiMessage(message: string, conversationId: string | null): Promise<AiReply> {
+  const response = await aiRouter.sendMessage([
+    {
+      id: `request-${Date.now()}`,
+      conversationId: conversationId ?? '',
+      role: 'user',
+      content: message,
+    },
+  ]);
+
+  return {
+    conversation_id: response.conversationId,
+    message: response.message,
+    pending_actions: response.pendingActions,
   };
 }
 
