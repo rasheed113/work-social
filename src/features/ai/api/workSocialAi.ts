@@ -25,6 +25,8 @@ export interface AiPendingAction {
   id: string;
   display_summary: string;
   expires_at: string;
+  confirmation_id?: string;
+  action_id?: string;
 }
 
 export interface AiReply {
@@ -87,9 +89,7 @@ export async function sendAiMessage(message: string, conversationId: string | nu
   if (!data || typeof data !== 'object') throw new Error('The AI service returned an invalid response.');
   if ('error' in data && typeof data.error === 'string') throw new Error(data.error);
 
-  const reply = data as Partial<AiReply> & {
-    pending_actions?: Array<Partial<AiPendingAction> & { action_id?: string; confirmation_id?: string }>;
-  };
+  const reply = data as Partial<AiReply>;
   if (typeof reply.conversation_id !== 'string' || typeof reply.message !== 'string') {
     throw new Error('The AI service returned an incomplete response.');
   }
