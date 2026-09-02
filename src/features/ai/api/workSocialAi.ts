@@ -35,6 +35,10 @@ export interface AiReply {
   pending_actions: AiPendingAction[];
 }
 
+function normalizeAiDisplayText(content: string): string {
+  return content.replace(/\*\*/g, '');
+}
+
 function readableError(error: unknown): string {
   if (error instanceof Error && error.message) return error.message;
   if (typeof error === 'object' && error !== null && 'message' in error) {
@@ -96,7 +100,7 @@ export async function sendAiMessage(message: string, conversationId: string | nu
 
   return {
     conversation_id: reply.conversation_id,
-    message: reply.message,
+    message: normalizeAiDisplayText(reply.message),
     pending_actions: Array.isArray(reply.pending_actions)
       ? reply.pending_actions
           .map((action) => ({
@@ -142,5 +146,8 @@ export async function listAiMessages(conversationId: string): Promise<AiMessage[
     .order('created_at', { ascending: true })
     .limit(100);
   if (error) throw new Error((error as PostgrestError).message || 'Could not load AI messages.');
-  return (data ?? []) as AiMessage[];
+  return (data ?? []).map((item) => ({
+    ...(item as AiMessage),
+    content: normalizeAiDisplayText(item.content),
+  }));
 }
