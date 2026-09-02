@@ -53,21 +53,14 @@ export function MovableAiLauncher() {
         .ws-ai-launcher.ws-ai-brand-logo {
           width: 44px !important;
           height: 44px !important;
-          border-radius: 14px !important;
+          border-radius: 50% !important;
           overflow: hidden !important;
           opacity: .48 !important;
           transform: scale(.94) !important;
-          transition: opacity .22s ease, transform .22s ease, filter .22s ease, border-radius .22s ease !important;
+          transition: opacity .22s ease, transform .22s ease, filter .22s ease !important;
+          box-shadow: 0 5px 18px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.25) !important;
         }
         .ws-ai-launcher.ws-ai-brand-logo::before {
-          content: '';
-          position: absolute;
-          inset: 4px;
-          border: 1px solid rgba(255,255,255,.34);
-          border-radius: 10px;
-          pointer-events: none;
-        }
-        .ws-ai-launcher.ws-ai-brand-logo::after {
           content: 'AI';
           position: absolute;
           inset: 0;
@@ -76,20 +69,19 @@ export function MovableAiLauncher() {
           font-family: Inter, ui-sans-serif, system-ui, sans-serif;
           font-size: 13px;
           font-weight: 950;
-          letter-spacing: -.08em;
+          letter-spacing: -.07em;
           line-height: 1;
-          color: rgba(255,255,255,.96);
-          text-shadow: 0 1px 2px rgba(0,0,0,.35);
+          color: rgba(255,255,255,.97);
+          text-shadow: 0 1px 2px rgba(0,0,0,.4);
           pointer-events: none;
         }
+        .ws-ai-launcher.ws-ai-brand-logo::after { display: none !important; }
         .ws-ai-launcher.ws-ai-brand-logo > * { opacity: 0 !important; }
         .ws-ai-launcher.ws-ai-brand-logo.ws-ai-awake {
           opacity: 1 !important;
           transform: scale(1.08) !important;
           filter: brightness(1.08) saturate(1.08) !important;
-          border-radius: 12px !important;
         }
-        .ws-ai-launcher.ws-ai-brand-logo.ws-ai-awake::before { inset: 3px; }
       `;
       document.head.appendChild(style);
     }
@@ -125,7 +117,6 @@ export function MovableAiLauncher() {
     const onPointerDown = (event: PointerEvent) => {
       if (event.button !== 0 && event.pointerType !== 'touch') return;
       wake();
-
       const rect = launcher.getBoundingClientRect();
       pointerId = event.pointerId;
       startX = event.clientX;
@@ -140,11 +131,9 @@ export function MovableAiLauncher() {
     const onPointerMove = (event: PointerEvent) => {
       if (!dragging || pointerId !== event.pointerId) return;
       wake();
-
       const deltaX = event.clientX - startX;
       const deltaY = event.clientY - startY;
       if (!moved && Math.hypot(deltaX, deltaY) < DRAG_THRESHOLD) return;
-
       moved = true;
       event.preventDefault();
       const next = clampPosition(startLeft + deltaX, startTop + deltaY);
