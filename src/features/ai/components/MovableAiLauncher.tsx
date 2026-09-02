@@ -1,9 +1,11 @@
 import { useEffect } from 'react';
 
 const STORAGE_KEY = 'work-social-ai-launcher-position-v1';
-const LAUNCHER_SIZE = 58;
+const LAUNCHER_SIZE = 44;
 const EDGE_GAP = 8;
 const DRAG_THRESHOLD = 5;
+const DIM_OPACITY = '0.48';
+const AWAKE_OPACITY = '1';
 
 type SavedPosition = { left: number; top: number };
 
@@ -40,6 +42,25 @@ export function MovableAiLauncher() {
     launcher.style.touchAction = 'none';
     launcher.style.userSelect = 'none';
     launcher.style.webkitUserSelect = 'none';
+    launcher.style.width = `${LAUNCHER_SIZE}px`;
+    launcher.style.height = `${LAUNCHER_SIZE}px`;
+    launcher.style.minWidth = `${LAUNCHER_SIZE}px`;
+    launcher.style.minHeight = `${LAUNCHER_SIZE}px`;
+    launcher.style.opacity = DIM_OPACITY;
+    launcher.style.transition = 'transform .18s ease, opacity .2s ease, filter .2s ease, box-shadow .2s ease';
+    launcher.style.filter = 'saturate(.72)';
+
+    const wake = () => {
+      launcher.style.opacity = AWAKE_OPACITY;
+      launcher.style.filter = 'saturate(1) brightness(1.05)';
+      launcher.style.transform = 'scale(1.08)';
+    };
+
+    const dim = () => {
+      launcher.style.opacity = DIM_OPACITY;
+      launcher.style.filter = 'saturate(.72)';
+      launcher.style.transform = 'scale(1)';
+    };
 
     const saved = readSavedPosition();
     if (saved) {
@@ -59,6 +80,7 @@ export function MovableAiLauncher() {
 
     const onPointerDown = (event: PointerEvent) => {
       if (event.button !== 0 && event.pointerType !== 'touch') return;
+      wake();
 
       const rect = launcher.getBoundingClientRect();
       pointerId = event.pointerId;
@@ -96,6 +118,7 @@ export function MovableAiLauncher() {
       dragging = false;
       pointerId = null;
       try { launcher.releasePointerCapture?.(event.pointerId); } catch { /* already released */ }
+      window.setTimeout(dim, 900);
     };
 
     const onClick = (event: MouseEvent) => {
