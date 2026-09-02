@@ -1,6 +1,7 @@
 import { FunctionsFetchError, FunctionsHttpError, FunctionsRelayError } from '@supabase/supabase-js';
 import type { PostgrestError } from '@supabase/supabase-js';
 import { supabase } from '../../../lib/supabase/client';
+import { listWorkerFinanceReceived, getWorkerFinanceSummary } from '../../worker/api/finance';
 
 export interface AiConversation {
   id: string;
@@ -76,6 +77,32 @@ async function functionErrorMessage(error: unknown, fallback: string): Promise<s
   return readableError(error) || fallback;
 }
 
+function isFinanceQuestion(message: string): boolean {
+  return /\b(finance|financial|earning|earnings|payment|payments|advance|advances|received|balance|remaining|paid|paisa|paise|rup(?:ee|ees)|amount|hisab|hisaab|kamai|jama|wasool|milay|mili|mila)\b/i.test(message)
+    || /(?:فنانس|آمدنی|کمائی|ادائیگی|ایڈوانس|وصول|بقایا|رقم|حساب|جمع|ملے|ملا|ملی)/u.test(message);
+}
+
+async function buildFinanceContext(profileId: string, message: string): Promise<string> {
+  if (!isFinanceQuestion(message)) return '';
+
+  const [summaryResult, receivedResult] = await Promise.all([
+    getWorkerFinanceSummary(),
+    listWorkerFinanceReceived(profileId),
+  ]);
+
+  if (summaryResult.error) throw summaryResult.error;
+  if (receivedResult.error) throw receivedResult.error;
+
+  const received = receivedResult.data.slice(0, 100).map((item) => ({
+    id: item.id,
+    type: item.entry_type,
+    amount: item.amount,
+    received_at: item.received_at,
+  }));
+
+  return `\n\n[READ-ONLY FINANCE CONTEXT — authoritative Finance page data for this authenticated user]\nSummary: total_earnings=${summaryResult.data?.total_earnings ?? '0'}, received=${summaryResult.data?.received ?? '0'}, remaining=${summaryResult.data?.remaining ?? '0'}\nReceived records (active only, newest first): ${JSON.stringify(received)}\nUse this Finance context for finance questions. Do not invent missing records. These received amounts are actual recorded payments/advances, while total_earnings is recorded work value.`;
+}
+
 export async function sendAiMessage(message: string, conversationId: string | null): Promise<AiReply> {
   const trimmed = message.trim();
   if (!trimmed) throw new Error('Message cannot be empty.');
@@ -84,8 +111,11 @@ export async function sendAiMessage(message: string, conversationId: string | nu
   const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
   if (sessionError || !sessionData.session) throw new Error('Your Work Social session has expired. Please sign in again.');
 
+  const financeContext = await buildFinanceContext(sessionData.session.user.id, trimmed);
+  const requestMessage = `${trimmed}${financeContext}`;
+
   const { data, error } = await supabase.functions.invoke('work-social-ai', {
-    body: { message: trimmed, conversation_id: conversationId },
+    body: { message: requestMessage, conversation_id: conversationId },
     headers: { Authorization: `Bearer ${sessionData.session.access_token}` },
   });
 
