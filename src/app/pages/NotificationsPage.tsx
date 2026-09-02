@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase/client';
+import { navigate } from '../Router';
 
 type NotificationRow = {
   id: string; receiver_id: string; sender_id: string; type: string; post_id: string | null; comment_id: string | null;
@@ -19,12 +20,12 @@ function openNotificationTarget(item: NotificationRow) {
   if (item.post_id) {
     const params = new URLSearchParams({ post: item.post_id }); if (item.comment_id) params.set('comment', item.comment_id);
     window.sessionStorage.setItem('work-social:notification-target', JSON.stringify({ postId: item.post_id, commentId: item.comment_id, type: item.type }));
-    window.history.pushState({}, '', `/?${params.toString()}`); window.dispatchEvent(new PopStateEvent('popstate')); return;
+    navigate(`/?${params.toString()}`); return;
   }
-  if (item.type === 'follow' || item.type === 'friend_request' || item.type === 'friend_accept') { window.history.pushState({}, '', '/friends'); window.dispatchEvent(new PopStateEvent('popstate')); return; }
+  if (item.type === 'follow' || item.type === 'friend_request' || item.type === 'friend_accept') { navigate('/friends'); return; }
   if (item.type === 'message') {
     const conversationId = typeof item.metadata?.conversation_id === 'string' ? item.metadata.conversation_id : null;
-    window.history.pushState({}, '', conversationId ? `/inbox?conversation=${encodeURIComponent(conversationId)}` : '/inbox'); window.dispatchEvent(new PopStateEvent('popstate'));
+    navigate(conversationId ? `/inbox?conversation=${encodeURIComponent(conversationId)}` : '/inbox');
   }
 }
 
