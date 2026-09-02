@@ -4,8 +4,7 @@ const STORAGE_KEY = 'work-social-ai-launcher-position-v1';
 const LAUNCHER_SIZE = 44;
 const EDGE_GAP = 8;
 const DRAG_THRESHOLD = 5;
-const DIM_OPACITY = '0.48';
-const AWAKE_OPACITY = '1';
+const IDLE_DELAY_MS = 1800;
 
 type SavedPosition = { left: number; top: number };
 
@@ -42,24 +41,69 @@ export function MovableAiLauncher() {
     launcher.style.touchAction = 'none';
     launcher.style.userSelect = 'none';
     launcher.style.webkitUserSelect = 'none';
-    launcher.style.width = `${LAUNCHER_SIZE}px`;
-    launcher.style.height = `${LAUNCHER_SIZE}px`;
-    launcher.style.minWidth = `${LAUNCHER_SIZE}px`;
-    launcher.style.minHeight = `${LAUNCHER_SIZE}px`;
-    launcher.style.opacity = DIM_OPACITY;
-    launcher.style.transition = 'transform .18s ease, opacity .2s ease, filter .2s ease, box-shadow .2s ease';
-    launcher.style.filter = 'saturate(.72)';
+    launcher.setAttribute('aria-label', 'Work Social AI');
+    launcher.setAttribute('title', 'Work Social AI');
+
+    const styleId = 'ws-ai-launcher-logo-style';
+    let style = document.getElementById(styleId) as HTMLStyleElement | null;
+    if (!style) {
+      style = document.createElement('style');
+      style.id = styleId;
+      style.textContent = `
+        .ws-ai-launcher.ws-ai-brand-logo {
+          width: 44px !important;
+          height: 44px !important;
+          border-radius: 14px !important;
+          overflow: hidden !important;
+          opacity: .48 !important;
+          transform: scale(.94) !important;
+          transition: opacity .22s ease, transform .22s ease, filter .22s ease, border-radius .22s ease !important;
+        }
+        .ws-ai-launcher.ws-ai-brand-logo::before {
+          content: '';
+          position: absolute;
+          inset: 4px;
+          border: 1px solid rgba(255,255,255,.34);
+          border-radius: 10px;
+          pointer-events: none;
+        }
+        .ws-ai-launcher.ws-ai-brand-logo::after {
+          content: 'AI';
+          position: absolute;
+          inset: 0;
+          display: grid;
+          place-items: center;
+          font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+          font-size: 13px;
+          font-weight: 950;
+          letter-spacing: -.08em;
+          line-height: 1;
+          color: rgba(255,255,255,.96);
+          text-shadow: 0 1px 2px rgba(0,0,0,.35);
+          pointer-events: none;
+        }
+        .ws-ai-launcher.ws-ai-brand-logo > * { opacity: 0 !important; }
+        .ws-ai-launcher.ws-ai-brand-logo.ws-ai-awake {
+          opacity: 1 !important;
+          transform: scale(1.08) !important;
+          filter: brightness(1.08) saturate(1.08) !important;
+          border-radius: 12px !important;
+        }
+        .ws-ai-launcher.ws-ai-brand-logo.ws-ai-awake::before { inset: 3px; }
+      `;
+      document.head.appendChild(style);
+    }
+
+    launcher.classList.add('ws-ai-brand-logo');
+    let idleTimer: number | null = null;
 
     const wake = () => {
-      launcher.style.opacity = AWAKE_OPACITY;
-      launcher.style.filter = 'saturate(1) brightness(1.05)';
-      launcher.style.transform = 'scale(1.08)';
-    };
-
-    const dim = () => {
-      launcher.style.opacity = DIM_OPACITY;
-      launcher.style.filter = 'saturate(.72)';
-      launcher.style.transform = 'scale(1)';
+      launcher.classList.add('ws-ai-awake');
+      if (idleTimer !== null) window.clearTimeout(idleTimer);
+      idleTimer = window.setTimeout(() => {
+        launcher.classList.remove('ws-ai-awake');
+        idleTimer = null;
+      }, IDLE_DELAY_MS);
     };
 
     const saved = readSavedPosition();
@@ -95,6 +139,7 @@ export function MovableAiLauncher() {
 
     const onPointerMove = (event: PointerEvent) => {
       if (!dragging || pointerId !== event.pointerId) return;
+      wake();
 
       const deltaX = event.clientX - startX;
       const deltaY = event.clientY - startY;
@@ -111,6 +156,7 @@ export function MovableAiLauncher() {
 
     const finishPointer = (event: PointerEvent) => {
       if (!dragging || pointerId !== event.pointerId) return;
+      wake();
       if (moved) {
         const rect = launcher.getBoundingClientRect();
         savePosition(clampPosition(rect.left, rect.top));
@@ -118,10 +164,10 @@ export function MovableAiLauncher() {
       dragging = false;
       pointerId = null;
       try { launcher.releasePointerCapture?.(event.pointerId); } catch { /* already released */ }
-      window.setTimeout(dim, 900);
     };
 
     const onClick = (event: MouseEvent) => {
+      wake();
       if (!moved) return;
       event.preventDefault();
       event.stopImmediatePropagation();
@@ -146,6 +192,8 @@ export function MovableAiLauncher() {
     window.addEventListener('resize', onResize);
 
     return () => {
+      if (idleTimer !== null) window.clearTimeout(idleTimer);
+      launcher.classList.remove('ws-ai-brand-logo', 'ws-ai-awake');
       launcher.removeEventListener('pointerdown', onPointerDown);
       launcher.removeEventListener('pointermove', onPointerMove);
       launcher.removeEventListener('pointerup', finishPointer);
