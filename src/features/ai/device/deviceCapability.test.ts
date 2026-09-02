@@ -1,11 +1,17 @@
-import { strict as assert } from 'node:assert';
-import { test } from 'node:test';
 import {
   GIB,
   classifyRam,
   evaluateLocalModel,
   type DeviceCapability,
 } from './deviceCapability';
+
+function assert(condition: boolean, message: string): void {
+  if (!condition) throw new Error(message);
+}
+
+function assertEqual<T>(actual: T, expected: T, message: string): void {
+  assert(actual === expected, `${message}: expected ${String(expected)}, got ${String(actual)}`);
+}
 
 const capability = (overrides: Partial<DeviceCapability> = {}): DeviceCapability => ({
   supported: true,
@@ -14,7 +20,7 @@ const capability = (overrides: Partial<DeviceCapability> = {}): DeviceCapability
   totalRam: 6 * GIB,
   cpuCores: 8,
   architecture: 'arm64-v8a',
-  androidVersion: 'unknown',
+  androidVersion: null,
   availableStorage: 5 * GIB,
   thermalState: 'unknown',
   batteryLevel: null,
@@ -25,55 +31,51 @@ const capability = (overrides: Partial<DeviceCapability> = {}): DeviceCapability
   ...overrides,
 });
 
-test('RAM tiers use conservative boundaries', () => {
-  assert.equal(classifyRam(2 * GIB), 'LOW');
-  assert.equal(classifyRam(3 * GIB), 'BASIC');
-  assert.equal(classifyRam(4 * GIB), 'STANDARD');
-  assert.equal(classifyRam(6 * GIB), 'HIGH');
-  assert.equal(classifyRam(8 * GIB), 'HIGH');
-  assert.equal(classifyRam(null), 'UNKNOWN');
-});
+function runTests(): void {
+  assertEqual(classifyRam(2 * GIB), 'LOW', '2 GiB RAM should be LOW');
+  assertEqual(classifyRam(3 * GIB), 'BASIC', '3 GiB RAM should be BASIC');
+  assertEqual(classifyRam(4 * GIB), 'STANDARD', '4 GiB RAM should be STANDARD');
+  assertEqual(classifyRam(6 * GIB), 'HIGH', '6 GiB RAM should be HIGH');
+  assertEqual(classifyRam(8 * GIB), 'HIGH', '8 GiB RAM should be HIGH');
+  assertEqual(classifyRam(null), 'UNKNOWN', 'unknown RAM should be UNKNOWN');
 
-test('unknown storage blocks a model with a storage requirement', () => {
-  const result = evaluateLocalModel(capability({ availableStorage: null }), {
+  const unknownStorage = evaluateLocalModel(capability({ availableStorage: null }), {
     minimumFreeStorage: 2.5 * GIB,
   });
-  assert.equal(result.eligible, false);
-  assert.ok(result.reasons.some((reason) => reason.includes('storage is unknown')));
-});
+  assert(!unknownStorage.eligible, 'unknown storage must block a storage-gated model');
+  assert(
+    unknownStorage.reasons.some((reason) => reason.includes('storage is unknown')),
+    'unknown storage should explain the conservative rejection',
+  );
 
-test('insufficient storage blocks model eligibility', () => {
-  const result = evaluateLocalModel(capability({ availableStorage: 2 * GIB }), {
+  const insufficientStorage = evaluateLocalModel(capability({ availableStorage: 2 * GIB }), {
     minimumFreeStorage: 2.5 * GIB,
   });
-  assert.equal(result.eligible, false);
-});
+  assert(!insufficientStorage.eligible, 'insufficient storage must block model eligibility');
 
-test('unknown CPU information is conservative when architecture is required', () => {
-  const result = evaluateLocalModel(capability({ cpuCores: null, architecture: null }), {
+  const unknownCpu = evaluateLocalModel(capability({ cpuCores: null, architecture: null }), {
     supportedArchitectures: ['arm64-v8a'],
   });
-  assert.equal(result.eligible, false);
-  assert.ok(result.reasons.some((reason) => reason.includes('architecture is unknown')));
-});
+  assert(!unknownCpu.eligible, 'unknown CPU architecture must be conservative');
+  assert(
+    unknownCpu.reasons.some((reason) => reason.includes('architecture is unknown')),
+    'unknown architecture should be reported',
+  );
 
-test('unsupported architecture blocks model eligibility', () => {
-  const result = evaluateLocalModel(capability({ architecture: 'x86_64' }), {
+  const unsupportedArchitecture = evaluateLocalModel(capability({ architecture: 'x86_64' }), {
     supportedArchitectures: ['arm64-v8a'],
   });
-  assert.equal(result.eligible, false);
-});
+  assert(!unsupportedArchitecture.eligible, 'unsupported architecture must block eligibility');
 
-test('optional thermal and battery unknown values remain conservative but do not invent data', () => {
-  const device = capability({ thermalState: 'unknown', batteryLevel: null, isCharging: null });
-  assert.equal(device.thermalState, 'unknown');
-  assert.equal(device.batteryLevel, null);
-  assert.equal(device.isCharging, null);
-});
+  const optionalSignals = capability({ thermalState: 'unknown', batteryLevel: null, isCharging: null });
+  assertEqual(optionalSignals.thermalState, 'unknown', 'thermal state must remain unknown');
+  assertEqual(optionalSignals.batteryLevel, null, 'battery level must remain unknown');
+  assertEqual(optionalSignals.isCharging, null, 'charging state must remain unknown');
 
-test('Android is required for the future local model path', () => {
-  const result = evaluateLocalModel(capability({ platform: 'web', supported: false }), {
+  const webRuntime = evaluateLocalModel(capability({ platform: 'web', supported: false }), {
     requiredPlatform: 'android',
   });
-  assert.equal(result.eligible, false);
-});
+  assert(!webRuntime.eligible, 'web runtime must not qualify as an Android local AI runtime');
+}
+
+runTests();
