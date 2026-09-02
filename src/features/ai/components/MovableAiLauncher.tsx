@@ -64,19 +64,21 @@ export function MovableAiLauncher() {
           background: #16a34a !important;
           background-image: none !important;
           border: 1px solid rgba(255,255,255,.34) !important;
+          color: transparent !important;
+          font-size: 0 !important;
           opacity: .48 !important;
           transform: scale(.94) !important;
           transition: opacity .22s ease, transform .22s ease, filter .22s ease, box-shadow .22s ease !important;
           box-shadow: 0 6px 18px rgba(22,163,74,.28), inset 0 1px 0 rgba(255,255,255,.28), inset 0 -2px 5px rgba(0,0,0,.12) !important;
         }
         .ws-ai-launcher.ws-ai-brand-logo::before {
-          content: 'AI';
+          content: 'AI' !important;
           position: absolute;
           inset: 0;
           display: grid;
           place-items: center;
           font-family: Inter, ui-sans-serif, system-ui, sans-serif;
-          font-size: 13px;
+          font-size: 13px !important;
           font-weight: 900;
           letter-spacing: -.06em;
           line-height: 1;
