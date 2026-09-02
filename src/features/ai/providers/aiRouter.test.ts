@@ -1,0 +1,115 @@
+import type { AiAttachment, AiMessage, AiProvider, AiProviderStatus, AiResponse } from './contracts';
+import { AiRoutingError } from './contracts';
+import { AiRouter } from './aiRouter';
+
+const message: AiMessage = { id: 'm', conversationId: 'c', role: 'user', content: 'hello' };
+const response: AiResponse = { conversationId: 'c', message: 'ok', pendingActions: [], provider: 'gemini', mode: 'online' };
+
+function provider(
+  id: 'gemini' | 'local',
+  status: AiProviderStatus,
+  onSend: () => void = () => undefined,
+  routingStatus?: (attachments?: AiAttachment[]) => Promise<AiProviderStatus>,
+): AiProvider {
+  return {
+    id,
+    mode: id === 'gemini' ? 'online' : 'offline',
+    getStatus: () => status,
+    sendMessage: async () => { onSend(); return { ...response, provider: id, mode: id === 'gemini' ? 'online' : 'offline' }; },
+    ...(routingStatus ? { getRoutingStatus: routingStatus } : {}),
+  } as AiProvider;
+}
+
+function local(status: AiProviderStatus, onSend?: () => void): AiProvider {
+  return provider('local', status, onSend, async () => status);
+}
+
+function readyLocal(onSend?: () => void): AiProvider {
+  return local({
+    state: 'ready', provider: 'local', mode: 'offline',
+    reason: 'verified runtime/model/device ready', reasonCode: 'LOCAL_RUNTIME_READY',
+  }, onSend);
+}
+
+function unavailableLocal(reasonCode: AiProviderStatus['reasonCode'], reason = 'not ready'): AiProvider {
+  return local({ state: 'unavailable', provider: 'local', mode: 'offline', reason, reasonCode });
+}
+
+async function expectRoutingError(action: () => Promise<unknown>, code: string): Promise<void> {
+  try {
+    await action();
+    throw new Error(`Expected ${code}, but no error was thrown.`);
+  } catch (error) {
+    if (!(error instanceof AiRoutingError) || error.code !== code || error.mode !== 'offline' || error.provider !== 'local') {
+      throw new Error(`Expected structured offline ${code} error.`);
+    }
+  }
+}
+
+async function run(): Promise<void> {
+  let geminiCalls = 0;
+  let localCalls = 0;
+  const gemini = provider('gemini', { state: 'ready', provider: 'gemini', mode: 'online' }, () => { geminiCalls += 1; });
+
+  // AUTO: every local ineligibility condition routes to Gemini.
+  for (const status of [
+    unavailableLocal('LOCAL_RUNTIME_UNAVAILABLE', 'runtime unavailable'),
+    unavailableLocal('MODEL_NOT_INSTALLED', 'model not installed'),
+    unavailableLocal('MODEL_INVALID', 'model invalid'),
+    unavailableLocal('MODEL_INCOMPATIBLE', 'device/model incompatible'),
+    unavailableLocal('UNSUPPORTED_ATTACHMENT', 'attachments unsupported'),
+    unavailableLocal('INSUFFICIENT_RESOURCES', 'resources insufficient'),
+  ]) {
+    const route = await new AiRouter(gemini, status).route('auto');
+    if (route.provider !== 'gemini' || route.mode !== 'online' || route.reasonCode !== 'AUTO_ONLINE_SELECTED') throw new Error('AUTO did not deterministically select Gemini for an ineligible local provider.');
+  }
+
+  const attachment: AiAttachment = { kind: 'image', mimeType: 'image/png' };
+  const attachmentRoute = await new AiRouter(gemini, unavailableLocal('UNSUPPORTED_ATTACHMENT')).route('auto', [attachment]);
+  if (attachmentRoute.provider !== 'gemini') throw new Error('AUTO selected local for an unsupported attachment.');
+
+  // AUTO: all local requirements genuinely satisfied -> local.
+  const selected = await new AiRouter(gemini, readyLocal()).route('auto');
+  if (selected.provider !== 'local' || selected.mode !== 'offline' || selected.reasonCode !== 'AUTO_LOCAL_SELECTED') throw new Error('AUTO did not select an actually-ready local provider.');
+
+  // ONLINE: local availability is irrelevant and Gemini is always selected.
+  const onlineRouter = new AiRouter(gemini, readyLocal());
+  const onlineRoute = await onlineRouter.route('online');
+  if (onlineRoute.provider !== 'gemini' || onlineRoute.reasonCode !== 'ONLINE_EXPLICIT') throw new Error('ONLINE did not force Gemini.');
+  await onlineRouter.sendMessage([message], [], { mode: 'online' });
+  if (geminiCalls !== 1) throw new Error('ONLINE did not invoke Gemini exactly once.');
+
+  // OFFLINE: local is selected when ready and never falls back to Gemini.
+  const offlineRouter = new AiRouter(gemini, readyLocal(() => { localCalls += 1; }));
+  const offlineRoute = await offlineRouter.route('offline');
+  if (offlineRoute.provider !== 'local' || offlineRoute.reasonCode !== 'OFFLINE_EXPLICIT') throw new Error('OFFLINE did not select local when ready.');
+  await offlineRouter.sendMessage([message], [], { mode: 'offline' });
+  if (localCalls !== 1) throw new Error('OFFLINE did not invoke local exactly once.');
+
+  for (const code of ['LOCAL_RUNTIME_UNAVAILABLE', 'MODEL_NOT_INSTALLED', 'MODEL_INVALID', 'MODEL_INCOMPATIBLE', 'INSUFFICIENT_RESOURCES', 'UNSUPPORTED_ATTACHMENT']) {
+    await expectRoutingError(() => new AiRouter(gemini, unavailableLocal(code as AiProviderStatus['reasonCode'])).route('offline'), code);
+  }
+
+  // OFFLINE must not invoke Gemini as a fallback.
+  const beforeGemini = geminiCalls;
+  await expectRoutingError(() => new AiRouter(gemini, unavailableLocal('LOCAL_RUNTIME_UNAVAILABLE')).sendMessage([message], [], { mode: 'offline' }), 'LOCAL_RUNTIME_UNAVAILABLE');
+  if (geminiCalls !== beforeGemini) throw new Error('OFFLINE unexpectedly invoked Gemini.');
+
+  // Integrity: a local provider that reports an invalid/unverified model cannot be selected.
+  const invalid = await new AiRouter(gemini, unavailableLocal('MODEL_INVALID', 'checksum verification failed')).route('auto');
+  if (invalid.provider !== 'gemini') throw new Error('Unverified model caused local selection.');
+
+  // Determinism: same provider state yields the same route.
+  const deterministicRouter = new AiRouter(gemini, unavailableLocal('MODEL_NOT_INSTALLED'));
+  const first = await deterministicRouter.route('auto');
+  const second = await deterministicRouter.route('auto');
+  if (JSON.stringify(first) !== JSON.stringify(second)) throw new Error('Routing was not deterministic.');
+
+  // No arbitrary model path is accepted by the router contract; only provider readiness is consulted.
+  const routeWithNoPathInput = await new AiRouter(gemini, readyLocal()).route('auto');
+  if (routeWithNoPathInput.provider !== 'local') throw new Error('Valid local readiness did not produce local selection.');
+
+  console.log('Phase 7 router tests passed: AUTO, ONLINE, OFFLINE, attachment gating, integrity gating, no-network fallback, and deterministic routing are covered.');
+}
+
+run().catch((error: unknown) => { console.error(error); throw error; });

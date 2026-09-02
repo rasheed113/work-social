@@ -52,6 +52,83 @@ export class LocalAiProvider implements AiProvider {
     return { state: 'unavailable', provider: this.id, mode: this.mode, reason: `Local runtime state is ${runtimeState}.`, reasonCode: 'RUNTIME_UNAVAILABLE' };
   }
 
+  /**
+   * Router preflight. This is intentionally stricter than getStatus(): it walks
+   * the existing ModelManager authority through eligibility and checksum-verified
+   * handoff, while requiring a real executable runtime adapter.
+   */
+  async getRoutingStatus(attachments: AiAttachment[] = []): Promise<AiProviderStatus> {
+    if (attachments.length > 0) {
+      return {
+        state: 'unavailable', provider: this.id, mode: this.mode,
+        reason: LOCAL_AI_UNSUPPORTED_ATTACHMENT, reasonCode: 'UNSUPPORTED_ATTACHMENT',
+      };
+    }
+
+    const runtimeState = this.runtime.getStatus();
+    if (runtimeState === 'UNAVAILABLE' || runtimeState === 'DISPOSED' || runtimeState === 'ERROR') {
+      return {
+        state: 'unavailable', provider: this.id, mode: this.mode,
+        reason: 'No executable local inference runtime is available in the current web runtime.',
+        reasonCode: 'LOCAL_RUNTIME_UNAVAILABLE',
+      };
+    }
+    if (runtimeState === 'INITIALIZING' || runtimeState === 'LOADING_MODEL' || runtimeState === 'GENERATING' || runtimeState === 'CANCELLING') {
+      return {
+        state: 'unavailable', provider: this.id, mode: this.mode,
+        reason: `Local inference runtime is currently ${runtimeState.toLowerCase().replace('_', ' ')} and cannot accept a new route.`,
+        reasonCode: 'LOCAL_RUNTIME_UNAVAILABLE',
+      };
+    }
+    if (!this.modelManager) {
+      return {
+        state: 'unavailable', provider: this.id, mode: this.mode,
+        reason: 'No ModelManager is connected to the local provider.', reasonCode: 'LOCAL_RUNTIME_UNAVAILABLE',
+      };
+    }
+
+    const model = this.modelManager.getModel(this.modelId);
+    if (!model || model.status === 'NOT_INSTALLED' || model.status === 'DOWNLOADING' || model.status === 'VERIFYING' || model.status === 'REMOVING') {
+      return {
+        state: 'unavailable', provider: this.id, mode: this.mode,
+        reason: 'No verified local model is installed.', reasonCode: 'MODEL_NOT_INSTALLED',
+      };
+    }
+    if (model.status === 'INVALID' || model.status === 'FAILED') {
+      return {
+        state: 'unavailable', provider: this.id, mode: this.mode,
+        reason: 'The local model is invalid and cannot be executed.', reasonCode: 'MODEL_INVALID',
+      };
+    }
+
+    const eligibility = await this.modelManager.checkInstallationEligibility(this.modelId);
+    if (!eligibility.eligible) {
+      const insufficientResources = eligibility.reasons.some((reason) =>
+        reason.code === 'INSUFFICIENT_RAM' || reason.code === 'INSUFFICIENT_STORAGE',
+      );
+      return {
+        state: 'unavailable', provider: this.id, mode: this.mode,
+        reason: eligibility.reasons.map((reason) => reason.message).join(' '),
+        reasonCode: insufficientResources ? 'INSUFFICIENT_RESOURCES' : 'MODEL_INCOMPATIBLE',
+      };
+    }
+
+    try {
+      await this.modelManager.getVerifiedModelReference(this.modelId);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'The local model could not be verified.';
+      if (message.includes('LOCAL_MODEL_NOT_INSTALLED')) {
+        return { state: 'unavailable', provider: this.id, mode: this.mode, reason: message, reasonCode: 'MODEL_NOT_INSTALLED' };
+      }
+      return { state: 'unavailable', provider: this.id, mode: this.mode, reason: message, reasonCode: 'MODEL_INVALID' };
+    }
+
+    return {
+      state: 'ready', provider: this.id, mode: this.mode,
+      reason: 'Verified local model and executable local runtime are ready.', reasonCode: 'LOCAL_RUNTIME_READY',
+    };
+  }
+
   async sendMessage(messages: AiMessage[], attachments: AiAttachment[] = [], options?: AiGenerationOptions): Promise<AiResponse> {
     if (attachments.length > 0) throw new LocalInferenceRuntimeError('UNSUPPORTED_ATTACHMENT', LOCAL_AI_UNSUPPORTED_ATTACHMENT);
     if (!messages.length) throw new LocalInferenceRuntimeError('INFERENCE_FAILED', 'At least one AI message is required for local generation.');

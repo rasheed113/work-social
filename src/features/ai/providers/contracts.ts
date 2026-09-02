@@ -43,16 +43,59 @@ export interface AiResponse {
   mode: AiProviderMode;
 }
 
-export type AiProviderStatusReasonCode =
-  | 'OFFLINE_TEXT_AI_UNAVAILABLE'
+export type AiRoutingMode = 'auto' | 'online' | 'offline';
+
+export type AiRoutingReasonCode =
+  | 'LOCAL_RUNTIME_READY'
+  | 'LOCAL_RUNTIME_UNAVAILABLE'
   | 'MODEL_NOT_INSTALLED'
   | 'MODEL_INVALID'
   | 'MODEL_INCOMPATIBLE'
+  | 'INSUFFICIENT_RESOURCES'
+  | 'UNSUPPORTED_ATTACHMENT'
+  | 'ONLINE_EXPLICIT'
+  | 'OFFLINE_EXPLICIT'
+  | 'AUTO_LOCAL_SELECTED'
+  | 'AUTO_ONLINE_SELECTED';
+
+export type AiProviderStatusReasonCode =
+  | AiRoutingReasonCode
+  | 'OFFLINE_TEXT_AI_UNAVAILABLE'
   | 'RUNTIME_UNAVAILABLE';
 
-export type AiProviderStatus =
-  | { state: 'ready'; provider: AiProviderId; mode: AiProviderMode }
-  | { state: 'unavailable'; provider: AiProviderId; mode: AiProviderMode; reason: string; reasonCode?: AiProviderStatusReasonCode };
+export type AiRoute =
+  | {
+      provider: 'gemini';
+      mode: 'online';
+      reason: string;
+      reasonCode: AiRoutingReasonCode;
+    }
+  | {
+      provider: 'local';
+      mode: 'offline';
+      reason: string;
+      reasonCode: AiRoutingReasonCode;
+    };
+
+export class AiRoutingError extends Error {
+  constructor(
+    readonly code: AiRoutingReasonCode,
+    readonly mode: AiRoutingMode,
+    readonly provider: 'local',
+    message: string,
+  ) {
+    super(message);
+    this.name = 'AiRoutingError';
+  }
+}
+
+export interface AiProviderStatus {
+  state: 'ready' | 'unavailable';
+  provider: AiProviderId;
+  mode: AiProviderMode;
+  reason?: string;
+  reasonCode?: AiProviderStatusReasonCode;
+}
 
 export interface AiProvider {
   readonly id: AiProviderId;
