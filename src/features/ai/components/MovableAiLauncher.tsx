@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 
 const STORAGE_KEY = 'work-social-ai-launcher-position-v1';
-const LAUNCHER_SIZE = 44;
+const LAUNCHER_SIZE = 38;
 const EDGE_GAP = 8;
 const DRAG_THRESHOLD = 5;
 const IDLE_DELAY_MS = 1800;
@@ -51,11 +51,11 @@ export function MovableAiLauncher() {
       style.id = styleId;
       style.textContent = `
         .ws-ai-launcher.ws-ai-brand-logo {
-          width: 44px !important;
-          height: 44px !important;
-          min-width: 44px !important;
-          min-height: 44px !important;
-          border-radius: 13px !important;
+          width: 38px !important;
+          height: 38px !important;
+          min-width: 38px !important;
+          min-height: 38px !important;
+          border-radius: 11px !important;
           overflow: hidden !important;
           position: fixed !important;
           display: grid !important;
@@ -69,7 +69,7 @@ export function MovableAiLauncher() {
           opacity: .48 !important;
           transform: scale(.94) !important;
           transition: opacity .22s ease, transform .22s ease, filter .22s ease, box-shadow .22s ease !important;
-          box-shadow: 0 6px 18px rgba(22,163,74,.28), inset 0 1px 0 rgba(255,255,255,.28), inset 0 -2px 5px rgba(0,0,0,.12) !important;
+          box-shadow: 0 5px 15px rgba(22,163,74,.28), inset 0 1px 0 rgba(255,255,255,.28), inset 0 -2px 5px rgba(0,0,0,.12) !important;
         }
         .ws-ai-launcher.ws-ai-brand-logo::before {
           content: 'AI' !important;
@@ -78,7 +78,7 @@ export function MovableAiLauncher() {
           display: grid;
           place-items: center;
           font-family: Inter, ui-sans-serif, system-ui, sans-serif;
-          font-size: 13px !important;
+          font-size: 12px !important;
           font-weight: 900;
           letter-spacing: -.06em;
           line-height: 1;
@@ -92,7 +92,7 @@ export function MovableAiLauncher() {
           opacity: 1 !important;
           transform: scale(1.08) !important;
           filter: brightness(1.06) saturate(1.05) !important;
-          box-shadow: 0 8px 24px rgba(22,163,74,.42), 0 0 0 3px rgba(34,197,94,.14), inset 0 1px 0 rgba(255,255,255,.34), inset 0 -2px 5px rgba(0,0,0,.1) !important;
+          box-shadow: 0 7px 20px rgba(22,163,74,.42), 0 0 0 3px rgba(34,197,94,.14), inset 0 1px 0 rgba(255,255,255,.34), inset 0 -2px 5px rgba(0,0,0,.1) !important;
         }
       `;
       document.head.appendChild(style);
