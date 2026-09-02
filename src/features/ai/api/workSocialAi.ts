@@ -103,6 +103,23 @@ async function buildFinanceContext(profileId: string, message: string): Promise<
   return `\n\n[READ-ONLY FINANCE CONTEXT — authoritative Finance page data for this authenticated user]\nSummary: total_earnings=${summaryResult.data?.total_earnings ?? '0'}, received=${summaryResult.data?.received ?? '0'}, remaining=${summaryResult.data?.remaining ?? '0'}\nReceived records (active only, newest first): ${JSON.stringify(received)}\nUse this Finance context for finance questions. Do not invent missing records. These received amounts are actual recorded payments/advances, while total_earnings is recorded work value.`;
 }
 
+function buildClientTimeContext(): string {
+  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+  const now = new Date();
+  const localNow = new Intl.DateTimeFormat('en-CA', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  }).format(now);
+
+  return `\n\n[CLIENT LOCAL TIME CONTEXT — authoritative for this request]\nTimezone: ${timeZone}\nCurrent local date/time: ${localNow}\nCurrent instant (UTC): ${now.toISOString()}\nFor Work Entry creation, when the user does not specify a time, use this client-local current date/time rather than UTC midnight. When the user specifies a time/date, interpret it in this client timezone and preserve that local time. Store the resulting instant normally as UTC.`;
+}
+
 export async function sendAiMessage(message: string, conversationId: string | null): Promise<AiReply> {
   const trimmed = message.trim();
   if (!trimmed) throw new Error('Message cannot be empty.');
@@ -112,7 +129,7 @@ export async function sendAiMessage(message: string, conversationId: string | nu
   if (sessionError || !sessionData.session) throw new Error('Your Work Social session has expired. Please sign in again.');
 
   const financeContext = await buildFinanceContext(sessionData.session.user.id, trimmed);
-  const requestMessage = `${trimmed}${financeContext}`;
+  const requestMessage = `${trimmed}${buildClientTimeContext()}${financeContext}`;
 
   const { data, error } = await supabase.functions.invoke('work-social-ai', {
     body: { message: requestMessage, conversation_id: conversationId },
