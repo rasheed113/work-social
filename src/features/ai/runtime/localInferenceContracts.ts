@@ -55,10 +55,25 @@ export interface LocalInferenceEngineAdapter {
   dispose(): Promise<void>;
 }
 
+export type LocalInferenceErrorCode =
+  | 'OFFLINE_TEXT_AI_UNAVAILABLE'
+  | 'MODEL_NOT_INSTALLED'
+  | 'MODEL_INVALID'
+  | 'MODEL_INCOMPATIBLE'
+  | 'RUNTIME_UNAVAILABLE'
+  | 'MODEL_LOAD_FAILED'
+  | 'INFERENCE_FAILED'
+  | 'INFERENCE_CANCELLED'
+  | 'CONTEXT_TOO_LARGE'
+  | 'INSUFFICIENT_RESOURCES'
+  | 'UNSUPPORTED_ATTACHMENT'
+  | 'INVALID_STATE'
+  | 'INVALID_MODEL_REFERENCE'
+  | 'MODEL_NOT_READY';
+
 export class LocalInferenceRuntimeError extends Error {
   constructor(
-    readonly code: 'LOCAL_RUNTIME_UNAVAILABLE' | 'INVALID_STATE' | 'INVALID_MODEL_REFERENCE' |
-      'MODEL_NOT_READY' | 'GENERATION_CANCELLED' | 'RUNTIME_ERROR',
+    readonly code: LocalInferenceErrorCode,
     message: string,
   ) { super(message); this.name = 'LocalInferenceRuntimeError'; }
 }

@@ -25,6 +25,9 @@ export interface AiAttachment {
 export interface AiGenerationOptions {
   maxOutputTokens?: number;
   temperature?: number;
+  topP?: number;
+  contextSize?: number;
+  stopSequences?: string[];
   signal?: AbortSignal;
 }
 
@@ -40,9 +43,16 @@ export interface AiResponse {
   mode: AiProviderMode;
 }
 
+export type AiProviderStatusReasonCode =
+  | 'OFFLINE_TEXT_AI_UNAVAILABLE'
+  | 'MODEL_NOT_INSTALLED'
+  | 'MODEL_INVALID'
+  | 'MODEL_INCOMPATIBLE'
+  | 'RUNTIME_UNAVAILABLE';
+
 export type AiProviderStatus =
   | { state: 'ready'; provider: AiProviderId; mode: AiProviderMode }
-  | { state: 'unavailable'; provider: AiProviderId; mode: AiProviderMode; reason: string };
+  | { state: 'unavailable'; provider: AiProviderId; mode: AiProviderMode; reason: string; reasonCode?: AiProviderStatusReasonCode };
 
 export interface AiProvider {
   readonly id: AiProviderId;
