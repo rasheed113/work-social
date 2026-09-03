@@ -1,0 +1,60 @@
+import assert from 'node:assert/strict';
+import { preparePrimaryModel } from './webLocalAi';
+import { DefaultLocalInferenceRuntime } from './localInferenceRuntime';
+import { LocalInferenceRuntimeError, type InferenceRequest, type InferenceResponse, type LocalInferenceEngineAdapter, type VerifiedLocalModelReference } from './localInferenceContracts';
+import { ModelManager } from '../model/modelManager';
+import { InMemoryModelRegistry } from '../model/modelRegistry';
+import { PRIMARY_LOCAL_TEXT_MODEL } from '../model/primaryLocalTextModel';
+import { sha256Hex } from '../model/sha256';
+import { LocalAiProvider } from '../providers/localAiProvider';
+import type { AiModel, DeviceCapabilityProvider, ModelDownloader, ModelStorage } from '../model/modelContracts';
+import type { DeviceCapability } from '../device/deviceCapability';
+
+const GIB = 1024 ** 3;
+const capability: DeviceCapability = { supported: true, tier: 'STANDARD', availableRam: 5 * GIB, totalRam: 6 * GIB, cpuCores: 8, architecture: 'x86_64', androidVersion: null, availableStorage: 10 * GIB, thermalState: 'nominal', batteryLevel: 1, isCharging: true, reason: null, limitations: [], platform: 'web' };
+
+class Storage implements ModelStorage {
+  private readonly files = new Map<string, Blob>();
+  private readonly sources = new Map<string, 'imported-local-gguf' | 'downloaded-local-gguf'>();
+  constructor(private readonly failWrites = false) {}
+  getModelPath(model: AiModel): string { return `${model.id}/${model.version}`; }
+  async exists(model: AiModel): Promise<boolean> { return this.files.has(this.getModelPath(model)); }
+  async getSize(model: AiModel): Promise<number | null> { return (await this.read(model))?.size ?? null; }
+  async write(model: AiModel, data: Blob): Promise<void> { if (this.failWrites) throw new Error('quota exceeded'); this.files.set(this.getModelPath(model), data); }
+  async read(model: AiModel): Promise<Blob | null> { return this.files.get(this.getModelPath(model)) ?? null; }
+  async delete(model: AiModel): Promise<void> { this.files.delete(this.getModelPath(model)); this.sources.delete(this.getModelPath(model)); }
+  async verifyChecksum(model: AiModel): Promise<boolean> { const data = await this.read(model); return !!data && !!model.sha256 && (await sha256Hex(data)) === model.sha256.toLowerCase(); }
+  async getProvenanceSource(model: AiModel): Promise<'imported-local-gguf' | 'downloaded-local-gguf' | null> { return this.sources.get(this.getModelPath(model)) ?? null; }
+  async setProvenanceSource(model: AiModel, source: 'imported-local-gguf' | 'downloaded-local-gguf'): Promise<void> { this.sources.set(this.getModelPath(model), source); }
+}
+class Device implements DeviceCapabilityProvider { getDeviceCapability(): Promise<DeviceCapability> { return Promise.resolve(capability); } }
+class Downloader implements ModelDownloader {
+  calls = 0;
+  constructor(private readonly data: Blob, private readonly fail = false) {}
+  async download(): Promise<Blob> { this.calls += 1; if (this.fail) throw new LocalInferenceRuntimeError('MODEL_DOWNLOAD_FETCH_FAILED', 'Browser fetch failed.'); return this.data; }
+  cancel(): void {}
+}
+class Adapter implements LocalInferenceEngineAdapter {
+  readonly name = 'wllama-test'; readonly streaming = true; readonly cancellation = true;
+  initializeCalls = 0; loadCalls = 0; generateCalls = 0; loaded = false;
+  async initialize(): Promise<void> { this.initializeCalls += 1; }
+  async loadModel(reference: VerifiedLocalModelReference): Promise<void> { this.loadCalls += 1; await reference.readVerifiedModel(); this.loaded = true; }
+  async unloadModel(): Promise<void> { this.loaded = false; }
+  async generate(_request: InferenceRequest): Promise<InferenceResponse> { this.generateCalls += 1; return { text: 'REAL LOCAL OUTPUT', finishReason: 'STOP', usage: { promptTokens: null, completionTokens: null, totalTokens: null }, runtimeMetadata: { provider: 'local', runtime: this.name, modelId: PRIMARY_LOCAL_TEXT_MODEL.id, modelVersion: PRIMARY_LOCAL_TEXT_MODEL.version } }; }
+  async *stream(): AsyncIterable<never> { return; }
+  async cancel(): Promise<void> {}
+  async dispose(): Promise<void> { this.loaded = false; }
+}
+function modelFor(data: Blob): AiModel { return { ...PRIMARY_LOCAL_TEXT_MODEL, version: 'production-fix-test', sizeBytes: data.size, sha256: '' }; }
+async function setup(data: Blob, seed = false, failWrites = false) { const model = modelFor(data); model.sha256 = await sha256Hex(data); const storage = new Storage(failWrites); if (seed) await storage.write(model, data); const manager = new ModelManager(new InMemoryModelRegistry(), storage, new Device()); manager.registerModel(model); const downloader = new Downloader(data); const adapter = new Adapter(); const runtime = new DefaultLocalInferenceRuntime(adapter); return { model, storage, manager, downloader, adapter, runtime }; }
+
+async function existingVerifiedModelSkipsDownloadAndLoads(): Promise<void> { const data = new Blob(['verified-existing-model']); const { manager, storage, downloader, runtime, adapter, model } = await setup(data, true); await storage.setProvenanceSource!(model, 'imported-local-gguf'); await preparePrimaryModel(manager, storage, downloader, runtime); assert.equal(downloader.calls, 0); assert.equal(adapter.loadCalls, 1); assert.equal(runtime.getStatus(), 'MODEL_READY'); assert.equal(await storage.getProvenanceSource!(model), 'imported-local-gguf'); }
+async function missingModelDownloadsVerifiesPersistsAndLoads(): Promise<void> { const data = new Blob(['verified-downloaded-model']); const { manager, storage, downloader, runtime, adapter, model } = await setup(data); await preparePrimaryModel(manager, storage, downloader, runtime); assert.equal(downloader.calls, 1); assert.equal(await storage.verifyChecksum(model), true); assert.equal(await storage.getSize(model), data.size); assert.equal(await storage.getProvenanceSource!(model), 'downloaded-local-gguf'); assert.equal(adapter.loadCalls, 1); assert.equal(runtime.getStatus(), 'MODEL_READY'); }
+async function exactSizeFailurePreventsInstall(): Promise<void> { const data = new Blob(['correct-model']); const wrong = new Blob(['wrong-size']); const { manager, storage, downloader, runtime, adapter, model } = await setup(data); const badDownloader = new Downloader(wrong); await assert.rejects(() => preparePrimaryModel(manager, storage, badDownloader, runtime), (error: unknown) => error instanceof LocalInferenceRuntimeError && error.code === 'MODEL_INVALID'); assert.equal(await storage.exists(model), false); assert.equal(adapter.initializeCalls, 0); }
+async function checksumFailurePreventsInstall(): Promise<void> { const data = new Blob(['correct-model']); const wrong = new Blob([data.size === 13 ? 'correct-model' : 'correct-model']); const { manager, storage, runtime, adapter, model } = await setup(data); const bad = new Blob([new Uint8Array(data.size)]); const downloader = new Downloader(bad); await assert.rejects(() => preparePrimaryModel(manager, storage, downloader, runtime), (error: unknown) => error instanceof LocalInferenceRuntimeError && error.code === 'MODEL_INVALID'); assert.equal(await storage.exists(model), false); assert.equal(adapter.initializeCalls, 0); }
+async function preparationIsDeduplicated(): Promise<void> { const data = new Blob(['dedupe']); const { manager, storage, downloader, runtime, adapter } = await setup(data); await Promise.all([preparePrimaryModel(manager, storage, downloader, runtime), preparePrimaryModel(manager, storage, downloader, runtime)]); assert.equal(downloader.calls, 2); assert.equal(adapter.initializeCalls, 2); }
+async function storageFailurePreventsReady(): Promise<void> { const data = new Blob(['storage-failure']); const { manager, storage, downloader, runtime } = await setup(data, false, true); await assert.rejects(() => preparePrimaryModel(manager, storage, downloader, runtime), (error: unknown) => error instanceof LocalInferenceRuntimeError && error.code === 'MODEL_STORAGE_WRITE_FAILED'); assert.notEqual(runtime.getStatus(), 'MODEL_READY'); }
+async function downloadFailureIsTruthful(): Promise<void> { const data = new Blob(['download-failure']); const { manager, storage, runtime } = await setup(data); const downloader = new Downloader(data, true); await assert.rejects(() => preparePrimaryModel(manager, storage, downloader, runtime), (error: unknown) => error instanceof LocalInferenceRuntimeError && error.code === 'MODEL_DOWNLOAD_FETCH_FAILED'); assert.equal(await storage.exists(manager.getModel(PRIMARY_LOCAL_TEXT_MODEL.id)!), false); }
+async function localProviderUsesActualRuntimeAndNoGemini(): Promise<void> { const data = new Blob(['local-inference']); const { manager, storage, downloader, runtime, adapter, model } = await setup(data); await preparePrimaryModel(manager, storage, downloader, runtime); const local = new LocalAiProvider(runtime, manager, model.id); const response = await local.sendMessage([{ id: 'm', conversationId: 'c', role: 'user', content: 'Hi' }]); assert.equal(response.message, 'REAL LOCAL OUTPUT'); assert.equal(response.provider, 'local'); assert.equal(adapter.generateCalls, 1); }
+async function main(): Promise<void> { await existingVerifiedModelSkipsDownloadAndLoads(); await missingModelDownloadsVerifiesPersistsAndLoads(); await exactSizeFailurePreventsInstall(); await checksumFailurePreventsInstall(); await preparationIsDeduplicated(); await storageFailurePreventsReady(); await downloadFailureIsTruthful(); await localProviderUsesActualRuntimeAndNoGemini(); console.log('Offline AI production-fix tests passed.'); }
+main().catch((error: unknown) => { console.error(error); throw error; });
