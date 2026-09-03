@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { BrowserLocalInferenceAdapter } from './browserLocalInferenceAdapter';
-import { verifiedModelReferenceBrand, type InferenceRequest } from './localInferenceContracts';
+import { verifiedModelReferenceBrand, type InferenceRequest, type VerifiedLocalModelReference } from './localInferenceContracts';
 import { boundOfflineMessages, getOfflineWllamaThreadCount, OFFLINE_DEFAULT_MAX_TOKENS, OFFLINE_MAX_CONTEXT_MESSAGES, OFFLINE_WLLAMA_CONTEXT_SIZE } from './offlineInferenceTuning';
 
 const model = {
@@ -12,7 +12,7 @@ const model = {
   },
   [verifiedModelReferenceBrand]: true,
   readVerifiedModel: async () => new Blob(['test']),
-} as const;
+} as unknown as VerifiedLocalModelReference;
 
 class FakeEngine {
   loadCalls = 0;
