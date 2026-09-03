@@ -200,7 +200,7 @@ export class DefaultLocalInferenceRuntime implements LocalInferenceRuntime {
       offlineAiTrace('RESPONSE_RENDERED', { generationId, state: this.status, nonEmpty: true });
       return response;
     } catch (error) {
-      this.status = signal.aborted ? 'MODEL_READY' : 'ERROR';
+      this.status = signal.aborted ? 'MODEL_READY' : this.loadedModel ? 'MODEL_READY' : 'ERROR';
       const code = error instanceof LocalInferenceRuntimeError ? error.code : 'INFERENCE_FAILED';
       if (signal.aborted) {
         if (code !== 'INFERENCE_CANCELLED') offlineAiTrace('GENERATION_ABORTED', { generationId, reason: 'signal-aborted', elapsedMs: nowMs() - startedAt });
@@ -234,7 +234,7 @@ export class DefaultLocalInferenceRuntime implements LocalInferenceRuntime {
       for await (const event of this.adapter!.stream({ ...request, signal, diagnosticRequestId: generationId }, signal)) {
         if (event.type === 'TOKEN') offlineAiTrace('FIRST_TOKEN_RECEIVED', { generationId, note: 'stream-token' });
         if (event.type === 'ERROR') {
-          this.status = 'ERROR';
+          this.status = this.loadedModel ? 'MODEL_READY' : 'ERROR';
           offlineAiTrace('GENERATION_FAILED', { generationId, errorCode: event.error instanceof LocalInferenceRuntimeError ? event.error.code : 'INFERENCE_FAILED' });
           yield event;
           return;
@@ -248,7 +248,7 @@ export class DefaultLocalInferenceRuntime implements LocalInferenceRuntime {
         return;
       }
       if (!completed) {
-        this.status = 'ERROR';
+        this.status = this.loadedModel ? 'MODEL_READY' : 'ERROR';
         const error = new LocalInferenceRuntimeError('INFERENCE_FAILED', 'The local streaming generation ended without a completion event.');
         offlineAiTrace('GENERATION_FAILED', { generationId, errorCode: error.code });
         yield { type: 'ERROR', error };
@@ -257,7 +257,7 @@ export class DefaultLocalInferenceRuntime implements LocalInferenceRuntime {
       if (this.status === 'GENERATING') this.status = 'MODEL_READY';
       offlineAiTrace('CREATE_CHAT_COMPLETION_COMPLETED', { generationId, streaming: true, streamTerminated: true });
     } catch (error) {
-      this.status = signal.aborted ? 'MODEL_READY' : 'ERROR';
+      this.status = signal.aborted || this.loadedModel ? 'MODEL_READY' : 'ERROR';
       offlineAiTrace(signal.aborted ? 'GENERATION_ABORTED' : 'GENERATION_FAILED', { generationId, errorCode: error instanceof LocalInferenceRuntimeError ? error.code : 'INFERENCE_FAILED' });
       yield { type: 'ERROR', error: signal.aborted ? new LocalInferenceRuntimeError('INFERENCE_CANCELLED', 'Local streaming was cancelled.') : this.runtimeError(error, 'Local streaming failed.', 'INFERENCE_FAILED') };
     } finally {
