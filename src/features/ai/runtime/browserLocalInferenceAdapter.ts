@@ -65,7 +65,7 @@ export class BrowserLocalInferenceAdapter implements LocalInferenceEngineAdapter
     try {
       const nThreads = getOfflineWllamaThreadCount();
       offlineAiTrace('WLLAMA_LOAD_STARTED', { modelId: model.model.id, modelVersion: model.model.version, bytes: data.size, nCtx: OFFLINE_WLLAMA_CONTEXT_SIZE, nBatch: OFFLINE_WLLAMA_BATCH_SIZE, nThreads });
-      await this.engine.loadModel([data], { n_ctx: OFFLINE_WLLAMA_CONTEXT_SIZE, n_batch: OFFLINE_WLLAMA_BATCH_SIZE, n_threads: nThreads, n_gpu_layers: 0 });
+      await this.engine.loadModel([data], { n_ctx: OFFLINE_WLLAMA_CONTEXT_SIZE, n_batch: OFFLINE_WLLAMA_BATCH_SIZE, n_threads: nThreads });
       const loaded = this.engine.isModelLoaded();
       const actualThreads = loaded && typeof (this.engine as WllamaEngine & { getNumThreads?: () => number }).getNumThreads === 'function' ? (this.engine as WllamaEngine & { getNumThreads: () => number }).getNumThreads?.() : undefined;
       offlineAiTrace('MODEL_READY', { modelId: model.model.id, modelVersion: model.model.version, isModelLoaded: loaded, nCtx: OFFLINE_WLLAMA_CONTEXT_SIZE, nBatch: OFFLINE_WLLAMA_BATCH_SIZE, nThreads: actualThreads ?? nThreads, reused: false });
