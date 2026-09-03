@@ -60,7 +60,7 @@ async function run(): Promise<void> {
   const unavailable = createLocalInferenceRuntime();
   equal(unavailable.getStatus(), 'UNAVAILABLE', 'default browser runtime is unavailable');
   try { await unavailable.initialize(); throw new Error('unavailable runtime initialized'); }
-  catch (error) { assert(error instanceof LocalInferenceRuntimeError && error.code === 'LOCAL_RUNTIME_UNAVAILABLE', 'unavailable runtime rejects initialization'); }
+  catch (error) { assert(error instanceof LocalInferenceRuntimeError && error.code === 'OFFLINE_TEXT_AI_UNAVAILABLE', 'unavailable runtime rejects initialization'); }
   await unavailable.dispose(); equal(unavailable.getStatus(), 'DISPOSED', 'unavailable runtime disposes safely');
   await unavailable.dispose();
 
@@ -89,7 +89,7 @@ async function run(): Promise<void> {
   await new Promise((resolve) => setTimeout(resolve, 0));
   await runtime.cancel();
   try { await generation; throw new Error('cancelled generation completed'); }
-  catch (error) { assert(error instanceof LocalInferenceRuntimeError && error.code === 'GENERATION_CANCELLED', 'cancellation is surfaced honestly'); }
+  catch (error) { assert(error instanceof LocalInferenceRuntimeError && error.code === 'INFERENCE_CANCELLED', 'cancellation is surfaced honestly'); }
   equal(adapter.cancelled, true, 'adapter cancellation is invoked');
   equal(runtime.getStatus(), 'MODEL_READY', 'cancellation preserves loaded model state');
 
