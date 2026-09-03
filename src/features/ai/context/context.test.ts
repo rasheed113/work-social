@@ -122,7 +122,7 @@ async function main(): Promise<void> {
   });
 
   await test('explicitly selected memory is included', () => {
-    const result = buildAiContext(conversation(), { conversationId: 'conversation-1', id: 'request-1', content: 'hello' }, options({ maxCharacters: 100 }), [memory('mem-1', 'preferred_language', 'English')]);
+    const result = buildAiContext(conversation(), { conversationId: 'conversation-1', id: 'request-1', content: 'hello' }, options({ maxCharacters: 100, memoryIds: ['mem-1'] }), [memory('mem-1', 'preferred_language', 'English')]);
     const item = result.messages.find((candidate) => candidate.id === 'context-memory-mem-1');
     if (!item || result.memories[0]?.id !== 'mem-1') throw new Error('Explicit memory selection failed.');
   });
