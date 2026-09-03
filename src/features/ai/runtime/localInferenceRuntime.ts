@@ -230,6 +230,7 @@ export class DefaultLocalInferenceRuntime implements LocalInferenceRuntime {
     try {
       offlineAiTrace('GENERATION_STARTED', { generationId, runtime: this.adapter?.name ?? 'unknown', streaming: true, modelLoaded: true, messageCount: request.messages.length, startedAtMs: nowMs() });
       offlineAiTrace('CREATE_CHAT_COMPLETION_STARTED', { generationId, streaming: true, startedAtMs: nowMs() });
+      let completed = false;
       for await (const event of this.adapter!.stream({ ...request, signal, diagnosticRequestId: generationId }, signal)) {
         if (event.type === 'TOKEN') offlineAiTrace('FIRST_TOKEN_RECEIVED', { generationId, note: 'stream-token' });
         if (event.type === 'ERROR') {
@@ -238,7 +239,20 @@ export class DefaultLocalInferenceRuntime implements LocalInferenceRuntime {
           yield event;
           return;
         }
+        if (event.type === 'COMPLETE') completed = true;
         yield event;
+      }
+      if (signal.aborted) {
+        this.status = 'MODEL_READY';
+        yield { type: 'ERROR', error: new LocalInferenceRuntimeError('INFERENCE_CANCELLED', 'Local streaming was cancelled.') };
+        return;
+      }
+      if (!completed) {
+        this.status = 'ERROR';
+        const error = new LocalInferenceRuntimeError('INFERENCE_FAILED', 'The local streaming generation ended without a completion event.');
+        offlineAiTrace('GENERATION_FAILED', { generationId, errorCode: error.code });
+        yield { type: 'ERROR', error };
+        return;
       }
       if (this.status === 'GENERATING') this.status = 'MODEL_READY';
       offlineAiTrace('CREATE_CHAT_COMPLETION_COMPLETED', { generationId, streaming: true, streamTerminated: true });
