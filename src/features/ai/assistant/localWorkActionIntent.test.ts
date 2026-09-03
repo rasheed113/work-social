@@ -15,6 +15,10 @@ const urdu = detectLocalWorkAction('نئی انٹری بنائیں، شرٹ، س
 assert.equal(urdu.kind, 'action');
 if (urdu.kind === 'action') { assert.equal(urdu.intent.arguments.item_name, 'شرٹ'); assert.deepEqual(urdu.intent.arguments.size, ['S']); assert.equal(urdu.intent.arguments.rate, '34'); assert.equal(urdu.intent.arguments.quantity, '32'); assert.equal(urdu.total, 1088); }
 
+const postfixQuantityRegression = detectLocalWorkAction('Add new entry item shirt rate 34, 32 pieces', now);
+assert.equal(postfixQuantityRegression.kind, 'action');
+if (postfixQuantityRegression.kind === 'action') assert.equal(postfixQuantityRegression.intent.arguments.quantity, '32');
+
 expectMissing('Add new entry item shirt size S rate 34', 'quantity');
 expectMissing('Add new entry item shirt size S pieces 32', 'rate');
 expectMissing('Add new entry size S rate 34 pieces 32', 'item_name');
