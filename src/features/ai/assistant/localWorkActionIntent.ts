@@ -14,15 +14,19 @@ const NEXT_MARKER = /(?:\b(?:item(?:\s+name)?|size|siz|rate|price|dar|daam|piece
 function clean(value: string): string { return value.replace(/[,:;،؛]+/gu, ' ').replace(/\s+/gu, ' ').trim(); }
 function segment(body: string, marker: RegExp): string | null { const match = marker.exec(body); if (!match) return null; const rest = body.slice(match.index + match[0].length); const next = NEXT_MARKER.exec(rest); return clean(next ? rest.slice(0, next.index) : rest) || null; }
 function parseNumeric(value: string | null): string | null { if (!value) return null; const normalized = value.replace(/,/g, '').trim(); if (!/^\d+(?:\.\d+)?$/.test(normalized)) return null; const number = Number(normalized); return Number.isFinite(number) && number > 0 ? normalized : null; }
-function parseNumericPrefix(value: string | null): string | null { if (!value) return null; const match = value.trim().match(/^\d+(?:\.\d+)?(?:\s|$)/); return parseNumeric(match?.[0]?.trim() ?? null); }
+function parseNumericPrefix(value: string | null): string | null { if (!value) return null; const match = value.trim().match(/^\d+(?:\.\d+)?(?=\s|$)/); return parseNumeric(match?.[0] ?? null); }
 function parseQuantity(body: string): string | null { const afterMarker = parseNumeric(segment(body, QUANTITY_MARKER)); if (afterMarker) return afterMarker; const beforeMarker = body.match(/(\d+(?:\.\d+)?)\s*(?:pieces?|pcs?|quantity|qty|count|numbers?|num|پیس(?:ز)?|ٹکڑے|تعداد|مقدار)/iu); return parseNumeric(beforeMarker?.[1] ?? null); }
 function hasCreateIntent(text: string): boolean { const normalized = text.trim(); if (!normalized || (!ACTION_PATTERN.test(normalized) && !ENTRY_PATTERN.test(normalized))) return false; return ENTRY_PATTERN.test(normalized) || /\b(?:add|create|new)\b.{0,40}\b(?:work|entry|shirt|item)\b/i.test(normalized) || /\b(?:work|entry)\b.{0,40}\b(?:bana|banao|bna|bn[aá]o|add|create|kar(?:o|do))\b/i.test(normalized) || /(?:نئی|نیا)\s+(?:ورک\s*)?انٹری.{0,40}(?:بنائیں|بناؤ|بناو)/iu.test(normalized) || /(?:ورک\s*)?انٹری.{0,40}(?:بنائیں|بناؤ|بناو)/iu.test(normalized); }
 function stripActionPrefix(value: string): string { return clean(value.replace(/^.*?(?:\b(?:work\s+entry|workentry|entry)\b|ورک\s*انٹری|کام\s*(?:کی\s*)?انٹری|انٹری)\s*(?:\b(?:bana|banao|bnao|create|add|new)\b|بنائیں|بناؤ|بناو|بنا دیں|بنا)?\s*/iu, '')); }
+function stripCommandPrefix(value: string): string { return clean(value.replace(/^(?:(?:add|create|new|make)\s+|(?:bana(?:o|do)?|bna(?:o|do)?|daal(?:o|do)?)\s+|(?:nayi|naya)\s+|نئی\s+|نیا\s+|بنائیں\s+|بناؤ\s+|بناو\s+)/iu, '')); }
 export function detectLocalWorkAction(text: string, occurredAtIso: string): LocalWorkActionDetection {
   if (!hasCreateIntent(text)) return { kind: 'not_action' };
   const body = clean(text); let item = segment(body, ITEM_MARKER); const firstMarker = NEXT_MARKER.exec(body);
-  if (!item && firstMarker && firstMarker.index > 0) item = stripActionPrefix(body.slice(0, firstMarker.index)) || null;
-  if (!item) { const prefixRemoved = stripActionPrefix(body); const beforeMarker = NEXT_MARKER.exec(prefixRemoved); item = clean(beforeMarker ? prefixRemoved.slice(0, beforeMarker.index) : prefixRemoved) || null; }
+  if (!item && firstMarker && firstMarker.index > 0) {
+    const candidate = stripCommandPrefix(stripActionPrefix(body.slice(0, firstMarker.index)));
+    item = candidate || null;
+  }
+  if (!item) { const prefixRemoved = stripActionPrefix(body); const beforeMarker = NEXT_MARKER.exec(prefixRemoved); item = clean(beforeMarker ? beforeMarker.index > 0 ? prefixRemoved.slice(0, beforeMarker.index) : '' : prefixRemoved) || null; }
   const quantity = parseQuantity(body); const rate = parseNumericPrefix(segment(body, RATE_MARKER));
   if (!item) return { kind: 'missing', missing: 'item_name', message: 'Please provide the item name.' };
   if (!quantity) return { kind: 'missing', missing: 'quantity', message: 'Please provide the pieces/quantity.' };
