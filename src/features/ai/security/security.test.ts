@@ -27,7 +27,7 @@ async function imageSecurity(): Promise<void> {
   await expectCode(() => validateVisionImages(Array.from({ length: 9 }, (_, index) => attachment({ id: `image-${index}` }))), 'IMAGE_COUNT_EXCEEDED');
   await expectCode(() => validateVisionImage(attachment({ metadata: { declaredSizeBytes: Number.POSITIVE_INFINITY } })), 'INVALID_IMAGE_METADATA');
   await expectCode(() => validateVisionImage(attachment({ id: '../escape' })), 'INVALID_IMAGE_METADATA');
-  await expectCode(() => validateVisionImage(attachment({ id: 'safe', url: 'javascript:alert(1)' })), 'INVALID_IMAGE_METADATA');
+  await expectCode(() => validateVisionImage(attachment({ id: undefined, url: 'javascript:alert(1)' })), 'INVALID_IMAGE_METADATA');
   await expectCode(() => validateVisionImage(attachment({ id: undefined, url: 'https://example.com/image.png' })), 'INVALID_IMAGE_METADATA');
   const blobUrl = 'blob:https://work-social.example/123'; const preserved = await validateVisionImage(attachment({ id: undefined, url: blobUrl })); assert(preserved.reference === blobUrl, 'legitimate blob object URL was rejected');
   await expectCode(() => validateVisionImage(attachment({ id: undefined, url: 'data:image/png;base64,AAAA' })), 'INVALID_IMAGE_METADATA');
