@@ -49,7 +49,14 @@ async function run(): Promise<void> {
     globalThis.fetch = async () => {
       attempts += 1;
       if (attempts === 1) throw new TypeError('temporary network failure');
-      return new Response(new Uint8Array([1, 2, 3, 4]), { status: 200, headers: { 'content-length': '4', 'content-type': 'application/octet-stream' } });
+      const body = new ReadableStream<Uint8Array>({
+        start(controller) {
+          controller.enqueue(new Uint8Array([1]));
+          controller.enqueue(new Uint8Array([2, 3, 4]));
+          controller.close();
+        },
+      });
+      return new Response(body, { status: 200, headers: { 'content-length': '4', 'content-type': 'application/octet-stream' } });
     };
     const progress: Array<{ receivedBytes: number; totalBytes: number | null }> = [];
     const data = await new WebModelDownloader().download(model, undefined, (value) => progress.push(value));
@@ -58,7 +65,7 @@ async function run(): Promise<void> {
     assert.deepEqual(progress.at(-1), { receivedBytes: 4, totalBytes: 4 });
     assert.equal(progress[0]?.receivedBytes, 0);
     assert.equal(progress[0]?.totalBytes, 4);
-    assert.ok(progress.some((value) => value.receivedBytes > 0 && value.receivedBytes < 4));
+    assert.ok(progress.some((value) => value.receivedBytes === 1 && value.totalBytes === 4));
   } finally { globalThis.fetch = original; }
 
   const chunks = [new Uint8Array([1, 2]), new Uint8Array([3, 4, 5])];
