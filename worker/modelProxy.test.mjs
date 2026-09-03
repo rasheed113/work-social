@@ -4,7 +4,7 @@ import worker from './index.js';
 const MODEL_URL = 'https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/qwen2.5-0.5b-instruct-q4_k_m.gguf';
 const MODEL_PATH = '/api/ai-model/qwen2.5-0.5b-instruct-q4_k_m.gguf';
 
-async function run(): Promise<void> {
+async function run() {
   const originalFetch = globalThis.fetch;
   let upstreamUrl = '';
   let upstreamRange = null;
