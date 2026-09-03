@@ -32,7 +32,7 @@ function validateAttachment(value: unknown): AiHistoryAttachment {
   const reference = value.reference;
   if (!validString(id) || !validString(mimeType)
     || (name !== null && !validString(name, true))
-    || (size !== null && (!Number.isSafeInteger(size) || size < 0))
+    || (size !== null && (typeof size !== 'number' || !Number.isSafeInteger(size) || size < 0))
     || !validString(reference)) throw new AiHistoryError('INVALID_RECORD', 'Stored attachment metadata is malformed.');
   if (mimeType.length > AI_HISTORY_LIMITS.maxAttachmentMimeTypeLength
     || (name !== null && name.length > AI_HISTORY_LIMITS.maxAttachmentNameLength)
