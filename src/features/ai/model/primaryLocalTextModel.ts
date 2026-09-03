@@ -12,7 +12,7 @@ export const PRIMARY_LOCAL_TEXT_MODEL: AiModel = {
   memoryRequirements: { requiredRamBytes: 2 * 1024 ** 3 },
   storageRequirements: { requiredFreeStorageBytes: 700 * 1024 ** 2 },
   platformRequirements: { requiredPlatform: 'any' },
-  downloadSource: { kind: 'external', uri: 'https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/qwen2.5-0.5b-instruct-q4_k_m.gguf' },
+  downloadSource: { kind: 'external', uri: '/api/ai-model/qwen2.5-0.5b-instruct-q4_k_m.gguf' },
   availability: 'AVAILABLE',
   status: 'NOT_INSTALLED',
 };
