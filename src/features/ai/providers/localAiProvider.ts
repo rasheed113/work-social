@@ -6,16 +6,17 @@ import type { AiAttachment, AiGenerationOptions, AiMessage, AiProvider, AiProvid
 import { validateVisionImages } from '../vision/imageValidator';
 import { isVisionModelCapable } from '../model/modelCapability';
 import { offlineAiTrace } from '../runtime/localAiDiagnostics';
-import { bridgeLocalAction } from '../assistant/localActionBridge';
+import type { LocalActionBridgeResult } from '../assistant/localActionBridge';
 export const OFFLINE_TEXT_AI_UNAVAILABLE = 'OFFLINE_TEXT_AI_UNAVAILABLE';
 export const LOCAL_RUNTIME_UNAVAILABLE = OFFLINE_TEXT_AI_UNAVAILABLE;
 export const LOCAL_AI_NOT_INSTALLED = 'Local inference is unavailable in the current web runtime.';
 export const LOCAL_AI_UNSUPPORTED_ATTACHMENT = 'Offline local AI does not support non-image attachments in this phase.';
 const DEFAULT_MAX_TOKENS = 512; const DEFAULT_TEMPERATURE = 0.7; const DEFAULT_TOP_P = 0.9; const DEFAULT_CONTEXT_SIZE = 2048; const MAX_TOKENS = 2048; const MAX_CONTEXT_SIZE = 8192; const MAX_STOP_SEQUENCES = 8;
 const DEFAULT_UNAVAILABLE_CAPABILITIES = { textGeneration: false, visionInput: false, multimodalInput: false, streaming: false, cancellation: false } as const;
+export type LocalActionBridge = (text: string, generatedResponse: string, conversationId: string | null) => Promise<LocalActionBridgeResult>;
 export class LocalAiProvider implements AiProvider {
   readonly id = 'local' as const; readonly mode = 'offline' as const;
-  constructor(private readonly runtime: LocalInferenceRuntime = webLocalAi.runtime, private readonly modelManager: ModelManager | null = webLocalAi.modelManager, private readonly modelId: string = PRIMARY_LOCAL_TEXT_MODEL.id) {}
+  constructor(private readonly runtime: LocalInferenceRuntime = webLocalAi.runtime, private readonly modelManager: ModelManager | null = webLocalAi.modelManager, private readonly modelId: string = PRIMARY_LOCAL_TEXT_MODEL.id, private readonly actionBridge: LocalActionBridge | null = null) {}
   async prepare(): Promise<void> { await webLocalAi.prepare(); }
   getStatus(): AiProviderStatus {
     if (webLocalAi.isPreparing()) return { state: 'unavailable', provider: this.id, mode: this.mode, reason: 'Offline AI is downloading and preparing the local model.', reasonCode: 'MODEL_DOWNLOADING' };
@@ -73,8 +74,9 @@ export class LocalAiProvider implements AiProvider {
       const request: InferenceRequest = { messages, modality: images.length ? 'VISION' : 'TEXT', ...(images.length ? { attachments: images } : {}), ...generation };
       offlineAiTrace('GENERATION_STARTED', { state: this.runtime.getStatus(), messageCount: messages.length });
       const response = await this.runtime.generate(request); if (!response.text.trim()) throw new LocalInferenceRuntimeError('INFERENCE_FAILED', 'The local runtime returned an empty response.');
+      if (!this.actionBridge) { offlineAiTrace('RESPONSE_RECEIVED', { provider: this.id, nonEmpty: true }); return { conversationId: messages[0]?.conversationId ?? '', message: response.text, pendingActions: [], provider: this.id, mode: this.mode }; }
       const latestUser = [...messages].reverse().find((message) => message.role === 'user');
-      const bridged = await bridgeLocalAction(latestUser?.content ?? '', response.text, messages[0]?.conversationId || null);
+      const bridged = await this.actionBridge(latestUser?.content ?? '', response.text, messages[0]?.conversationId || null);
       offlineAiTrace('RESPONSE_RECEIVED', { provider: this.id, nonEmpty: bridged.assistantMessage.trim().length > 0, pendingActionCount: bridged.pendingActions.length });
       return { conversationId: bridged.conversationId, message: bridged.assistantMessage, pendingActions: bridged.pendingActions, provider: this.id, mode: this.mode };
     } catch (error) { if (error instanceof LocalInferenceRuntimeError) throw error; throw new LocalInferenceRuntimeError('INFERENCE_FAILED', error instanceof Error ? error.message : 'Local inference failed.'); }
