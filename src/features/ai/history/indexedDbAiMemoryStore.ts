@@ -64,7 +64,7 @@ export class IndexedDbAiMemoryStore implements AiMemoryStore {
   private validateId(id: string): void { if (!validString(id) || id.length > AI_MEMORY_LIMITS.maxIdLength) throw new AiMemoryError('INVALID_ARGUMENT', 'Invalid memory ID.'); }
   private openDatabase(): Promise<IDBDatabase> {
     if (this.databasePromise) return this.databasePromise;
-    this.databasePromise = new Promise((resolve, reject) => {
+    const promise = new Promise<IDBDatabase>((resolve, reject) => {
       let requestHandle: IDBOpenDBRequest;
       try { requestHandle = getIndexedDb().open(AI_HISTORY_DATABASE_NAME, AI_HISTORY_DATABASE_VERSION); } catch (error) { reject(new AiMemoryError('STORAGE_UNAVAILABLE', 'Could not access IndexedDB.', error)); return; }
       requestHandle.onupgradeneeded = () => { const database = requestHandle.result; if (!database.objectStoreNames.contains(CONVERSATIONS_STORE)) database.createObjectStore(CONVERSATIONS_STORE, { keyPath: IDB_KEY_PATH }); if (!database.objectStoreNames.contains(AI_MEMORY_STORE_NAME)) database.createObjectStore(AI_MEMORY_STORE_NAME, { keyPath: IDB_KEY_PATH }); };
@@ -72,7 +72,8 @@ export class IndexedDbAiMemoryStore implements AiMemoryStore {
       requestHandle.onerror = () => reject(new AiMemoryError('STORAGE_FAILED', 'Could not open AI memory storage.', requestHandle.error));
       requestHandle.onblocked = () => reject(new AiMemoryError('STORAGE_FAILED', 'AI memory storage is blocked by another database connection.'));
     }).catch((error) => { this.databasePromise = null; throw error instanceof AiMemoryError ? error : new AiMemoryError('STORAGE_FAILED', 'Could not open AI memory storage.', error); });
-    return this.databasePromise;
+    this.databasePromise = promise;
+    return promise;
   }
   private async withStore<T>(mode: IDBTransactionMode, operation: (store: IDBObjectStore) => Promise<T>): Promise<T> {
     const database = await this.openDatabase();
