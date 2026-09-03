@@ -1,7 +1,6 @@
 import type { ModelManager } from '../model/modelManager';
 import { PRIMARY_LOCAL_TEXT_MODEL } from '../model/primaryLocalTextModel';
 import { webLocalAi } from '../runtime/webLocalAi';
-import { createLocalInferenceRuntime } from '../runtime/localInferenceRuntime';
 import { LocalInferenceRuntimeError, type LocalInferenceRuntime, type InferenceRequest } from '../runtime/localInferenceContracts';
 import type { AiAttachment, AiGenerationOptions, AiMessage, AiProvider, AiProviderStatus, AiResponse } from './contracts';
 import { validateVisionImages } from '../vision/imageValidator';
@@ -37,10 +36,10 @@ export class LocalAiProvider implements AiProvider {
     if (runtimeState === 'UNAVAILABLE') return { state: 'unavailable', provider: this.id, mode: this.mode, reason: LOCAL_AI_NOT_INSTALLED, reasonCode: OFFLINE_TEXT_AI_UNAVAILABLE };
     if (!this.modelManager) return { state: 'unavailable', provider: this.id, mode: this.mode, reason: 'No ModelManager is connected to the local provider.', reasonCode: 'RUNTIME_UNAVAILABLE' };
     const model = this.modelManager.getModel(this.modelId);
-    if (!model || model.status === 'NOT_INSTALLED' || model.status === 'DOWNLOADING' || model.status === 'VERIFYING') return { state: 'unavailable', provider: this.id, mode: this.mode, reason: 'No verified local model is installed.', reasonCode: 'MODEL_NOT_INSTALLED' };
+    if (!model || model.status === 'NOT_INSTALLED' || model.status === 'DOWNLOADING' || model.status === 'VERIFYING') return { state: 'unavailable', provider: this.id, mode: this.mode, reason: 'No verified local model is installed.', reasonCode: model?.status === 'DOWNLOADING' ? 'MODEL_DOWNLOADING' : model?.status === 'VERIFYING' ? 'MODEL_VERIFYING' : 'MODEL_NOT_INSTALLED' };
     if (model.status === 'INVALID' || model.status === 'FAILED') return { state: 'unavailable', provider: this.id, mode: this.mode, reason: 'The local model is invalid and cannot be executed.', reasonCode: 'MODEL_INVALID' };
-    if (runtimeState === 'READY' || runtimeState === 'MODEL_READY' || runtimeState === 'GENERATING' || runtimeState === 'CANCELLING') return { state: 'ready', provider: this.id, mode: this.mode };
-    return { state: 'unavailable', provider: this.id, mode: this.mode, reason: `Local runtime state is ${runtimeState}.`, reasonCode: 'RUNTIME_UNAVAILABLE' };
+    if (runtimeState === 'MODEL_READY') return { state: 'ready', provider: this.id, mode: this.mode, reason: 'Verified local model and executable local runtime are ready.', reasonCode: 'LOCAL_RUNTIME_READY' };
+    return { state: 'unavailable', provider: this.id, mode: this.mode, reason: runtimeState === 'UNINITIALIZED' ? 'Local runtime is not initialized.' : `Local runtime state is ${runtimeState}.`, reasonCode: runtimeState === 'INITIALIZING' ? 'RUNTIME_INITIALIZING' : runtimeState === 'LOADING_MODEL' ? 'MODEL_LOADING' : runtimeState === 'ERROR' ? 'MODEL_LOAD_FAILED' : 'LOCAL_RUNTIME_UNAVAILABLE' };
   }
 
   async getRoutingStatus(attachments: AiAttachment[] = []): Promise<AiProviderStatus> {
@@ -53,11 +52,12 @@ export class LocalAiProvider implements AiProvider {
       if (!capabilities.visionInput && !capabilities.multimodalInput) return { state: 'unavailable', provider: this.id, mode: this.mode, reason: 'The local runtime does not expose a verified vision-capable execution capability.', reasonCode: 'VISION_RUNTIME_UNAVAILABLE' };
     }
     const runtimeState = this.runtime.getStatus();
-    if (runtimeState === 'UNAVAILABLE' || runtimeState === 'DISPOSED' || runtimeState === 'ERROR') return { state: 'unavailable', provider: this.id, mode: this.mode, reason: 'No executable local inference runtime is available in the current web runtime.', reasonCode: images.length ? 'VISION_RUNTIME_UNAVAILABLE' : 'LOCAL_RUNTIME_UNAVAILABLE' };
-    if (runtimeState === 'INITIALIZING' || runtimeState === 'LOADING_MODEL' || runtimeState === 'GENERATING' || runtimeState === 'CANCELLING') return { state: 'unavailable', provider: this.id, mode: this.mode, reason: `Local inference runtime is currently ${runtimeState.toLowerCase().replace('_', ' ')} and cannot accept a new route.`, reasonCode: images.length ? 'VISION_RUNTIME_UNAVAILABLE' : 'LOCAL_RUNTIME_UNAVAILABLE' };
+    if (runtimeState === 'UNAVAILABLE' || runtimeState === 'DISPOSED') return { state: 'unavailable', provider: this.id, mode: this.mode, reason: 'No executable local inference runtime is available in the current web runtime.', reasonCode: images.length ? 'VISION_RUNTIME_UNAVAILABLE' : 'LOCAL_RUNTIME_UNAVAILABLE' };
+    if (runtimeState === 'ERROR') return { state: 'unavailable', provider: this.id, mode: this.mode, reason: 'Local runtime preparation failed.', reasonCode: 'MODEL_LOAD_FAILED' };
+    if (runtimeState !== 'MODEL_READY') return { state: 'unavailable', provider: this.id, mode: this.mode, reason: runtimeState === 'UNINITIALIZED' ? 'Local runtime is not initialized.' : runtimeState === 'INITIALIZING' ? 'Local runtime is initializing.' : runtimeState === 'LOADING_MODEL' ? 'Verified local model is loading.' : 'Local runtime is busy and cannot accept a new route.', reasonCode: runtimeState === 'INITIALIZING' ? 'RUNTIME_INITIALIZING' : runtimeState === 'LOADING_MODEL' ? 'MODEL_LOADING' : 'LOCAL_RUNTIME_UNAVAILABLE' };
     if (!this.modelManager) return { state: 'unavailable', provider: this.id, mode: this.mode, reason: 'No ModelManager is connected to the local provider.', reasonCode: images.length ? 'VISION_RUNTIME_UNAVAILABLE' : 'LOCAL_RUNTIME_UNAVAILABLE' };
     const model = this.modelManager.getModel(this.modelId);
-    if (!model || model.status === 'NOT_INSTALLED' || model.status === 'DOWNLOADING' || model.status === 'VERIFYING' || model.status === 'REMOVING') return { state: 'unavailable', provider: this.id, mode: this.mode, reason: 'No verified local model is installed.', reasonCode: 'MODEL_NOT_INSTALLED' };
+    if (!model || model.status === 'NOT_INSTALLED' || model.status === 'DOWNLOADING' || model.status === 'VERIFYING' || model.status === 'REMOVING') return { state: 'unavailable', provider: this.id, mode: this.mode, reason: 'No verified local model is installed.', reasonCode: model?.status === 'DOWNLOADING' ? 'MODEL_DOWNLOADING' : model?.status === 'VERIFYING' ? 'MODEL_VERIFYING' : 'MODEL_NOT_INSTALLED' };
     if (model.status === 'INVALID' || model.status === 'FAILED') return { state: 'unavailable', provider: this.id, mode: this.mode, reason: 'The local model is invalid and cannot be executed.', reasonCode: 'MODEL_INVALID' };
     if (images.length > 0 && !isVisionModelCapable(model.type)) return { state: 'unavailable', provider: this.id, mode: this.mode, reason: 'The installed local model is text-only and cannot process images.', reasonCode: 'VISION_NOT_SUPPORTED' };
     const eligibility = await this.modelManager.checkInstallationEligibility(this.modelId);
@@ -121,10 +121,4 @@ function normalizeGenerationOptions(options?: AiGenerationOptions): Pick<Inferen
   if (stopSequences.length > MAX_STOP_SEQUENCES) throw new LocalInferenceRuntimeError('INFERENCE_FAILED', `At most ${MAX_STOP_SEQUENCES} stop sequences are supported.`);
   return { maxTokens, temperature, topP, contextSize, stopSequences, signal: options?.signal };
 }
-
-function visionErrorToRuntimeError(error: unknown): LocalInferenceRuntimeError {
-  const code = error && typeof error === 'object' && 'code' in error ? String((error as { code: unknown }).code) : 'INVALID_IMAGE_METADATA';
-  const message = error instanceof Error ? error.message : 'Image validation failed.';
-  if (code === 'UNSUPPORTED_IMAGE_TYPE' || code === 'IMAGE_TOO_LARGE' || code === 'IMAGE_COUNT_EXCEEDED' || code === 'INVALID_IMAGE_METADATA') return new LocalInferenceRuntimeError(code, message);
-  return new LocalInferenceRuntimeError('INVALID_IMAGE_METADATA', message);
-}
+function visionErrorToRuntimeError(error: unknown): LocalInferenceRuntimeError { const code = error && typeof error === 'object' && 'code' in error ? String((error as { code: unknown }).code) : 'INVALID_IMAGE_METADATA'; const message = error instanceof Error ? error.message : 'Image validation failed.'; if (code === 'UNSUPPORTED_IMAGE_TYPE' || code === 'IMAGE_TOO_LARGE' || code === 'IMAGE_COUNT_EXCEEDED' || code === 'INVALID_IMAGE_METADATA') return new LocalInferenceRuntimeError(code, message); return new LocalInferenceRuntimeError('INVALID_IMAGE_METADATA', message); }
