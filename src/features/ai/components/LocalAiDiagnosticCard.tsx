@@ -5,6 +5,7 @@ export function LocalAiDiagnosticCard({ diagnostic }: { diagnostic: LocalAiDiagn
   const [copied, setCopied] = useState(false);
   const copy = async () => { try { if (navigator.clipboard?.writeText) { await navigator.clipboard.writeText(formatDiagnosticForClipboard(diagnostic)); setCopied(true); setTimeout(() => setCopied(false), 1600); } } catch { setCopied(false); } };
   const http = diagnostic.status === undefined ? 'No HTTP response received' : `${diagnostic.status} ${diagnostic.statusText ?? ''}`.trim();
+  const bytes = diagnostic.downloadedBytes === undefined ? null : diagnostic.contentLength !== undefined ? `${diagnostic.downloadedBytes} / ${diagnostic.contentLength} bytes` : `${diagnostic.downloadedBytes} bytes`;
   return <section className="ws-local-ai-diagnostic" role="alert" aria-label="Offline AI diagnostic">
     <div className="ws-local-ai-diagnostic-title">Offline AI diagnostic</div>
     <div className="ws-local-ai-diagnostic-grid">
@@ -12,7 +13,13 @@ export function LocalAiDiagnosticCard({ diagnostic }: { diagnostic: LocalAiDiagn
       {diagnostic.resource && <div><b>Resource</b><span>{diagnostic.resource}</span></div>}
       {diagnostic.url && <div className="wide"><b>Sanitized URL</b><span>{diagnostic.url}</span></div>}
       <div><b>HTTP status</b><span>{http}</span></div>
+      {diagnostic.responseOk !== undefined && <div><b>Response OK</b><span>{String(diagnostic.responseOk)}</span></div>}
       {diagnostic.responseType && <div><b>Response type</b><span>{diagnostic.responseType}</span></div>}
+      {diagnostic.responseRedirected !== undefined && <div><b>Redirected</b><span>{String(diagnostic.responseRedirected)}</span></div>}
+      {diagnostic.responseBodyAvailable !== undefined && <div><b>Response body</b><span>{diagnostic.responseBodyAvailable ? 'Available' : 'Unavailable'}</span></div>}
+      {diagnostic.contentType && <div><b>Content type</b><span>{diagnostic.contentType}</span></div>}
+      {bytes && <div><b>Downloaded</b><span>{bytes}</span></div>}
+      {diagnostic.elapsedMs !== undefined && <div><b>Elapsed</b><span>{diagnostic.elapsedMs} ms</span></div>}
       {diagnostic.errorName && <div className="wide"><b>Browser error</b><span>{diagnostic.errorName}: {diagnostic.errorMessage ?? diagnostic.message}</span></div>}
       <div className="wide"><b>Message</b><span>{diagnostic.message}</span></div>
       <div className="wide"><b>Next action</b><span>{diagnosticNextAction(diagnostic)}</span></div>
