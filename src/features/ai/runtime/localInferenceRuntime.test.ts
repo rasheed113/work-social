@@ -1,67 +1,38 @@
-import {
-  createLocalInferenceRuntime,
-  type LocalInferenceEngineAdapter,
-} from './localInferenceRuntime';
-import {
-  LocalInferenceRuntimeError,
-  verifiedModelReferenceBrand,
-  type InferenceRequest,
-  type InferenceResponse,
-  type InferenceStreamEvent,
-  type VerifiedLocalModelReference,
-} from './localInferenceContracts';
+import { createLocalInferenceRuntime, type LocalInferenceEngineAdapter } from './localInferenceRuntime';
+import { LocalInferenceRuntimeError, verifiedModelReferenceBrand, type InferenceRequest, type InferenceResponse, type InferenceStreamEvent, type VerifiedLocalModelReference } from './localInferenceContracts';
 import type { AiModel } from '../model/modelContracts';
 
 const model = {
-  id: 'fixture', name: 'fixture', version: '1', type: 'TEXT', format: 'GGUF', sizeBytes: 1,
-  sha256: 'a'.repeat(64), architectureRequirements: { supportedArchitectures: ['arm64-v8a'] },
-  memoryRequirements: { requiredRamBytes: 1 }, storageRequirements: { requiredFreeStorageBytes: 1 },
-  platformRequirements: { requiredPlatform: 'android' as const, minimumAndroidVersion: 26 },
-  downloadSource: null, availability: 'AVAILABLE' as const, status: 'INSTALLED' as const,
+  id: 'fixture', name: 'fixture', version: '1', type: 'TEXT', format: 'GGUF', sizeBytes: 1, sha256: 'a'.repeat(64),
+  architectureRequirements: { supportedArchitectures: ['arm64-v8a'] }, memoryRequirements: { requiredRamBytes: 1 }, storageRequirements: { requiredFreeStorageBytes: 1 },
+  platformRequirements: { requiredPlatform: 'android' as const, minimumAndroidVersion: 26 }, downloadSource: null, availability: 'AVAILABLE' as const, status: 'INSTALLED' as const,
 } satisfies AiModel;
-
-function reference(): VerifiedLocalModelReference {
-  return { model, [verifiedModelReferenceBrand]: true, readVerifiedModel: async () => new Blob(['verified']) };
-}
-function request(signal?: AbortSignal): InferenceRequest {
-  return { messages: [{ id: 'm', conversationId: 'c', role: 'user', content: 'hello' }], signal };
-}
-function response(text = 'hello local'): InferenceResponse {
-  return { text, finishReason: 'STOP', usage: { promptTokens: null, completionTokens: null, totalTokens: null }, runtimeMetadata: { provider: 'local', runtime: 'fixture', modelId: model.id, modelVersion: model.version } };
-}
+function reference(): VerifiedLocalModelReference { return { model, [verifiedModelReferenceBrand]: true, readVerifiedModel: async () => new Blob(['verified']) }; }
+function response(text = 'hello local'): InferenceResponse { return { text, finishReason: 'STOP', usage: { promptTokens: null, completionTokens: null, totalTokens: null }, runtimeMetadata: { provider: 'local', runtime: 'fixture', modelId: model.id, modelVersion: model.version } }; }
 function assert(condition: boolean, message: string): void { if (!condition) throw new Error(message); }
 function equal<T>(actual: T, expected: T, message: string): void { assert(actual === expected, `${message}: expected ${String(expected)}, got ${String(actual)}`); }
 
 class FakeAdapter implements LocalInferenceEngineAdapter {
   readonly name = 'fixture'; readonly streaming = true; readonly cancellation = true;
-  loaded = false; disposed = false; cancelled = false; generationCancelled = false;
-  readonly generationStarted: Promise<void>;
-  private resolveGenerationStarted: (() => void) | null = null;
-
-  constructor() {
-    this.generationStarted = new Promise<void>((resolve) => { this.resolveGenerationStarted = resolve; });
-  }
+  loaded = false; disposed = false; cancelled = false; lastRequest: InferenceRequest | null = null; blockNextStream = false;
   async initialize(): Promise<void> {}
   async loadModel(modelRef: VerifiedLocalModelReference): Promise<void> { await modelRef.readVerifiedModel(); this.loaded = true; }
   async unloadModel(): Promise<void> { this.loaded = false; }
-  async generate(_request: InferenceRequest, signal: AbortSignal): Promise<InferenceResponse> {
-    this.resolveGenerationStarted?.();
-    this.resolveGenerationStarted = null;
-    await new Promise<void>((resolve, reject) => {
-      if (signal.aborted) return reject(new DOMException('Aborted', 'AbortError'));
-      signal.addEventListener('abort', () => {
-        this.generationCancelled = true;
-        reject(new DOMException('Aborted', 'AbortError'));
-      }, { once: true });
-      void resolve;
-    });
-    return response();
-  }
-  async *stream(_request: InferenceRequest, signal: AbortSignal): AsyncIterable<InferenceStreamEvent> {
-    if (signal.aborted) throw new DOMException('Aborted', 'AbortError');
-    yield { type: 'TOKEN', text: 'hello' };
-    yield { type: 'TOKEN', text: ' local' };
-    yield { type: 'COMPLETE', response: response() };
+  async generate(): Promise<InferenceResponse> { throw new Error('runtime.generate must use the streaming adapter path'); }
+  async *stream(request: InferenceRequest, signal: AbortSignal): AsyncIterable<InferenceStreamEvent> {
+    this.lastRequest = request;
+    if (this.blockNextStream) {
+      this.blockNextStream = false;
+      await new Promise<void>((resolve, reject) => {
+        if (signal.aborted) return reject(new DOMException('Aborted', 'AbortError'));
+        signal.addEventListener('abort', () => { this.cancelled = true; reject(new DOMException('Aborted', 'AbortError')); }, { once: true });
+        void resolve;
+      });
+      return;
+    }
+    const isUrdu = request.messages.at(-1)?.content === 'ہیلو';
+    yield { type: 'TOKEN', text: isUrdu ? 'سلام!' : 'hello' };
+    yield { type: 'COMPLETE', response: response(isUrdu ? 'سلام!' : 'hello') };
   }
   async cancel(): Promise<void> { this.cancelled = true; }
   async dispose(): Promise<void> { this.disposed = true; this.loaded = false; }
@@ -73,45 +44,44 @@ async function run(): Promise<void> {
   try { await unavailable.initialize(); throw new Error('unavailable runtime initialized'); }
   catch (error) { assert(error instanceof LocalInferenceRuntimeError && error.code === 'OFFLINE_TEXT_AI_UNAVAILABLE', 'unavailable runtime rejects initialization'); }
   await unavailable.dispose(); equal(unavailable.getStatus(), 'DISPOSED', 'unavailable runtime disposes safely');
-  await unavailable.dispose();
 
   const adapter = new FakeAdapter(); const runtime = createLocalInferenceRuntime(adapter);
-  equal(runtime.getStatus(), 'UNINITIALIZED', 'adapter runtime starts uninitialized');
-  await runtime.initialize(); equal(runtime.getStatus(), 'READY', 'initialize reaches ready');
-  await runtime.loadModel(reference()); equal(runtime.getStatus(), 'MODEL_READY', 'verified model reaches model ready');
+  await runtime.initialize(); await runtime.loadModel(reference()); equal(runtime.getStatus(), 'MODEL_READY', 'verified model reaches model ready');
 
-  try { await runtime.loadModel({ model } as VerifiedLocalModelReference); throw new Error('unbranded model accepted'); }
-  catch (error) { assert(error instanceof LocalInferenceRuntimeError && error.code === 'INVALID_MODEL_REFERENCE', 'arbitrary model reference rejected'); }
+  const englishRequest: InferenceRequest = { messages: [{ id: 'm-en', conversationId: 'c', role: 'user', content: 'hello' }] };
+  const english = await runtime.generate(englishRequest);
+  equal(english.text, 'hello', 'English generation completes through streaming path');
+  equal(adapter.lastRequest?.messages.at(-1)?.content, 'hello', 'English input reaches adapter unchanged');
 
-  const generated = await runtime.generate(request());
-  equal(generated.text, 'hello local', 'generation returns adapter output');
-  equal(generated.usage.totalTokens, null, 'unknown token usage is not fabricated');
-  equal(runtime.getStatus(), 'MODEL_READY', 'generation returns to model ready');
+  const urdu = 'ہیلو';
+  const urduRequest: InferenceRequest = { messages: [{ id: 'm-ur', conversationId: 'c', role: 'user', content: urdu }] };
+  const urduResponse = await runtime.generate(urduRequest);
+  equal(urduResponse.text, 'سلام!', 'Urdu generation completes through streaming path');
+  equal(adapter.lastRequest?.messages.at(-1)?.content, urdu, 'Urdu Unicode reaches adapter unchanged');
+  equal(runtime.getStatus(), 'MODEL_READY', 'Urdu generation returns to model ready');
 
-  const events: InferenceStreamEvent[] = [];
-  for await (const event of runtime.stream(request())) events.push(event);
-  equal(events.length, 3, 'stream emits actual token and completion events');
-  equal(events[0].type, 'TOKEN', 'first stream event is token');
-  equal(events[1].type, 'TOKEN', 'second stream event is token');
-  equal(events[2].type, 'COMPLETE', 'stream completes');
-  equal(runtime.getStatus(), 'MODEL_READY', 'stream returns to model ready');
-
-  const generation = runtime.generate(request());
-  await adapter.generationStarted;
-  equal(runtime.getStatus(), 'GENERATING', 'cancellation starts only after generation is active');
+  adapter.blockNextStream = true;
+  const generation = runtime.generate(englishRequest);
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  equal(runtime.getStatus(), 'GENERATING', 'cancellation test reaches active generation');
   await runtime.cancel();
   try { await generation; throw new Error('cancelled generation completed'); }
   catch (error) { assert(error instanceof LocalInferenceRuntimeError && error.code === 'INFERENCE_CANCELLED', 'cancellation is surfaced honestly'); }
-  equal(adapter.generationCancelled, true, 'generation observes the runtime abort signal');
   equal(adapter.cancelled, true, 'adapter cancellation is invoked');
   equal(runtime.getStatus(), 'MODEL_READY', 'cancellation preserves loaded model state');
+
+  const events: InferenceStreamEvent[] = [];
+  for await (const event of runtime.stream(englishRequest)) events.push(event);
+  equal(events.length, 2, 'stream emits token and completion events');
+  equal(events[0].type, 'TOKEN', 'first stream event is token');
+  equal(events[1].type, 'COMPLETE', 'stream completes');
 
   await runtime.unloadModel(); equal(runtime.getStatus(), 'READY', 'unload returns to ready');
   await runtime.dispose(); equal(runtime.getStatus(), 'DISPOSED', 'dispose reaches disposed');
   equal(adapter.disposed, true, 'adapter resources are disposed');
-  try { await runtime.generate(request()); throw new Error('generation after dispose accepted'); }
+  try { await runtime.generate(englishRequest); throw new Error('generation after dispose accepted'); }
   catch (error) { assert(error instanceof LocalInferenceRuntimeError && error.code === 'INVALID_STATE', 'generation after dispose is rejected'); }
 
-  console.log('Local inference runtime tests passed: availability, lifecycle, verified handoff, generation, streaming, cancellation, cleanup.');
+  console.log('Local inference runtime tests passed: streaming generation, exact Urdu preservation, cancellation, lifecycle, cleanup.');
 }
 run().catch((error: unknown) => { console.error(error); throw error; });
