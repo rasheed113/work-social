@@ -24,19 +24,22 @@ function validString(value: unknown, allowEmpty = false): value is string { retu
 function validIso(value: unknown): value is string { return typeof value === 'string' && Number.isFinite(Date.parse(value)); }
 
 function validateAttachment(value: unknown): AiHistoryAttachment {
-  if (!isRecord(value) || !validString(value.id) || !validString(value.mimeType)
-    || (value.name !== null && !validString(value.name, true))
-    || (value.size !== null && (!Number.isSafeInteger(value.size) || value.size < 0))
-    || !validString(value.reference)) throw new AiHistoryError('INVALID_RECORD', 'Stored attachment metadata is malformed.');
+  if (!isRecord(value)) throw new AiHistoryError('INVALID_RECORD', 'Stored attachment metadata is malformed.');
+  const id = value.id;
+  const mimeType = value.mimeType;
   const name = value.name;
-  const size = value.size;
+  const size = value.size === undefined ? null : value.size;
   const reference = value.reference;
-  if (value.mimeType.length > AI_HISTORY_LIMITS.maxAttachmentMimeTypeLength
+  if (!validString(id) || !validString(mimeType)
+    || (name !== null && !validString(name, true))
+    || (size !== null && (!Number.isSafeInteger(size) || size < 0))
+    || !validString(reference)) throw new AiHistoryError('INVALID_RECORD', 'Stored attachment metadata is malformed.');
+  if (mimeType.length > AI_HISTORY_LIMITS.maxAttachmentMimeTypeLength
     || (name !== null && name.length > AI_HISTORY_LIMITS.maxAttachmentNameLength)
     || reference.length > AI_HISTORY_LIMITS.maxAttachmentReferenceLength
     || (size !== null && size > AI_HISTORY_LIMITS.maxAttachmentSizeBytes)) throw new AiHistoryError('INVALID_RECORD', 'Stored attachment metadata exceeds history limits.');
   if ((name !== null && containsSecretLikeText(name)) || containsSecretLikeText(reference)) throw new AiHistoryError('INVALID_RECORD', 'Stored attachment metadata contains prohibited credential-like data.');
-  return { id: value.id, mimeType: value.mimeType, name: name as string | null, size: size as number | null, reference };
+  return { id, mimeType, name: name as string | null, size: size as number | null, reference };
 }
 
 function validateMessage(value: unknown): AiHistoryMessage {
