@@ -42,12 +42,19 @@ export function validateAssistantCommand(value: unknown): AssistantCommand {
   }
 
   if (value.intent === 'finance') {
-    if (!hasOnlyKeys(value, ['intent', 'operation', 'filter', 'entryType', 'amount', 'id'])) throw new Error('ASSISTANT_COMMAND_INVALID_FIELDS');
-    if (!FINANCE_OPERATIONS.includes(value.operation as FinanceAssistantOperation)) throw new Error('FINANCE_OPERATION_NOT_ALLOWED');
+    if (typeof value.operation !== 'string' || !FINANCE_OPERATIONS.includes(value.operation as FinanceAssistantOperation)) throw new Error('FINANCE_OPERATION_NOT_ALLOWED');
+    const operation = value.operation as FinanceAssistantOperation;
+    const allowedByOperation: Record<FinanceAssistantOperation, readonly string[]> = {
+      GET_FINANCE_SUMMARY: ['intent', 'operation'],
+      GET_FINANCE_HISTORY: ['intent', 'operation', 'filter'],
+      CREATE_FINANCE_RECEIVED: ['intent', 'operation', 'entryType', 'amount'],
+      UPDATE_FINANCE_RECEIVED: ['intent', 'operation', 'entryType', 'amount', 'id'],
+      DELETE_FINANCE_RECEIVED: ['intent', 'operation', 'id'],
+      RESTORE_FINANCE_RECEIVED: ['intent', 'operation', 'id'],
+    };
+    if (!hasOnlyKeys(value, allowedByOperation[operation])) throw new Error('ASSISTANT_COMMAND_INVALID_FIELDS');
     if (value.filter !== undefined && !FINANCE_FILTERS.includes(value.filter as FinanceHistoryFilter)) throw new Error('FINANCE_FILTER_INVALID');
     if (value.entryType !== undefined && !RECEIVED_TYPES.includes(value.entryType as typeof RECEIVED_TYPES[number])) throw new Error('FINANCE_ENTRY_TYPE_INVALID');
-
-    const operation = value.operation as FinanceAssistantOperation;
     const requiresAmount = operation === 'CREATE_FINANCE_RECEIVED' || operation === 'UPDATE_FINANCE_RECEIVED';
     const requiresId = operation === 'UPDATE_FINANCE_RECEIVED' || operation === 'DELETE_FINANCE_RECEIVED' || operation === 'RESTORE_FINANCE_RECEIVED';
     if (requiresAmount && typeof value.amount !== 'string') throw new Error('FINANCE_AMOUNT_REQUIRED');
