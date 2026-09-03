@@ -16,11 +16,19 @@ function segment(body: string, marker: RegExp): string | null { const match = ma
 function parseNumeric(value: string | null): string | null { if (!value) return null; const normalized = value.replace(/,/g, '').trim(); if (!/^\d+(?:\.\d+)?$/.test(normalized)) return null; const number = Number(normalized); return Number.isFinite(number) && number > 0 ? normalized : null; }
 function parseNumericPrefix(value: string | null): string | null { if (!value) return null; const match = value.trim().match(/^\d+(?:\.\d+)?(?=\s|$)/); return parseNumeric(match?.[0] ?? null); }
 function parseQuantity(body: string): string | null {
-  const explicitMarker = QUANTITY_MARKER.test(body);
-  const afterMarker = parseNumeric(segment(body, QUANTITY_MARKER));
-  if (explicitMarker) return afterMarker;
-  const beforeMarker = body.match(/(?<![-\d.])(\d+(?:\.\d+)?)\s*(?:pieces?|pcs?|quantity|qty|count|numbers?|num|پیس(?:ز)?|ٹکڑے|تعداد|مقدار)/iu);
-  return parseNumeric(beforeMarker?.[1] ?? null);
+  const quantityMarker = QUANTITY_MARKER.exec(body);
+  if (!quantityMarker) {
+    const beforeMarker = body.match(/(?<![-\d.])(\d+(?:\.\d+)?)\s*(?:pieces?|pcs?|quantity|qty|count|numbers?|num|پیس(?:ز)?|ٹکڑے|تعداد|مقدار)/iu);
+    return parseNumeric(beforeMarker?.[1] ?? null);
+  }
+  const afterMarkerText = segment(body, QUANTITY_MARKER);
+  if (afterMarkerText !== null) return parseNumeric(afterMarkerText);
+  const beforeMarker = body.slice(0, quantityMarker.index).match(/(?<![-\d.])(\d+(?:\.\d+)?)\s*$/);
+  if (!beforeMarker) return null;
+  const prefix = body.slice(0, quantityMarker.index);
+  const rateValue = parseNumericPrefix(segment(prefix, RATE_MARKER));
+  if (rateValue === beforeMarker[1]) return null;
+  return parseNumeric(beforeMarker[1]);
 }
 function hasCreateIntent(text: string): boolean { const normalized = text.trim(); if (!normalized || (!ACTION_PATTERN.test(normalized) && !ENTRY_PATTERN.test(normalized))) return false; return ENTRY_PATTERN.test(normalized) || /\b(?:add|create|new)\b.{0,40}\b(?:work|entry|shirt|item)\b/i.test(normalized) || /\b(?:work|entry)\b.{0,40}\b(?:bana|banao|bna|bn[aá]o|add|create|kar(?:o|do))\b/i.test(normalized) || /(?:نئی|نیا)\s+(?:ورک\s*)?انٹری.{0,40}(?:بنائیں|بناؤ|بناو)/iu.test(normalized) || /(?:ورک\s*)?انٹری.{0,40}(?:بنائیں|بناؤ|بناو)/iu.test(normalized); }
 function stripActionPrefix(value: string): string { return clean(value.replace(/^.*?(?:\b(?:work\s+entry|workentry|entry)\b|ورک\s*انٹری|کام\s*(?:کی\s*)?انٹری|انٹری)\s*(?:\b(?:bana|banao|bnao|create|add|new)\b|بنائیں|بناؤ|بناو|بنا دیں|بنا)?\s*/iu, '')); }
