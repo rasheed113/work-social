@@ -56,8 +56,15 @@ export function evaluateLocalModel(capability: DeviceCapability, requirements: L
     else if (capability.availableStorage < requirements.minimumFreeStorage) reasons.push('Available storage is below the model requirement.');
   }
   if (requirements.supportedArchitectures && requirements.supportedArchitectures.length > 0) {
-    if (capability.architecture === null) reasons.push('CPU architecture is unknown.');
-    else if (!requirements.supportedArchitectures.includes(capability.architecture)) reasons.push(`CPU architecture ${capability.architecture} is not supported by the model/runtime.`);
+    if (capability.platform === 'web') {
+      // The browser executes the model through architecture-independent WebAssembly;
+      // host ABI requirements are therefore not applicable to the web runtime.
+      limitations.push('Host CPU architecture is not used for browser/WASM model eligibility.');
+    } else if (capability.architecture === null) {
+      reasons.push('CPU architecture is unknown.');
+    } else if (!requirements.supportedArchitectures.includes(capability.architecture)) {
+      reasons.push(`CPU architecture ${capability.architecture} is not supported by the model/runtime.`);
+    }
   }
   return { eligible: reasons.length === 0, reasons: [...new Set(reasons)], limitations: [...new Set(limitations)] };
 }
