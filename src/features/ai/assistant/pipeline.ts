@@ -1,8 +1,8 @@
-import type { AssistantCommand, AssistantContext, AssistantToolResult } from './contracts';
+import type { AssistantContext, AssistantToolResult } from './contracts';
 import type { AudioInput } from './audio';
-import type { OfflineSpeechToTextProvider, SpeechToTextOptions } from './stt';
+import type { SpeechToTextOptions, OfflineSpeechToTextProvider } from './stt';
 import { validateAssistantCommand } from './validation';
-import { toolForCommand, type OfflineWorkAssistantTools } from './tools';
+import type { OfflineWorkAssistantTools } from './tools';
 
 export interface LocalTextIntentExtractor {
   extract(text: string, context: AssistantContext): Promise<unknown>;
@@ -34,8 +34,15 @@ export function createOfflineVoiceAssistantPipeline(
         },
       });
       if (context.signal?.aborted) throw new DOMException('The assistant operation was cancelled.', 'AbortError');
-      const command: AssistantCommand = validateAssistantCommand(rawCommand);
-      return toolForCommand(tools, command).execute(command as never, context.signal);
+      const command = validateAssistantCommand(rawCommand);
+      switch (command.intent) {
+        case 'create_work_entry':
+          return tools.work.execute(command, context.signal);
+        case 'get_work_history':
+          return tools.history.execute(command, context.signal);
+        case 'finance':
+          return tools.finance.execute(command, context.signal);
+      }
     },
   };
 }
