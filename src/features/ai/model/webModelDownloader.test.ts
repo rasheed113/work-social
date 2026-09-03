@@ -29,6 +29,7 @@ async function run(): Promise<void> {
   for (const status of [404, 403, 500]) await check(async () => new Response('failure', { status }), (error) => {
     assert.equal(error.code, 'MODEL_DOWNLOAD_HTTP_FAILED');
     assert.equal(error.diagnostic?.status, status);
+    assert.equal(error.diagnostic?.responseOk, false);
   });
 
   const bodyError = {
@@ -65,7 +66,7 @@ async function run(): Promise<void> {
 
   const controller = new AbortController();
   const originalFetch = globalThis.fetch;
-  globalThis.fetch = ((url: RequestInfo | URL, init?: RequestInit) => new Promise<Response>((_resolve, reject) => {
+  globalThis.fetch = ((_url: RequestInfo | URL, init?: RequestInit) => new Promise<Response>((_resolve, reject) => {
     init?.signal?.addEventListener('abort', () => reject(new DOMException('The operation was aborted.', 'AbortError')), { once: true });
   })) as typeof fetch;
   try {
