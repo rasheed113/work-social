@@ -34,17 +34,17 @@ class Adapter implements LocalInferenceEngineAdapter {
   async cancel(): Promise<void> {}
   async dispose(): Promise<void> {}
 }
-function model(sha256: string): AiModel { return { ...PRIMARY_LOCAL_TEXT_MODEL, version: 'test', sha256, status: 'NOT_INSTALLED', availability: 'UNKNOWN' }; }
+function model(sha256: string, sizeBytes = PRIMARY_LOCAL_TEXT_MODEL.sizeBytes): AiModel { return { ...PRIMARY_LOCAL_TEXT_MODEL, version: 'test', sha256, sizeBytes, status: 'NOT_INSTALLED', availability: 'UNKNOWN' }; }
 function manager(storage: ModelStorage, item: AiModel): ModelManager { const m = new ModelManager(new InMemoryModelRegistry(), storage, new Device()); m.registerModel(item); return m; }
 
 async function run(): Promise<void> {
   const readModel = model('0'.repeat(64)); const readStorage = new Storage(true);
   await assert.rejects(() => preparePrimaryModel(manager(readStorage, readModel), readStorage, new Downloader(new Blob(['x'])), new DefaultLocalInferenceRuntime(new Adapter())), (error: unknown) => error instanceof LocalInferenceRuntimeError && error.code === 'MODEL_STORAGE_READ_FAILED');
 
-  const writeData = new Blob(['x']); const writeModel = model(await sha256Hex(writeData)); const writeStorage = new Storage(false, true);
+  const writeData = new Blob(['x']); const writeModel = model(await sha256Hex(writeData), writeData.size); const writeStorage = new Storage(false, true);
   await assert.rejects(() => preparePrimaryModel(manager(writeStorage, writeModel), writeStorage, new Downloader(writeData), new DefaultLocalInferenceRuntime(new Adapter())), (error: unknown) => error instanceof LocalInferenceRuntimeError && error.code === 'MODEL_STORAGE_WRITE_FAILED');
 
-  const runtimeData = new Blob(['runtime']); const runtimeModel = model(await sha256Hex(runtimeData)); const runtimeStorage = new Storage(); const runtime = new DefaultLocalInferenceRuntime(new Adapter(true));
+  const runtimeData = new Blob(['runtime']); const runtimeModel = model(await sha256Hex(runtimeData), runtimeData.size); const runtimeStorage = new Storage(); const runtime = new DefaultLocalInferenceRuntime(new Adapter(true));
   await assert.rejects(() => preparePrimaryModel(manager(runtimeStorage, runtimeModel), runtimeStorage, new Downloader(runtimeData), runtime), (error: unknown) => error instanceof LocalInferenceRuntimeError && error.code === 'RUNTIME_INITIALIZATION_FAILED');
   assert.equal(runtime.getStatus(), 'ERROR');
   console.log('webLocalAi.failure.test.ts: PASS');
