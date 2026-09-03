@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import type { LocalAiDiagnostic } from '../runtime/localAiDiagnostics';
 import { diagnosticNextAction, formatDiagnosticForClipboard } from '../runtime/localAiDiagnostics';
 export function LocalAiDiagnosticCard({ diagnostic }: { diagnostic: LocalAiDiagnostic }) {
