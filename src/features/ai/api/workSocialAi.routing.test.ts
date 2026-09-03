@@ -5,10 +5,12 @@ import { AiRoutingError } from '../providers/contracts';
 import { sendAiMessage } from './workSocialAi';
 
 const request: AiMessage = { id: 'test', conversationId: '', role: 'user', content: 'test' };
-function fakeProvider(id: 'gemini' | 'local', ready: boolean, calls: { count: number }, responseMode?: 'online' | 'offline'): AiProvider {
+type TestProvider = AiProvider & { getRoutingStatus: (attachments?: import('../providers/contracts').AiAttachment[]) => Promise<AiProviderStatus> };
+function fakeProvider(id: 'gemini' | 'local', ready: boolean, calls: { count: number }, responseMode?: 'online' | 'offline'): TestProvider {
   const response: AiResponse = { conversationId: 'test-conversation', message: id === 'local' ? 'LOCAL_WLLAMA_RESPONSE' : 'GEMINI_RESPONSE', pendingActions: [], provider: id, mode: responseMode ?? (id === 'local' ? 'offline' : 'online') };
   const status: AiProviderStatus = { state: ready ? 'ready' : 'unavailable', provider: id, mode: id === 'local' ? 'offline' : 'online', reason: ready ? 'ready' : 'unavailable', reasonCode: ready ? 'LOCAL_RUNTIME_READY' : 'LOCAL_RUNTIME_UNAVAILABLE' };
-  return { id, mode: id === 'local' ? 'offline' : 'online', getStatus: () => status, getRoutingStatus: async () => status, sendMessage: async () => { calls.count += 1; return response; } };
+  const provider: TestProvider = { id, mode: id === 'local' ? 'offline' : 'online', getStatus: () => status, getRoutingStatus: async () => status, sendMessage: async () => { calls.count += 1; return response; } };
+  return provider;
 }
 
 async function run(): Promise<void> {
