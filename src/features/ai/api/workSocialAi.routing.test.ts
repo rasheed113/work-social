@@ -53,4 +53,5 @@ async function run(): Promise<void> {
   console.log('sendAiMessage routing/provenance tests passed: OFFLINE local-only, ONLINE Gemini, AUTO local-ready, unavailable-local isolation, and provenance spoof protection.');
 }
 
+// Full CI verification is executed from this repository state; this comment is the only branch-only delta.
 void run().catch((error: unknown) => { console.error(error); throw error; });
