@@ -28,12 +28,15 @@ function validateAttachment(value: unknown): AiHistoryAttachment {
     || (value.name !== null && !validString(value.name, true))
     || (value.size !== null && (!Number.isSafeInteger(value.size) || value.size < 0))
     || !validString(value.reference)) throw new AiHistoryError('INVALID_RECORD', 'Stored attachment metadata is malformed.');
+  const name = value.name;
+  const size = value.size;
+  const reference = value.reference;
   if (value.mimeType.length > AI_HISTORY_LIMITS.maxAttachmentMimeTypeLength
-    || (value.name !== null && value.name.length > AI_HISTORY_LIMITS.maxAttachmentNameLength)
-    || value.reference.length > AI_HISTORY_LIMITS.maxAttachmentReferenceLength
-    || (value.size !== null && value.size > AI_HISTORY_LIMITS.maxAttachmentSizeBytes)) throw new AiHistoryError('INVALID_RECORD', 'Stored attachment metadata exceeds history limits.');
-  if ((value.name !== null && containsSecretLikeText(value.name)) || containsSecretLikeText(value.reference)) throw new AiHistoryError('INVALID_RECORD', 'Stored attachment metadata contains prohibited credential-like data.');
-  return { id: value.id, mimeType: value.mimeType, name: value.name as string | null, size: value.size as number | null, reference: value.reference };
+    || (name !== null && name.length > AI_HISTORY_LIMITS.maxAttachmentNameLength)
+    || reference.length > AI_HISTORY_LIMITS.maxAttachmentReferenceLength
+    || (size !== null && size > AI_HISTORY_LIMITS.maxAttachmentSizeBytes)) throw new AiHistoryError('INVALID_RECORD', 'Stored attachment metadata exceeds history limits.');
+  if ((name !== null && containsSecretLikeText(name)) || containsSecretLikeText(reference)) throw new AiHistoryError('INVALID_RECORD', 'Stored attachment metadata contains prohibited credential-like data.');
+  return { id: value.id, mimeType: value.mimeType, name: name as string | null, size: size as number | null, reference };
 }
 
 function validateMessage(value: unknown): AiHistoryMessage {
@@ -157,7 +160,7 @@ export class IndexedDbAiHistoryStore implements AiHistoryStore {
   private validateId(id: string, kind: string): void { if (!validString(id) || id.length > 200) throw new AiHistoryError('INVALID_ARGUMENT', `Invalid ${kind} ID.`); }
   private openDatabase(): Promise<IDBDatabase> {
     if (this.databasePromise) return this.databasePromise;
-    this.databasePromise = new Promise((resolve, reject) => {
+    const promise = new Promise<IDBDatabase>((resolve, reject) => {
       let requestHandle: IDBOpenDBRequest;
       try { requestHandle = getIndexedDb().open(DATABASE_NAME, DATABASE_VERSION); }
       catch (error) { reject(new AiHistoryError('STORAGE_UNAVAILABLE', 'Could not access IndexedDB.', error)); return; }
@@ -166,7 +169,8 @@ export class IndexedDbAiHistoryStore implements AiHistoryStore {
       requestHandle.onerror = () => reject(new AiHistoryError('STORAGE_FAILED', 'Could not open AI history storage.', requestHandle.error));
       requestHandle.onblocked = () => reject(new AiHistoryError('STORAGE_FAILED', 'AI history storage is blocked by another database connection.'));
     }).catch((error) => { this.databasePromise = null; throw error instanceof AiHistoryError ? error : new AiHistoryError('STORAGE_FAILED', 'Could not open AI history storage.', error); });
-    return this.databasePromise;
+    this.databasePromise = promise;
+    return promise;
   }
   private async withStore<T>(mode: IDBTransactionMode, operation: (store: IDBObjectStore) => Promise<T>): Promise<T> {
     const database = await this.openDatabase();
