@@ -64,19 +64,16 @@ async function run(): Promise<void> {
   });
 
   const controller = new AbortController();
-  let resolveFetch: (() => void) | undefined;
-  const pendingFetch = new Promise<Response>((resolve) => { resolveFetch = () => resolve(new Response(new Uint8Array([1, 2, 3, 4]))); });
   const originalFetch = globalThis.fetch;
-  globalThis.fetch = (async () => pendingFetch) as typeof fetch;
+  globalThis.fetch = ((url: RequestInfo | URL, init?: RequestInit) => new Promise<Response>((_resolve, reject) => {
+    init?.signal?.addEventListener('abort', () => reject(new DOMException('The operation was aborted.', 'AbortError')), { once: true });
+  })) as typeof fetch;
   try {
     const downloader = new WebModelDownloader();
     const pending = downloader.download(model, controller.signal);
     controller.abort();
     await assert.rejects(pending, (error: unknown) => error instanceof LocalInferenceRuntimeError && error.code === 'MODEL_DOWNLOAD_ABORTED');
-  } finally {
-    resolveFetch?.();
-    globalThis.fetch = originalFetch;
-  }
+  } finally { globalThis.fetch = originalFetch; }
 
   console.log('webModelDownloader.test.ts: PASS');
 }
