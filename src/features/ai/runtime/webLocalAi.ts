@@ -7,7 +7,7 @@ import { WebModelDownloader } from '../model/webModelDownloader';
 import { PRIMARY_LOCAL_TEXT_MODEL } from '../model/primaryLocalTextModel';
 import { DefaultLocalInferenceRuntime } from './localInferenceRuntime';
 import { LocalInferenceRuntimeError, type LocalInferenceRuntime } from './localInferenceContracts';
-import type { LocalModelSource, ModelDownloader, ModelInstallResult, ModelStorage } from '../model/modelContracts';
+import type { LocalModelSource, ModelDownloadProgress, ModelDownloader, ModelInstallResult, ModelStorage } from '../model/modelContracts';
 import type { LocalAiDiagnostic } from './localAiDiagnostics';
 
 const registry = new InMemoryModelRegistry();
@@ -32,9 +32,9 @@ export const webLocalAi = {
   modelManager,
   runtime,
   downloader,
-  async prepare(): Promise<void> {
+  async prepare(onDownloadProgress?: (progress: ModelDownloadProgress) => void): Promise<void> {
     if (preparePromise) return preparePromise;
-    preparePromise = preparePrimaryModel(modelManager, storage, downloader, runtime);
+    preparePromise = preparePrimaryModel(modelManager, storage, downloader, runtime, onDownloadProgress);
     try { await preparePromise; } finally { preparePromise = null; }
   },
   async importLocalModel(file: File, signal?: AbortSignal): Promise<ModelInstallResult> {
@@ -52,7 +52,7 @@ export const webLocalAi = {
   },
 };
 
-export async function preparePrimaryModel(manager: ModelManager, modelStorage: ModelStorage, modelDownloader: ModelDownloader, localRuntime: LocalInferenceRuntime): Promise<void> {
+export async function preparePrimaryModel(manager: ModelManager, modelStorage: ModelStorage, modelDownloader: ModelDownloader, localRuntime: LocalInferenceRuntime, onDownloadProgress?: (progress: ModelDownloadProgress) => void): Promise<void> {
   let discovered;
   try { discovered = await manager.discoverInstalledModels(); }
   catch (error) { throw preparationError(error, 'MODEL_STORAGE_READ_FAILED', 'The installed local model could not be read from browser storage.'); }
@@ -67,7 +67,7 @@ export async function preparePrimaryModel(manager: ModelManager, modelStorage: M
     catch (error) { throw preparationError(error, 'MODEL_INCOMPATIBLE', 'The local model eligibility check failed.'); }
     if (!eligibility.eligible) throw new LocalInferenceRuntimeError('MODEL_INCOMPATIBLE', eligibility.reasons.map((reason) => reason.message).join(' '));
     let blob: Blob;
-    try { blob = await modelDownloader.download(model); }
+    try { blob = await modelDownloader.download(model, undefined, onDownloadProgress); }
     catch (error) { throw preparationError(error, 'MODEL_DOWNLOAD_FAILED', 'The local model download failed.'); }
     const result = await manager.installFromBlob(model.id, blob);
     if (result.status !== 'INSTALLED') {

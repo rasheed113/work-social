@@ -22,6 +22,7 @@ async function run() {
         status: 206,
         headers: {
           'content-type': 'application/octet-stream',
+          'content-length': '2',
           'content-range': 'bytes 0-1/491400032',
           'accept-ranges': 'bytes',
         },
@@ -36,6 +37,7 @@ async function run() {
     assert.equal(upstreamUrl, MODEL_URL);
     assert.equal(upstreamRange, 'bytes=0-1');
     assert.equal(response.status, 206);
+    assert.equal(response.headers.get('content-length'), '2');
     assert.equal(response.headers.get('content-range'), 'bytes 0-1/491400032');
     assert.equal(response.headers.get('accept-ranges'), 'bytes');
     assert.equal(response.headers.get('cache-control'), 'no-store');

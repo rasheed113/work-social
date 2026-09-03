@@ -51,11 +51,29 @@ async function run(): Promise<void> {
       if (attempts === 1) throw new TypeError('temporary network failure');
       return new Response(new Uint8Array([1, 2, 3, 4]), { status: 200, headers: { 'content-length': '4', 'content-type': 'application/octet-stream' } });
     };
-    const progress: number[] = [];
-    const data = await new WebModelDownloader().download(model, undefined, (value) => progress.push(value.receivedBytes));
+    const progress: Array<{ receivedBytes: number; totalBytes: number | null }> = [];
+    const data = await new WebModelDownloader().download(model, undefined, (value) => progress.push(value));
     assert.equal(data.size, 4);
     assert.equal(attempts, 2);
-    assert.ok(progress.includes(4));
+    assert.deepEqual(progress.at(-1), { receivedBytes: 4, totalBytes: 4 });
+    assert.equal(progress[0]?.receivedBytes, 0);
+    assert.equal(progress[0]?.totalBytes, 4);
+    assert.ok(progress.some((value) => value.receivedBytes > 0 && value.receivedBytes < 4));
+  } finally { globalThis.fetch = original; }
+
+  const chunks = [new Uint8Array([1, 2]), new Uint8Array([3, 4, 5])];
+  const noLengthResponse = new Response(new ReadableStream({
+    start(controller) { for (const chunk of chunks) controller.enqueue(chunk); controller.close(); },
+  }), { status: 200, headers: { 'content-type': 'application/octet-stream' } });
+  const noLengthProgress: Array<{ receivedBytes: number; totalBytes: number | null }> = [];
+  try {
+    globalThis.fetch = async () => noLengthResponse;
+    const data = await new WebModelDownloader().download(model, undefined, (value) => noLengthProgress.push(value));
+    assert.equal(data.size, 5);
+    assert.ok(noLengthProgress.length >= 3);
+    assert.deepEqual(noLengthProgress[0], { receivedBytes: 0, totalBytes: null });
+    assert.deepEqual(noLengthProgress.at(-1), { receivedBytes: 5, totalBytes: null });
+    assert.ok(noLengthProgress.every((value) => value.totalBytes === null));
   } finally { globalThis.fetch = original; }
 
   await check(async () => new Response(new Uint8Array([1, 2, 3]), { status: 200, headers: { 'content-length': '4' } }), (error) => {

@@ -59,8 +59,7 @@ export class WebModelDownloader implements ModelDownloader {
       throw new LocalInferenceRuntimeError('MODEL_DOWNLOAD_HTTP_FAILED', `The local model resource returned HTTP ${response.status}.`, makeDiagnostic('MODEL_DOWNLOAD_HTTP_FAILED', `The local model resource returned HTTP ${response.status}.`, model, url, undefined, response, startedAt));
     }
 
-    const declaredLength = parseContentLength(response.headers.get('content-length'));
-    const total = declaredLength ?? (model.sizeBytes > 0 ? model.sizeBytes : null);
+    const total = parseContentLength(response.headers.get('content-length'));
     onProgress?.({ receivedBytes: 0, totalBytes: total });
 
     if (!response.body) {
