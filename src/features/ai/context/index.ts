@@ -1,2 +1,2 @@
 export * from './contracts';
-export * from './contextBuilder';
+export { buildAiContext, buildConversationContext } from './contextBuilder';
