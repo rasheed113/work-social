@@ -43,9 +43,9 @@ export class BrowserLocalInferenceAdapter implements LocalInferenceEngineAdapter
     if (data.size === 0) throw new LocalInferenceRuntimeError('MODEL_INVALID', 'The verified local model is empty.');
     if (data.size !== model.model.sizeBytes) throw new LocalInferenceRuntimeError('MODEL_INVALID', `The verified local model has ${data.size} bytes; expected ${model.model.sizeBytes} bytes.`);
     try {
-      // wllama v3 accepts Blob/File objects directly for local model loading. The Blob is
-      // the verified IndexedDB payload returned by ModelManager, not a URL or filename.
-      await this.engine.loadModel([data], { n_ctx: 2048, n_gpu_layers: 99999 });
+      // Qwen2-family GGUF inference is forced to WASM/CPU. wllama WebGPU is still
+      // experimental for Qwen2 models and can produce incorrect/garbled generation.
+      await this.engine.loadModel([data], { n_ctx: 2048, n_gpu_layers: 0 });
       if (!this.engine.isModelLoaded()) throw new Error('wllama.loadModel() completed without reporting a loaded model.');
       this.loadedModelKey = key;
       this.loadedModelMetadata = { modelId: model.model.id, modelVersion: model.model.version };
@@ -114,4 +114,4 @@ function firstStopIndex(text: string, stops: string[]): number { let index = -1;
 function isAsyncIterable(value: unknown): value is AsyncIterable<unknown> { return !!value && typeof value === 'object' && Symbol.asyncIterator in value; }
 function readDelta(value: unknown): string { const chunk = value as { choices?: Array<{ delta?: { content?: unknown } }> }; return typeof chunk.choices?.[0]?.delta?.content === 'string' ? chunk.choices[0].delta.content : ''; }
 function readFinishReason(value: unknown): string | null { const chunk = value as { choices?: Array<{ finish_reason?: unknown }> }; return typeof chunk.choices?.[0]?.finish_reason === 'string' ? chunk.choices[0].finish_reason : null; }
-function sanitizeEngineError(error: unknown): string { return error instanceof Error ? sanitizeMessage(error.message) || 'Local inference engine failed.' : 'Local inference engine failed.'; }
+function sanitizeEngineError(error: unknown): string { return error instanceof Error ? sanitizeMessage(error.message) || 'Local inference engine failed.' : 'Local inference engine failed.' }
