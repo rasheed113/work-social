@@ -7,6 +7,7 @@ export interface LocalAiDiagnostic {
   stage: LocalAiDiagnosticStage;
   code: string;
   message: string;
+  result?: 'PASS' | 'FAIL';
   resource?: string;
   url?: string;
   status?: number;
@@ -31,6 +32,9 @@ export interface LocalAiDiagnostic {
   checksum?: 'PASS' | 'FAIL';
   gguf?: 'VALID' | 'INVALID';
   storage?: 'SUCCESS' | 'FAILED' | 'ABORTED';
+  provider?: 'local' | 'gemini';
+  runtime?: string;
+  source?: 'imported-local-gguf' | 'remote-download';
   timestamp: string;
   modelId?: string;
   modelVersion?: string;
@@ -57,7 +61,7 @@ export function diagnosticForError(error: unknown, fallbackCode = 'RUNTIME_INITI
   if (candidate?.diagnostic) return candidate.diagnostic;
   const code = typeof (error as { code?: unknown } | null)?.code === 'string' ? String((error as { code: string }).code) : fallbackCode;
   const message = error instanceof Error ? error.message : fallbackMessage;
-  return { stage: STAGES[code] ?? 'RUNTIME_INITIALIZATION', code, message: sanitizeMessage(message), errorName: error instanceof Error ? error.name : undefined, errorMessage: error instanceof Error ? sanitizeMessage(error.message) : undefined, timestamp: new Date().toISOString() };
+  return { stage: STAGES[code] ?? 'RUNTIME_INITIALIZATION', code, message: sanitizeMessage(message), result: 'FAIL', errorName: error instanceof Error ? error.name : undefined, errorMessage: error instanceof Error ? sanitizeMessage(error.message) : undefined, timestamp: new Date().toISOString() };
 }
 
 export function sanitizeMessage(value: string): string {
@@ -65,6 +69,7 @@ export function sanitizeMessage(value: string): string {
 }
 
 export function diagnosticNextAction(diagnostic: LocalAiDiagnostic): string {
+  if (diagnostic.result === 'PASS') return 'Local runtime/model verification passed. Send a test prompt and confirm the response provenance is local.';
   if (diagnostic.code === 'MODEL_IMPORT_SIZE_FAILED') return 'Select the original GGUF file with the required byte size.';
   if (diagnostic.code === 'MODEL_IMPORT_GGUF_INVALID') return 'Select a valid GGUF model file.';
   if (diagnostic.code === 'MODEL_IMPORT_CHECKSUM_FAILED') return 'The selected model bytes do not match the required Work Social model; nothing was installed.';
@@ -84,7 +89,7 @@ export function diagnosticNextAction(diagnostic: LocalAiDiagnostic): string {
 
 export function formatDiagnosticForClipboard(diagnostic: LocalAiDiagnostic): string {
   return [
-    'Offline AI diagnostic', `Stage: ${diagnostic.stage}`, `Error code: ${diagnostic.code}`, `Message: ${diagnostic.message}`,
+    'Offline AI diagnostic', `Stage: ${diagnostic.stage}`, `Error code: ${diagnostic.code}`, `Result: ${diagnostic.result ?? 'FAIL'}`, `Message: ${diagnostic.message}`,
     diagnostic.resource && `Resource: ${diagnostic.resource}`, diagnostic.url && `URL: ${diagnostic.url}`,
     diagnostic.status !== undefined ? `HTTP status: ${diagnostic.status} ${diagnostic.statusText ?? ''}`.trim() : 'HTTP status: No HTTP response received',
     diagnostic.responseOk !== undefined && `Response ok: ${diagnostic.responseOk}`,
@@ -103,6 +108,9 @@ export function formatDiagnosticForClipboard(diagnostic: LocalAiDiagnostic): str
     diagnostic.checksum && `Checksum: ${diagnostic.checksum}`,
     diagnostic.gguf && `GGUF: ${diagnostic.gguf}`,
     diagnostic.storage && `Storage: ${diagnostic.storage}`,
+    diagnostic.provider && `Provider: ${diagnostic.provider}`,
+    diagnostic.runtime && `Runtime: ${diagnostic.runtime}`,
+    diagnostic.source && `Source: ${diagnostic.source}`,
     diagnostic.browserUserAgent && `Browser: ${diagnostic.browserUserAgent}`,
     diagnostic.errorName && `Browser error: ${diagnostic.errorName}: ${diagnostic.errorMessage ?? ''}`,
     diagnostic.cause && `Cause: ${diagnostic.cause}`, diagnostic.modelId && `Model: ${diagnostic.modelId}`, diagnostic.modelVersion && `Version: ${diagnostic.modelVersion}`,
