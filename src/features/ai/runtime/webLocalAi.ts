@@ -7,7 +7,7 @@ import { WebModelDownloader } from '../model/webModelDownloader';
 import { PRIMARY_LOCAL_TEXT_MODEL } from '../model/primaryLocalTextModel';
 import { DefaultLocalInferenceRuntime } from './localInferenceRuntime';
 import { LocalInferenceRuntimeError, type LocalInferenceRuntime } from './localInferenceContracts';
-import type { ModelDownloader, ModelInstallResult, ModelStorage } from '../model/modelContracts';
+import type { LocalModelSource, ModelDownloader, ModelInstallResult, ModelStorage } from '../model/modelContracts';
 import type { LocalAiDiagnostic } from './localAiDiagnostics';
 
 const registry = new InMemoryModelRegistry();
@@ -18,13 +18,13 @@ const adapter = new BrowserLocalInferenceAdapter();
 const runtime = new DefaultLocalInferenceRuntime(adapter);
 const downloader = new WebModelDownloader();
 let preparePromise: Promise<void> | null = null;
-let installedSource: 'imported-local-gguf' | 'remote-download' | null = null;
+let installedSource: LocalModelSource | null = null;
 
 export interface LocalInferenceProvenance {
   provider: 'local';
   runtime: 'wllama';
   model: string;
-  source: 'imported-local-gguf' | 'remote-download';
+  source: LocalModelSource;
   verified: true;
 }
 
@@ -39,7 +39,10 @@ export const webLocalAi = {
   },
   async importLocalModel(file: File, signal?: AbortSignal): Promise<ModelInstallResult> {
     const result = await modelManager.importLocalFile(PRIMARY_LOCAL_TEXT_MODEL.id, file, signal);
-    if (result.status === 'INSTALLED') installedSource = 'imported-local-gguf';
+    if (result.status === 'INSTALLED') {
+      installedSource = 'imported-local-gguf';
+      await storage.setProvenanceSource?.(PRIMARY_LOCAL_TEXT_MODEL, installedSource);
+    }
     return result;
   },
   getProvenance(): LocalInferenceProvenance | null {
@@ -68,11 +71,14 @@ export async function preparePrimaryModel(manager: ModelManager, modelStorage: M
     catch (error) { throw preparationError(error, 'MODEL_DOWNLOAD_FAILED', 'The local model download failed.'); }
     const result = await manager.installFromBlob(model.id, blob);
     if (result.status !== 'INSTALLED') {
-      if (result.status === 'INVALID') throw new LocalInferenceRuntimeError('MODEL_INVALID', 'The downloaded local model failed checksum verification.', result.diagnostic);
+      if (result.status === 'INVALID') throw new LocalInferenceRuntimeError('MODEL_INVALID', 'The downloaded local model failed verification.', result.diagnostic);
       if (result.diagnostic) throw new LocalInferenceRuntimeError('MODEL_STORAGE_WRITE_FAILED', result.diagnostic.message, result.diagnostic);
       throw new LocalInferenceRuntimeError('MODEL_STORAGE_WRITE_FAILED', 'The local model could not be persisted in browser storage.');
     }
-    installedSource = 'remote-download';
+    installedSource = 'downloaded-local-gguf';
+    await modelStorage.setProvenanceSource?.(model, installedSource);
+  } else {
+    installedSource = await modelStorage.getProvenanceSource?.(model) ?? null;
   }
   let verifiedModel;
   try { verifiedModel = await manager.getVerifiedModelReference(model.id); }
