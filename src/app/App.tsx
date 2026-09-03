@@ -4,7 +4,6 @@ import { supabase } from '../lib/supabase/client';
 import { getSession } from '../features/auth/api/getSession';
 import { LoginForm } from '../features/auth/components/LoginForm';
 import { SignupForm } from '../features/auth/components/SignupForm';
-import { AiPremiumStatus } from '../features/ai/components/AiPremiumStatus';
 import { WorkSocialAiAssistant } from '../features/ai/components/WorkSocialAiAssistantWithMode';
 import { MovableAiLauncher } from '../features/ai/components/MovableAiLauncher';
 import { Router } from './Router';
@@ -46,7 +45,6 @@ export function App() {
     </div>
     <WorkSocialAiAssistant profileId={session.user.id} />
     <MovableAiLauncher />
-    <AiPremiumStatus />
     <style>{`.work-social-router-shell > header{flex:0 0 auto;position:sticky!important;top:0!important}.work-social-router-shell > div.work-social-page-content{flex:1 1 auto;min-height:0!important;min-width:0!important;width:100%!important;max-width:100%!important;overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}.work-social-router-shell > nav{flex:0 0 auto}.work-social-router-shell > div.work-social-inbox-content{overflow-y:hidden!important;overflow-x:hidden!important;min-height:0!important;padding-bottom:0!important}.work-social-router-shell > div.work-social-inbox-content main.premium-chat-page{height:100%!important;min-height:0!important}@media(max-width:767px){.work-social-router-shell > div.work-social-inbox-content{padding-bottom:calc(92px + env(safe-area-inset-bottom))!important}.work-social-router-shell > div.work-social-inbox-content main.premium-chat-page{height:100%!important}}`}</style>
   </main>;
 }
