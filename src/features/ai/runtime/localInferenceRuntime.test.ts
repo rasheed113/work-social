@@ -34,15 +34,26 @@ function equal<T>(actual: T, expected: T, message: string): void { assert(actual
 
 class FakeAdapter implements LocalInferenceEngineAdapter {
   readonly name = 'fixture'; readonly streaming = true; readonly cancellation = true;
-  loaded = false; disposed = false; cancelled = false;
+  loaded = false; disposed = false; cancelled = false; generationCancelled = false;
+  readonly generationStarted: Promise<void>;
+  private resolveGenerationStarted: (() => void) | null = null;
+
+  constructor() {
+    this.generationStarted = new Promise<void>((resolve) => { this.resolveGenerationStarted = resolve; });
+  }
   async initialize(): Promise<void> {}
   async loadModel(modelRef: VerifiedLocalModelReference): Promise<void> { await modelRef.readVerifiedModel(); this.loaded = true; }
   async unloadModel(): Promise<void> { this.loaded = false; }
   async generate(_request: InferenceRequest, signal: AbortSignal): Promise<InferenceResponse> {
+    this.resolveGenerationStarted?.();
+    this.resolveGenerationStarted = null;
     await new Promise<void>((resolve, reject) => {
       if (signal.aborted) return reject(new DOMException('Aborted', 'AbortError'));
-      signal.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')), { once: true });
-      setTimeout(resolve, 1);
+      signal.addEventListener('abort', () => {
+        this.generationCancelled = true;
+        reject(new DOMException('Aborted', 'AbortError'));
+      }, { once: true });
+      void resolve;
     });
     return response();
   }
@@ -86,10 +97,12 @@ async function run(): Promise<void> {
   equal(runtime.getStatus(), 'MODEL_READY', 'stream returns to model ready');
 
   const generation = runtime.generate(request());
-  await new Promise((resolve) => setTimeout(resolve, 0));
+  await adapter.generationStarted;
+  equal(runtime.getStatus(), 'GENERATING', 'cancellation starts only after generation is active');
   await runtime.cancel();
   try { await generation; throw new Error('cancelled generation completed'); }
   catch (error) { assert(error instanceof LocalInferenceRuntimeError && error.code === 'INFERENCE_CANCELLED', 'cancellation is surfaced honestly'); }
+  equal(adapter.generationCancelled, true, 'generation observes the runtime abort signal');
   equal(adapter.cancelled, true, 'adapter cancellation is invoked');
   equal(runtime.getStatus(), 'MODEL_READY', 'cancellation preserves loaded model state');
 
