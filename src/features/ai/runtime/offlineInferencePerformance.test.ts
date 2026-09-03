@@ -8,6 +8,7 @@ const model = {
     id: 'performance-test', name: 'performance-test', version: '1', type: 'TEXT', format: 'GGUF', sizeBytes: 4, sha256: 'a'.repeat(64),
     architectureRequirements: { supportedArchitectures: ['arm64'] }, platformRequirements: { requiredPlatform: 'android' },
     memoryRequirements: { requiredRamBytes: 1 }, storageRequirements: { requiredFreeStorageBytes: 1 },
+    downloadSource: null, availability: 'AVAILABLE', status: 'INSTALLED',
   },
   [verifiedModelReferenceBrand]: true,
   readVerifiedModel: async () => new Blob(['test']),
