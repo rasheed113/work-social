@@ -132,3 +132,4 @@ export class DefaultLocalInferenceRuntime implements LocalInferenceRuntime {
 function getModelKey(model: VerifiedLocalModelReference): string { return `${model.model.id}|${model.model.version}|${model.model.sha256 ?? ''}`; }
 function sameModel(left: VerifiedLocalModelReference | null, right: VerifiedLocalModelReference): boolean { return !!left && getModelKey(left) === getModelKey(right); }
 export function createLocalInferenceRuntime(adapter?: LocalInferenceEngineAdapter): LocalInferenceRuntime { return new DefaultLocalInferenceRuntime(adapter ?? null); }
+export type { LocalInferenceEngineAdapter } from './localInferenceContracts';
