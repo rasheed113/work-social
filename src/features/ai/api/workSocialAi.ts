@@ -33,6 +33,26 @@ export async function sendAiMessage(message: string, conversationId: string | nu
   return { conversation_id: response.conversationId, message: response.message, pending_actions: response.pendingActions.map((action) => ({ id: action.id, display_summary: action.displaySummary, expires_at: action.expiresAt })), provider: response.provider, mode: response.mode };
 }
 
-export async function confirmAiAction(actionId: string): Promise<{ success: boolean; entry?: Record<string, unknown> }> { if (!actionId) throw new Error('The action is missing its confirmation id.'); const { data: sessionData, error: sessionError } = await supabase.auth.getSession(); if (sessionError || !sessionData.session) throw new Error('Your Work Social session has expired. Please sign in again.'); const { data, error } = await supabase.functions.invoke('work-social-ai', { body: { action: 'confirm', action_id: actionId }, headers: { Authorization: `Bearer ${sessionData.session.access_token}` } }); if (error) throw new Error(await functionErrorMessage(error, 'Work Social AI could not complete that confirmation.')); if (!data || typeof data !== 'object') throw new Error('The AI service returned an invalid confirmation response.'); if ('error' in data && typeof data.error === 'string') throw new Error(data.error); return data as { success: boolean; entry?: Record<string, unknown> }; }
+export async function confirmAiAction(actionId: string): Promise<{ success: boolean; entry?: Record<string, unknown> }> {
+  if (!actionId) throw new Error('The action is missing its confirmation id.');
+  offlineAiTrace('ACTION_CONFIRMATION_REQUESTED', { actionId });
+  const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+  if (sessionError || !sessionData.session) throw new Error('Your Work Social session has expired. Please sign in again.');
+  offlineAiTrace('ACTION_CONFIRMATION_STARTED', { actionId });
+  try {
+    const { data, error } = await supabase.functions.invoke('work-social-ai', { body: { action: 'confirm', action_id: actionId }, headers: { Authorization: `Bearer ${sessionData.session.access_token}` } });
+    if (error) throw new Error(await functionErrorMessage(error, 'Work Social AI could not complete that confirmation.'));
+    if (!data || typeof data !== 'object') throw new Error('The AI service returned an invalid confirmation response.');
+    if ('error' in data && typeof data.error === 'string') throw new Error(data.error);
+    const result = data as { success: boolean; entry?: Record<string, unknown> };
+    if (!result.success) throw new Error('The confirmed action did not complete successfully.');
+    offlineAiTrace('WORK_ENTRY_CREATED', { actionId });
+    offlineAiTrace('ACTION_EXECUTION_COMPLETED', { actionId });
+    return result;
+  } catch (error) {
+    offlineAiTrace('ACTION_EXECUTION_FAILED', { actionId, error: readableError(error) });
+    throw error;
+  }
+}
 export async function listAiConversations(): Promise<AiConversation[]> { const { data, error } = await supabase.from('ai_conversations').select('id,title,status,created_at,updated_at').order('updated_at', { ascending: false }).limit(30); if (error) throw new Error((error as PostgrestError).message || 'Could not load AI conversations.'); return (data ?? []) as AiConversation[]; }
 export async function listAiMessages(conversationId: string): Promise<AiMessage[]> { const { data, error } = await supabase.from('ai_messages').select('id,conversation_id,role,content,tool_name,tool_call_id,metadata,created_at').eq('conversation_id', conversationId).order('created_at', { ascending: true }).limit(100); if (error) throw new Error((error as PostgrestError).message || 'Could not load AI messages.'); return (data ?? []).map((item) => ({ ...(item as AiMessage), content: normalizeAiDisplayText(item.content) })); }
