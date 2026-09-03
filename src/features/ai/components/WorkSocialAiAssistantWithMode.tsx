@@ -8,6 +8,7 @@ import {
 } from '../providers/aiRouter';
 import { LocalAiProvider } from '../providers/localAiProvider';
 import { buildAiPremiumStatus } from '../premiumUxState';
+import { shouldOfferOfflineContinuation } from '../onlineLimit';
 
 interface Props {
   profileId: string;
@@ -105,6 +106,32 @@ function AiChatModeBridge() {
     setMode(nextMode);
   }
 
+  useEffect(() => {
+    const localAvailable = localStatus.state === 'ready';
+    const resolvedOnline = mode === 'online' || (mode === 'auto' && !localAvailable);
+    if (!resolvedOnline || !localAvailable) return;
+
+    const installContinuationAction = () => {
+      const errorSurface = document.querySelector<HTMLElement>('.ws-ai-panel .ws-ai-error');
+      if (!errorSurface || !shouldOfferOfflineContinuation(errorSurface.textContent ?? '')) return;
+      if (errorSurface.querySelector('[data-ws-ai-switch-offline]')) return;
+
+      const action = document.createElement('button');
+      action.type = 'button';
+      action.dataset.wsAiSwitchOffline = 'true';
+      action.className = 'ws-ai-switch-offline';
+      action.setAttribute('aria-label', 'Switch to Offline AI');
+      action.textContent = 'Switch to Offline';
+      action.addEventListener('click', () => choose('offline'), { once: true });
+      errorSurface.appendChild(action);
+    };
+
+    installContinuationAction();
+    const observer = new MutationObserver(installContinuationAction);
+    observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+    return () => observer.disconnect();
+  }, [mode, localStatus.state, conversationKey]);
+
   if (!header) return null;
 
   return createPortal(
@@ -145,6 +172,9 @@ function AiChatModeBridge() {
         .ws-ai-header-mode-button:focus-visible{outline:2px solid currentColor;outline-offset:1px}
         .ws-ai-header-mode-button.selected{background:rgba(134,239,172,.16);color:#dcfce7;box-shadow:inset 0 0 0 1px rgba(134,239,172,.20)}
         .ws-ai-header-mode-detail{position:absolute;right:12px;top:100%;z-index:5;max-width:min(320px,calc(100% - 24px));padding:6px 8px;border:1px solid rgba(248,113,113,.22);border-radius:8px;background:rgba(45,16,25,.94);color:#fecaca;font-size:10px;line-height:1.35;box-sizing:border-box}
+        .ws-ai-switch-offline{display:block;margin-top:8px;max-width:100%;padding:8px 11px;border:1px solid rgba(134,239,172,.28);border-radius:10px;background:rgba(22,101,52,.22);color:#dcfce7;font:800 11px/1.2 inherit;cursor:pointer;box-sizing:border-box}
+        .ws-ai-switch-offline:hover{background:rgba(22,101,52,.34);color:#fff}
+        .ws-ai-switch-offline:focus-visible{outline:2px solid currentColor;outline-offset:2px}
         @media(max-width:680px){
           .ws-ai-header-mode{max-width:68%;gap:4px}
           .ws-ai-header-mode-status{display:none}
