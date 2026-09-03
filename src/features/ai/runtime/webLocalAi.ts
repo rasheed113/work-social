@@ -6,6 +6,7 @@ import { WebModelStorage } from '../model/webModelStorage';
 import { WebModelDownloader } from '../model/webModelDownloader';
 import { PRIMARY_LOCAL_TEXT_MODEL } from '../model/primaryLocalTextModel';
 import { DefaultLocalInferenceRuntime } from './localInferenceRuntime';
+import { StrictOfflineInferenceRuntime } from './strictOfflineInferenceRuntime';
 import { LocalInferenceRuntimeError, type LocalInferenceRuntime } from './localInferenceContracts';
 import type { LocalModelSource, ModelDownloadProgress, ModelDownloader, ModelInstallResult, ModelStorage } from '../model/modelContracts';
 import type { LocalAiDiagnostic } from './localAiDiagnostics';
@@ -16,7 +17,7 @@ const storage = new WebModelStorage();
 const modelManager = new ModelManager(registry, storage, { getDeviceCapability });
 modelManager.registerModel(PRIMARY_LOCAL_TEXT_MODEL);
 const adapter = new BrowserLocalInferenceAdapter();
-const runtime = new DefaultLocalInferenceRuntime(adapter);
+const runtime = new StrictOfflineInferenceRuntime(new DefaultLocalInferenceRuntime(adapter));
 const downloader = new WebModelDownloader();
 let preparePromise: Promise<void> | null = null;
 let prepareProgressCallback: ((progress: ModelDownloadProgress) => void) | undefined;
@@ -73,12 +74,8 @@ export async function preparePrimaryModel(
   offlineAiTrace('MODEL_VERIFIED', { modelId: model.id, modelVersion: model.version, checksum: installedAndVerified ? 'PASS' : 'NOT_VERIFIED' });
 
   if (installedAndVerified) {
-    // Provenance is persisted in IndexedDB; hydrate it after every fresh page/module instance.
     installedSource = await modelStorage.getProvenanceSource?.(model) ?? null;
     offlineAiTrace('MODEL_FOUND', { source: installedSource ?? 'unknown-persisted-source', modelId: model.id });
-
-    // A verified model already loaded by Wllama is reusable. Do not reload a large GGUF on
-    // every Offline-mode selection; only require MODEL_READY and persisted integrity.
     if (localRuntime.getStatus() === 'MODEL_READY') {
       offlineAiTrace('MODEL_READY', { state: localRuntime.getStatus(), modelId: model.id, modelVersion: model.version, reused: true });
       return;
