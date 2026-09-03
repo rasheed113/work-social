@@ -1,30 +1,18 @@
 import type { AiModel } from './modelContracts';
 
-const GIB = 1024 ** 3;
-
-/** Planning metadata only. No model binary or trusted checksum is included. */
 export const PRIMARY_LOCAL_TEXT_MODEL: AiModel = {
-  id: 'local-text-3b-4b-primary',
-  name: 'Work Social Local Text 3B–4B Planning Target',
-  version: 'planning-1',
+  id: 'qwen2.5-0.5b-instruct-q4_k_m',
+  name: 'Qwen2.5 0.5B Instruct Q4_K_M',
+  version: 'main-6dd44a1',
   type: 'TEXT',
   format: 'GGUF',
-  sizeBytes: 2.5 * GIB,
-  sha256: null,
-  architectureRequirements: {
-    supportedArchitectures: ['arm64-v8a'],
-  },
-  memoryRequirements: {
-    requiredRamBytes: 4 * GIB,
-  },
-  storageRequirements: {
-    requiredFreeStorageBytes: 2.5 * GIB,
-  },
-  platformRequirements: {
-    requiredPlatform: 'android',
-    minimumAndroidVersion: 26,
-  },
-  downloadSource: null,
-  availability: 'UNKNOWN',
+  sizeBytes: 491400032,
+  sha256: '74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db',
+  architectureRequirements: { supportedArchitectures: ['arm64-v8a', 'arm64', 'arm', 'x86_64', 'x86', 'amd64'] },
+  memoryRequirements: { requiredRamBytes: 2 * 1024 ** 3 },
+  storageRequirements: { requiredFreeStorageBytes: 700 * 1024 ** 2 },
+  platformRequirements: { requiredPlatform: 'any' },
+  downloadSource: { kind: 'external', uri: 'https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/qwen2.5-0.5b-instruct-q4_k_m.gguf' },
+  availability: 'AVAILABLE',
   status: 'NOT_INSTALLED',
 };

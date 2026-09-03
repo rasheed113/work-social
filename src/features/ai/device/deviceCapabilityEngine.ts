@@ -1,5 +1,5 @@
-import type { DeviceCapability, ThermalState } from './deviceCapability';
-import { classifyRam } from './deviceCapability';
+import type { DeviceCapability } from '../device/deviceCapability';
+import { classifyRam } from '../device/deviceCapability';
 
 type NavigatorWithDeviceMemory = Navigator & {
   deviceMemory?: number;
@@ -8,51 +8,39 @@ type NavigatorWithDeviceMemory = Navigator & {
   };
 };
 
-type BatteryManager = EventTarget & {
-  level: number;
-  charging: boolean;
-};
+type BatteryManager = EventTarget & { level: number; charging: boolean };
+
+type NavigatorWithGpu = Navigator & { gpu?: unknown };
 
 /**
- * Browser runtimes expose only a subset of the signals needed by the future
- * Android implementation. This engine reports those real signals and leaves
- * native-only fields unknown instead of inventing Android data.
+ * Browser capability engine for the real WASM local inference boundary.
+ * WASM is the mandatory execution capability; WebGPU is an optional accelerator
+ * selected by wllama when available. Native-only signals remain unknown.
  */
 export async function getDeviceCapability(): Promise<DeviceCapability> {
-  if (typeof navigator === 'undefined') {
-    return unknownCapability('Device runtime is unavailable.');
-  }
+  if (typeof navigator === 'undefined') return unknownCapability('Device runtime is unavailable.');
 
   const browserNavigator = navigator as NavigatorWithDeviceMemory;
   const limitations: string[] = [
-    'No Android/native capability bridge is present in this web application.',
     'Browser memory information is approximate and does not expose free device RAM.',
+    'Browser storage is origin quota, not physical device free space.',
   ];
+  const wasmAvailable = typeof WebAssembly !== 'undefined';
+  const webGpuAvailable = 'gpu' in (navigator as NavigatorWithGpu);
+  if (webGpuAvailable) limitations.push('WebGPU availability was detected; the local engine may use it as an accelerator.');
+  else limitations.push('WebGPU is unavailable; the local engine will use WebAssembly CPU execution.');
 
-  const totalRam =
-    typeof browserNavigator.deviceMemory === 'number' &&
-    Number.isFinite(browserNavigator.deviceMemory) &&
-    browserNavigator.deviceMemory > 0
-      ? browserNavigator.deviceMemory * 1024 ** 3
-      : null;
-
-  const cpuCores =
-    typeof browserNavigator.hardwareConcurrency === 'number' &&
-    Number.isInteger(browserNavigator.hardwareConcurrency) &&
-    browserNavigator.hardwareConcurrency > 0
-      ? browserNavigator.hardwareConcurrency
-      : null;
+  const totalRam = typeof browserNavigator.deviceMemory === 'number' && Number.isFinite(browserNavigator.deviceMemory) && browserNavigator.deviceMemory > 0
+    ? browserNavigator.deviceMemory * 1024 ** 3 : null;
+  const cpuCores = typeof browserNavigator.hardwareConcurrency === 'number' && Number.isInteger(browserNavigator.hardwareConcurrency) && browserNavigator.hardwareConcurrency > 0
+    ? browserNavigator.hardwareConcurrency : null;
 
   let architecture: string | null = null;
   if (browserNavigator.userAgentData?.getHighEntropyValues) {
     try {
       const values = await browserNavigator.userAgentData.getHighEntropyValues(['architecture']);
-      architecture = typeof values.architecture === 'string' && values.architecture.length > 0
-        ? values.architecture
-        : null;
-    } catch {
-      limitations.push('Browser architecture information was not available.');
-    }
+      architecture = typeof values.architecture === 'string' && values.architecture.length > 0 ? values.architecture : null;
+    } catch { limitations.push('Browser architecture information was not available.'); }
   } else {
     limitations.push('Browser architecture information is not exposed by this runtime.');
   }
@@ -61,48 +49,26 @@ export async function getDeviceCapability(): Promise<DeviceCapability> {
   if (navigator.storage?.estimate) {
     try {
       const estimate = await navigator.storage.estimate();
-      if (
-        typeof estimate.quota === 'number' &&
-        typeof estimate.usage === 'number' &&
-        Number.isFinite(estimate.quota) &&
-        Number.isFinite(estimate.usage) &&
-        estimate.quota >= estimate.usage
-      ) {
-        // This is origin storage quota remaining, not total device free space.
+      if (typeof estimate.quota === 'number' && typeof estimate.usage === 'number' && Number.isFinite(estimate.quota) && Number.isFinite(estimate.usage) && estimate.quota >= estimate.usage) {
         availableStorage = estimate.quota - estimate.usage;
-        limitations.push('Storage is browser-origin quota, not Android device free space.');
-      } else {
-        limitations.push('Browser storage estimate was incomplete.');
-      }
-    } catch {
-      limitations.push('Browser storage estimate failed.');
-    }
-  } else {
-    limitations.push('Browser storage estimation is not available.');
-  }
+      } else limitations.push('Browser storage estimate was incomplete.');
+    } catch { limitations.push('Browser storage estimate failed.'); }
+  } else limitations.push('Browser storage estimation is not available.');
 
   let batteryLevel: number | null = null;
   let isCharging: boolean | null = null;
-  const getBattery = (navigator as Navigator & {
-    getBattery?: () => Promise<BatteryManager>;
-  }).getBattery;
-
+  const getBattery = (navigator as Navigator & { getBattery?: () => Promise<BatteryManager> }).getBattery;
   if (typeof getBattery === 'function') {
     try {
       const battery = await getBattery.call(navigator);
       batteryLevel = Number.isFinite(battery.level) ? battery.level : null;
       isCharging = typeof battery.charging === 'boolean' ? battery.charging : null;
-    } catch {
-      limitations.push('Battery information could not be read.');
-    }
-  } else {
-    limitations.push('Battery information is not exposed by this browser runtime.');
+    } catch { limitations.push('Battery information could not be read.'); }
   }
 
-  limitations.push('Android version and native thermal state require a future Android bridge.');
-
+  if (!wasmAvailable) return unknownCapability('WebAssembly is unavailable in this browser.');
   return {
-    supported: false,
+    supported: true,
     tier: classifyRam(totalRam),
     availableRam: null,
     totalRam,
@@ -113,7 +79,7 @@ export async function getDeviceCapability(): Promise<DeviceCapability> {
     thermalState: 'unknown',
     batteryLevel,
     isCharging,
-    reason: 'Local AI execution is not available from the current web runtime; Android/native integration is required.',
+    reason: null,
     limitations: [...new Set(limitations)],
     platform: 'web',
   };
@@ -129,7 +95,7 @@ function unknownCapability(reason: string): DeviceCapability {
     architecture: null,
     androidVersion: null,
     availableStorage: null,
-    thermalState: 'unknown' as ThermalState,
+    thermalState: 'unknown',
     batteryLevel: null,
     isCharging: null,
     reason,

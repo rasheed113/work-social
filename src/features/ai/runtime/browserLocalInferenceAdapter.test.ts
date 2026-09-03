@@ -1,0 +1,44 @@
+import assert from 'node:assert/strict';
+import { BrowserLocalInferenceAdapter } from './browserLocalInferenceAdapter';
+import { verifiedModelReferenceBrand, type VerifiedLocalModelReference } from './localInferenceContracts';
+
+let loaded = false;
+let disposed = false;
+const calls: string[] = [];
+const fakeEngine = {
+  setCompat(compat: null) { assert.equal(compat, null); calls.push('setCompat'); },
+  isModelLoaded() { return loaded; },
+  async loadModel(blobs: Blob[]) { assert.equal(blobs.length, 1); assert.equal(blobs[0].size, 4); loaded = true; calls.push('loadModel'); },
+  async createChatCompletion(options: Record<string, unknown>) {
+    calls.push(options.stream === true ? 'stream' : 'generate');
+    if (options.stream === true) return (async function* () { yield { choices: [{ delta: { content: 'engine-output' }, finish_reason: 'stop' }] }; })();
+    return { choices: [{ message: { content: 'engine-output' }, finish_reason: 'stop' }], usage: { prompt_tokens: 3, completion_tokens: 1, total_tokens: 4 } };
+  },
+  async exit() { loaded = false; disposed = true; calls.push('exit'); },
+};
+const model: VerifiedLocalModelReference = {
+  model: { id: 'test', name: 'test', version: '1', type: 'TEXT', format: 'GGUF', sizeBytes: 4, sha256: 'x', architectureRequirements: { supportedArchitectures: [] }, memoryRequirements: { requiredRamBytes: 1 }, storageRequirements: { requiredFreeStorageBytes: 1 }, platformRequirements: { requiredPlatform: 'any' }, downloadSource: null, availability: 'AVAILABLE', status: 'INSTALLED' },
+  [verifiedModelReferenceBrand]: true,
+  async readVerifiedModel() { return new Blob([new Uint8Array([1, 2, 3, 4])]); },
+};
+
+async function run(): Promise<void> {
+  const adapter = new BrowserLocalInferenceAdapter(() => fakeEngine as never);
+  assert.equal(adapter.capabilities.textGeneration, true);
+  assert.equal(adapter.capabilities.streaming, true);
+  assert.equal(adapter.capabilities.cancellation, true);
+  await adapter.initialize();
+  await adapter.loadModel(model);
+  const response = await adapter.generate({ messages: [{ id: '1', conversationId: 'c', role: 'user', content: 'hello' }] }, new AbortController().signal);
+  assert.equal(response.text, 'engine-output');
+  assert.equal(response.usage.totalTokens, 4);
+  const events: string[] = [];
+  for await (const event of adapter.stream({ messages: [{ id: '1', conversationId: 'c', role: 'user', content: 'hello' }] }, new AbortController().signal)) events.push(event.type === 'TOKEN' ? event.text : event.type);
+  assert.deepEqual(events, ['engine-output', 'COMPLETE']);
+  await adapter.cancel();
+  await adapter.dispose();
+  assert.equal(disposed, true);
+  assert.deepEqual(calls, ['setCompat', 'loadModel', 'generate', 'stream', 'exit']);
+  console.log('browserLocalInferenceAdapter.test.ts: PASS');
+}
+run().catch((error: unknown) => { console.error(error); throw error; });

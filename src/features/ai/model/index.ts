@@ -4,3 +4,4 @@ export * from './modelRegistry';
 export * from './primaryLocalTextModel';
 export * from './sha256';
 export * from './webModelStorage';
+export * from './webModelDownloader';
