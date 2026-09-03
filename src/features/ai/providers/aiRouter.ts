@@ -2,9 +2,28 @@ import type { AiAttachment, AiGenerationOptions, AiMessage, AiProvider, AiProvid
 import { AiRoutingError } from './contracts';
 import { validateVisionImages } from '../vision/imageValidator';
 
-let defaultRoutingMode: AiRoutingMode = 'auto';
+const ROUTING_MODE_STORAGE_KEY = 'work-social-ai-routing-mode';
 
-export function setDefaultAiRoutingMode(mode: AiRoutingMode): void { defaultRoutingMode = mode; }
+function readPersistedRoutingMode(): AiRoutingMode {
+  if (typeof window === 'undefined') return 'auto';
+  try {
+    const stored = window.localStorage.getItem(ROUTING_MODE_STORAGE_KEY);
+    if (stored === 'auto' || stored === 'online' || stored === 'offline') return stored;
+  } catch {
+    // Browser storage can be unavailable in private/restricted contexts; memory state remains authoritative for this session.
+  }
+  return 'auto';
+}
+
+let defaultRoutingMode: AiRoutingMode = readPersistedRoutingMode();
+
+export function setDefaultAiRoutingMode(mode: AiRoutingMode): void {
+  defaultRoutingMode = mode;
+  if (typeof window === 'undefined') return;
+  try { window.localStorage.setItem(ROUTING_MODE_STORAGE_KEY, mode); } catch {
+    // Keep the in-memory mode even when persistent browser storage is unavailable.
+  }
+}
 export function getDefaultAiRoutingMode(): AiRoutingMode { return defaultRoutingMode; }
 
 /** Deterministic provider router. Provider selection is explicit and never based on a network failure or Gemini response. */
