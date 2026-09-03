@@ -34,7 +34,7 @@ export interface LocalAiDiagnostic {
   storage?: 'SUCCESS' | 'FAILED' | 'ABORTED';
   provider?: 'local' | 'gemini';
   runtime?: string;
-  source?: 'imported-local-gguf' | 'remote-download';
+  source?: 'imported-local-gguf' | 'downloaded-local-gguf';
   timestamp: string;
   modelId?: string;
   modelVersion?: string;
@@ -77,7 +77,7 @@ export function diagnosticNextAction(diagnostic: LocalAiDiagnostic): string {
   if (diagnostic.code === 'MODEL_IMPORT_STORAGE_VERIFY_FAILED') return 'The model was written to browser storage but failed the post-write checksum verification.';
   if (diagnostic.code === 'MODEL_IMPORT_VERIFIED') return 'The model is persisted and can proceed through the existing runtime preparation path.';
   if (diagnostic.code === 'MODEL_DOWNLOAD_HTTP_FAILED' && diagnostic.status !== undefined) return 'The server returned an HTTP error; check whether the model resource is publicly readable.';
-  if (diagnostic.code === 'MODEL_DOWNLOAD_FETCH_FAILED') return 'No HTTP response was received. Check browser network/CORS access to the model resource.';
+  if (diagnostic.code === 'MODEL_DOWNLOAD_FETCH_FAILED') return 'No HTTP response was received. Automatic model delivery is blocked in this browser environment; use Import existing GGUF.';
   if (diagnostic.code === 'MODEL_DOWNLOAD_RESPONSE_READ_FAILED') return 'HTTP headers were received, but the response body could not be read to completion.';
   if (diagnostic.code === 'MODEL_DOWNLOAD_INCOMPLETE') return 'The response ended before the expected model size was received; retry the download.';
   if (diagnostic.code === 'MODEL_DOWNLOAD_CHECKSUM_FAILED') return 'The model bytes arrived, but SHA-256 verification failed; the model was not installed.';
