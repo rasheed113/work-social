@@ -55,7 +55,6 @@ export class WebModelDownloader implements ModelDownloader {
       throw new LocalInferenceRuntimeError('MODEL_DOWNLOAD_FETCH_FAILED', 'The browser could not fetch the local model resource.', makeDiagnostic('MODEL_DOWNLOAD_FETCH_FAILED', 'Browser fetch failed; no HTTP response was received.', model, url, error, undefined, startedAt));
     }
 
-    const responseMeta = makeResponseMeta(response);
     if (!response.ok) {
       throw new LocalInferenceRuntimeError('MODEL_DOWNLOAD_HTTP_FAILED', `The local model resource returned HTTP ${response.status}.`, makeDiagnostic('MODEL_DOWNLOAD_HTTP_FAILED', `The local model resource returned HTTP ${response.status}.`, model, url, undefined, response, startedAt));
     }
