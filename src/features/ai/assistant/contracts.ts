@@ -5,10 +5,17 @@ export type OfflineAssistantCapability =
   | 'VOICE_INPUT'
   | 'TEXT_INPUT';
 
+export type OfflineAssistantInput = 'TEXT' | 'AUDIO' | 'IMAGE';
 export type OfflineCapabilityStatus = 'SUPPORTED' | 'UNAVAILABLE' | 'NOT_SUPPORTED';
 
 export interface OfflineCapabilityReport {
   capability: OfflineAssistantCapability;
+  status: OfflineCapabilityStatus;
+  reason?: string;
+}
+
+export interface OfflineInputCapabilityReport {
+  input: OfflineAssistantInput;
   status: OfflineCapabilityStatus;
   reason?: string;
 }
