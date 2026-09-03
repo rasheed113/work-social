@@ -1,4 +1,4 @@
-import type { OfflineAssistantCapability, OfflineCapabilityReport } from './contracts';
+import type { OfflineAssistantCapability, OfflineCapabilityReport, OfflineInputCapabilityReport } from './contracts';
 import type { SpeechLanguageCapability } from './stt';
 
 export interface OfflineAssistantRuntimeCapabilities {
@@ -23,8 +23,8 @@ export function getOfflineAssistantCapabilities(runtime: OfflineAssistantRuntime
   ];
 }
 
-export const OFFLINE_IMAGE_INPUT: OfflineCapabilityReport = {
-  capability: 'TEXT_INPUT',
-  status: 'NOT_SUPPORTED',
-  reason: 'Images are not an Offline Work Assistant input modality.',
-};
+export const OFFLINE_INPUT_CAPABILITIES: readonly OfflineInputCapabilityReport[] = [
+  { input: 'TEXT', status: 'SUPPORTED' },
+  { input: 'AUDIO', status: 'UNAVAILABLE', reason: 'Audio requires a verified offline Speech-to-Text runtime.' },
+  { input: 'IMAGE', status: 'NOT_SUPPORTED', reason: 'Images are outside the Offline Work Assistant boundary.' },
+];
