@@ -3,6 +3,7 @@ import type { PostgrestError } from '@supabase/supabase-js';
 import { supabase } from '../../../lib/supabase/client';
 import { listWorkerFinanceReceived, getWorkerFinanceSummary } from '../../worker/api/finance';
 import { AiRouter, getDefaultAiRoutingMode, type AiRoutingMode } from '../providers/aiRouter';
+import { AiRoutingError } from '../providers/contracts';
 import { GeminiAiProvider } from '../providers/geminiAiProvider';
 import { LocalAiProvider } from '../providers/localAiProvider';
 import { offlineAiTrace } from '../runtime/localAiDiagnostics';
@@ -11,7 +12,7 @@ import type { AiAttachment as ProviderAiAttachment, AiGenerationOptions, AiMessa
 export interface AiConversation { id: string; title: string | null; status: string; created_at: string; updated_at: string; }
 export interface AiMessage { id: string; conversation_id: string; role: 'user' | 'assistant' | 'tool'; content: string; tool_name: string | null; tool_call_id: string | null; metadata: Record<string, unknown>; created_at: string; }
 export interface AiPendingAction { id: string; display_summary: string; expires_at: string; confirmation_id?: string; action_id?: string; }
-export interface AiReply { conversation_id: string; message: string; pending_actions: AiPendingAction[]; }
+export interface AiReply { conversation_id: string; message: string; pending_actions: AiPendingAction[]; provider: 'gemini' | 'local'; mode: 'online' | 'offline'; }
 function normalizeAiDisplayText(content: string): string { return content.replace(/\*\*/g, ''); }
 function readableError(error: unknown): string { if (error instanceof Error && error.message) return error.message; if (typeof error === 'object' && error !== null && 'message' in error) { const message = (error as { message?: unknown }).message; if (typeof message === 'string' && message) return message; } return 'Work Social AI could not complete that request.'; }
 async function functionErrorMessage(error: unknown, fallback: string): Promise<string> { if (error instanceof FunctionsHttpError) { const status = error.context.status; const sbErrorCode = error.context.headers.get('sb-error-code'); let payload: Record<string, unknown> = {}; try { const parsed = await error.context.clone().json(); if (parsed && typeof parsed === 'object') payload = parsed as Record<string, unknown>; } catch {} const code = typeof payload.code === 'string' ? payload.code : null; const message = typeof payload.error === 'string' ? payload.error : null; const upstreamStatus = typeof payload.upstream_status === 'number' ? payload.upstream_status : null; const parts = [`HTTP ${status}`]; if (sbErrorCode) parts.push(`sb-error-code ${sbErrorCode}`); if (code) parts.push(`server ${code}`); if (upstreamStatus) parts.push(`upstream HTTP ${upstreamStatus}`); if (message) parts.push(message); return parts.join(' — '); } if (error instanceof FunctionsRelayError) return `Supabase Functions relay error — ${readableError(error)}`; if (error instanceof FunctionsFetchError) return `Supabase Functions fetch error — ${readableError(error)}`; return readableError(error) || fallback; }
@@ -26,9 +27,9 @@ export async function sendAiMessage(message: string, conversationId: string | nu
   offlineAiTrace('OFFLINE_REQUEST_RECEIVED', { requestedMode });
   offlineAiTrace('OFFLINE_MODE_CONFIRMED', { requestedMode, modeSource: 'explicit-argument-or-router-default' });
   const response = await aiRouter.sendMessage([{ id: `request-${Date.now()}`, conversationId: conversationId ?? '', role: 'user', content: message }], [], { mode: requestedMode });
-  if (requestedMode === 'offline' && response.mode !== 'offline') throw new Error(`OFFLINE routing invariant violated: provider=${response.provider}, mode=${response.mode}`);
+  if (requestedMode === 'offline' && (response.provider !== 'local' || response.mode !== 'offline')) throw new AiRoutingError('OFFLINE_ROUTE_VIOLATION', 'offline', 'local', `Offline response provenance mismatch: provider=${response.provider}, mode=${response.mode}`);
   offlineAiTrace('RESPONSE_RECEIVED', { requestedMode, provider: response.provider, responseMode: response.mode, nonEmpty: response.message.trim().length > 0 });
-  return { conversation_id: response.conversationId, message: response.message, pending_actions: response.pendingActions.map((action) => ({ id: action.id, display_summary: action.displaySummary, expires_at: action.expiresAt })) };
+  return { conversation_id: response.conversationId, message: response.message, pending_actions: response.pendingActions.map((action) => ({ id: action.id, display_summary: action.displaySummary, expires_at: action.expiresAt })), provider: response.provider, mode: response.mode };
 }
 
 export async function confirmAiAction(actionId: string): Promise<{ success: boolean; entry?: Record<string, unknown> }> { if (!actionId) throw new Error('The action is missing its confirmation id.'); const { data: sessionData, error: sessionError } = await supabase.auth.getSession(); if (sessionError || !sessionData.session) throw new Error('Your Work Social session has expired. Please sign in again.'); const { data, error } = await supabase.functions.invoke('work-social-ai', { body: { action: 'confirm', action_id: actionId }, headers: { Authorization: `Bearer ${sessionData.session.access_token}` } }); if (error) throw new Error(await functionErrorMessage(error, 'Work Social AI could not complete that confirmation.')); if (!data || typeof data !== 'object') throw new Error('The AI service returned an invalid confirmation response.'); if ('error' in data && typeof data.error === 'string') throw new Error(data.error); return data as { success: boolean; entry?: Record<string, unknown> }; }
