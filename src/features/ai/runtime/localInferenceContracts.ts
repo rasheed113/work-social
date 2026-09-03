@@ -6,7 +6,7 @@ export interface LocalInferenceCapabilities { textGeneration: boolean; visionInp
 export const BROWSER_LOCAL_INFERENCE_CAPABILITIES: LocalInferenceCapabilities = Object.freeze({ textGeneration: false, visionInput: false, multimodalInput: false, streaming: false, cancellation: false });
 export type LocalInferenceRuntimeStatus = 'UNAVAILABLE' | 'UNINITIALIZED' | 'INITIALIZING' | 'READY' | 'LOADING_MODEL' | 'MODEL_READY' | 'GENERATING' | 'CANCELLING' | 'ERROR' | 'DISPOSED';
 export type InferenceFinishReason = 'STOP' | 'LENGTH' | 'CANCELLED' | 'ERROR';
-export interface InferenceRequest { messages: AiMessage[]; modality?: AiRequestModality; attachments?: AiAttachment[]; maxTokens?: number; temperature?: number; topP?: number; contextSize?: number; stopSequences?: string[]; signal?: AbortSignal; }
+export interface InferenceRequest { messages: AiMessage[]; modality?: AiRequestModality; attachments?: AiAttachment[]; maxTokens?: number; temperature?: number; topP?: number; contextSize?: number; stopSequences?: string[]; signal?: AbortSignal; diagnosticRequestId?: string; }
 export interface InferenceUsage { promptTokens: number | null; completionTokens: number | null; totalTokens: number | null; }
 export interface InferenceRuntimeMetadata { provider: 'local'; runtime: string; modelId: string; modelVersion: string; }
 export interface InferenceResponse { text: string; finishReason: InferenceFinishReason; usage: InferenceUsage; runtimeMetadata: InferenceRuntimeMetadata; }
