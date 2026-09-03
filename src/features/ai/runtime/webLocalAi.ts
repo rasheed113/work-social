@@ -18,6 +18,7 @@ const adapter = new BrowserLocalInferenceAdapter();
 const runtime = new DefaultLocalInferenceRuntime(adapter);
 const downloader = new WebModelDownloader();
 let preparePromise: Promise<void> | null = null;
+let prepareProgressCallback: ((progress: ModelDownloadProgress) => void) | undefined;
 let installedSource: LocalModelSource | null = null;
 
 export interface LocalInferenceProvenance {
@@ -33,9 +34,17 @@ export const webLocalAi = {
   runtime,
   downloader,
   async prepare(onDownloadProgress?: (progress: ModelDownloadProgress) => void): Promise<void> {
+    if (onDownloadProgress) prepareProgressCallback = onDownloadProgress;
     if (preparePromise) return preparePromise;
-    preparePromise = preparePrimaryModel(modelManager, storage, downloader, runtime, onDownloadProgress);
-    try { await preparePromise; } finally { preparePromise = null; }
+    const reportProgress = (progress: ModelDownloadProgress) => prepareProgressCallback?.(progress);
+    preparePromise = preparePrimaryModel(modelManager, storage, downloader, runtime, reportProgress);
+    try { await preparePromise; } finally {
+      preparePromise = null;
+      prepareProgressCallback = undefined;
+    }
+  },
+  isPreparing(): boolean {
+    return preparePromise !== null;
   },
   async importLocalModel(file: File, signal?: AbortSignal): Promise<ModelInstallResult> {
     const result = await modelManager.importLocalFile(PRIMARY_LOCAL_TEXT_MODEL.id, file, signal);
