@@ -12,19 +12,12 @@ class FakeRuntime implements LocalInferenceRuntime {
   async initialize(): Promise<void> {}
   async loadModel(_model: VerifiedLocalModelReference): Promise<void> {}
   async unloadModel(): Promise<void> {}
-  async generate(request: InferenceRequest): Promise<InferenceResponse> {
-    this.lastSignal = request.signal ?? null;
-    if (request.signal?.aborted) throw new LocalInferenceRuntimeError('INFERENCE_CANCELLED', 'cancelled');
-    return response();
-  }
+  async generate(request: InferenceRequest): Promise<InferenceResponse> { this.lastSignal = request.signal ?? null; if (request.signal?.aborted) throw new LocalInferenceRuntimeError('INFERENCE_CANCELLED', 'cancelled'); return response(); }
   async *stream(request: InferenceRequest): AsyncIterable<InferenceStreamEvent> {
     this.lastSignal = request.signal ?? null;
     const signal = request.signal;
     if (!signal) throw new Error('signal missing');
-    await new Promise<void>((resolve) => {
-      if (signal.aborted) { this.aborted = true; resolve(); return; }
-      signal.addEventListener('abort', () => { this.aborted = true; resolve(); }, { once: true });
-    });
+    await new Promise<void>((resolve) => { if (signal.aborted) { this.aborted = true; resolve(); return; } signal.addEventListener('abort', () => { this.aborted = true; resolve(); }, { once: true }); });
     yield { type: 'ERROR', error: new LocalInferenceRuntimeError('INFERENCE_CANCELLED', 'cancelled') };
   }
   async cancel(): Promise<void> { this.aborted = true; }
@@ -35,9 +28,7 @@ class FakeRuntime implements LocalInferenceRuntime {
 
 async function run(): Promise<void> {
   equal(OFFLINE_GENERATION_TIMEOUT_MS, 15_000, 'Offline generation deadline is exactly 15 seconds');
-  const runtime = new FakeRuntime();
-  let timeoutHandler: (() => void) | null = null;
-  let cleared = false;
+  const runtime = new FakeRuntime(); let timeoutHandler: (() => void) | null = null; let cleared = false;
   const strict = new StrictOfflineInferenceRuntime(runtime, {
     setTimeoutImpl: (handler, timeout) => { equal(timeout, 15_000, 'authoritative timeout is 15 seconds'); timeoutHandler = handler; return {} as ReturnType<typeof setTimeout>; },
     clearTimeoutImpl: () => { cleared = true; },
@@ -62,10 +53,9 @@ async function run(): Promise<void> {
   const success = await strict.generate(request);
   equal(success.text, 'ok', 'completed generation remains successful');
   assert(timeoutHandler !== null, 'generate also arms the same 15-second deadline');
-  assert(cleared, true, 'successful generation clears its timer');
+  equal(cleared, true, 'successful generation clears its timer');
 
-  const parent = new AbortController();
-  timeoutHandler = null; cleared = false; runtime.aborted = false;
+  const parent = new AbortController(); timeoutHandler = null; cleared = false; runtime.aborted = false;
   const abortedEvents: InferenceStreamEvent[] = [];
   const abortPending = (async () => { for await (const event of strict.stream({ ...request, signal: parent.signal })) abortedEvents.push(event); })();
   await new Promise((resolve) => setTimeout(resolve, 0));
