@@ -21,11 +21,7 @@ export interface StrictOfflineInferenceRuntimeOptions {
   clearTimeoutImpl?: ClearTimeoutLike;
 }
 
-/**
- * Enforces the product-level Offline AI generation deadline at the local runtime
- * boundary. The deadline is owned here so both streaming and non-streaming callers
- * share exactly one 15-second generation ceiling.
- */
+/** Enforces the single product-level Offline AI generation deadline. */
 export class StrictOfflineInferenceRuntime implements LocalInferenceRuntime {
   private readonly setTimeoutImpl: SetTimeoutLike;
   private readonly clearTimeoutImpl: ClearTimeoutLike;
@@ -39,7 +35,7 @@ export class StrictOfflineInferenceRuntime implements LocalInferenceRuntime {
   }
 
   getStatus(): LocalInferenceRuntimeStatus { return this.inner.getStatus(); }
-  getCapabilities(): LocalInferenceCapabilities | undefined { return this.inner.getCapabilities?.(); }
+  getCapabilities(): LocalInferenceCapabilities { return this.inner.getCapabilities(); }
   initialize(): Promise<void> { return this.inner.initialize(); }
   loadModel(model: VerifiedLocalModelReference): Promise<void> { return this.inner.loadModel(model); }
   unloadModel(): Promise<void> { return this.inner.unloadModel(); }
@@ -79,7 +75,6 @@ export class StrictOfflineInferenceRuntime implements LocalInferenceRuntime {
     const cleanupParent = linkAbortSignal(request.signal, controller);
     let timedOut = false;
     let timer: TimeoutHandle | null = null;
-    let terminal = false;
     const startedAt = nowMs();
 
     const timeout = () => {
@@ -93,23 +88,16 @@ export class StrictOfflineInferenceRuntime implements LocalInferenceRuntime {
     try {
       for await (const event of this.inner.stream({ ...request, signal: controller.signal })) {
         if (timedOut) {
-          terminal = true;
           yield { type: 'ERROR', error: timeoutError(generationId, startedAt) };
           return;
         }
-        if (event.type === 'ERROR' && controller.signal.aborted) {
-          if (timedOut) {
-            terminal = true;
-            yield { type: 'ERROR', error: timeoutError(generationId, startedAt) };
-            return;
-          }
+        if (event.type === 'ERROR' && controller.signal.aborted && timedOut) {
+          yield { type: 'ERROR', error: timeoutError(generationId, startedAt) };
+          return;
         }
-        if (event.type === 'COMPLETE') terminal = true;
         yield event;
       }
-      if (timedOut && !terminal) {
-        yield { type: 'ERROR', error: timeoutError(generationId, startedAt) };
-      }
+      if (timedOut) yield { type: 'ERROR', error: timeoutError(generationId, startedAt) };
     } catch (error) {
       if (timedOut) {
         yield { type: 'ERROR', error: timeoutError(generationId, startedAt) };
