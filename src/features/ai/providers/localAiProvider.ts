@@ -32,6 +32,7 @@ export class LocalAiProvider implements AiProvider {
   async prepare(): Promise<void> { await webLocalAi.prepare(); }
 
   getStatus(): AiProviderStatus {
+    if (webLocalAi.isPreparing()) return { state: 'unavailable', provider: this.id, mode: this.mode, reason: 'Offline AI is downloading and preparing the local model.', reasonCode: 'MODEL_DOWNLOADING' };
     const runtimeState = this.runtime.getStatus();
     if (runtimeState === 'UNAVAILABLE') return { state: 'unavailable', provider: this.id, mode: this.mode, reason: LOCAL_AI_NOT_INSTALLED, reasonCode: OFFLINE_TEXT_AI_UNAVAILABLE };
     if (!this.modelManager) return { state: 'unavailable', provider: this.id, mode: this.mode, reason: 'No ModelManager is connected to the local provider.', reasonCode: 'RUNTIME_UNAVAILABLE' };
@@ -57,6 +58,7 @@ export class LocalAiProvider implements AiProvider {
       const capabilities = this.runtime.getCapabilities?.() ?? DEFAULT_UNAVAILABLE_CAPABILITIES;
       if (!capabilities.visionInput && !capabilities.multimodalInput) return { state: 'unavailable', provider: this.id, mode: this.mode, reason: 'The local runtime does not expose a verified vision-capable execution capability.', reasonCode: 'VISION_RUNTIME_UNAVAILABLE' };
     }
+    if (webLocalAi.isPreparing()) return { state: 'unavailable', provider: this.id, mode: this.mode, reason: 'Offline AI is downloading and preparing the local model.', reasonCode: 'MODEL_DOWNLOADING' };
     const runtimeState = this.runtime.getStatus();
     if (runtimeState === 'UNAVAILABLE' || runtimeState === 'DISPOSED') return { state: 'unavailable', provider: this.id, mode: this.mode, reason: 'No executable local inference runtime is available in the current web runtime.', reasonCode: images.length ? 'VISION_RUNTIME_UNAVAILABLE' : 'LOCAL_RUNTIME_UNAVAILABLE' };
     if (runtimeState === 'ERROR') return { state: 'unavailable', provider: this.id, mode: this.mode, reason: 'Local runtime preparation failed.', reasonCode: 'MODEL_LOAD_FAILED' };
