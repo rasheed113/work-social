@@ -7,9 +7,10 @@ import { WebModelDownloader } from '../model/webModelDownloader';
 import { PRIMARY_LOCAL_TEXT_MODEL } from '../model/primaryLocalTextModel';
 import { DefaultLocalInferenceRuntime } from './localInferenceRuntime';
 import { LocalInferenceRuntimeError, type LocalInferenceRuntime } from './localInferenceContracts';
-import type { ModelDownloader, ModelStorage } from '../model/modelContracts';
+import type { ModelDownloader, ModelInstallResult, ModelStorage } from '../model/modelContracts';
+
 const registry = new InMemoryModelRegistry(); const storage = new WebModelStorage(); const modelManager = new ModelManager(registry, storage, { getDeviceCapability }); modelManager.registerModel(PRIMARY_LOCAL_TEXT_MODEL); const adapter = new BrowserLocalInferenceAdapter(); const runtime = new DefaultLocalInferenceRuntime(adapter); const downloader = new WebModelDownloader(); let preparePromise: Promise<void> | null = null;
-export const webLocalAi = { modelManager, runtime, downloader, async prepare(): Promise<void> { if (preparePromise) return preparePromise; preparePromise = preparePrimaryModel(modelManager, storage, downloader, runtime); try { await preparePromise; } finally { preparePromise = null; } } };
+export const webLocalAi = { modelManager, runtime, downloader, async prepare(): Promise<void> { if (preparePromise) return preparePromise; preparePromise = preparePrimaryModel(modelManager, storage, downloader, runtime); try { await preparePromise; } finally { preparePromise = null; } }, async importLocalModel(file: File, signal?: AbortSignal): Promise<ModelInstallResult> { return modelManager.importLocalFile(PRIMARY_LOCAL_TEXT_MODEL.id, file, signal); } };
 export async function preparePrimaryModel(manager: ModelManager, modelStorage: ModelStorage, modelDownloader: ModelDownloader, localRuntime: LocalInferenceRuntime): Promise<void> {
   let discovered;
   try { discovered = await manager.discoverInstalledModels(); } catch (error) { throw preparationError(error, 'MODEL_STORAGE_READ_FAILED', 'The installed local model could not be read from browser storage.'); }
