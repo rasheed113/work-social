@@ -3,10 +3,14 @@ import type { InferenceRequest, InferenceResponse, InferenceStreamEvent, LocalIn
 import { LocalInferenceRuntimeError } from './localInferenceContracts';
 
 const CAPABILITIES: LocalInferenceCapabilities = Object.freeze({ textGeneration: true, visionInput: false, multimodalInput: false, streaming: true, cancellation: true });
-export const WLLAMA_ASSET_CONFIG = Object.freeze({ default: '/wllama/wllama.wasm' });
-export const WLLAMA_COMPAT_CONFIG = Object.freeze({ wasm: '/wllama-compat/wllama.wasm', worker: '/wllama-compat/wllama.js' });
+const DEFAULT_WLLAMA_WASM_PATH = 'wllama/wllama.wasm';
+const DEFAULT_COMPAT_WASM_PATH = 'wllama-compat/wllama.wasm';
+const DEFAULT_COMPAT_WORKER_PATH = 'wllama-compat/wllama.js';
+export const WLLAMA_ASSET_CONFIG = Object.freeze({ default: resolvePublicAsset(DEFAULT_WLLAMA_WASM_PATH) });
+export const WLLAMA_COMPAT_CONFIG = Object.freeze({ wasm: resolvePublicAsset(DEFAULT_COMPAT_WASM_PATH), worker: resolvePublicAsset(DEFAULT_COMPAT_WORKER_PATH) });
 type WllamaEngine = Wllama & { setCompat: (compat: null | 'default' | { wasm: string; worker: string }) => void };
 type WllamaEngineFactory = () => WllamaEngine;
+type FetchLike = typeof fetch;
 
 /** Mirrors wllama's compatibility decision without depending on its private helpers. */
 export function needsWllamaCompat(webAssembly: typeof WebAssembly = WebAssembly): boolean {
@@ -23,19 +27,27 @@ export function needsWllamaCompat(webAssembly: typeof WebAssembly = WebAssembly)
 export class BrowserLocalInferenceAdapter implements LocalInferenceEngineAdapter {
   readonly name = 'wllama-llama.cpp-wasm'; readonly streaming = true; readonly cancellation = true; readonly capabilities = CAPABILITIES;
   private engine: WllamaEngine | null = null; private loadedModelKey: string | null = null;
-  constructor(private readonly createEngine: WllamaEngineFactory = () => new Wllama(WLLAMA_ASSET_CONFIG, { logger: LoggerWithoutDebug }) as WllamaEngine) {}
+  constructor(
+    private readonly createEngine: WllamaEngineFactory = () => new Wllama(WLLAMA_ASSET_CONFIG, { logger: LoggerWithoutDebug }) as WllamaEngine,
+    private readonly fetchAsset: FetchLike = (...args) => fetch(...args),
+  ) {}
 
   async initialize(): Promise<void> {
     if (this.engine) return;
     if (typeof WebAssembly === 'undefined') throw new LocalInferenceRuntimeError('RUNTIME_UNAVAILABLE', 'WebAssembly is unavailable in this browser.');
     try {
       this.engine = this.createEngine();
-      // Phase 18.1 forced non-compat mode. That breaks browsers without JSPI/MEMORY64.
-      // Keep the default wllama path on capable browsers and use bundled compat assets only when required.
-      if (needsWllamaCompat()) this.engine.setCompat(WLLAMA_COMPAT_CONFIG);
+      if (needsWllamaCompat()) {
+        await assertAssetFetchable(WLLAMA_COMPAT_CONFIG.wasm, 'WLLAMA_COMPAT_WASM_FETCH_FAILED', this.fetchAsset);
+        await assertAssetFetchable(WLLAMA_COMPAT_CONFIG.worker, 'WLLAMA_WORKER_ASSET_FAILED', this.fetchAsset);
+        this.engine.setCompat(WLLAMA_COMPAT_CONFIG);
+      } else {
+        await assertAssetFetchable(WLLAMA_ASSET_CONFIG.default, 'WLLAMA_WASM_FETCH_FAILED', this.fetchAsset);
+      }
     } catch (error) {
       this.engine = null;
-      throw new LocalInferenceRuntimeError('RUNTIME_UNAVAILABLE', sanitizeEngineError(error));
+      if (error instanceof LocalInferenceRuntimeError) throw error;
+      throw new LocalInferenceRuntimeError('RUNTIME_INITIALIZATION_FAILED', sanitizeEngineError(error));
     }
   }
 
@@ -85,6 +97,20 @@ export class BrowserLocalInferenceAdapter implements LocalInferenceEngineAdapter
   }
   async cancel(): Promise<void> {}
   async dispose(): Promise<void> { if (!this.engine) return; try { await this.engine.exit(); } finally { this.engine = null; this.loadedModelKey = null; } }
+}
+
+async function assertAssetFetchable(url: string, code: 'WLLAMA_WASM_FETCH_FAILED' | 'WLLAMA_COMPAT_WASM_FETCH_FAILED' | 'WLLAMA_WORKER_ASSET_FAILED', fetchImpl: FetchLike): Promise<void> {
+  try {
+    const response = await fetchImpl(url, { cache: 'no-store' });
+    if (!response.ok) throw new LocalInferenceRuntimeError(code, 'A required local runtime asset returned an unexpected HTTP response.');
+  } catch (error) {
+    if (error instanceof LocalInferenceRuntimeError) throw error;
+    throw new LocalInferenceRuntimeError(code, 'A required local runtime asset could not be fetched.');
+  }
+}
+function resolvePublicAsset(path: string): string {
+  const base = typeof import.meta.env === 'object' && typeof import.meta.env.BASE_URL === 'string' ? import.meta.env.BASE_URL : '/';
+  return `${base.replace(/\/$/, '')}/${path.replace(/^\//, '')}`;
 }
 function toWllamaMessages(request: InferenceRequest): Array<{ role: 'system' | 'user' | 'assistant'; content: string }> { return request.messages.filter((message) => message.role !== 'tool').map((message) => ({ role: message.role as 'system' | 'user' | 'assistant', content: message.content })); }
 type ChatResponseShape = { choices?: Array<{ message?: { content?: unknown }; finish_reason?: unknown }>; usage?: { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number } };

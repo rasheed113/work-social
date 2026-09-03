@@ -23,7 +23,7 @@ function AiChatModeBridge() {
     setLocalStatus({ state: 'unavailable', provider: 'local', mode: 'offline', reason: 'Preparing the verified local model…', reasonCode: 'MODEL_VERIFYING' });
     void localProvider.prepare().then(() => localProvider.getRoutingStatus()).then((status) => { if (active) setLocalStatus(status); }).catch((error: unknown) => {
       if (!active) return; const code = error && typeof error === 'object' && 'code' in error ? String((error as { code?: unknown }).code) : ''; const reason = error instanceof Error ? error.message : 'The local model could not be prepared.';
-      const knownCodes = new Set(['MODEL_NOT_INSTALLED', 'MODEL_INVALID', 'MODEL_INCOMPATIBLE', 'MODEL_LOAD_FAILED', 'RUNTIME_UNAVAILABLE', 'OFFLINE_TEXT_AI_UNAVAILABLE', 'INSUFFICIENT_RESOURCES', 'RUNTIME_INITIALIZING', 'MODEL_LOADING']);
+      const knownCodes = new Set(['MODEL_NOT_INSTALLED', 'MODEL_INVALID', 'MODEL_INCOMPATIBLE', 'MODEL_DOWNLOAD_FAILED', 'WLLAMA_WASM_FETCH_FAILED', 'WLLAMA_COMPAT_WASM_FETCH_FAILED', 'WLLAMA_WORKER_ASSET_FAILED', 'MODEL_STORAGE_READ_FAILED', 'MODEL_STORAGE_WRITE_FAILED', 'MODEL_LOAD_FAILED', 'RUNTIME_INITIALIZATION_FAILED', 'RUNTIME_UNAVAILABLE', 'OFFLINE_TEXT_AI_UNAVAILABLE', 'INSUFFICIENT_RESOURCES', 'RUNTIME_INITIALIZING', 'MODEL_LOADING']);
       setLocalStatus({ state: 'unavailable', provider: 'local', mode: 'offline', reason, reasonCode: (knownCodes.has(code) ? code : reason.includes('INELIGIBLE') ? 'MODEL_INCOMPATIBLE' : 'MODEL_LOAD_FAILED') as AiProviderStatus['reasonCode'] });
     });
     return () => { active = false; };

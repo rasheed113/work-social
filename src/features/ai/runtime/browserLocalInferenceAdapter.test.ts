@@ -1,10 +1,8 @@
 import assert from 'node:assert/strict';
 import { BrowserLocalInferenceAdapter, WLLAMA_COMPAT_CONFIG, WLLAMA_ASSET_CONFIG, needsWllamaCompat } from './browserLocalInferenceAdapter';
-import { verifiedModelReferenceBrand, type VerifiedLocalModelReference } from './localInferenceContracts';
+import { LocalInferenceRuntimeError, verifiedModelReferenceBrand, type VerifiedLocalModelReference } from './localInferenceContracts';
 
-let loaded = false;
-let disposed = false;
-const calls: string[] = [];
+let loaded = false; let disposed = false; const calls: string[] = [];
 const fakeEngine = {
   setCompat(compat: unknown) { assert.deepEqual(compat, WLLAMA_COMPAT_CONFIG); calls.push('setCompat'); },
   isModelLoaded() { return loaded; },
@@ -12,6 +10,7 @@ const fakeEngine = {
   async createChatCompletion(options: Record<string, unknown>) { calls.push(options.stream === true ? 'stream' : 'generate'); if (options.stream === true) return (async function* () { yield { choices: [{ delta: { content: 'engine-output' }, finish_reason: 'stop' }] }; })(); return { choices: [{ message: { content: 'engine-output' }, finish_reason: 'stop' }], usage: { prompt_tokens: 3, completion_tokens: 1, total_tokens: 4 } }; },
   async exit() { loaded = false; disposed = true; calls.push('exit'); },
 };
+const okFetch: typeof fetch = async () => new Response('', { status: 200 });
 const model: VerifiedLocalModelReference = {
   model: { id: 'test', name: 'test', version: '1', type: 'TEXT', format: 'GGUF', sizeBytes: 4, sha256: 'x', architectureRequirements: { supportedArchitectures: [] }, memoryRequirements: { requiredRamBytes: 1 }, storageRequirements: { requiredFreeStorageBytes: 1 }, platformRequirements: { requiredPlatform: 'any' }, downloadSource: null, availability: 'AVAILABLE', status: 'INSTALLED' },
   [verifiedModelReferenceBrand]: true,
@@ -19,18 +18,25 @@ const model: VerifiedLocalModelReference = {
 };
 
 async function run(): Promise<void> {
-  assert.deepEqual(WLLAMA_ASSET_CONFIG, { default: '/wllama/wllama.wasm' });
-  assert.deepEqual(WLLAMA_COMPAT_CONFIG, { wasm: '/wllama-compat/wllama.wasm', worker: '/wllama-compat/wllama.js' });
+  assert.equal(WLLAMA_ASSET_CONFIG.default.endsWith('/wllama/wllama.wasm'), true);
+  assert.equal(WLLAMA_COMPAT_CONFIG.wasm.endsWith('/wllama-compat/wllama.wasm'), true);
+  assert.equal(WLLAMA_COMPAT_CONFIG.worker.endsWith('/wllama-compat/wllama.js'), true);
   const noJspi = { Suspending: undefined } as unknown as typeof WebAssembly;
   assert.equal(needsWllamaCompat(noJspi), true, 'browsers without JSPI require compat assets');
   const jspiButNoMemory64 = { Suspending: function () {} } as unknown as typeof WebAssembly;
   assert.equal(needsWllamaCompat(jspiButNoMemory64), true, 'browsers without MEMORY64 require compat assets');
-  const adapter = new BrowserLocalInferenceAdapter(() => fakeEngine as never);
+  const adapter = new BrowserLocalInferenceAdapter(() => fakeEngine as never, okFetch);
   assert.equal(adapter.capabilities.textGeneration, true); assert.equal(adapter.capabilities.streaming, true); assert.equal(adapter.capabilities.cancellation, true);
   await adapter.initialize(); await adapter.loadModel(model);
   const response = await adapter.generate({ messages: [{ id: '1', conversationId: 'c', role: 'user', content: 'hello' }] }, new AbortController().signal);
   assert.equal(response.text, 'engine-output'); assert.equal(response.usage.totalTokens, 4);
   const events: string[] = []; for await (const event of adapter.stream({ messages: [{ id: '1', conversationId: 'c', role: 'user', content: 'hello' }] }, new AbortController().signal)) events.push(event.type === 'TOKEN' ? event.text : event.type);
-  assert.deepEqual(events, ['engine-output', 'COMPLETE']); await adapter.cancel(); await adapter.dispose(); assert.equal(disposed, true); assert.deepEqual(calls, ['setCompat', 'loadModel', 'generate', 'stream', 'exit']); console.log('browserLocalInferenceAdapter.test.ts: PASS');
+  assert.deepEqual(events, ['engine-output', 'COMPLETE']); await adapter.cancel(); await adapter.dispose(); assert.equal(disposed, true); assert.deepEqual(calls, ['setCompat', 'loadModel', 'generate', 'stream', 'exit']);
+
+  const compatWasmFailure = new BrowserLocalInferenceAdapter(() => fakeEngine as never, async (input) => input.toString().includes('wllama-compat/wllama.wasm') ? Promise.reject(new TypeError('Failed to fetch')) : new Response('', { status: 200 }));
+  await assert.rejects(() => compatWasmFailure.initialize(), (error: unknown) => error instanceof LocalInferenceRuntimeError && error.code === 'WLLAMA_COMPAT_WASM_FETCH_FAILED');
+  const workerFailure = new BrowserLocalInferenceAdapter(() => fakeEngine as never, async (input) => input.toString().includes('wllama-compat/wllama.js') ? Promise.reject(new TypeError('Failed to fetch')) : new Response('', { status: 200 }));
+  await assert.rejects(() => workerFailure.initialize(), (error: unknown) => error instanceof LocalInferenceRuntimeError && error.code === 'WLLAMA_WORKER_ASSET_FAILED');
+  console.log('browserLocalInferenceAdapter.test.ts: PASS');
 }
 run().catch((error: unknown) => { console.error(error); throw error; });

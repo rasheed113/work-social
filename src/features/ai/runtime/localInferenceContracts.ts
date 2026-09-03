@@ -56,12 +56,10 @@ export interface LocalInferenceRuntime {
   stream(request: InferenceRequest): AsyncIterable<InferenceStreamEvent>;
   cancel(): Promise<void>;
   getStatus(): LocalInferenceRuntimeStatus;
-  /** Optional for backward-compatible injected runtimes; the default runtime always exposes it. */
   getCapabilities?(): LocalInferenceCapabilities;
   dispose(): Promise<void>;
 }
 
-/** Platform adapter boundary. No Android/JNI/native-specific API is exposed here. */
 export interface LocalInferenceEngineAdapter {
   readonly name: string;
   readonly streaming: boolean;
@@ -81,6 +79,13 @@ export type LocalInferenceErrorCode =
   | 'MODEL_NOT_INSTALLED'
   | 'MODEL_INVALID'
   | 'MODEL_INCOMPATIBLE'
+  | 'MODEL_DOWNLOAD_FAILED'
+  | 'WLLAMA_WASM_FETCH_FAILED'
+  | 'WLLAMA_COMPAT_WASM_FETCH_FAILED'
+  | 'WLLAMA_WORKER_ASSET_FAILED'
+  | 'MODEL_STORAGE_READ_FAILED'
+  | 'MODEL_STORAGE_WRITE_FAILED'
+  | 'RUNTIME_INITIALIZATION_FAILED'
   | 'RUNTIME_UNAVAILABLE'
   | 'MODEL_LOAD_FAILED'
   | 'INFERENCE_FAILED'

@@ -2,103 +2,21 @@ export type AiRequestModality = 'TEXT' | 'VISION' | 'MULTIMODAL';
 export type AiProviderId = 'gemini' | 'local';
 export type AiProviderMode = 'online' | 'offline';
 
-export interface AiMessage {
-  id: string;
-  conversationId: string;
-  role: 'system' | 'user' | 'assistant' | 'tool';
-  content: string;
-  toolName?: string | null;
-  toolCallId?: string | null;
-  metadata?: Record<string, unknown>;
-  createdAt?: string;
-  attachments?: AiAttachment[];
-}
-
-export interface AiAttachment {
-  id?: string;
-  kind: 'image' | 'file';
-  mimeType: string;
-  name?: string;
-  data?: Blob;
-  url?: string;
-  metadata?: Record<string, unknown>;
-}
-
-export interface AiGenerationOptions {
-  maxOutputTokens?: number;
-  temperature?: number;
-  topP?: number;
-  contextSize?: number;
-  stopSequences?: string[];
-  signal?: AbortSignal;
-}
-
-export interface AiResponse {
-  conversationId: string;
-  message: string;
-  pendingActions: Array<{ id: string; displaySummary: string; expiresAt: string }>;
-  provider: AiProviderId;
-  mode: AiProviderMode;
-}
-
+export interface AiMessage { id: string; conversationId: string; role: 'system' | 'user' | 'assistant' | 'tool'; content: string; toolName?: string | null; toolCallId?: string | null; metadata?: Record<string, unknown>; createdAt?: string; attachments?: AiAttachment[]; }
+export interface AiAttachment { id?: string; kind: 'image' | 'file'; mimeType: string; name?: string; data?: Blob; url?: string; metadata?: Record<string, unknown>; }
+export interface AiGenerationOptions { maxOutputTokens?: number; temperature?: number; topP?: number; contextSize?: number; stopSequences?: string[]; signal?: AbortSignal; }
+export interface AiResponse { conversationId: string; message: string; pendingActions: Array<{ id: string; displaySummary: string; expiresAt: string }>; provider: AiProviderId; mode: AiProviderMode; }
 export type AiRoutingMode = 'auto' | 'online' | 'offline';
 
 export type AiRoutingReasonCode =
-  | 'LOCAL_RUNTIME_READY'
-  | 'LOCAL_RUNTIME_UNAVAILABLE'
-  | 'MODEL_NOT_INSTALLED'
-  | 'MODEL_DOWNLOADING'
-  | 'MODEL_VERIFYING'
-  | 'MODEL_LOADING'
-  | 'MODEL_INVALID'
-  | 'MODEL_INCOMPATIBLE'
-  | 'MODEL_LOAD_FAILED'
-  | 'INSUFFICIENT_RESOURCES'
-  | 'UNSUPPORTED_ATTACHMENT'
-  | 'ONLINE_EXPLICIT'
-  | 'OFFLINE_EXPLICIT'
-  | 'AUTO_LOCAL_SELECTED'
-  | 'AUTO_ONLINE_SELECTED'
-  | 'VISION_NOT_SUPPORTED'
-  | 'VISION_RUNTIME_UNAVAILABLE'
-  | 'OFFLINE_TEXT_AI_UNAVAILABLE'
-  | 'RUNTIME_UNAVAILABLE'
-  | 'RUNTIME_INITIALIZING'
-  | 'INFERENCE_FAILED';
-
-export type AiProviderStatusReasonCode = AiRoutingReasonCode | 'OFFLINE_TEXT_AI_UNAVAILABLE' | 'RUNTIME_UNAVAILABLE';
-
+  | 'LOCAL_RUNTIME_READY' | 'LOCAL_RUNTIME_UNAVAILABLE' | 'MODEL_NOT_INSTALLED' | 'MODEL_DOWNLOADING' | 'MODEL_VERIFYING' | 'MODEL_LOADING' | 'MODEL_INVALID' | 'MODEL_INCOMPATIBLE'
+  | 'MODEL_DOWNLOAD_FAILED' | 'WLLAMA_WASM_FETCH_FAILED' | 'WLLAMA_COMPAT_WASM_FETCH_FAILED' | 'WLLAMA_WORKER_ASSET_FAILED' | 'MODEL_STORAGE_READ_FAILED' | 'MODEL_STORAGE_WRITE_FAILED' | 'RUNTIME_INITIALIZATION_FAILED'
+  | 'MODEL_LOAD_FAILED' | 'INSUFFICIENT_RESOURCES' | 'UNSUPPORTED_ATTACHMENT' | 'ONLINE_EXPLICIT' | 'OFFLINE_EXPLICIT' | 'AUTO_LOCAL_SELECTED' | 'AUTO_ONLINE_SELECTED'
+  | 'VISION_NOT_SUPPORTED' | 'VISION_RUNTIME_UNAVAILABLE' | 'OFFLINE_TEXT_AI_UNAVAILABLE' | 'RUNTIME_UNAVAILABLE' | 'RUNTIME_INITIALIZING' | 'INFERENCE_FAILED';
+export type AiProviderStatusReasonCode = AiRoutingReasonCode;
 export type AiRoute =
   | { provider: 'gemini'; mode: 'online'; reason: string; reasonCode: AiRoutingReasonCode }
   | { provider: 'local'; mode: 'offline'; reason: string; reasonCode: AiRoutingReasonCode };
-
-export class AiRoutingError extends Error {
-  constructor(
-    readonly code: AiRoutingReasonCode,
-    readonly mode: AiRoutingMode,
-    readonly provider: 'local',
-    message: string,
-  ) {
-    super(message);
-    this.name = 'AiRoutingError';
-  }
-}
-
-export interface AiProviderStatus {
-  state: 'ready' | 'unavailable';
-  provider: AiProviderId;
-  mode: AiProviderMode;
-  reason?: string;
-  reasonCode?: AiProviderStatusReasonCode;
-}
-
-export interface AiProvider {
-  readonly id: AiProviderId;
-  readonly mode: AiProviderMode;
-  getStatus(): AiProviderStatus;
-  sendMessage(
-    messages: AiMessage[],
-    attachments?: AiAttachment[],
-    options?: AiGenerationOptions,
-  ): Promise<AiResponse>;
-}
+export class AiRoutingError extends Error { constructor(readonly code: AiRoutingReasonCode, readonly mode: AiRoutingMode, readonly provider: 'local', message: string) { super(message); this.name = 'AiRoutingError'; } }
+export interface AiProviderStatus { state: 'ready' | 'unavailable'; provider: AiProviderId; mode: AiProviderMode; reason?: string; reasonCode?: AiProviderStatusReasonCode; }
+export interface AiProvider { readonly id: AiProviderId; readonly mode: AiProviderMode; getStatus(): AiProviderStatus; sendMessage(messages: AiMessage[], attachments?: AiAttachment[], options?: AiGenerationOptions): Promise<AiResponse>; }

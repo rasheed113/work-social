@@ -12,94 +12,20 @@ import type { DeviceCapability } from '../device/deviceCapability';
 import type { AiResponse } from '../providers/contracts';
 
 const GIB = 1024 ** 3;
-const capability: DeviceCapability = {
-  supported: true, tier: 'STANDARD', availableRam: 5 * GIB, totalRam: 6 * GIB, cpuCores: 8,
-  architecture: 'x86_64', androidVersion: null, availableStorage: 10 * GIB,
-  thermalState: 'nominal', batteryLevel: 1, isCharging: true, reason: null, limitations: [], platform: 'web',
-};
-
-class TestStorage implements ModelStorage {
-  private readonly files = new Map<string, Blob>();
-  getModelPath(model: AiModel): string { return `${model.id}/${model.version}`; }
-  async exists(model: AiModel): Promise<boolean> { return this.files.has(this.getModelPath(model)); }
-  async getSize(model: AiModel): Promise<number | null> { return (await this.read(model))?.size ?? null; }
-  async write(model: AiModel, data: Blob): Promise<void> { this.files.set(this.getModelPath(model), data); }
-  async read(model: AiModel): Promise<Blob | null> { return this.files.get(this.getModelPath(model)) ?? null; }
-  async delete(model: AiModel): Promise<void> { this.files.delete(this.getModelPath(model)); }
-  async verifyChecksum(model: AiModel): Promise<boolean> { const data = await this.read(model); return !!data && !!model.sha256 && (await sha256Hex(data)) === model.sha256.toLowerCase(); }
-  async seed(model: AiModel, data: Blob): Promise<void> { await this.write(model, data); }
-}
-
+const capability: DeviceCapability = { supported: true, tier: 'STANDARD', availableRam: 5 * GIB, totalRam: 6 * GIB, cpuCores: 8, architecture: 'x86_64', androidVersion: null, availableStorage: 10 * GIB, thermalState: 'nominal', batteryLevel: 1, isCharging: true, reason: null, limitations: [], platform: 'web' };
+class TestStorage implements ModelStorage { private readonly files = new Map<string, Blob>(); getModelPath(model: AiModel): string { return `${model.id}/${model.version}`; } async exists(model: AiModel): Promise<boolean> { return this.files.has(this.getModelPath(model)); } async getSize(model: AiModel): Promise<number | null> { return (await this.read(model))?.size ?? null; } async write(model: AiModel, data: Blob): Promise<void> { this.files.set(this.getModelPath(model), data); } async read(model: AiModel): Promise<Blob | null> { return this.files.get(this.getModelPath(model)) ?? null; } async delete(model: AiModel): Promise<void> { this.files.delete(this.getModelPath(model)); } async verifyChecksum(model: AiModel): Promise<boolean> { const data = await this.read(model); return !!data && !!model.sha256 && (await sha256Hex(data)) === model.sha256.toLowerCase(); } async seed(model: AiModel, data: Blob): Promise<void> { await this.write(model, data); } }
 class TestDevice implements DeviceCapabilityProvider { getDeviceCapability(): Promise<DeviceCapability> { return Promise.resolve(capability); } }
-
-class TestDownloader implements ModelDownloader {
-  calls = 0;
-  constructor(private readonly data: Blob) {}
-  async download(): Promise<Blob> { this.calls += 1; return this.data; }
-  cancel(): void {}
-}
-
-class TestAdapter implements LocalInferenceEngineAdapter {
-  readonly name = 'lifecycle-test'; readonly streaming = true; readonly cancellation = true;
-  initializeCalls = 0; loadCalls = 0; generateCalls = 0; loaded = false;
-  constructor(private readonly failInitialization = false) {}
-  async initialize(): Promise<void> { this.initializeCalls += 1; if (this.failInitialization) throw new Error('test initialization failure'); }
-  async loadModel(reference: VerifiedLocalModelReference): Promise<void> { this.loadCalls += 1; await reference.readVerifiedModel(); this.loaded = true; }
-  async unloadModel(): Promise<void> { this.loaded = false; }
-  async generate(_request: InferenceRequest): Promise<InferenceResponse> { this.generateCalls += 1; return { text: 'hello from local test engine', finishReason: 'STOP', usage: { promptTokens: null, completionTokens: null, totalTokens: null }, runtimeMetadata: { provider: 'local', runtime: this.name, modelId: PRIMARY_LOCAL_TEXT_MODEL.id, modelVersion: '1' } }; }
-  async *stream(): AsyncIterable<never> { return; }
-  async cancel(): Promise<void> {}
-  async dispose(): Promise<void> { this.loaded = false; }
-}
-
+class TestDownloader implements ModelDownloader { calls = 0; constructor(private readonly data: Blob) {} async download(): Promise<Blob> { this.calls += 1; return this.data; } cancel(): void {} }
+class TestAdapter implements LocalInferenceEngineAdapter { readonly name = 'lifecycle-test'; readonly streaming = true; readonly cancellation = true; initializeCalls = 0; loadCalls = 0; generateCalls = 0; loaded = false; constructor(private readonly failInitialization = false) {} async initialize(): Promise<void> { this.initializeCalls += 1; if (this.failInitialization) throw new Error('test initialization failure'); } async loadModel(reference: VerifiedLocalModelReference): Promise<void> { this.loadCalls += 1; await reference.readVerifiedModel(); this.loaded = true; } async unloadModel(): Promise<void> { this.loaded = false; } async generate(_request: InferenceRequest): Promise<InferenceResponse> { this.generateCalls += 1; return { text: 'hello from local test engine', finishReason: 'STOP', usage: { promptTokens: null, completionTokens: null, totalTokens: null }, runtimeMetadata: { provider: 'local', runtime: this.name, modelId: PRIMARY_LOCAL_TEXT_MODEL.id, modelVersion: '1' } }; } async *stream(): AsyncIterable<never> { return; } async cancel(): Promise<void> {} async dispose(): Promise<void> { this.loaded = false; } }
 function assert(condition: boolean, message: string): void { if (!condition) throw new Error(message); }
 function equal<T>(actual: T, expected: T, message: string): void { assert(actual === expected, `${message}: expected ${String(expected)}, got ${String(actual)}`); }
 function fixtureModel(sha256: string): AiModel { return { ...PRIMARY_LOCAL_TEXT_MODEL, version: '1', sizeBytes: 1, sha256, status: 'NOT_INSTALLED', availability: 'UNKNOWN' }; }
 function createManager(storage: TestStorage, model: AiModel): ModelManager { const manager = new ModelManager(new InMemoryModelRegistry(), storage, new TestDevice()); manager.registerModel(model); return manager; }
-
-async function alreadyInstalledIsLoaded(): Promise<void> {
-  const data = new Blob(['already-installed']); const checksum = await sha256Hex(data); const model = fixtureModel(checksum); const storage = new TestStorage(); await storage.seed(model, data);
-  const manager = createManager(storage, model); const downloader = new TestDownloader(new Blob(['should-not-download'])); const adapter = new TestAdapter(); const runtime = new DefaultLocalInferenceRuntime(adapter);
-  equal(manager.getModel(model.id)?.status, 'NOT_INSTALLED', 'already-installed fixture starts with uninstalled metadata');
-  await preparePrimaryModel(manager, storage, downloader, runtime);
-  equal(manager.getModel(model.id)?.status, 'INSTALLED', 'already-installed fixture is discovered and verified'); equal(runtime.getStatus(), 'MODEL_READY', 'already-installed preparation reaches MODEL_READY');
-  equal(adapter.initializeCalls, 1, 'already-installed preparation initializes runtime'); equal(adapter.loadCalls, 1, 'already-installed preparation loads verified model'); equal(downloader.calls, 0, 'already-installed preparation does not redownload');
-  const provider = new LocalAiProvider(runtime, manager, model.id); const status = await provider.getRoutingStatus(); equal(status.state, 'ready', 'routing status is ready after preparation');
-}
-
-async function downloadThenLoad(): Promise<void> {
-  const data = new Blob(['downloaded-model']); const checksum = await sha256Hex(data); const model = fixtureModel(checksum); const storage = new TestStorage(); const manager = createManager(storage, model); const downloader = new TestDownloader(data); const adapter = new TestAdapter(); const runtime = new DefaultLocalInferenceRuntime(adapter);
-  equal(manager.getModel(model.id)?.status, 'NOT_INSTALLED', 'download fixture starts not installed');
-  await preparePrimaryModel(manager, storage, downloader, runtime);
-  equal(manager.getModel(model.id)?.status, 'INSTALLED', 'downloaded model is installed only after verification'); equal(runtime.getStatus(), 'MODEL_READY', 'download preparation reaches MODEL_READY'); equal(downloader.calls, 1, 'missing model downloads exactly once'); equal(adapter.loadCalls, 1, 'downloaded verified model is loaded');
-}
-
-async function preparationIsIdempotent(): Promise<void> {
-  const data = new Blob(['idempotent-model']); const checksum = await sha256Hex(data); const model = fixtureModel(checksum); const storage = new TestStorage(); const manager = createManager(storage, model); const downloader = new TestDownloader(data); const adapter = new TestAdapter(); const runtime = new DefaultLocalInferenceRuntime(adapter);
-  await preparePrimaryModel(manager, storage, downloader, runtime); await preparePrimaryModel(manager, storage, downloader, runtime);
-  equal(adapter.initializeCalls, 1, 'idempotent preparation initializes only once'); equal(adapter.loadCalls, 1, 'idempotent preparation loads only once'); equal(downloader.calls, 1, 'idempotent preparation does not redownload'); equal(runtime.getStatus(), 'MODEL_READY', 'idempotent preparation remains MODEL_READY');
-}
-
-async function invalidChecksumBlocksExecution(): Promise<void> {
-  const model = fixtureModel('0'.repeat(64)); const storage = new TestStorage(); const manager = createManager(storage, model); const downloader = new TestDownloader(new Blob(['wrong-bytes'])); const adapter = new TestAdapter(); const runtime = new DefaultLocalInferenceRuntime(adapter);
-  try { await preparePrimaryModel(manager, storage, downloader, runtime); throw new Error('invalid checksum was accepted'); }
-  catch (error) { assert(error instanceof Error && /LOCAL_MODEL_INSTALL_FAILED: INVALID/.test(error.message), 'invalid checksum did not block preparation'); }
-  equal(manager.getModel(model.id)?.status, 'INVALID', 'invalid checksum marks model invalid'); equal(adapter.initializeCalls, 0, 'invalid checksum never initializes runtime'); equal(adapter.loadCalls, 0, 'invalid checksum never loads model');
-}
-
-async function initializationFailureIsNotReady(): Promise<void> {
-  const data = new Blob(['init-failure-model']); const checksum = await sha256Hex(data); const model = fixtureModel(checksum); const storage = new TestStorage(); await storage.seed(model, data); const manager = createManager(storage, model); const adapter = new TestAdapter(true); const runtime = new DefaultLocalInferenceRuntime(adapter); const provider = new LocalAiProvider(runtime, manager, model.id);
-  try { await preparePrimaryModel(manager, storage, new TestDownloader(data), runtime); throw new Error('runtime initialization unexpectedly succeeded'); }
-  catch (error) { assert(error instanceof LocalInferenceRuntimeError && error.code === 'MODEL_LOAD_FAILED', 'runtime initialization failure was not surfaced as a runtime load failure'); }
-  equal(runtime.getStatus(), 'ERROR', 'runtime initialization failure leaves runtime in ERROR'); const status = await provider.getRoutingStatus(); equal(status.state, 'unavailable', 'failed runtime is not reported ready');
-}
-
-async function localGenerationAndOfflineIsolation(): Promise<void> {
-  const data = new Blob(['generation-model']); const checksum = await sha256Hex(data); const model = fixtureModel(checksum); const storage = new TestStorage(); const manager = createManager(storage, model); const adapter = new TestAdapter(); const runtime = new DefaultLocalInferenceRuntime(adapter); await preparePrimaryModel(manager, storage, new TestDownloader(data), runtime);
-  const local = new LocalAiProvider(runtime, manager, model.id); let geminiCalls = 0; const gemini = { id: 'gemini' as const, mode: 'online' as const, getStatus: () => ({ state: 'ready' as const, provider: 'gemini' as const, mode: 'online' as const }), sendMessage: async (): Promise<AiResponse> => { geminiCalls += 1; throw new Error('Gemini must not be invoked for OFFLINE.'); } }; const router = new AiRouter(gemini, local);
-  const route = await router.route('offline'); equal(route.provider, 'local', 'explicit offline routes to local provider'); const response = await router.sendMessage([{ id: 'm', conversationId: 'c', role: 'user', content: 'Hi' }], [], { mode: 'offline' });
-  equal(response.message, 'hello from local test engine', 'offline response comes from local runtime'); equal(adapter.generateCalls, 1, 'offline generation reaches local runtime'); equal(geminiCalls, 0, 'offline generation never calls Gemini');
-}
-
-async function main(): Promise<void> { await alreadyInstalledIsLoaded(); await downloadThenLoad(); await preparationIsIdempotent(); await invalidChecksumBlocksExecution(); await initializationFailureIsNotReady(); await localGenerationAndOfflineIsolation(); console.log('Browser local AI lifecycle tests passed: preparation, verified handoff, MODEL_READY activation, idempotence, integrity, failure state, routing, and local generation.'); }
+async function alreadyInstalledIsLoaded(): Promise<void> { const data = new Blob(['already-installed']); const checksum = await sha256Hex(data); const model = fixtureModel(checksum); const storage = new TestStorage(); await storage.seed(model, data); const manager = createManager(storage, model); const downloader = new TestDownloader(new Blob(['should-not-download'])); const adapter = new TestAdapter(); const runtime = new DefaultLocalInferenceRuntime(adapter); await preparePrimaryModel(manager, storage, downloader, runtime); equal(runtime.getStatus(), 'MODEL_READY', 'already-installed preparation reaches MODEL_READY'); equal(adapter.initializeCalls, 1, 'already-installed preparation initializes runtime'); equal(adapter.loadCalls, 1, 'already-installed preparation loads verified model'); equal(downloader.calls, 0, 'already-installed preparation does not redownload'); const provider = new LocalAiProvider(runtime, manager, model.id); equal((await provider.getRoutingStatus()).state, 'ready', 'routing status is ready after preparation'); }
+async function downloadThenLoad(): Promise<void> { const data = new Blob(['downloaded-model']); const checksum = await sha256Hex(data); const model = fixtureModel(checksum); const storage = new TestStorage(); const manager = createManager(storage, model); const downloader = new TestDownloader(data); const adapter = new TestAdapter(); const runtime = new DefaultLocalInferenceRuntime(adapter); await preparePrimaryModel(manager, storage, downloader, runtime); equal(manager.getModel(model.id)?.status, 'INSTALLED', 'downloaded model is installed only after verification'); equal(runtime.getStatus(), 'MODEL_READY', 'download preparation reaches MODEL_READY'); equal(downloader.calls, 1, 'missing model downloads exactly once'); equal(adapter.loadCalls, 1, 'downloaded verified model is loaded'); }
+async function preparationIsIdempotent(): Promise<void> { const data = new Blob(['idempotent-model']); const checksum = await sha256Hex(data); const model = fixtureModel(checksum); const storage = new TestStorage(); const manager = createManager(storage, model); const downloader = new TestDownloader(data); const adapter = new TestAdapter(); const runtime = new DefaultLocalInferenceRuntime(adapter); await preparePrimaryModel(manager, storage, downloader, runtime); await preparePrimaryModel(manager, storage, downloader, runtime); equal(adapter.initializeCalls, 1, 'idempotent preparation initializes only once'); equal(adapter.loadCalls, 1, 'idempotent preparation loads only once'); equal(downloader.calls, 1, 'idempotent preparation does not redownload'); }
+async function invalidChecksumBlocksExecution(): Promise<void> { const model = fixtureModel('0'.repeat(64)); const storage = new TestStorage(); const manager = createManager(storage, model); const adapter = new TestAdapter(); const runtime = new DefaultLocalInferenceRuntime(adapter); try { await preparePrimaryModel(manager, storage, new TestDownloader(new Blob(['wrong-bytes'])), runtime); throw new Error('invalid checksum was accepted'); } catch (error) { assert(error instanceof LocalInferenceRuntimeError && error.code === 'MODEL_INVALID', 'invalid checksum did not block preparation with MODEL_INVALID'); } equal(manager.getModel(model.id)?.status, 'INVALID', 'invalid checksum marks model invalid'); equal(adapter.initializeCalls, 0, 'invalid checksum never initializes runtime'); }
+async function initializationFailureIsNotReady(): Promise<void> { const data = new Blob(['init-failure-model']); const checksum = await sha256Hex(data); const model = fixtureModel(checksum); const storage = new TestStorage(); await storage.seed(model, data); const manager = createManager(storage, model); const adapter = new TestAdapter(true); const runtime = new DefaultLocalInferenceRuntime(adapter); const provider = new LocalAiProvider(runtime, manager, model.id); try { await preparePrimaryModel(manager, storage, new TestDownloader(data), runtime); throw new Error('runtime initialization unexpectedly succeeded'); } catch (error) { assert(error instanceof LocalInferenceRuntimeError && error.code === 'RUNTIME_INITIALIZATION_FAILED', 'runtime initialization failure was not classified correctly'); } equal(runtime.getStatus(), 'ERROR', 'runtime initialization failure leaves runtime in ERROR'); equal((await provider.getRoutingStatus()).state, 'unavailable', 'failed runtime is not reported ready'); }
+async function localGenerationAndOfflineIsolation(): Promise<void> { const data = new Blob(['generation-model']); const checksum = await sha256Hex(data); const model = fixtureModel(checksum); const storage = new TestStorage(); const manager = createManager(storage, model); const adapter = new TestAdapter(); const runtime = new DefaultLocalInferenceRuntime(adapter); await preparePrimaryModel(manager, storage, new TestDownloader(data), runtime); const local = new LocalAiProvider(runtime, manager, model.id); let geminiCalls = 0; const gemini = { id: 'gemini' as const, mode: 'online' as const, getStatus: () => ({ state: 'ready' as const, provider: 'gemini' as const, mode: 'online' as const }), sendMessage: async (): Promise<AiResponse> => { geminiCalls += 1; throw new Error('Gemini must not be invoked for OFFLINE.'); } }; const router = new AiRouter(gemini, local); equal((await router.route('offline')).provider, 'local', 'explicit offline routes to local provider'); const response = await router.sendMessage([{ id: 'm', conversationId: 'c', role: 'user', content: 'Hi' }], [], { mode: 'offline' }); equal(response.message, 'hello from local test engine', 'offline response comes from local runtime'); equal(adapter.generateCalls, 1, 'offline generation reaches local runtime'); equal(geminiCalls, 0, 'offline generation never calls Gemini'); }
+async function main(): Promise<void> { await alreadyInstalledIsLoaded(); await downloadThenLoad(); await preparationIsIdempotent(); await invalidChecksumBlocksExecution(); await initializationFailureIsNotReady(); await localGenerationAndOfflineIsolation(); console.log('Browser local AI lifecycle tests passed.'); }
 main().catch((error: unknown) => { console.error(error); throw error; });
