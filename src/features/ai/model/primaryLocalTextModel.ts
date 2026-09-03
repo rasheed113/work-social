@@ -7,7 +7,7 @@ export const PRIMARY_LOCAL_TEXT_MODEL: AiModel = {
   type: 'TEXT',
   format: 'GGUF',
   sizeBytes: 491400032,
-  sha256: '74a4da8c9fdbcd15bd1f6d01d621410d31d6fc00986f5eb687824e7b93d7a9db',
+  sha256: '74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db',
   architectureRequirements: { supportedArchitectures: ['arm64-v8a', 'arm64', 'arm', 'x86_64', 'x86', 'amd64'] },
   memoryRequirements: { requiredRamBytes: 2 * 1024 ** 3 },
   storageRequirements: { requiredFreeStorageBytes: 700 * 1024 ** 2 },
