@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { LocalAiDiagnosticCard } from './LocalAiDiagnosticCard';
 const diagnostic = { stage: 'WLLAMA_COMPAT_WASM' as const, code: 'WLLAMA_COMPAT_WASM_FETCH_FAILED', message: 'The browser could not fetch wllama.wasm.', resource: 'wllama.wasm', url: 'https://example.com/assets/wllama.wasm', status: 404, statusText: 'Not Found', responseType: 'basic', errorName: undefined, timestamp: new Date().toISOString() };
