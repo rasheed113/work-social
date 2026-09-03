@@ -1,5 +1,5 @@
 export type LocalAiDiagnosticStage =
-  | 'MODEL_DOWNLOAD' | 'MODEL_STORAGE_READ' | 'MODEL_STORAGE_WRITE'
+  | 'MODEL_DOWNLOAD' | 'MODEL_IMPORT' | 'MODEL_STORAGE_READ' | 'MODEL_STORAGE_WRITE'
   | 'WLLAMA_WASM' | 'WLLAMA_COMPAT_WASM' | 'WLLAMA_JS' | 'WLLAMA_WORKER'
   | 'RUNTIME_INITIALIZATION' | 'MODEL_LOAD' | 'INFERENCE';
 
@@ -24,6 +24,13 @@ export interface LocalAiDiagnostic {
   errorName?: string;
   errorMessage?: string;
   cause?: string;
+  filename?: string;
+  expectedBytes?: number;
+  actualBytes?: number;
+  sha256?: string;
+  checksum?: 'PASS' | 'FAIL';
+  gguf?: 'VALID' | 'INVALID';
+  storage?: 'SUCCESS' | 'FAILED' | 'ABORTED';
   timestamp: string;
   modelId?: string;
   modelVersion?: string;
@@ -32,7 +39,9 @@ export interface LocalAiDiagnostic {
 const STAGES: Record<string, LocalAiDiagnosticStage> = {
   MODEL_DOWNLOAD_FAILED: 'MODEL_DOWNLOAD', MODEL_DOWNLOAD_HTTP_FAILED: 'MODEL_DOWNLOAD', MODEL_DOWNLOAD_FETCH_FAILED: 'MODEL_DOWNLOAD',
   MODEL_DOWNLOAD_RESPONSE_READ_FAILED: 'MODEL_DOWNLOAD', MODEL_DOWNLOAD_ABORTED: 'MODEL_DOWNLOAD', MODEL_DOWNLOAD_INCOMPLETE: 'MODEL_DOWNLOAD',
-  MODEL_DOWNLOAD_CHECKSUM_FAILED: 'MODEL_DOWNLOAD', MODEL_STORAGE_READ_FAILED: 'MODEL_STORAGE_READ', MODEL_STORAGE_WRITE_FAILED: 'MODEL_STORAGE_WRITE',
+  MODEL_DOWNLOAD_CHECKSUM_FAILED: 'MODEL_DOWNLOAD', MODEL_IMPORT_SIZE_FAILED: 'MODEL_IMPORT', MODEL_IMPORT_GGUF_INVALID: 'MODEL_IMPORT',
+  MODEL_IMPORT_CHECKSUM_FAILED: 'MODEL_IMPORT', MODEL_IMPORT_STORAGE_VERIFY_FAILED: 'MODEL_IMPORT', MODEL_IMPORT_ABORTED: 'MODEL_IMPORT', MODEL_IMPORT_VERIFIED: 'MODEL_IMPORT',
+  MODEL_STORAGE_READ_FAILED: 'MODEL_STORAGE_READ', MODEL_STORAGE_WRITE_FAILED: 'MODEL_STORAGE_WRITE',
   WLLAMA_WASM_FETCH_FAILED: 'WLLAMA_WASM', WLLAMA_COMPAT_WASM_FETCH_FAILED: 'WLLAMA_COMPAT_WASM', WLLAMA_JS_FETCH_FAILED: 'WLLAMA_JS',
   WLLAMA_WORKER_ASSET_FAILED: 'WLLAMA_WORKER', RUNTIME_INITIALIZATION_FAILED: 'RUNTIME_INITIALIZATION', MODEL_LOAD_FAILED: 'MODEL_LOAD', INFERENCE_FAILED: 'INFERENCE',
 };
@@ -56,6 +65,12 @@ export function sanitizeMessage(value: string): string {
 }
 
 export function diagnosticNextAction(diagnostic: LocalAiDiagnostic): string {
+  if (diagnostic.code === 'MODEL_IMPORT_SIZE_FAILED') return 'Select the original GGUF file with the required byte size.';
+  if (diagnostic.code === 'MODEL_IMPORT_GGUF_INVALID') return 'Select a valid GGUF model file.';
+  if (diagnostic.code === 'MODEL_IMPORT_CHECKSUM_FAILED') return 'The selected model bytes do not match the required Work Social model; nothing was installed.';
+  if (diagnostic.code === 'MODEL_IMPORT_ABORTED') return 'The local model import was cancelled.';
+  if (diagnostic.code === 'MODEL_IMPORT_STORAGE_VERIFY_FAILED') return 'The model was written to browser storage but failed the post-write checksum verification.';
+  if (diagnostic.code === 'MODEL_IMPORT_VERIFIED') return 'The model is persisted and can proceed through the existing runtime preparation path.';
   if (diagnostic.code === 'MODEL_DOWNLOAD_HTTP_FAILED' && diagnostic.status !== undefined) return 'The server returned an HTTP error; check whether the model resource is publicly readable.';
   if (diagnostic.code === 'MODEL_DOWNLOAD_FETCH_FAILED') return 'No HTTP response was received. Check browser network/CORS access to the model resource.';
   if (diagnostic.code === 'MODEL_DOWNLOAD_RESPONSE_READ_FAILED') return 'HTTP headers were received, but the response body could not be read to completion.';
@@ -81,6 +96,13 @@ export function formatDiagnosticForClipboard(diagnostic: LocalAiDiagnostic): str
     diagnostic.contentType && `Content-Type: ${diagnostic.contentType}`,
     diagnostic.downloadedBytes !== undefined && `Downloaded bytes: ${diagnostic.downloadedBytes}`,
     diagnostic.elapsedMs !== undefined && `Elapsed ms: ${diagnostic.elapsedMs}`,
+    diagnostic.filename && `Filename: ${diagnostic.filename}`,
+    diagnostic.expectedBytes !== undefined && `Expected bytes: ${diagnostic.expectedBytes}`,
+    diagnostic.actualBytes !== undefined && `Actual bytes: ${diagnostic.actualBytes}`,
+    diagnostic.sha256 && `SHA-256: ${diagnostic.sha256}`,
+    diagnostic.checksum && `Checksum: ${diagnostic.checksum}`,
+    diagnostic.gguf && `GGUF: ${diagnostic.gguf}`,
+    diagnostic.storage && `Storage: ${diagnostic.storage}`,
     diagnostic.browserUserAgent && `Browser: ${diagnostic.browserUserAgent}`,
     diagnostic.errorName && `Browser error: ${diagnostic.errorName}: ${diagnostic.errorMessage ?? ''}`,
     diagnostic.cause && `Cause: ${diagnostic.cause}`, diagnostic.modelId && `Model: ${diagnostic.modelId}`, diagnostic.modelVersion && `Version: ${diagnostic.modelVersion}`,
