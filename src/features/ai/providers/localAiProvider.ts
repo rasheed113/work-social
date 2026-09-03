@@ -38,7 +38,13 @@ export class LocalAiProvider implements AiProvider {
     const model = this.modelManager.getModel(this.modelId);
     if (!model || model.status === 'NOT_INSTALLED' || model.status === 'DOWNLOADING' || model.status === 'VERIFYING') return { state: 'unavailable', provider: this.id, mode: this.mode, reason: 'No verified local model is installed.', reasonCode: model?.status === 'DOWNLOADING' ? 'MODEL_DOWNLOADING' : model?.status === 'VERIFYING' ? 'MODEL_VERIFYING' : 'MODEL_NOT_INSTALLED' };
     if (model.status === 'INVALID' || model.status === 'FAILED') return { state: 'unavailable', provider: this.id, mode: this.mode, reason: 'The local model is invalid and cannot be executed.', reasonCode: 'MODEL_INVALID' };
-    if (runtimeState === 'MODEL_READY') return { state: 'ready', provider: this.id, mode: this.mode, reason: 'Verified local model and executable local runtime are ready.', reasonCode: 'LOCAL_RUNTIME_READY' };
+    if (runtimeState === 'MODEL_READY') {
+      const provenance = this.runtime === webLocalAi.runtime && this.modelManager === webLocalAi.modelManager ? webLocalAi.getProvenance() : null;
+      const reason = provenance
+        ? `Verified local model is loaded and executable. provider=${provenance.provider}; runtime=${provenance.runtime}; model=${provenance.model}; source=${provenance.source}.`
+        : 'Verified local model and executable local runtime are ready; exact source provenance is not known in this session.';
+      return { state: 'ready', provider: this.id, mode: this.mode, reason, reasonCode: 'LOCAL_RUNTIME_READY' };
+    }
     return { state: 'unavailable', provider: this.id, mode: this.mode, reason: runtimeState === 'UNINITIALIZED' ? 'Local runtime is not initialized.' : `Local runtime state is ${runtimeState}.`, reasonCode: runtimeState === 'INITIALIZING' ? 'RUNTIME_INITIALIZING' : runtimeState === 'LOADING_MODEL' ? 'MODEL_LOADING' : runtimeState === 'ERROR' ? 'MODEL_LOAD_FAILED' : 'LOCAL_RUNTIME_UNAVAILABLE' };
   }
 
@@ -71,7 +77,11 @@ export class LocalAiProvider implements AiProvider {
       if (message.includes('LOCAL_MODEL_NOT_INSTALLED')) return { state: 'unavailable', provider: this.id, mode: this.mode, reason: message, reasonCode: 'MODEL_NOT_INSTALLED' };
       return { state: 'unavailable', provider: this.id, mode: this.mode, reason: message, reasonCode: 'MODEL_INVALID' };
     }
-    return { state: 'ready', provider: this.id, mode: this.mode, reason: images.length ? 'Verified vision-capable local model and vision-capable runtime are ready.' : 'Verified local model and executable local runtime are ready.', reasonCode: 'LOCAL_RUNTIME_READY' };
+    const provenance = this.runtime === webLocalAi.runtime && this.modelManager === webLocalAi.modelManager ? webLocalAi.getProvenance() : null;
+    const reason = provenance
+      ? `Verified local model is loaded and executable. provider=${provenance.provider}; runtime=${provenance.runtime}; model=${provenance.model}; source=${provenance.source}.`
+      : images.length ? 'Verified vision-capable local model and vision-capable runtime are ready; exact source provenance is not known in this session.' : 'Verified local model and executable local runtime are ready; exact source provenance is not known in this session.';
+    return { state: 'ready', provider: this.id, mode: this.mode, reason, reasonCode: 'LOCAL_RUNTIME_READY' };
   }
 
   async sendMessage(messages: AiMessage[], attachments: AiAttachment[] = [], options?: AiGenerationOptions): Promise<AiResponse> {
