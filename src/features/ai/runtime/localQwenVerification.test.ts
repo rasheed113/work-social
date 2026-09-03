@@ -9,7 +9,7 @@ function equal<T>(actual: T, expected: T, message: string): void { assert(actual
 
 async function main(): Promise<void> {
   equal(PRIMARY_LOCAL_TEXT_MODEL.sizeBytes, 491400032, 'authoritative Qwen GGUF size');
-  equal(PRIMARY_LOCAL_TEXT_MODEL.sha256, '74a4da8c9fdbcd15bd1f6d01d621410d31d6fc00986f5eb687824e7b93d7a9db', 'authoritative Qwen GGUF SHA-256');
+  equal(PRIMARY_LOCAL_TEXT_MODEL.sha256, '74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db', 'authoritative Qwen GGUF SHA-256');
 
   const bytes = new Blob(['verified-local-gguf-test']);
   const checksum = await sha256Hex(bytes);
