@@ -64,7 +64,8 @@ async function run(): Promise<void> {
     if (route.provider !== 'gemini' || route.mode !== 'online' || route.reasonCode !== 'AUTO_ONLINE_SELECTED') throw new Error('AUTO did not deterministically select Gemini for an ineligible local provider.');
   }
 
-  const attachment: AiAttachment = { kind: 'image', mimeType: 'image/png' };
+  // Valid image fixture: the router must receive attachment metadata that satisfies the authoritative vision validator.
+  const attachment: AiAttachment = { id: 'router-image', kind: 'image', mimeType: 'image/png', metadata: { reference: 'ref-router-image' } };
   const attachmentRoute = await new AiRouter(gemini, unavailableLocal('UNSUPPORTED_ATTACHMENT')).route('auto', [attachment]);
   if (attachmentRoute.provider !== 'gemini') throw new Error('AUTO selected local for an unsupported attachment.');
 
