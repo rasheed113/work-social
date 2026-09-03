@@ -7,18 +7,26 @@ const DATABASE_NAME = 'work-social-ai-models';
 const STORE_NAME = 'models';
 const STORAGE_NAMESPACE = 'models/';
 const PROVENANCE_NAMESPACE = 'provenance/';
+
 export class WebModelStorage implements ModelStorage {
   private databasePromise: Promise<IDBDatabase> | null = null;
+
   getModelPath(model: AiModel): string { return `${STORAGE_NAMESPACE}${encodeURIComponent(model.id)}/${encodeURIComponent(model.version)}`; }
   private getProvenancePath(model: AiModel): string { return `${PROVENANCE_NAMESPACE}${encodeURIComponent(model.id)}/${encodeURIComponent(model.version)}`; }
   async exists(model: AiModel): Promise<boolean> { return (await this.read(model)) !== null; }
   async getSize(model: AiModel): Promise<number | null> { const data = await this.read(model); return data?.size ?? null; }
-  async write(model: AiModel, data: Blob): Promise<void> { await this.withStore('readwrite', 'MODEL_STORAGE_WRITE_FAILED', model, (store) => store.put(data, this.getModelPath(model))); }
+
+  async write(model: AiModel, data: Blob): Promise<void> {
+    await this.withStore('readwrite', 'MODEL_STORAGE_WRITE_FAILED', model, (store) => store.put(data, this.getModelPath(model)));
+    await requestPersistentStorage();
+  }
+
   async read(model: AiModel): Promise<Blob | null> { return this.withStore<Blob | undefined>('readonly', 'MODEL_STORAGE_READ_FAILED', model, (store) => store.get(this.getModelPath(model))).then((data) => data ?? null); }
   async delete(model: AiModel): Promise<void> { await this.withStore('readwrite', 'MODEL_STORAGE_WRITE_FAILED', model, (store) => { const request = store.delete(this.getModelPath(model)); store.delete(this.getProvenancePath(model)); return request; }); }
   async verifyChecksum(model: AiModel): Promise<boolean> { if (!model.sha256) return false; const data = await this.read(model); if (!data) return false; try { return (await sha256Hex(data)) === model.sha256.toLowerCase(); } catch (error) { throw storageError('MODEL_STORAGE_READ_FAILED', 'Stored model checksum could not be computed.', model, error); } }
   async getProvenanceSource(model: AiModel): Promise<LocalModelSource | null> { const source = await this.withStore<LocalModelSource | undefined>('readonly', 'MODEL_STORAGE_READ_FAILED', model, (store) => store.get(this.getProvenancePath(model))); return source === 'imported-local-gguf' || source === 'downloaded-local-gguf' ? source : null; }
   async setProvenanceSource(model: AiModel, source: LocalModelSource): Promise<void> { await this.withStore('readwrite', 'MODEL_STORAGE_WRITE_FAILED', model, (store) => store.put(source, this.getProvenancePath(model))); }
+
   private openDatabase(): Promise<IDBDatabase> {
     if (this.databasePromise) return this.databasePromise;
     this.databasePromise = new Promise<IDBDatabase>((resolve, reject) => {
@@ -32,6 +40,7 @@ export class WebModelStorage implements ModelStorage {
     }).catch((error) => { this.databasePromise = null; throw error; });
     return this.databasePromise;
   }
+
   private async withStore<T = void>(mode: IDBTransactionMode, code: 'MODEL_STORAGE_READ_FAILED' | 'MODEL_STORAGE_WRITE_FAILED', model: AiModel, operation: (store: IDBObjectStore) => IDBRequest<T>): Promise<T> {
     let database: IDBDatabase;
     try { database = await this.openDatabase(); } catch (error) { throw storageError(code, 'IndexedDB database could not be opened.', model, error); }
@@ -49,6 +58,12 @@ export class WebModelStorage implements ModelStorage {
     });
   }
 }
+
+async function requestPersistentStorage(): Promise<void> {
+  if (typeof navigator === 'undefined' || !navigator.storage?.persist) return;
+  try { await navigator.storage.persist(); } catch { /* Browser may deny persistence; IndexedDB remains the primary store. */ }
+}
+
 function storageError(code: 'MODEL_STORAGE_READ_FAILED' | 'MODEL_STORAGE_WRITE_FAILED', message: string, model: AiModel, error?: unknown): LocalInferenceRuntimeError {
   const diagnostic: LocalAiDiagnostic = { stage: code === 'MODEL_STORAGE_READ_FAILED' ? 'MODEL_STORAGE_READ' : 'MODEL_STORAGE_WRITE', code, message, resource: 'IndexedDB model record', errorName: error instanceof Error ? error.name : undefined, errorMessage: error instanceof Error ? sanitizeMessage(error.message) : undefined, cause: error instanceof Error ? sanitizeMessage(error.message) : undefined, timestamp: new Date().toISOString(), modelId: model.id, modelVersion: model.version };
   return new LocalInferenceRuntimeError(code, message, diagnostic);
