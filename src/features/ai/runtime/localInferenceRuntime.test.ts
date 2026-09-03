@@ -14,13 +14,14 @@ function equal<T>(actual: T, expected: T, message: string): void { assert(actual
 
 class FakeAdapter implements LocalInferenceEngineAdapter {
   readonly name = 'fixture'; readonly streaming = true; readonly cancellation = true;
-  loaded = false; disposed = false; cancelled = false; lastRequest: InferenceRequest | null = null; blockNextStream = false;
+  loaded = false; disposed = false; cancelled = false; lastRequest: InferenceRequest | null = null; blockNextStream = false; failNextStream = false;
   async initialize(): Promise<void> {}
   async loadModel(modelRef: VerifiedLocalModelReference): Promise<void> { await modelRef.readVerifiedModel(); this.loaded = true; }
   async unloadModel(): Promise<void> { this.loaded = false; }
   async generate(): Promise<InferenceResponse> { throw new Error('runtime.generate must use the streaming adapter path'); }
   async *stream(request: InferenceRequest, signal: AbortSignal): AsyncIterable<InferenceStreamEvent> {
     this.lastRequest = request;
+    if (this.failNextStream) { this.failNextStream = false; yield { type: 'ERROR', error: new LocalInferenceRuntimeError('INFERENCE_FAILED', 'fixture generation failure') }; return; }
     if (this.blockNextStream) {
       this.blockNextStream = false;
       await new Promise<void>((resolve, reject) => {
@@ -60,13 +61,22 @@ async function run(): Promise<void> {
   equal(adapter.lastRequest?.messages.at(-1)?.content, urdu, 'Urdu Unicode reaches adapter unchanged');
   equal(runtime.getStatus(), 'MODEL_READY', 'Urdu generation returns to model ready');
 
+  adapter.failNextStream = true;
+  try { await runtime.generate(englishRequest); throw new Error('failed generation unexpectedly completed'); }
+  catch (error) { assert(error instanceof LocalInferenceRuntimeError && error.code === 'INFERENCE_FAILED', 'generation failure is surfaced honestly'); }
+  equal(runtime.getStatus(), 'MODEL_READY', 'generation failure preserves a reusable loaded-model state');
+  const retry = await runtime.generate({ ...englishRequest, messages: [{ ...englishRequest.messages[0], id: 'm-en-retry', content: 'hello again' }] });
+  equal(retry.text, 'hello', 'retry after generation failure starts a fresh generation');
+  equal(adapter.lastRequest?.messages.at(-1)?.content, 'hello again', 'retry request reaches adapter independently');
+  equal(runtime.getStatus(), 'MODEL_READY', 'retry leaves runtime reusable');
+
   adapter.blockNextStream = true;
   const generation = runtime.generate(englishRequest);
   await new Promise((resolve) => setTimeout(resolve, 0));
   equal(runtime.getStatus(), 'GENERATING', 'cancellation test reaches active generation');
   await runtime.cancel();
   try { await generation; throw new Error('cancelled generation completed'); }
-  catch (error) { assert(error instanceof LocalInferenceRuntimeError && error.code === 'INFERENCE_CANCELLED', 'cancellation is surfaced honestly'); }
+  catch (error) { assert(error instanceof LocalInferenceRuntimeError && error.code === 'INFERENCE_CANCELLED', 'cancelled generation is surfaced honestly'); }
   equal(adapter.cancelled, true, 'adapter cancellation is invoked');
   equal(runtime.getStatus(), 'MODEL_READY', 'cancellation preserves loaded model state');
 
@@ -82,6 +92,6 @@ async function run(): Promise<void> {
   try { await runtime.generate(englishRequest); throw new Error('generation after dispose accepted'); }
   catch (error) { assert(error instanceof LocalInferenceRuntimeError && error.code === 'INVALID_STATE', 'generation after dispose is rejected'); }
 
-  console.log('Local inference runtime tests passed: streaming generation, exact Urdu preservation, cancellation, lifecycle, cleanup.');
+  console.log('Local inference runtime tests passed: streaming generation, exact Urdu preservation, failure recovery, cancellation, lifecycle, cleanup.');
 }
 run().catch((error: unknown) => { console.error(error); throw error; });
