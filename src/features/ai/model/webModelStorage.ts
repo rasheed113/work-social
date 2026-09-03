@@ -1,4 +1,4 @@
-import type { AiModel, ModelStorage } from './modelContracts';
+import type { AiModel, LocalModelSource, ModelStorage } from './modelContracts';
 import { sha256Hex } from './sha256';
 import { LocalInferenceRuntimeError } from '../runtime/localInferenceContracts';
 import { sanitizeMessage, type LocalAiDiagnostic } from '../runtime/localAiDiagnostics';
@@ -6,15 +6,19 @@ import { sanitizeMessage, type LocalAiDiagnostic } from '../runtime/localAiDiagn
 const DATABASE_NAME = 'work-social-ai-models';
 const STORE_NAME = 'models';
 const STORAGE_NAMESPACE = 'models/';
+const PROVENANCE_NAMESPACE = 'provenance/';
 export class WebModelStorage implements ModelStorage {
   private databasePromise: Promise<IDBDatabase> | null = null;
   getModelPath(model: AiModel): string { return `${STORAGE_NAMESPACE}${encodeURIComponent(model.id)}/${encodeURIComponent(model.version)}`; }
+  private getProvenancePath(model: AiModel): string { return `${PROVENANCE_NAMESPACE}${encodeURIComponent(model.id)}/${encodeURIComponent(model.version)}`; }
   async exists(model: AiModel): Promise<boolean> { return (await this.read(model)) !== null; }
   async getSize(model: AiModel): Promise<number | null> { const data = await this.read(model); return data?.size ?? null; }
   async write(model: AiModel, data: Blob): Promise<void> { await this.withStore('readwrite', 'MODEL_STORAGE_WRITE_FAILED', model, (store) => store.put(data, this.getModelPath(model))); }
   async read(model: AiModel): Promise<Blob | null> { return this.withStore<Blob | undefined>('readonly', 'MODEL_STORAGE_READ_FAILED', model, (store) => store.get(this.getModelPath(model))).then((data) => data ?? null); }
-  async delete(model: AiModel): Promise<void> { await this.withStore('readwrite', 'MODEL_STORAGE_WRITE_FAILED', model, (store) => store.delete(this.getModelPath(model))); }
+  async delete(model: AiModel): Promise<void> { await this.withStore('readwrite', 'MODEL_STORAGE_WRITE_FAILED', model, (store) => { store.delete(this.getModelPath(model)); store.delete(this.getProvenancePath(model)); }); }
   async verifyChecksum(model: AiModel): Promise<boolean> { if (!model.sha256) return false; const data = await this.read(model); if (!data) return false; try { return (await sha256Hex(data)) === model.sha256.toLowerCase(); } catch (error) { throw storageError('MODEL_STORAGE_READ_FAILED', 'Stored model checksum could not be computed.', model, error); } }
+  async getProvenanceSource(model: AiModel): Promise<LocalModelSource | null> { const source = await this.withStore<LocalModelSource | undefined>('readonly', 'MODEL_STORAGE_READ_FAILED', model, (store) => store.get(this.getProvenancePath(model))); return source === 'imported-local-gguf' || source === 'downloaded-local-gguf' ? source : null; }
+  async setProvenanceSource(model: AiModel, source: LocalModelSource): Promise<void> { await this.withStore('readwrite', 'MODEL_STORAGE_WRITE_FAILED', model, (store) => store.put(source, this.getProvenancePath(model))); }
   private openDatabase(): Promise<IDBDatabase> {
     if (this.databasePromise) return this.databasePromise;
     this.databasePromise = new Promise<IDBDatabase>((resolve, reject) => {
