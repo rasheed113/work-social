@@ -1,55 +1,12 @@
 import type { DeviceCapability } from '../device/deviceCapability';
-
-export type AiModelType = 'TEXT' | 'VISION' | 'MULTIMODAL';
-export type AiModelFormat = 'GGUF';
-export type ModelAvailability = 'AVAILABLE' | 'UNAVAILABLE' | 'UNKNOWN';
-
-export type ModelStatus =
-  | 'NOT_INSTALLED'
-  | 'DOWNLOADING'
-  | 'VERIFYING'
-  | 'INSTALLED'
-  | 'INVALID'
-  | 'REMOVING'
-  | 'FAILED';
-
-export interface ModelRequirements {
-  requiredRamBytes: number;
-  requiredFreeStorageBytes: number;
-  supportedArchitectures: string[];
-  requiredPlatform: 'android' | 'any';
-  minimumAndroidVersion?: number;
-}
-
-export interface AiModel {
-  id: string;
-  name: string;
-  version: string;
-  type: AiModelType;
-  format: AiModelFormat;
-  sizeBytes: number;
-  sha256: string | null;
-  architectureRequirements: Pick<ModelRequirements, 'supportedArchitectures'>;
-  memoryRequirements: Pick<ModelRequirements, 'requiredRamBytes'>;
-  storageRequirements: Pick<ModelRequirements, 'requiredFreeStorageBytes'>;
-  platformRequirements: Pick<ModelRequirements, 'requiredPlatform' | 'minimumAndroidVersion'>;
-  downloadSource: { kind: 'external'; uri: string } | null;
-  availability: ModelAvailability;
-  status: ModelStatus;
-}
-
-export type ModelEligibilityReasonCode =
-  | 'INSUFFICIENT_RAM'
-  | 'INSUFFICIENT_STORAGE'
-  | 'UNSUPPORTED_ARCHITECTURE'
-  | 'UNSUPPORTED_PLATFORM'
-  | 'ANDROID_VERSION_TOO_OLD'
-  | 'UNKNOWN_DEVICE_CAPABILITY';
-
-export interface ModelEligibilityReason { code: ModelEligibilityReasonCode; message: string; }
-export interface ModelEligibilityResult { eligible: boolean; reasons: ModelEligibilityReason[]; limitations: string[]; }
-export interface ModelInstallResult { model: AiModel; status: ModelStatus; eligibility: ModelEligibilityResult; }
-export interface ModelDownloadProgress { receivedBytes: number; totalBytes: number | null; }
-export interface ModelDownloader { download(model: AiModel, signal?: AbortSignal, onProgress?: (progress: ModelDownloadProgress) => void): Promise<Blob>; cancel(): void; }
+import type { LocalAiDiagnostic } from '../runtime/localAiDiagnostics';
+export type AiModelType = 'TEXT' | 'VISION' | 'MULTIMODAL'; export type AiModelFormat = 'GGUF'; export type ModelAvailability = 'AVAILABLE' | 'UNAVAILABLE' | 'UNKNOWN';
+export type ModelStatus = 'NOT_INSTALLED' | 'DOWNLOADING' | 'VERIFYING' | 'INSTALLED' | 'INVALID' | 'REMOVING' | 'FAILED';
+export interface ModelRequirements { requiredRamBytes: number; requiredFreeStorageBytes: number; supportedArchitectures: string[]; requiredPlatform: 'android' | 'any'; minimumAndroidVersion?: number; }
+export interface AiModel { id: string; name: string; version: string; type: AiModelType; format: AiModelFormat; sizeBytes: number; sha256: string | null; architectureRequirements: Pick<ModelRequirements, 'supportedArchitectures'>; memoryRequirements: Pick<ModelRequirements, 'requiredRamBytes'>; storageRequirements: Pick<ModelRequirements, 'requiredFreeStorageBytes'>; platformRequirements: Pick<ModelRequirements, 'requiredPlatform' | 'minimumAndroidVersion'>; downloadSource: { kind: 'external'; uri: string } | null; availability: ModelAvailability; status: ModelStatus; }
+export type ModelEligibilityReasonCode = 'INSUFFICIENT_RAM' | 'INSUFFICIENT_STORAGE' | 'UNSUPPORTED_ARCHITECTURE' | 'UNSUPPORTED_PLATFORM' | 'ANDROID_VERSION_TOO_OLD' | 'UNKNOWN_DEVICE_CAPABILITY';
+export interface ModelEligibilityReason { code: ModelEligibilityReasonCode; message: string; } export interface ModelEligibilityResult { eligible: boolean; reasons: ModelEligibilityReason[]; limitations: string[]; }
+export interface ModelInstallResult { model: AiModel; status: ModelStatus; eligibility: ModelEligibilityResult; diagnostic?: LocalAiDiagnostic; }
+export interface ModelDownloadProgress { receivedBytes: number; totalBytes: number | null; } export interface ModelDownloader { download(model: AiModel, signal?: AbortSignal, onProgress?: (progress: ModelDownloadProgress) => void): Promise<Blob>; cancel(): void; }
 export interface ModelStorage { getModelPath(model: AiModel): string; exists(model: AiModel): Promise<boolean>; getSize(model: AiModel): Promise<number | null>; write(model: AiModel, data: Blob): Promise<void>; read(model: AiModel): Promise<Blob | null>; delete(model: AiModel): Promise<void>; verifyChecksum(model: AiModel): Promise<boolean>; }
 export interface DeviceCapabilityProvider { getDeviceCapability(): Promise<DeviceCapability>; }

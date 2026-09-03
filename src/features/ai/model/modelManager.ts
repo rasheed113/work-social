@@ -1,131 +1,22 @@
 import { evaluateLocalModel, type DeviceCapability } from '../device/deviceCapability';
-import { verifiedModelReferenceBrand, type VerifiedLocalModelReference } from '../runtime/localInferenceContracts';
-import type {
-  AiModel, DeviceCapabilityProvider, ModelEligibilityReason, ModelEligibilityReasonCode,
-  ModelEligibilityResult, ModelInstallResult, ModelStorage,
-} from './modelContracts';
+import { verifiedModelReferenceBrand, LocalInferenceRuntimeError, type VerifiedLocalModelReference } from '../runtime/localInferenceContracts';
+import { sanitizeMessage, type LocalAiDiagnostic } from '../runtime/localAiDiagnostics';
+import type { AiModel, DeviceCapabilityProvider, ModelEligibilityReason, ModelEligibilityReasonCode, ModelEligibilityResult, ModelInstallResult, ModelStorage } from './modelContracts';
 import type { ModelRegistry } from './modelRegistry';
-
-/** Model lifecycle and the only authority allowed to issue a verified runtime handoff. */
 export class ModelManager {
   private readonly verificationPromises = new Map<string, Promise<VerifiedLocalModelReference>>();
-
-  constructor(
-    private readonly registry: ModelRegistry,
-    private readonly storage: ModelStorage,
-    private readonly device: DeviceCapabilityProvider,
-  ) {}
-  listModels(): AiModel[] { return this.registry.listModels(); }
-  getModel(id: string): AiModel | undefined { return this.registry.getModel(id); }
-  registerModel(model: AiModel): AiModel { return this.registry.registerModel({ ...model, availability: 'UNKNOWN', status: 'NOT_INSTALLED' }); }
-
-  async checkInstallationEligibility(modelId: string): Promise<ModelEligibilityResult> {
-    const model = this.requireModel(modelId); const capability = await this.device.getDeviceCapability();
-    const result = evaluateLocalModel(capability, {
-      minimumTotalRam: model.memoryRequirements.requiredRamBytes,
-      minimumFreeStorage: model.storageRequirements.requiredFreeStorageBytes,
-      supportedArchitectures: model.architectureRequirements.supportedArchitectures,
-      requiredPlatform: model.platformRequirements.requiredPlatform,
-    });
-    const reasons = result.reasons.map((message) => this.toReason(message, capability));
-    const minimumAndroid = model.platformRequirements.minimumAndroidVersion;
-    if (minimumAndroid !== undefined && capability.platform === 'android') {
-      const version = parseAndroidMajorVersion(capability.androidVersion);
-      if (version === null) reasons.push({ code: 'UNKNOWN_DEVICE_CAPABILITY', message: 'Android version is unknown; the model requirement cannot be evaluated conservatively.' });
-      else if (version < minimumAndroid) reasons.push({ code: 'ANDROID_VERSION_TOO_OLD', message: `Android ${minimumAndroid} or newer is required for this model.` });
-    }
-    const unique = uniqueReasons(reasons);
-    this.registry.updateAvailability(model.id, unique.length === 0 ? 'AVAILABLE' : 'UNAVAILABLE');
-    return { eligible: unique.length === 0, reasons: unique, limitations: [...new Set(result.limitations)] };
-  }
-
-  async installFromBlob(modelId: string, data: Blob): Promise<ModelInstallResult> {
-    const model = this.requireModel(modelId); const eligibility = await this.checkInstallationEligibility(modelId);
-    if (!eligibility.eligible) return { model: this.requireModel(modelId), status: 'NOT_INSTALLED', eligibility };
-    if (!model.sha256) {
-      const invalid = this.registry.updateStatus(model.id, 'INVALID') ?? model;
-      return { model: invalid, status: 'INVALID', eligibility };
-    }
-    this.registry.updateStatus(model.id, 'DOWNLOADING');
-    try {
-      await this.storage.write(model, data); this.registry.updateStatus(model.id, 'VERIFYING');
-      if (!(await this.storage.verifyChecksum(model))) {
-        try { await this.storage.delete(model); } catch { /* Preserve INVALID state. */ }
-        const invalid = this.registry.updateStatus(model.id, 'INVALID') ?? model;
-        return { model: invalid, status: 'INVALID', eligibility };
-      }
-      const installed = this.registry.updateStatus(model.id, 'INSTALLED') ?? model;
-      return { model: installed, status: 'INSTALLED', eligibility };
-    } catch {
-      const failed = this.registry.updateStatus(model.id, 'FAILED') ?? model;
-      return { model: failed, status: 'FAILED', eligibility };
-    }
-  }
-
-  async discoverInstalledModels(): Promise<AiModel[]> {
-    for (const model of this.registry.listModels()) {
-      if (!(await this.storage.exists(model))) { this.registry.updateStatus(model.id, 'NOT_INSTALLED'); continue; }
-      const valid = model.sha256 !== null && await this.storage.verifyChecksum(model);
-      this.registry.updateStatus(model.id, valid ? 'INSTALLED' : 'INVALID');
-    }
-    return this.registry.listModels();
-  }
-
-  /**
-   * Performs capability, installation, and checksum checks immediately before a runtime load.
-   * The returned branded reference is the only model source accepted by LocalInferenceRuntime.
-   * Concurrent callers for the same model share only the in-flight verification; no verification
-   * result is retained after the operation settles.
-   */
-  async getVerifiedModelReference(modelId: string): Promise<VerifiedLocalModelReference> {
-    const existing = this.verificationPromises.get(modelId);
-    if (existing) return existing;
-    const verification = this.verifyModelReference(modelId);
-    this.verificationPromises.set(modelId, verification);
-    try { return await verification; }
-    finally { if (this.verificationPromises.get(modelId) === verification) this.verificationPromises.delete(modelId); }
-  }
-
-  private async verifyModelReference(modelId: string): Promise<VerifiedLocalModelReference> {
-    const model = this.requireModel(modelId);
-    const eligibility = await this.checkInstallationEligibility(modelId);
-    if (!eligibility.eligible) throw new Error(`LOCAL_MODEL_INELIGIBLE: ${eligibility.reasons.map((r) => r.code).join(', ')}`);
-    if (model.status !== 'INSTALLED' || !model.sha256 || !(await this.storage.verifyChecksum(model))) {
-      this.registry.updateStatus(model.id, 'INVALID');
-      throw new Error('LOCAL_MODEL_NOT_VERIFIED: model must be installed and checksum-verified before inference.');
-    }
-    return {
-      model: { ...model },
-      [verifiedModelReferenceBrand]: true,
-      readVerifiedModel: async () => {
-        if (!(await this.storage.verifyChecksum(model))) {
-          this.registry.updateStatus(model.id, 'INVALID');
-          throw new Error('LOCAL_MODEL_NOT_VERIFIED: checksum verification failed during runtime handoff.');
-        }
-        const data = await this.storage.read(model);
-        if (!data) { this.registry.updateStatus(model.id, 'NOT_INSTALLED'); throw new Error('LOCAL_MODEL_NOT_INSTALLED: model data is missing.'); }
-        return data;
-      },
-    };
-  }
-
-  async removeInstalledModel(modelId: string): Promise<AiModel> {
-    const model = this.requireModel(modelId); this.registry.updateStatus(model.id, 'REMOVING');
-    try { await this.storage.delete(model); return this.registry.updateStatus(model.id, 'NOT_INSTALLED') ?? model; }
-    catch (error) { this.registry.updateStatus(model.id, 'FAILED'); throw error; }
-  }
-  removeModelMetadata(modelId: string): boolean { return this.registry.removeModel(modelId); }
-  private requireModel(id: string): AiModel { const model = this.registry.getModel(id); if (!model) throw new Error(`Managed model ${id} was not found.`); return model; }
-  private toReason(message: string, capability: DeviceCapability): ModelEligibilityReason {
-    let code: ModelEligibilityReasonCode = 'UNKNOWN_DEVICE_CAPABILITY';
-    if (message.includes('Total RAM is below')) code = 'INSUFFICIENT_RAM';
-    else if (message.includes('Available storage is below')) code = 'INSUFFICIENT_STORAGE';
-    else if (message.includes('CPU architecture') && message.includes('not supported')) code = 'UNSUPPORTED_ARCHITECTURE';
-    else if (message.includes('Android/native runtime') || message.includes('does not support local AI')) code = 'UNSUPPORTED_PLATFORM';
-    else if (message.includes('CPU architecture is unknown') || message.includes('storage is unknown') || message.includes('RAM is unknown')) code = 'UNKNOWN_DEVICE_CAPABILITY';
-    else if (capability.platform !== 'android' && message.includes('platform')) code = 'UNSUPPORTED_PLATFORM';
-    return { code, message };
-  }
+  constructor(private readonly registry: ModelRegistry, private readonly storage: ModelStorage, private readonly device: DeviceCapabilityProvider) {}
+  listModels(): AiModel[] { return this.registry.listModels(); } getModel(id: string): AiModel | undefined { return this.registry.getModel(id); } registerModel(model: AiModel): AiModel { return this.registry.registerModel({ ...model, availability: 'UNKNOWN', status: 'NOT_INSTALLED' }); }
+  async checkInstallationEligibility(modelId: string): Promise<ModelEligibilityResult> { const model = this.requireModel(modelId); const capability = await this.device.getDeviceCapability(); const result = evaluateLocalModel(capability, { minimumTotalRam: model.memoryRequirements.requiredRamBytes, minimumFreeStorage: model.storageRequirements.requiredFreeStorageBytes, supportedArchitectures: model.architectureRequirements.supportedArchitectures, requiredPlatform: model.platformRequirements.requiredPlatform }); const reasons = result.reasons.map((message) => this.toReason(message, capability)); const minimumAndroid = model.platformRequirements.minimumAndroidVersion; if (minimumAndroid !== undefined && capability.platform === 'android') { const version = parseAndroidMajorVersion(capability.androidVersion); if (version === null) reasons.push({ code: 'UNKNOWN_DEVICE_CAPABILITY', message: 'Android version is unknown; the model requirement cannot be evaluated conservatively.' }); else if (version < minimumAndroid) reasons.push({ code: 'ANDROID_VERSION_TOO_OLD', message: `Android ${minimumAndroid} or newer is required for this model.` }); } const unique = uniqueReasons(reasons); this.registry.updateAvailability(model.id, unique.length === 0 ? 'AVAILABLE' : 'UNAVAILABLE'); return { eligible: unique.length === 0, reasons: unique, limitations: [...new Set(result.limitations)] }; }
+  async installFromBlob(modelId: string, data: Blob): Promise<ModelInstallResult> { const model = this.requireModel(modelId); const eligibility = await this.checkInstallationEligibility(modelId); if (!eligibility.eligible) return { model: this.requireModel(modelId), status: 'NOT_INSTALLED', eligibility }; if (!model.sha256) { const invalid = this.registry.updateStatus(model.id, 'INVALID') ?? model; return { model: invalid, status: 'INVALID', eligibility, diagnostic: checksumDiagnostic(model, 'The model has no expected SHA-256 checksum.') }; } this.registry.updateStatus(model.id, 'DOWNLOADING'); try { await this.storage.write(model, data); this.registry.updateStatus(model.id, 'VERIFYING'); if (!(await this.storage.verifyChecksum(model))) { try { await this.storage.delete(model); } catch { /* Preserve INVALID state. */ } const invalid = this.registry.updateStatus(model.id, 'INVALID') ?? model; return { model: invalid, status: 'INVALID', eligibility, diagnostic: checksumDiagnostic(model, 'Downloaded model checksum does not match the expected SHA-256.') }; } const installed = this.registry.updateStatus(model.id, 'INSTALLED') ?? model; return { model: installed, status: 'INSTALLED', eligibility }; } catch (error) { const failed = this.registry.updateStatus(model.id, 'FAILED') ?? model; const diagnostic = error instanceof LocalInferenceRuntimeError ? error.diagnostic : storageDiagnostic(model, 'MODEL_STORAGE_WRITE_FAILED', 'The model could not be persisted in browser storage.', error); return { model: failed, status: 'FAILED', eligibility, diagnostic }; } }
+  async discoverInstalledModels(): Promise<AiModel[]> { for (const model of this.registry.listModels()) { if (!(await this.storage.exists(model))) { this.registry.updateStatus(model.id, 'NOT_INSTALLED'); continue; } const valid = model.sha256 !== null && await this.storage.verifyChecksum(model); this.registry.updateStatus(model.id, valid ? 'INSTALLED' : 'INVALID'); } return this.registry.listModels(); }
+  async getVerifiedModelReference(modelId: string): Promise<VerifiedLocalModelReference> { const existing = this.verificationPromises.get(modelId); if (existing) return existing; const verification = this.verifyModelReference(modelId); this.verificationPromises.set(modelId, verification); try { return await verification; } finally { if (this.verificationPromises.get(modelId) === verification) this.verificationPromises.delete(modelId); } }
+  private async verifyModelReference(modelId: string): Promise<VerifiedLocalModelReference> { const model = this.requireModel(modelId); const eligibility = await this.checkInstallationEligibility(modelId); if (!eligibility.eligible) throw new LocalInferenceRuntimeError('MODEL_INCOMPATIBLE', `Local model is not eligible: ${eligibility.reasons.map((r) => r.code).join(', ')}`, { stage: 'MODEL_STORAGE_READ', code: 'MODEL_INCOMPATIBLE', message: 'The local model failed device eligibility checks.', timestamp: new Date().toISOString(), modelId: model.id, modelVersion: model.version }); if (model.status !== 'INSTALLED' || !model.sha256 || !(await this.storage.verifyChecksum(model))) { this.registry.updateStatus(model.id, 'INVALID'); throw new LocalInferenceRuntimeError('MODEL_INVALID', 'The local model is not checksum-verified.', checksumDiagnostic(model, 'Stored model checksum verification failed during runtime handoff.')); } return { model: { ...model }, [verifiedModelReferenceBrand]: true, readVerifiedModel: async () => { if (!(await this.storage.verifyChecksum(model))) { this.registry.updateStatus(model.id, 'INVALID'); throw new LocalInferenceRuntimeError('MODEL_INVALID', 'The local model is not checksum-verified.', checksumDiagnostic(model, 'Checksum verification failed during runtime model read.')); } const data = await this.storage.read(model); if (!data) { this.registry.updateStatus(model.id, 'NOT_INSTALLED'); throw new LocalInferenceRuntimeError('MODEL_NOT_INSTALLED', 'Model data is missing from browser storage.', storageDiagnostic(model, 'MODEL_STORAGE_READ_FAILED', 'The verified model record is missing from IndexedDB.')); } return data; } }; }
+  async removeInstalledModel(modelId: string): Promise<AiModel> { const model = this.requireModel(modelId); this.registry.updateStatus(model.id, 'REMOVING'); try { await this.storage.delete(model); return this.registry.updateStatus(model.id, 'NOT_INSTALLED') ?? model; } catch (error) { this.registry.updateStatus(model.id, 'FAILED'); throw error; } }
+  removeModelMetadata(modelId: string): boolean { return this.registry.removeModel(modelId); } private requireModel(id: string): AiModel { const model = this.registry.getModel(id); if (!model) throw new Error(`Managed model ${id} was not found.`); return model; }
+  private toReason(message: string, capability: DeviceCapability): ModelEligibilityReason { let code: ModelEligibilityReasonCode = 'UNKNOWN_DEVICE_CAPABILITY'; if (message.includes('Total RAM is below')) code = 'INSUFFICIENT_RAM'; else if (message.includes('Available storage is below')) code = 'INSUFFICIENT_STORAGE'; else if (message.includes('CPU architecture') && message.includes('not supported')) code = 'UNSUPPORTED_ARCHITECTURE'; else if (message.includes('Android/native runtime') || message.includes('does not support local AI')) code = 'UNSUPPORTED_PLATFORM'; else if (message.includes('CPU architecture is unknown') || message.includes('storage is unknown') || message.includes('RAM is unknown')) code = 'UNKNOWN_DEVICE_CAPABILITY'; else if (capability.platform !== 'android' && message.includes('platform')) code = 'UNSUPPORTED_PLATFORM'; return { code, message }; }
 }
 function parseAndroidMajorVersion(value: string | null): number | null { if (!value) return null; const match = value.match(/\d+/); if (!match) return null; const parsed = Number(match[0]); return Number.isSafeInteger(parsed) && parsed >= 0 ? parsed : null; }
 function uniqueReasons(reasons: ModelEligibilityReason[]): ModelEligibilityReason[] { const seen = new Set<string>(); return reasons.filter((reason) => { const key = `${reason.code}:${reason.message}`; if (seen.has(key)) return false; seen.add(key); return true; }); }
+function storageDiagnostic(model: AiModel, code: 'MODEL_STORAGE_READ_FAILED' | 'MODEL_STORAGE_WRITE_FAILED', message: string, error?: unknown): LocalAiDiagnostic { return { stage: code === 'MODEL_STORAGE_READ_FAILED' ? 'MODEL_STORAGE_READ' : 'MODEL_STORAGE_WRITE', code, message, resource: 'IndexedDB model record', errorName: error instanceof Error ? error.name : undefined, errorMessage: error instanceof Error ? sanitizeMessage(error.message) : undefined, cause: error instanceof Error ? sanitizeMessage(error.message) : undefined, timestamp: new Date().toISOString(), modelId: model.id, modelVersion: model.version }; }
+function checksumDiagnostic(model: AiModel, message: string): LocalAiDiagnostic { return { stage: 'MODEL_DOWNLOAD', code: 'MODEL_CHECKSUM_FAILED', message, resource: 'Qwen GGUF model', url: model.downloadSource?.uri ? undefined : undefined, timestamp: new Date().toISOString(), modelId: model.id, modelVersion: model.version, cause: 'SHA-256 integrity verification failed.' }; }
