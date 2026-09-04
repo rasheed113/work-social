@@ -30,16 +30,18 @@ export class StrictOfflineInferenceRuntime implements LocalInferenceRuntime {
     const cleanupParent = linkAbortSignal(request.signal, controller);
     let timedOut = false;
     let timer: TimeoutHandle | null = null;
+    let rejectTimeout: ((reason?: unknown) => void) | null = null;
     const startedAt = nowMs();
     const timeout = () => {
       if (controller.signal.aborted) return;
       timedOut = true;
       offlineAiTrace('TIMEOUT', { generationId, elapsedMs: nowMs() - startedAt, timeoutMs: OFFLINE_GENERATION_TIMEOUT_MS });
       controller.abort();
+      rejectTimeout?.(timeoutError(generationId, startedAt));
     };
-    timer = this.setTimeoutImpl(timeout, OFFLINE_GENERATION_TIMEOUT_MS);
+    const timeoutPromise = new Promise<never>((_, reject) => { rejectTimeout = reject; timer = this.setTimeoutImpl(timeout, OFFLINE_GENERATION_TIMEOUT_MS); });
     try {
-      return await this.inner.generate({ ...request, signal: controller.signal });
+      return await Promise.race([this.inner.generate({ ...request, signal: controller.signal }), timeoutPromise]);
     } catch (error) {
       if (timedOut) throw timeoutError(generationId, startedAt);
       throw error;
@@ -55,21 +57,26 @@ export class StrictOfflineInferenceRuntime implements LocalInferenceRuntime {
     const cleanupParent = linkAbortSignal(request.signal, controller);
     let timedOut = false;
     let timer: TimeoutHandle | null = null;
+    let rejectTimeout: ((reason?: unknown) => void) | null = null;
     const startedAt = nowMs();
     const timeout = () => {
       if (controller.signal.aborted) return;
       timedOut = true;
       offlineAiTrace('TIMEOUT', { generationId, elapsedMs: nowMs() - startedAt, timeoutMs: OFFLINE_GENERATION_TIMEOUT_MS });
       controller.abort();
+      rejectTimeout?.(timeoutError(generationId, startedAt));
     };
-    timer = this.setTimeoutImpl(timeout, OFFLINE_GENERATION_TIMEOUT_MS);
+    const timeoutPromise = new Promise<never>((_, reject) => { rejectTimeout = reject; timer = this.setTimeoutImpl(timeout, OFFLINE_GENERATION_TIMEOUT_MS); });
+    const iterator = this.inner.stream({ ...request, signal: controller.signal })[Symbol.asyncIterator]();
     try {
-      for await (const event of this.inner.stream({ ...request, signal: controller.signal })) {
+      while (true) {
+        const result = await Promise.race([iterator.next(), timeoutPromise]);
+        if (result.done) break;
         if (timedOut) {
           yield { type: 'ERROR', error: timeoutError(generationId, startedAt) };
           return;
         }
-        yield event;
+        yield result.value;
       }
       if (timedOut) yield { type: 'ERROR', error: timeoutError(generationId, startedAt) };
     } catch (error) {
@@ -81,6 +88,7 @@ export class StrictOfflineInferenceRuntime implements LocalInferenceRuntime {
     } finally {
       if (timer !== null) this.clearTimeoutImpl(timer);
       cleanupParent();
+      if (timedOut && iterator.return) void iterator.return().catch(() => undefined);
     }
   }
 }
