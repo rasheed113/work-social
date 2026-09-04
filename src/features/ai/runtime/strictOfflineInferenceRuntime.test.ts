@@ -27,10 +27,10 @@ class FakeRuntime implements LocalInferenceRuntime {
 }
 
 async function run(): Promise<void> {
-  equal(OFFLINE_GENERATION_TIMEOUT_MS, 15_000, 'Offline generation deadline is exactly 15 seconds');
+  equal(OFFLINE_GENERATION_TIMEOUT_MS, 60_000, 'Offline generation deadline is exactly 60 seconds');
   const runtime = new FakeRuntime(); let timeoutHandler: (() => void) | null = null; let cleared = false;
   const strict = new StrictOfflineInferenceRuntime(runtime, {
-    setTimeoutImpl: (handler, timeout) => { equal(timeout, 15_000, 'authoritative timeout is 15 seconds'); timeoutHandler = handler; return {} as ReturnType<typeof setTimeout>; },
+    setTimeoutImpl: (handler, timeout) => { equal(timeout, 60_000, 'authoritative timeout is 60 seconds'); timeoutHandler = handler; return {} as ReturnType<typeof setTimeout>; },
     clearTimeoutImpl: () => { cleared = true; },
   });
   const request: InferenceRequest = { messages: [{ id: 'm', conversationId: 'c', role: 'user', content: 'hello' }] };
@@ -46,13 +46,13 @@ async function run(): Promise<void> {
   equal(events.length, 1, 'timeout emits exactly one terminal error');
   equal(events[0].type, 'ERROR', 'timeout is an error, not a completion');
   assert(events[0].type === 'ERROR' && events[0].error instanceof LocalInferenceRuntimeError && events[0].error.code === 'OFFLINE_GENERATION_TIMEOUT', 'timeout has an explicit failure code');
-  assert(events[0].type === 'ERROR' && events[0].error.message.includes('15 seconds'), 'timeout error is user-readable');
+  assert(events[0].type === 'ERROR' && events[0].error.message.includes('60 seconds'), 'timeout error is user-readable');
   equal(cleared, true, 'timeout timer is cleaned up');
 
   timeoutHandler = null; cleared = false; runtime.aborted = false;
   const success = await strict.generate(request);
   equal(success.text, 'ok', 'completed generation remains successful');
-  assert(timeoutHandler !== null, 'generate also arms the same 15-second deadline');
+  assert(timeoutHandler !== null, 'generate also arms the same 60-second deadline');
   equal(cleared, true, 'successful generation clears its timer');
 
   const parent = new AbortController(); timeoutHandler = null; cleared = false; runtime.aborted = false;
@@ -65,6 +65,6 @@ async function run(): Promise<void> {
   assert(abortedEvents[0].type === 'ERROR' && abortedEvents[0].error instanceof LocalInferenceRuntimeError && abortedEvents[0].error.code === 'INFERENCE_CANCELLED', 'explicit abort is not mislabeled as timeout');
   equal(cleared, true, 'abort timer is cleaned up');
 
-  console.log('Strict Offline inference tests passed: exact 15s timeout, underlying abort propagation, honest timeout failure, cleanup, success, explicit abort.');
+  console.log('Strict Offline inference tests passed: exact 60s timeout, underlying abort propagation, honest timeout failure, cleanup, success, explicit abort.');
 }
 run().catch((error: unknown) => { console.error(error); throw error; });
