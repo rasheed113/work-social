@@ -8,11 +8,13 @@ const CAPABILITIES: LocalInferenceCapabilities = Object.freeze({ textGeneration:
 const DEFAULT_WLLAMA_WASM_PATH = 'wllama/wllama.wasm';
 const DEFAULT_COMPAT_WASM_PATH = 'wllama-compat/wllama.wasm';
 const DEFAULT_COMPAT_WORKER_PATH = 'wllama-compat/wllama.js';
+const DEFAULT_WLLAMA_GPU_LAYERS = 99999;
 export const WLLAMA_ASSET_CONFIG = Object.freeze({ default: resolvePublicAsset(DEFAULT_WLLAMA_WASM_PATH) });
 export const WLLAMA_COMPAT_CONFIG = Object.freeze({ wasm: resolvePublicAsset(DEFAULT_COMPAT_WASM_PATH), worker: resolvePublicAsset(DEFAULT_COMPAT_WORKER_PATH) });
 type WllamaEngine = Wllama & { setCompat: (compat: null | 'default' | { wasm: string; worker: string }) => void };
 type WllamaEngineFactory = () => WllamaEngine;
 type FetchLike = typeof fetch;
+type WllamaRuntimeInspection = WllamaEngine & { isSupportWebGPU?: () => boolean; isMultithread?: () => boolean; getNumThreads?: () => number };
 
 export function needsWllamaCompat(webAssembly: typeof WebAssembly = WebAssembly): boolean {
   const hasJSPI = typeof (webAssembly as unknown as { Suspending?: unknown }).Suspending !== 'undefined';
@@ -67,8 +69,18 @@ export class BrowserLocalInferenceAdapter implements LocalInferenceEngineAdapter
       offlineAiTrace('WLLAMA_LOAD_STARTED', { modelId: model.model.id, modelVersion: model.model.version, bytes: data.size, nCtx: OFFLINE_WLLAMA_CONTEXT_SIZE, nBatch: OFFLINE_WLLAMA_BATCH_SIZE, nThreads });
       await this.engine.loadModel([data], { n_ctx: OFFLINE_WLLAMA_CONTEXT_SIZE, n_batch: OFFLINE_WLLAMA_BATCH_SIZE, n_threads: nThreads });
       const loaded = this.engine.isModelLoaded();
-      const actualThreads = loaded && typeof (this.engine as WllamaEngine & { getNumThreads?: () => number }).getNumThreads === 'function' ? (this.engine as WllamaEngine & { getNumThreads: () => number }).getNumThreads?.() : undefined;
+      const runtime = this.engine as WllamaRuntimeInspection;
+      const actualThreads = loaded && typeof runtime.getNumThreads === 'function' ? runtime.getNumThreads() : undefined;
       offlineAiTrace('MODEL_READY', { modelId: model.model.id, modelVersion: model.model.version, isModelLoaded: loaded, nCtx: OFFLINE_WLLAMA_CONTEXT_SIZE, nBatch: OFFLINE_WLLAMA_BATCH_SIZE, nThreads: actualThreads ?? nThreads, reused: false });
+      offlineAiTrace('OFFLINE_WLLAMA_RUNTIME_CONFIG', {
+        webgpu_supported: typeof runtime.isSupportWebGPU === 'function' ? runtime.isSupportWebGPU() : null,
+        multithread: loaded && typeof runtime.isMultithread === 'function' ? runtime.isMultithread() : null,
+        num_threads: actualThreads ?? nThreads,
+        context_size: OFFLINE_WLLAMA_CONTEXT_SIZE,
+        batch_size: OFFLINE_WLLAMA_BATCH_SIZE,
+        gpu_layers: DEFAULT_WLLAMA_GPU_LAYERS,
+        compat_mode: this.compatibilityRequired,
+      });
       if (!loaded) throw new Error('wllama.loadModel() completed without reporting a loaded model.');
       this.loadedModelKey = key;
       this.loadedModelMetadata = { modelId: model.model.id, modelVersion: model.model.version };
@@ -113,31 +125,45 @@ export class BrowserLocalInferenceAdapter implements LocalInferenceEngineAdapter
     let finishReason: InferenceResponse['finishReason'] = 'STOP';
     const startedAt = nowMs();
     const generationId = request.diagnosticRequestId ?? null;
+    let firstTokenAt: number | null = null;
+    let deltaCount = 0;
+    let wllamaWaitMs = 0;
+    let completed = false;
+    let cancelled = false;
+    let errored = false;
     try {
       const boundedMessages = boundOfflineMessages(request.messages);
       offlineAiTrace('CREATE_CHAT_COMPLETION_STARTED', { generationId, messageCount: boundedMessages.length, maxTokens: request.maxTokens, startedAtMs: startedAt, streaming: true, wllamaInvoked: true });
       const result = await this.engine.createChatCompletion({ messages: toWllamaMessages({ ...request, messages: boundedMessages }), max_tokens: request.maxTokens, temperature: request.temperature, top_p: request.topP, stream: true, abortSignal: signal });
       if (!isAsyncIterable(result)) throw new LocalInferenceRuntimeError('INFERENCE_FAILED', 'The local engine did not return a stream.');
-      let firstTokenAt: number | null = null;
-      for await (const chunk of result) {
-        const delta = readDelta(chunk);
+      const iterator = result[Symbol.asyncIterator]();
+      while (true) {
+        const nextStartedAt = nowMs();
+        const next = await iterator.next();
+        wllamaWaitMs += nowMs() - nextStartedAt;
+        if (next.done) { completed = true; break; }
+        const delta = readDelta(next.value);
         if (delta) {
-          if (firstTokenAt === null) { firstTokenAt = nowMs(); offlineAiTrace('FIRST_TOKEN_RECEIVED', { generationId, durationMs: firstTokenAt - startedAt, firstTokenAtMs: firstTokenAt }); }
+          deltaCount += 1;
+          if (firstTokenAt === null) firstTokenAt = nowMs();
           const candidate = text + delta;
           const stopIndex = firstStopIndex(candidate, request.stopSequences ?? []);
           if (stopIndex >= 0) { const emitted = candidate.slice(text.length, stopIndex); if (emitted) yield { type: 'TOKEN', text: emitted }; text = candidate.slice(0, stopIndex); break; }
           text = candidate;
           yield { type: 'TOKEN', text: delta };
         }
-        const rawFinish = readFinishReason(chunk);
+        const rawFinish = readFinishReason(next.value);
         if (rawFinish === 'length') finishReason = 'LENGTH'; else if (rawFinish === 'stop') finishReason = 'STOP';
       }
       const completedAt = nowMs();
-      offlineAiTrace('CREATE_CHAT_COMPLETION_COMPLETED', { generationId, durationMs: completedAt - startedAt, completedAtMs: completedAt, streaming: true, firstTokenDurationMs: firstTokenAt === null ? null : firstTokenAt - startedAt, streamTerminated: true, wllamaGeneratedText: text.length > 0 });
-      if (signal.aborted) { yield { type: 'ERROR', error: new LocalInferenceRuntimeError('INFERENCE_CANCELLED', 'Local generation was cancelled.') }; return; }
+      if (signal.aborted) { cancelled = true; emitWllamaGenerationMetrics({ generationId, startedAt, firstTokenAt, completedAt, deltaCount, wllamaWaitMs, completed, cancelled, errored }); yield { type: 'ERROR', error: new LocalInferenceRuntimeError('INFERENCE_CANCELLED', 'Local generation was cancelled.') }; return; }
+      emitWllamaGenerationMetrics({ generationId, startedAt, firstTokenAt, completedAt, deltaCount, wllamaWaitMs, completed, cancelled, errored });
       yield { type: 'COMPLETE', response: { text, finishReason, usage: { promptTokens: null, completionTokens: null, totalTokens: null }, runtimeMetadata: { provider: 'local', runtime: this.name, ...this.loadedModelMetadata } } };
       offlineAiTrace('RESPONSE_RECEIVED', { generationId, nonEmpty: text.trim().length > 0, durationMs: nowMs() - startedAt, streaming: true });
     } catch (error) {
+      cancelled = signal.aborted;
+      errored = !cancelled;
+      emitWllamaGenerationMetrics({ generationId, startedAt, firstTokenAt, completedAt: nowMs(), deltaCount, wllamaWaitMs, completed, cancelled, errored });
       offlineAiTrace('GENERATION_FAILED', { generationId, errorCode: error instanceof LocalInferenceRuntimeError ? error.code : 'INFERENCE_FAILED', durationMs: nowMs() - startedAt });
       yield { type: 'ERROR', error: signal.aborted ? new LocalInferenceRuntimeError('INFERENCE_CANCELLED', 'Local generation was cancelled.') : error instanceof LocalInferenceRuntimeError ? error : new LocalInferenceRuntimeError('INFERENCE_FAILED', sanitizeEngineError(error), makeDiagnostic('INFERENCE_FAILED', 'Local streaming failed.', undefined, error)) };
     }
@@ -145,6 +171,23 @@ export class BrowserLocalInferenceAdapter implements LocalInferenceEngineAdapter
 
   async cancel(): Promise<void> { }
   async dispose(): Promise<void> { if (!this.engine) return; try { await this.engine.exit(); } finally { this.engine = null; this.loadedModelKey = null; this.loadedModelMetadata = null; } }
+}
+
+function emitWllamaGenerationMetrics(input: { generationId: string | null; startedAt: number; firstTokenAt: number | null; completedAt: number; deltaCount: number; wllamaWaitMs: number; completed: boolean; cancelled: boolean; errored: boolean }): void {
+  const generationMs = input.completedAt - input.startedAt;
+  const ttftMs = input.firstTokenAt === null ? null : input.firstTokenAt - input.startedAt;
+  offlineAiTrace('OFFLINE_WLLAMA_GENERATION_METRICS', {
+    generationId: input.generationId,
+    ttft_ms: ttftMs,
+    generation_ms: generationMs,
+    delta_count: input.deltaCount,
+    deltas_per_second: generationMs > 0 ? input.deltaCount / (generationMs / 1000) : null,
+    wllama_wait_ms: input.wllamaWaitMs,
+    wllama_deltas_per_second: input.wllamaWaitMs > 0 ? input.deltaCount / (input.wllamaWaitMs / 1000) : null,
+    completed: input.completed,
+    cancelled: input.cancelled,
+    errored: input.errored,
+  });
 }
 
 async function assertAssetFetchable(url: string, code: 'WLLAMA_WASM_FETCH_FAILED' | 'WLLAMA_COMPAT_WASM_FETCH_FAILED' | 'WLLAMA_WORKER_ASSET_FAILED', resource: string, fetchImpl: FetchLike): Promise<void> {
