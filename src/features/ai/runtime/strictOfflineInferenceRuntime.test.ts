@@ -118,7 +118,7 @@ Object.defineProperty(Promise, 'race', {
   writable: true,
   value: function <T>(iterable: Iterable<T | PromiseLike<T>>): Promise<Awaited<T>> {
     raceCalls += 1;
-    return originalPromiseRace(iterable);
+    return originalPromiseRace.call(Promise, iterable);
   },
 });
 function raceCallCount(): number { return raceCalls; }
