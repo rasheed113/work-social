@@ -105,6 +105,7 @@ export class LocalAiProvider implements AiProvider {
       for await (const event of this.runtime.stream(request)) {
         if (event.type === 'TOKEN') {
           streamedText += event.text;
+          options?.onToken?.(event.text);
           continue;
         }
         if (event.type === 'ERROR') {
