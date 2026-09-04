@@ -30,8 +30,21 @@ export function useWorkerProfile(profileId: string) {
       if (socialResult.error) setError(socialResult.error.message);
       else setProfile(socialResult.data);
 
-      if (workerResult.error) setError((current) => current ?? workerResult.error.message);
-      else setWorkerProfile(workerResult.data);
+      if (workerResult.error) {
+        setError((current) => current ?? workerResult.error.message);
+      } else if (workerResult.data) {
+        setWorkerProfile(workerResult.data);
+      } else if (!socialResult.error && socialResult.data) {
+        const provisionResult = await saveWorkerProfile(profileId, {
+          work_description: '',
+          skills: [],
+        });
+        if (provisionResult.error) {
+          setError(provisionResult.error.message);
+        } else {
+          setWorkerProfile(provisionResult.data);
+        }
+      }
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Unable to load your Worker profile.');
     } finally {
