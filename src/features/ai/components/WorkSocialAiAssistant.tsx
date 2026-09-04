@@ -67,11 +67,15 @@ export function WorkSocialAiAssistant({ profileId: _profileId, mode }: Props) {
   const conversationIdRef = useRef<string | null>(null);
   const pendingActionsRef = useRef<AiPendingAction[]>([]);
   const sendingRef = useRef(false);
+  const streamBufferRef = useRef('');
+  const streamFrameRef = useRef<number | null>(null);
+  const streamMessageIdRef = useRef<string | null>(null);
 
   const setVoice = (next: VoiceState) => { voiceStateRef.current = next; setVoiceState(next); };
   useEffect(() => { conversationIdRef.current = conversationId; }, [conversationId]);
   useEffect(() => { pendingActionsRef.current = pendingActions; }, [pendingActions]);
   useEffect(() => { sendingRef.current = sending; }, [sending]);
+  useEffect(() => () => { if (streamFrameRef.current !== null) window.cancelAnimationFrame(streamFrameRef.current); }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -160,17 +164,39 @@ export function WorkSocialAiAssistant({ profileId: _profileId, mode }: Props) {
 
   async function submitText(text: string, voiceSessionId?: number, fromVoice = false) {
     const trimmed = text.trim(); if (!trimmed || sendingRef.current) return;
-    const activeVoiceSession = fromVoice && voiceActiveRef.current && voiceSessionId === voiceSessionRef.current; const requestId = ++requestRef.current;
+    const activeVoiceSession = fromVoice && voiceActiveRef.current && voiceSessionId === voiceSessionRef.current; const requestId = ++requestRef.current; const assistantId = `assistant-stream-${requestId}`;
+    streamBufferRef.current = ''; streamMessageIdRef.current = assistantId;
     setError(null); setSending(true); sendingRef.current = true; setMessages((current) => [...current, { id: `local-${requestId}`, role: 'user', content: trimmed }]);
+    const flushStream = () => {
+      streamFrameRef.current = null;
+      const nextText = streamBufferRef.current;
+      const messageId = streamMessageIdRef.current;
+      if (!messageId || requestId !== requestRef.current) return;
+      setMessages((current) => {
+        const index = current.findIndex((message) => message.id === messageId);
+        if (index < 0) return [...current, { id: messageId, role: 'assistant', content: nextText }];
+        if (current[index].content === nextText) return current;
+        const updated = [...current]; updated[index] = { ...updated[index], content: nextText }; return updated;
+      });
+    };
+    const onOfflineToken = (token: string) => {
+      if (requestId !== requestRef.current || mode === 'online') return;
+      streamBufferRef.current += token;
+      if (streamFrameRef.current === null) streamFrameRef.current = window.requestAnimationFrame(flushStream);
+    };
     try {
-      const reply = await sendAiMessage(trimmed, conversationIdRef.current, mode); if (requestId !== requestRef.current) return;
+      const reply = await sendAiMessage(trimmed, conversationIdRef.current, mode, undefined, onOfflineToken);
+      if (requestId !== requestRef.current) return;
+      if (streamFrameRef.current !== null) { window.cancelAnimationFrame(streamFrameRef.current); streamFrameRef.current = null; }
       if (reply.provider !== (reply.mode === 'offline' ? 'local' : 'gemini')) throw new Error(`AI response provenance mismatch: provider=${reply.provider}, mode=${reply.mode}`);
       if (mode === 'offline' && (reply.provider !== 'local' || reply.mode !== 'offline')) throw new Error(`OFFLINE_ROUTE_VIOLATION: provider=${reply.provider}, mode=${reply.mode}`);
-      setConversationId(reply.conversation_id); conversationIdRef.current = reply.conversation_id; const assistantId = `assistant-${reply.conversation_id}-${requestId}`;
-      setMessages((current) => [...current, { id: assistantId, role: 'assistant', content: reply.message, provider: reply.provider, mode: reply.mode }]); setPendingActions(reply.pending_actions); pendingActionsRef.current = reply.pending_actions;
+      setConversationId(reply.conversation_id); conversationIdRef.current = reply.conversation_id;
+      setMessages((current) => { const index = current.findIndex((message) => message.id === assistantId); const finalMessage: UiMessage = { id: assistantId, role: 'assistant', content: reply.message, provider: reply.provider, mode: reply.mode }; if (index < 0) return [...current, finalMessage]; const updated = [...current]; updated[index] = finalMessage; return updated; });
+      streamMessageIdRef.current = null; streamBufferRef.current = '';
+      setPendingActions(reply.pending_actions); pendingActionsRef.current = reply.pending_actions;
       setConversations((current) => { const existing = current.find((item) => item.id === reply.conversation_id); if (existing) return current.map((item) => item.id === existing.id ? { ...item, updated_at: new Date().toISOString() } : item); return [{ id: reply.conversation_id, title: trimmed.slice(0, 80), status: 'active', created_at: new Date().toISOString(), updated_at: new Date().toISOString() }, ...current].slice(0, 30); });
       if (activeVoiceSession) speakVoiceResponse(reply.message, voiceSessionId!, assistantId);
-    } catch (reason) { if (requestId === requestRef.current) { setError(reason instanceof Error ? reason.message : 'Work Social AI could not complete the request.'); if (activeVoiceSession) scheduleListening(voiceSessionId!, 400); } }
+    } catch (reason) { if (requestId === requestRef.current) { if (streamFrameRef.current !== null) { window.cancelAnimationFrame(streamFrameRef.current); streamFrameRef.current = null; } setMessages((current) => current.filter((message) => message.id !== assistantId)); streamMessageIdRef.current = null; streamBufferRef.current = ''; setError(reason instanceof Error ? reason.message : 'Work Social AI could not complete the request.'); if (activeVoiceSession) scheduleListening(voiceSessionId!, 400); } }
     finally { if (requestId === requestRef.current) { setSending(false); sendingRef.current = false; } }
   }
   async function submit() { const text = draft.trim(); if (!text || sending) return; setDraft(''); await submitText(text); }
