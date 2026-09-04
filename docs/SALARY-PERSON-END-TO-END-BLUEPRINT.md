@@ -4,44 +4,128 @@
 
 **Scope:** Salary Person mode only. Existing Work on Contract behavior must remain unchanged. Offline/Online AI is completely out of scope.
 
-## 1. Product Goal
+## 1. Existing Entry Point — Work Identity / Worker Settings
+
+The Salary Person journey starts from the **existing Work Identity / Worker Settings page**. It must not begin at a salary calculation screen.
+
+Current flow:
+
+```text
+Worker Settings
+    ↓
+Work Identity
+    ↓
+Existing Worker Identity form
+```
+
+The existing Work Identity screen already contains the worker identity/work information, including:
+
+```text
+Work Identity
+Tell Work House what you do.
+
+[Social / worker identity]
+
+Work Role
+Worker
+
+Describe Your Work
+...
+
+Skills
+...
+
+Work ID
+...
+
+Save Work Identity
+```
+
+The Salary Person feature extends this existing screen.
+
+### 1.1 New Worker Type control
+
+Add a clear **Worker Type** selector/switch to the existing Work Identity form:
+
+```text
+Worker Type
+
+○ Salary Person
+○ Work per Job / Contract
+```
+
+Recommended placement is after the existing work identity fields and before the Work ID/save area. The exact visual control can be a segmented switch, radio-style selector, or equivalent premium control, but the two modes must be unmistakable.
+
+### 1.2 Meaning of the modes
+
+**Salary Person**
+
+The worker is paid according to a saved salary policy. Work Social uses that policy for attendance, overtime, salary-period calculation, and salary slips.
+
+**Work per Job / Contract**
+
+The existing contract/piece-work flow remains active. Existing quantity, size, rate, work-entry, and contract-finance behavior must remain unchanged.
+
+---
+
+## 2. Worker Type Is the Branching Point
+
+The end-to-end product branch is:
+
+```text
+Existing Work Identity
+        ↓
+    Worker Type
+       /     \
+      /       \
+Salary Person   Work per Job / Contract
+      ↓                    ↓
+Salary flow          Existing flow unchanged
+```
+
+Selecting **Work per Job / Contract** must not activate salary setup.
+
+Selecting **Salary Person** starts the Salary Person activation flow.
+
+Switching modes must not delete or silently rewrite historical records from either mode.
+
+Conceptually:
+
+```text
+Salary Person selected
+        ↓
+Salary Data Caution
+        ↓
+Continue to Salary Setup
+        ↓
+One-Time Salary Setup
+        ↓
+Save Salary Policy
+        ↓
+Salary Person Work House mode
+```
+
+This is the missing starting portion that makes the blueprint truly end-to-end.
+
+---
+
+## 3. Product Goal
 
 Work Social currently supports contract/piece-based work. Salary Person mode adds a second work model for people paid by salary.
-
-The user selects **Salary Person** in Worker Settings. Before the setup form opens, Work Social shows a privacy/use notice. The user then completes a one-time Salary Setup Form. The saved salary policy becomes the basis for attendance, overtime, Sunday/holiday handling, salary-period calculations, salary slips, and notifications.
 
 The key principle is:
 
 > **Configure once, calculate automatically thereafter.**
 
-Daily attendance entries should remain simple. The user should not repeatedly answer salary-policy questions.
+The worker should configure salary rules once. Daily operation should use the saved policy instead of repeatedly asking the same salary-policy questions.
 
 ---
 
-## 2. Work Type Selection
+## 4. Pre-Form Salary Data Caution / Privacy Notice
 
-Worker Settings exposes two mutually exclusive work modes:
+Before the Salary Setup form opens, show a professional caution explaining how salary information is used.
 
-- **Salary Person**
-- **Work on Contract**
-
-### Contract mode
-
-Existing contract functionality remains intact and is not recalculated through the salary engine.
-
-### Salary mode
-
-Selecting Salary Person opens the one-time Salary Setup flow.
-
-Switching modes must not delete or silently rewrite the other mode's historical records.
-
----
-
-## 3. Pre-Form Privacy Notice
-
-Before opening Salary Setup, show a professional caution explaining that salary data is retained to provide the user's personal salary/attendance/overtime record and is not intended for public/social display or sharing.
-
-Approved wording:
+Suggested product copy:
 
 > ### Your Salary Data Is Private
 >
@@ -53,73 +137,87 @@ Approved wording:
 
 Primary action: **Continue to Salary Setup**.
 
-This notice is informational; implementation must follow the application's actual privacy/security guarantees.
+This notice is informational and must not promise security/privacy guarantees beyond the actual implementation. Database authorization and RLS remain mandatory.
 
 ---
 
-## 4. One-Time Salary Setup Form
+## 5. One-Time Salary Setup Form
 
-The first Salary Person setup form currently contains:
+The Salary Person setup form currently contains:
 
-### 4.1 Salary
+### 5.1 Salary
 
 - Amount: user-entered monetary value.
 - Currency: required for monetary records/display.
 
-### 4.2 Salary Type
-
-Four options:
+### 5.2 Salary Type
 
 - Daily
 - Weekly
 - 15 Days
 - Monthly
 
-This determines the base salary period and therefore the salary-period calculation engine.
+This determines the base salary period. The exact mathematical conversion between these periods must be frozen before implementation.
 
-### 4.3 Working Hours
-
-Optional:
+### 5.3 Working Hours
 
 - 8 hours
 - 12 hours
-- Not set / omitted
+- Optional / not set
 
-Working hours are required for exact hourly overtime-value calculation. If omitted, attendance can still be recorded, but the system must not invent an hourly basis.
+Working hours are required for an exact hourly overtime calculation. If omitted, attendance can still be recorded, but the system must not invent an hourly basis.
 
-### 4.4 Overtime Type
+### 5.4 Overtime Type
 
-Options:
+- Same as salary — `1.0×`
+- `1.5×`
+- `2.0×`
 
-- Same as salary — `1.0 × hourly rate`
-- `1.5 × hourly rate`
-- `2.0 × hourly rate`
-
-### 4.5 Sunday Paid?
+### 5.5 Sunday Paid?
 
 - Yes
 - No
 
-Interpretation:
+If Yes, a normal Sunday off is paid according to the salary policy.
 
-- If Yes, a normal Sunday off is still paid according to the salary policy.
-- If No, normal Sunday off is not paid.
-- Working on Sunday does **not** automatically create overtime. If the worker actually works overtime on Sunday, the worker manually adds the overtime hours and the selected overtime multiplier is used.
+If the worker actually works on Sunday, Work Social does **not** automatically create overtime. The worker manually enters actual overtime hours, and the selected overtime multiplier is applied.
 
-### 4.6 Holidays Paid?
+### 5.6 Holidays Paid?
 
 - Yes
 - No
 
-The exact holiday calendar/source remains an implementation decision and must be defined before coding the holiday engine.
+The exact holiday calendar/source and working-holiday behavior remain open decisions.
 
-### 4.7 Salary Start Date
+### 5.7 Salary Start Date
 
-Recommended required field for period boundaries and historical accuracy. Exact UI treatment remains to be finalized.
+A Salary Start Date is recommended for salary-period boundaries and historical accuracy. Exact UI/semantic treatment remains open until explicitly finalized.
 
 ---
 
-## 5. Post-Save Confirmation
+## 6. Saved Salary Policy
+
+After successful setup, the form values become a structured **Salary Policy** used by future calculations.
+
+```text
+Salary Policy
+ ├─ salary amount
+ ├─ currency
+ ├─ salary type
+ ├─ working hours
+ ├─ overtime multiplier
+ ├─ Sunday paid
+ ├─ holidays paid
+ └─ effective/start date
+```
+
+The worker should not need to answer these policy questions again for every daily entry.
+
+Policy changes must not silently rewrite closed historical salary periods.
+
+---
+
+## 7. Post-Save Confirmation
 
 After successful Salary Setup save, show:
 
@@ -139,34 +237,119 @@ Action: **Got It**.
 
 ---
 
-## 6. Daily Salary Entry
+## 8. Salary Person Work House Mode / Daily Entry
 
-Salary Person's New Entry must not reuse the contract/piece-work fields as the primary salary workflow.
+Once Salary Person is configured, Work House should use a salary-oriented daily workflow rather than the contract/piece-work entry model.
 
-Minimum daily entry concept:
+Minimum daily entry:
 
 - Date
 - Attendance: Present / Absent / Leave
 - Overtime hours
 - Optional note
 
+Salary Person should not require piece/size/quantity/rate as its primary earning input.
+
 The saved Salary Policy supplies the calculation rules.
 
-### Important
-
-Sunday/holiday paid status is a policy decision, not a daily question.
-
-Sunday overtime is manually entered when the worker actually works extra hours.
+Sunday and holiday policy is a saved policy decision, not a question repeated every day.
 
 ---
 
-## 7. Overtime Calculation
+## 9. Attendance Model
+
+Supported daily attendance states:
+
+- Present
+- Absent
+- Leave
+
+Attendance should be date-based and idempotent: one effective attendance result per worker per date unless a future product rule explicitly supports revisions.
+
+### Absence deduction
+
+Automatic salary deduction for absence is **not frozen**. Do not invent an absence-deduction formula before that policy is explicitly approved.
+
+Leave paid/unpaid behavior is likewise an open policy decision.
+
+---
+
+## 10. Saturday → Sunday Rule
+
+### Saturday Present
+
+If Saturday is recorded as Present:
+
+```text
+Saturday Present → Sunday Present automatically
+```
+
+### Saturday Leave
+
+If Saturday is Leave, Sunday must not silently become Leave.
+
+Show a confirmation notification:
+
+> Saturday was marked as leave. Should Sunday also be counted as leave?
+
+Actions:
+
+- **Yes** → Sunday = Leave
+- **No** → Sunday = Present
+
+### Saturday Absent
+
+Behavior for Saturday = Absent remains **open** and must be frozen before implementation.
+
+---
+
+## 11. Sunday Paid + Sunday Worked
+
+When `Sunday Paid = Yes`, a normal Sunday is a paid off-day according to the saved policy.
+
+If the worker actually works on Sunday:
+
+- Sunday paid-off status and overtime remain separate concepts.
+- Work Social does not automatically create overtime merely because the date is Sunday.
+- The worker manually enters actual overtime hours.
+- The saved overtime multiplier is then applied.
+
+Example:
+
+```text
+Sunday Paid = Yes
+Sunday worked
+Manual overtime = 2h
+        ↓
+Calculate 2h using saved OT multiplier
+```
+
+---
+
+## 12. Holiday Rule
+
+The setup contains `Holidays Paid = Yes/No`.
+
+Before implementation, freeze:
+
+- holiday calendar/source
+- country/region
+- timezone
+- automatic holiday recognition
+- treatment when the worker works on a holiday
+- whether working a holiday creates overtime/premium treatment
+
+No holiday rule should be guessed in production code.
+
+---
+
+## 13. Overtime Calculation
 
 If today's overtime is 2 hours, Work Social uses:
 
 1. Saved salary amount.
 2. Saved salary type.
-3. Applicable salary-period working-day basis.
+3. Finalized salary-period working-day basis.
 4. Saved working hours, when available.
 5. Saved overtime multiplier.
 6. Today's overtime hours.
@@ -175,251 +358,122 @@ Conceptual formula:
 
 `Overtime Amount = Hourly Rate × Overtime Multiplier × Overtime Hours`
 
-Where:
+Conceptually:
 
 `Hourly Rate = Daily Rate ÷ Working Hours Per Day`
 
-and:
+`Daily Rate` must be derived from the selected salary type using the finalized salary-period rules.
 
-`Daily Rate` is derived from the saved salary amount and the selected salary type according to the finalized salary-period rules.
+### Formula blocker
 
-### Critical open formula decision
+The exact Daily/Weekly/15-Day/Monthly conversion is **not frozen**. In particular, the Monthly denominator must not be guessed and may depend on working-day/calendar rules.
 
-The exact conversion from Daily/Weekly/15-Day/Monthly salary to Daily Rate must be frozen before implementation. In particular, the Monthly denominator must not be guessed; it may depend on configured working days/calendar rules.
+Currency calculations should use deterministic numeric/Decimal handling rather than JavaScript floating-point arithmetic for persisted financial totals.
 
-The engine must use deterministic Decimal/numeric arithmetic appropriate for currency and avoid JavaScript floating-point drift in persisted monetary values.
+Daily overtime accumulates into the active salary period.
 
 ---
 
-## 8. Salary Slip
+## 14. Salary Period and Salary Slip
 
-The salary slip should keep components separate rather than hiding everything inside one total.
+Salary-period calculations should keep components separate and explainable.
 
-Minimum conceptual sections:
+Minimum salary-slip components:
 
 - Salary period
 - Base salary
 - Attendance summary
-- Paid days / applicable days
+- Paid/applicable days
 - Leave/absence information
 - Overtime hours
 - Overtime amount
-- Sunday/holiday treatment where applicable
-- Adjustments, if introduced later
+- Sunday treatment where applicable
+- Holiday treatment where applicable
 - Final calculated amount
 
-Overtime is accumulated into the salary-period record as daily overtime is recorded.
-
 Example:
 
-`Today's OT: 2h → calculate OT amount → add to current salary period → salary slip shows accumulated OT.`
+```text
+Today's OT: 2h
+      ↓
+Calculate OT amount
+      ↓
+Add to current salary period
+      ↓
+Salary slip shows accumulated OT
+```
+
+Historical salary slips must remain explainable after later policy changes.
 
 ---
 
-## 9. Attendance Model
+## 15. Attendance Notification Lifecycle — To Be Discussed Separately
 
-Daily attendance states:
+The notification generator is intentionally **not finalized by this update**. Its detailed design will be discussed separately before implementation.
 
-- Present
-- Absent
-- Leave
+Current requirements recorded for that future discussion:
 
-Attendance should be date-based and idempotent: one effective attendance result per worker per date unless the product explicitly supports revisions.
+- If required attendance has not been marked, a daily attendance notification may be generated.
+- Notification actions include Present / Absent / Leave.
+- Taking an attendance action completes/expires the notification.
+- Reading alone does **not** complete it.
+- Read + no action remains pending.
+- If the worker does not react, reminders can continue.
+- Maximum pending cycle: 15 attendance notifications.
+- After #15, the 15 notification records remain in history.
+- New attendance notification generation then turns off for that pending cycle.
+- The paused state is conceptually vacation/paused notification state, not necessarily employee vacation/leave.
+- The exact reset condition, timing/cutoff, and generator implementation remain open.
 
-### No automatic salary deduction assumption
-
-Do not automatically deduct salary merely because a worker is absent unless a future, explicit salary policy supports that rule. Attendance and salary calculation must remain separate enough to support different employer policies.
-
----
-
-## 10. Saturday → Sunday Rule
-
-A special weekend rule is required.
-
-### Saturday Present
-
-If Saturday is recorded as Present:
-
-`Saturday Present → Sunday Present automatically`
-
-Sunday does not require another manual attendance action under this rule.
-
-### Saturday Leave
-
-If Saturday is Leave, Work Social must **not silently assume** Sunday is Leave.
-
-Instead, generate a Sunday confirmation notification:
-
-> Saturday was marked as leave. Should Sunday also be counted as leave?
-
-Actions:
-
-- Yes → Sunday = Leave
-- No → Sunday = Present
-
-The exact treatment when Saturday is Absent remains an open business-rule decision and must be finalized before implementation.
+**No notification-generator implementation should be treated as frozen until the separate notification discussion is completed.**
 
 ---
 
-## 11. Sunday Paid + Sunday Worked
-
-Sunday can be a normal paid off-day when `Sunday Paid = Yes`.
-
-This does not mean every Sunday automatically generates overtime.
-
-If the worker actually works on Sunday:
-
-- Normal Sunday policy remains applicable.
-- Worker manually enters actual overtime hours.
-- Overtime amount uses the selected overtime type.
-
-Example:
-
-`Sunday Paid = Yes + Sunday Worked + OT = 2h → calculate 2h using saved OT multiplier.`
-
-No automatic overtime should be generated merely because the calendar date is Sunday.
-
----
-
-## 12. Holiday Rule
-
-If `Holidays Paid = Yes`, applicable holidays are paid according to the finalized calendar/policy.
-
-If `Holidays Paid = No`, they are not treated as paid holidays.
-
-The holiday source/calendar, timezone, country/region configuration, and treatment of a worker who actually works on a holiday are **open decisions** and must be frozen before implementation.
-
----
-
-## 13. Attendance Notification Lifecycle
-
-Attendance notifications are intended to make daily attendance reliable without creating infinite notification spam.
-
-### Daily notification
-
-If required attendance has not been recorded, create an attendance notification with actions:
-
-- Present
-- Absent
-- Leave
-
-### Reaction/action lifecycle
-
-A notification is considered completed when the user takes an attendance action.
-
-`Action → attendance saved → notification expires/completes`
-
-Reading alone does not complete the notification.
-
-### Read but no action
-
-`Read + no action = still pending`
-
-### Unread/no action reminder cycle
-
-If the user does not take action, reminders continue up to a maximum of 15 attendance notifications for the pending cycle.
-
-Conceptually:
-
-`#1 → #2 → ... → #15`
-
-After the 15-notification cycle is exhausted:
-
-- The 15 notification records remain in notification history.
-- New attendance notifications are switched off for that user/cycle.
-- The notification system enters the agreed paused/vacation-like state.
-- The system must not continue generating unlimited reminders.
-
-The exact reset condition for this paused state is an open implementation/business decision and must be frozen before coding.
-
-### Important terminology
-
-The word **“vacation”** here is a notification-system pause state, not necessarily employee vacation/leave.
-
----
-
-## 14. Notification Action Semantics
-
-Attendance actions must be explicit and auditable.
-
-Recommended event model:
-
-`notification_created → notification_seen/read (optional) → attendance_action → notification_completed`
-
-A notification should not disappear simply because it was opened.
-
-The system should retain enough metadata to explain why a reminder was generated and whether an action was applied.
-
----
-
-## 15. Salary Calculation Architecture
-
-Recommended conceptual separation:
+## 16. Salary Calculation Architecture
 
 ```text
 Salary Policy
-   ├── salary amount
-   ├── salary type
-   ├── working hours
-   ├── overtime multiplier
-   ├── Sunday paid policy
-   └── holiday paid policy
-          ↓
+   ↓
 Attendance + Overtime Events
-          ↓
+   ↓
+Sunday/Holiday Rules
+   ↓
 Calculation Engine
-          ↓
+   ↓
 Salary Period Ledger
-          ↓
+   ↓
 Salary Slip
 ```
 
-The calculation engine should be deterministic and testable independently of UI.
+The calculation engine must be deterministic and independently testable.
 
 UI components must not contain the authoritative salary formulas.
 
----
-
-## 16. Recommended Code Separation
-
-Implementation should use separate modules/files by responsibility rather than one large component.
-
-Suggested boundaries (exact paths may be adjusted after repository inspection):
-
-```text
-worker/
-  salary/
-    salaryPolicy.ts
-    salaryCalculations.ts
-    salaryPeriods.ts
-    overtimeCalculations.ts
-    attendanceRules.ts
-    weekendHolidayRules.ts
-    salarySlip.ts
-    salaryNotifications.ts
-  pages/
-    SalarySetupPage.tsx
-    SalaryDashboardPage.tsx        # NOT DESIGNED YET
-    SalarySlipPage.tsx
-  components/
-    SalarySetupForm.tsx
-    SalaryPrivacyNotice.tsx
-    SalarySetupSavedDialog.tsx
-    SalaryAttendanceEntry.tsx
-    SalaryOvertimeEntry.tsx
-```
-
-These are architectural targets, not permission to create these files yet.
+The calculation engine must remain independent of any future Dashboard.
 
 ---
 
-## 17. Data Model Direction
+## 17. Worker Type Changes and Historical Integrity
 
-The existing `worker_profiles` remains the Worker identity anchor.
+Worker Type is a business-state transition, not a destructive reset.
 
-Salary Person should add a dedicated salary/employment policy model rather than overloading contract `work_entries` with salary semantics.
+Required principles:
 
-Conceptual entities:
+- Existing Contract records remain intact.
+- Existing Salary records remain intact.
+- Historical records retain their original work model.
+- A new salary policy does not retroactively rewrite finalized salary periods.
+- Historical salary periods retain enough policy information to explain their results.
+
+Exact switching UX and confirmation requirements remain implementation decisions.
+
+---
+
+## 18. Data Model Direction
+
+Salary data should be separated from contract/piece-work economics.
+
+Conceptual model:
 
 ```text
 worker_profiles
@@ -433,7 +487,7 @@ overtime_records
 salary_periods / salary_slips
 ```
 
-Potential policy fields:
+Potential Salary Policy fields:
 
 - worker_profile_id
 - salary_amount
@@ -461,252 +515,266 @@ Potential overtime fields:
 - worker_profile_id
 - work_date
 - hours
-- multiplier snapshot or policy reference as appropriate
+- multiplier/policy reference or snapshot as appropriate
 - calculated_amount
 - note
 - created_at
 - updated_at
 
-Final schema must be designed against the actual repository schema and Supabase/RLS conventions before migration creation.
+Final schema must be designed against the actual repository schema and Supabase/RLS conventions before migrations are created.
 
 ---
 
-## 18. Historical Integrity
+## 19. Security / RLS
 
-Salary calculations should not unexpectedly change historical salary slips when a user edits their current salary policy.
-
-Recommended principle:
-
-> A finalized salary period must retain the policy values required to explain its calculation.
-
-At minimum, the implementation must decide whether historical periods reference the effective policy version or snapshot the relevant rates/inputs.
-
-Do not retroactively recalculate closed salary periods merely because current settings changed.
-
----
-
-## 19. Security / RLS Requirements
-
-Salary data is private user/work data.
+Salary information is sensitive personal financial data.
 
 Required principles:
 
-- Authenticated user can access only their own salary policy and salary records unless a future authorized employer/team model explicitly grants access.
-- RLS must be based on the user's Worker profile ownership.
-- No salary amount should be exposed through Social public profile APIs.
-- No salary information should be sent to social/feed/activity surfaces unless explicitly designed and authorized.
-- Server/database calculations should enforce ownership rather than trusting client-supplied worker IDs.
-
-Existing Worker RLS/ownership patterns should be reused after inspection.
+- A worker can access only their own salary data unless a future authorized employer/team model explicitly grants access.
+- RLS must enforce ownership at the database layer.
+- Client-supplied worker IDs must not be trusted for authorization.
+- Salary amounts must not be exposed through public Social profile APIs.
+- Salary information must not enter public/social activity surfaces unless separately designed and authorized.
 
 ---
 
-## 20. Validation Requirements
+## 20. Recommended Code Separation
+
+Suggested architecture after repository inspection:
+
+```text
+worker/
+  salary/
+    salaryPolicy.ts
+    salaryCalculations.ts
+    salaryPeriods.ts
+    overtimeCalculations.ts
+    attendanceRules.ts
+    weekendHolidayRules.ts
+    salarySlip.ts
+    salaryNotifications.ts
+  pages/
+    SalarySetupPage.tsx
+    SalarySlipPage.tsx
+    SalaryDashboardPage.tsx   # NOT DESIGNED YET
+  components/
+    SalarySetupForm.tsx
+    SalaryPrivacyNotice.tsx
+    SalarySetupSavedDialog.tsx
+    SalaryAttendanceEntry.tsx
+    SalaryOvertimeEntry.tsx
+```
+
+These are architectural targets, not permission to create files before the design is frozen.
+
+---
+
+## 21. Validation Requirements
 
 Salary Setup:
 
 - Salary amount must be positive.
 - Currency must be valid.
 - Salary type must be one of the four supported values.
-- Working hours, if supplied, must be a supported positive value.
-- Overtime multiplier must be one of 1.0, 1.5, 2.0.
-- Sunday/holiday values must be explicit booleans.
-- Effective/start date must be valid.
+- Working hours, when supplied, must be valid.
+- Overtime multiplier must be 1.0, 1.5, or 2.0.
+- Sunday/holiday settings must be explicit booleans.
+- Start/effective date must be valid when required.
 
 Daily entry:
 
 - Attendance date must be valid.
-- Only supported attendance statuses are accepted.
-- Overtime hours cannot be negative.
-- Overtime precision must be defined (for example quarter-hour or minute precision) before implementation.
+- Status must be Present, Absent, or Leave.
+- Overtime cannot be negative.
+- Overtime precision must be defined before implementation.
 
 ---
 
-## 21. Edge Cases To Resolve Before Coding
+## 22. Edge Cases / Open Decisions
 
-The following are intentionally **not silently decided** in this blueprint:
+Do not silently decide these before coding:
 
-1. Exact daily-rate denominator for Monthly salary.
-2. Exact weekly-to-daily conversion for Weekly salary.
-3. Exact 15-day salary calculation basis.
-4. Whether Daily/Weekly/15-Day salary can have non-working days and how those are represented.
-5. Whether absence reduces salary and under which explicit policy.
-6. Whether Leave is paid, unpaid, or configurable.
-7. What happens when Saturday is Absent rather than Leave.
-8. Holiday calendar source and timezone.
-9. Whether a holiday worked by the employee creates ordinary hours, overtime, or a special multiplier.
-10. Whether Sunday/holiday work is represented by attendance, overtime, or both.
-11. Exact notification reset condition after the 15-reminder pause.
+1. Exact Daily-rate denominator for Monthly salary.
+2. Weekly-to-daily conversion.
+3. 15-Day salary calculation basis.
+4. Working-day/calendar basis for each salary type.
+5. Absence deduction policy.
+6. Paid/unpaid Leave policy.
+7. Saturday Absent → Sunday behavior.
+8. Holiday calendar/source/timezone.
+9. Holiday work treatment.
+10. Sunday/holiday work representation.
+11. Notification-generator reset condition after 15 reminders.
 12. Notification generation timezone/cutoff.
 13. Overtime precision and maximum daily hours.
-14. Salary policy editing and historical versioning.
-15. Salary-period closing/finalization rules.
-16. Rounding precision and rounding stage for currency.
-17. Currency conversion is out of scope unless explicitly added.
+14. Salary-policy editing/versioning.
+15. Salary-period closing/finalization.
+16. Currency rounding precision and rounding stage.
+17. Currency conversion, which is otherwise out of scope.
 
-These are blockers for a mathematically authoritative implementation, not reasons to alter the current Contract system.
-
----
-
-## 22. Dashboard Status — INTENTIONALLY UNDECIDED
-
-**Do not implement or freeze the Salary Person dashboard yet.**
-
-The dashboard layout, cards, KPIs, charts, period selector, salary breakdown, attendance presentation, and salary-slip navigation have **not been decided**.
-
-This blueprint must therefore treat the dashboard as a future design phase.
-
-The calculation engine and data model should expose clean data that can support multiple dashboard designs later.
-
-Do not allow dashboard assumptions to leak into the core formula engine.
+These are blockers for an authoritative calculation implementation, not reasons to alter the existing Contract system.
 
 ---
 
-## 23. Implementation Sequence
+## 23. Dashboard Status — NOT DECIDED
 
-Recommended implementation order:
+The Salary Person Dashboard is intentionally deferred.
 
-### Phase A — Formula specification
+Do **not** freeze or implement its:
 
-1. Freeze salary-type formulas.
-2. Freeze working-day/calendar basis.
-3. Freeze absence/leave policy.
-4. Freeze Sunday/holiday behavior.
-5. Freeze overtime formula and rounding.
-6. Freeze notification reset semantics.
+- layout
+- cards
+- KPIs
+- charts
+- period selector
+- attendance presentation
+- salary breakdown
+- salary-slip navigation
 
-### Phase B — Data foundation
+The core Salary Person data/calculation engine must remain dashboard-agnostic.
 
-7. Design salary policy schema.
-8. Design attendance schema.
-9. Design overtime schema.
-10. Design salary period/slip representation.
-11. Add RLS and ownership policies.
+---
 
-### Phase C — Pure calculation logic
+## 24. Implementation Sequence
 
-12. Implement salary-period calculations.
-13. Implement hourly-rate calculation.
-14. Implement overtime calculation.
-15. Implement attendance/payability rules.
-16. Implement Sunday/holiday rules.
-17. Add deterministic unit tests.
+### Phase A — Starting UI / Worker Type
 
-### Phase D — Setup UX
+1. Inspect the existing Worker Settings → Work Identity implementation.
+2. Add Worker Type to the existing Work Identity form.
+3. Persist Salary Person vs Work per Job / Contract without breaking Contract behavior.
+4. Ensure switching does not delete historical records.
 
-18. Add Salary Person selection.
-19. Add privacy notice.
-20. Add Salary Setup Form.
-21. Persist policy.
-22. Add saved confirmation dialog.
+### Phase B — Salary Setup UX
 
-### Phase E — Daily workflow
+5. Add Salary Person activation flow.
+6. Add salary-data caution/privacy notice.
+7. Add one-time Salary Setup Form.
+8. Persist Salary Policy securely.
+9. Add successful-save confirmation.
 
-23. Add Salary New Entry.
-24. Add attendance action handling.
-25. Add overtime entry.
-26. Add Saturday/Sunday confirmation flow.
+### Phase C — Formula and policy freeze
 
-### Phase F — Notifications
+10. Freeze salary-type formulas.
+11. Freeze working-day/calendar basis.
+12. Freeze absence/leave policy.
+13. Freeze Sunday/holiday behavior.
+14. Freeze overtime formula, precision, and rounding.
 
-27. Add daily attendance notification.
-28. Add read/action semantics.
-29. Add 15-notification cap.
-30. Add paused/vacation-like state.
-31. Add reset behavior after the final policy decision.
+### Phase D — Data/calculation foundation
+
+15. Design salary policy schema.
+16. Design attendance schema.
+17. Design overtime schema.
+18. Design salary-period/slip representation.
+19. Add RLS/ownership policies.
+20. Implement deterministic calculation logic and tests.
+
+### Phase E — Daily Salary Person workflow
+
+21. Add Salary Person daily entry.
+22. Add attendance handling.
+23. Add manual overtime entry.
+24. Add Saturday/Sunday behavior after rules are frozen.
+25. Add holiday behavior after rules are frozen.
+
+### Phase F — Notification generator
+
+26. **STOP and separately discuss/freeze the notification generator.**
+27. Only after that discussion implement daily notifications, action semantics, 15-notification cap, pause state, and reset behavior.
 
 ### Phase G — Salary Slip
 
-32. Build salary-period aggregation.
-33. Build salary slip data.
-34. Verify overtime accumulation.
-35. Verify historical integrity.
+28. Aggregate salary-period records.
+29. Build explainable salary slips.
+30. Verify overtime accumulation.
+31. Verify historical policy integrity.
 
 ### Phase H — Dashboard
 
-36. **STOP and design dashboard separately.**
-37. Only after dashboard UX is approved, implement dashboard UI against the already-defined calculation/data APIs.
+32. **STOP and design the Dashboard separately.**
+33. Implement it only after its UX is explicitly approved.
 
 ---
 
-## 24. Testing Matrix
+## 25. Testing Matrix
 
-At minimum, automated tests should cover:
+### Worker Type
 
-### Salary types
+- Salary Person selection works from existing Work Identity.
+- Work per Job / Contract selection preserves existing flow.
+- Existing Contract worker remains functional.
+- Mode switching does not delete historical records.
 
-- Daily salary.
-- Weekly salary.
-- 15-day salary.
-- Monthly salary.
+### Salary Setup
 
-### Working hours
+- Salary amount validation.
+- Currency validation.
+- Daily / Weekly / 15 Days / Monthly selection.
+- 8h / 12h / unset working hours.
+- 1× / 1.5× / 2× overtime.
+- Sunday Paid Yes/No.
+- Holidays Paid Yes/No.
+- Start-date validation when finalized.
 
-- 8h.
-- 12h.
-- Missing working hours.
+### Daily Salary Person
 
-### Overtime
-
-- 1×.
-- 1.5×.
-- 2×.
-- 0 hours.
-- fractional hours once precision is finalized.
-
-### Attendance
-
-- Present.
-- Absent.
-- Leave.
-- Duplicate same-day entry.
-- Corrected attendance.
+- Present / Absent / Leave.
+- Overtime entry.
+- Optional note.
+- Saved policy is reused automatically.
+- Contract quantity/rate fields are not required for salary work.
 
 ### Sunday
 
-- Sunday paid + normal off.
-- Sunday unpaid + normal off.
-- Sunday worked + manually entered overtime.
+- Sunday paid off behavior.
+- Sunday unpaid behavior after formula freeze.
+- Sunday worked does not automatically create overtime.
+- Manual Sunday overtime uses saved multiplier.
 - Saturday Present → Sunday Present.
 - Saturday Leave → confirmation → Sunday Leave.
 - Saturday Leave → confirmation → Sunday Present.
 
-### Holidays
-
-- Paid holiday.
-- Unpaid holiday.
-- Holiday work behavior after rule is finalized.
-
 ### Notifications
 
-- No attendance → notification.
-- Read only → remains pending.
-- Action → notification completes/expires.
-- 15 reminders → no further new reminders.
-- Existing 15 remain in history.
-- Pause/reset behavior after final rule is frozen.
+- Unmarked attendance can produce a notification.
+- Read alone does not complete it.
+- Attendance action completes it.
+- Reminder cycle stops at 15.
+- All 15 remain in history.
+- Reset behavior tested only after final policy is frozen.
+
+### Salary Calculation
+
+- All salary types.
+- Overtime 1× / 1.5× / 2×.
+- Missing working-hours behavior.
+- Overtime accumulation.
+- Historical policy integrity.
+- Deterministic currency arithmetic.
 
 ### Security
 
 - User A cannot read User B's salary policy.
 - User A cannot read User B's attendance.
 - User A cannot read User B's overtime.
+- User A cannot read User B's salary slip.
 - Public Social profile does not expose salary data.
 
 ### Regression
 
-- Existing Contract Worker creation works.
-- Existing Contract Work Entry works.
-- Existing Contract Finance works.
+- Existing Contract work entry remains unchanged.
+- Existing Contract finance remains unchanged.
 - Existing Worker identity remains intact.
+- Worker provisioning remains unchanged.
 - Offline AI unchanged.
 - Online AI unchanged.
 
 ---
 
-## 25. Non-Goals
+## 26. Non-Goals
 
-This phase does **not** define or implement:
+This feature does not define or implement:
 
 - Employer payroll administration.
 - Tax calculation.
@@ -714,75 +782,100 @@ This phase does **not** define or implement:
 - Benefits administration.
 - Bank payment execution.
 - Currency conversion.
-- Employer-side access to employee salary data.
+- Employer-side access unless separately designed.
 - Team payroll.
 - Advanced HR management.
-- Final Salary Person dashboard design.
+- Final Salary Person Dashboard design.
 - Changes to Contract Worker calculations.
-- Changes to Offline AI or Online AI.
-
-These may be future phases.
+- Offline AI or Online AI changes.
 
 ---
 
-## 26. Definition of Done
+## 27. Definition of Done
 
-Salary Person is not considered complete until:
+Salary Person is truly end-to-end only when a worker can start at the existing Work Identity page and follow the complete approved journey:
 
-- User can select Salary Person.
-- Privacy notice appears before setup.
-- Salary Setup can be completed once and persisted.
-- Saved policy drives calculations without repeated policy questions.
-- Daily attendance can be recorded.
-- Overtime can be manually recorded and calculated.
-- Overtime appears correctly in the salary slip.
-- Sunday paid/off behavior follows saved policy.
-- Sunday work does not automatically create overtime.
-- Saturday/Sunday special rule works exactly as approved.
-- Holiday policy follows the approved calendar/rules.
-- Attendance notification lifecycle respects action/read/15-reminder behavior.
-- Salary calculations are deterministic and tested.
-- Historical salary records remain explainable after policy changes.
-- RLS protects all salary data.
-- Contract Worker behavior is unchanged.
-- Dashboard is implemented only after its separate UX is approved.
+```text
+Existing Worker Settings
+        ↓
+Existing Work Identity
+        ↓
+Worker Type = Salary Person
+        ↓
+Salary Data Caution
+        ↓
+Continue to Salary Setup
+        ↓
+One-Time Salary Setup
+        ↓
+Saved Salary Policy
+        ↓
+Salary Person Work House mode
+        ↓
+Daily Attendance
+        ↓
+Manual Overtime
+        ↓
+Salary Period Calculation
+        ↓
+Explainable Salary Slip
+```
+
+At the same time:
+
+```text
+Worker Type = Work per Job / Contract
+        ↓
+Existing Contract Flow
+        ↓
+UNCHANGED
+```
+
+The feature is not complete if Salary Person exists only as a disconnected salary-calculation screen.
 
 ---
 
-## 27. Current Design Freeze
+## 28. Current Design Freeze
 
-### Frozen
+### Frozen / Agreed Direction
 
-- Salary Person is a separate work mode from Work on Contract.
-- One-time Salary Setup Form.
-- Salary amount + four salary types.
-- Optional 8h/12h working hours.
-- OT multiplier choices: 1× / 1.5× / 2×.
-- Sunday Paid Yes/No.
-- Holidays Paid Yes/No.
-- Daily attendance: Present / Absent / Leave.
-- Manual overtime entry.
-- Overtime flows into salary slip.
-- Sunday paid-off does not automatically mean Sunday overtime.
-- Sunday work requires manual OT entry.
-- Saturday Present → Sunday Present automatically.
+- Salary Person starts from the existing Work Identity / Worker Settings page.
+- Add Worker Type there.
+- Choices are Salary Person and Work per Job / Contract.
+- Contract behavior remains unchanged.
+- Salary Person has a one-time Salary Setup.
+- Saved salary settings drive future calculations.
+- Salary data is intended for the user's private salary/attendance/overtime record, not public/social display.
+- Daily Salary Person entry is attendance + overtime, not piece-work quantity/rate.
+- Sunday paid-off status and manually entered Sunday overtime are separate.
+- Saturday Present → Sunday Present.
 - Saturday Leave → Sunday confirmation.
-- Notification action completes/expires the notification.
-- Read without action does not complete it.
-- Maximum 15 reminder notifications in the pending cycle.
-- After 15, new attendance notifications stop and the 15 remain in history.
-- Dashboard is **not yet decided**.
+- Dashboard remains undecided/deferred.
+- AI remains out of scope.
 
-### Not Frozen
+### Open / Must Be Frozen Before Relevant Implementation
 
-All formula/calendar/rounding/history questions listed in Section 21 remain open until explicitly decided.
+- Exact salary-type conversion formulas.
+- Working-day/calendar basis.
+- Absence/leave pay policy.
+- Saturday Absent behavior.
+- Holiday calendar and holiday-work behavior.
+- Overtime precision/rounding.
+- Salary Start Date semantics.
+- Historical policy version/snapshot strategy.
+- Notification-generator details and reset condition.
+- Exact Worker Type switching UX.
 
 ---
 
-## 28. Golden Rule for Implementation
+## 29. Golden Rule
 
 **Do not code from assumptions.**
 
-Before each implementation phase, compare the proposed code against this blueprint. If a formula or policy is not frozen here, stop and resolve it before writing production calculation logic.
+The authoritative product journey begins here:
 
-The core engine must remain independent from the UI so that the eventual Salary Person dashboard can be designed later without changing salary mathematics.
+> **Existing Work Identity → Worker Type → Salary Person → Salary Setup → Daily Work → Calculation → Salary Slip**
+
+The existing **Work per Job / Contract** path is the protected regression boundary.
+
+The notification generator will be discussed and finalized separately before that portion is implemented.
