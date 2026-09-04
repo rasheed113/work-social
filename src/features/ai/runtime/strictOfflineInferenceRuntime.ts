@@ -71,22 +71,34 @@ export class StrictOfflineInferenceRuntime implements LocalInferenceRuntime {
     const iterator = this.inner.stream({ ...request, signal: controller.signal })[Symbol.asyncIterator]();
     try {
       while (true) {
-        const result = firstTokenReceived ? await iterator.next() : await Promise.race([iterator.next(), timeoutPromise]);
+        const result = await Promise.race([iterator.next(), timeoutPromise]);
         if (result.done) break;
         if (timedOut) {
           yield { type: 'ERROR', error: timeoutError(generationId, startedAt) };
           return;
         }
-        if (!firstTokenReceived && result.value.type === 'TOKEN' && result.value.text.length > 0) {
+        if (result.value.type === 'TOKEN' && result.value.text.length > 0) {
           firstTokenReceived = true;
           if (timer !== null) {
             this.clearTimeoutImpl(timer);
             timer = null;
           }
+          yield result.value;
+          break;
         }
         yield result.value;
       }
-      if (timedOut) yield { type: 'ERROR', error: timeoutError(generationId, startedAt) };
+
+      if (timedOut) {
+        yield { type: 'ERROR', error: timeoutError(generationId, startedAt) };
+        return;
+      }
+
+      while (true) {
+        const result = await iterator.next();
+        if (result.done) break;
+        yield result.value;
+      }
     } catch (error) {
       if (timedOut) {
         yield { type: 'ERROR', error: timeoutError(generationId, startedAt) };

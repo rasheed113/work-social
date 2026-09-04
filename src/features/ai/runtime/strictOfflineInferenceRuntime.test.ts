@@ -10,6 +10,7 @@ class FakeRuntime implements LocalInferenceRuntime {
   lastSignal: AbortSignal | null = null;
   aborted = false;
   emitToken = false;
+  emitControlFirst = false;
   release: (() => void) | null = null;
   async initialize(): Promise<void> {}
   async loadModel(_model: VerifiedLocalModelReference): Promise<void> {}
@@ -20,6 +21,7 @@ class FakeRuntime implements LocalInferenceRuntime {
     const signal = request.signal;
     if (!signal) throw new Error('signal missing');
     if (this.emitToken) {
+      if (this.emitControlFirst) yield { type: 'TOKEN', text: '' };
       yield { type: 'TOKEN', text: 'hello' };
       await new Promise<void>((resolve) => {
         this.release = resolve;
@@ -63,30 +65,42 @@ async function run(): Promise<void> {
   assert(events[0].type === 'ERROR' && events[0].error.message.includes('40 seconds'), 'timeout error is user-readable');
   equal(cleared, true, 'timeout timer is cleaned up');
 
-  timeoutHandler = null; cleared = false; runtime.aborted = false; runtime.emitToken = true; runtime.release = null;
+  timeoutHandler = null; cleared = false; runtime.aborted = false; runtime.emitToken = true; runtime.emitControlFirst = true; runtime.release = null;
   const streamedEvents: InferenceStreamEvent[] = [];
   const streamed = (async () => { for await (const event of strict.stream(request)) streamedEvents.push(event); })();
   await new Promise((resolve) => setTimeout(resolve, 0));
   assert(timeoutHandler !== null, 'thinking timeout is armed before the first token');
   await new Promise((resolve) => setTimeout(resolve, 0));
-  equal(streamedEvents.length, 1, 'first genuine token is forwarded immediately');
-  equal(streamedEvents[0].type, 'TOKEN', 'first event is the generated token');
+  equal(streamedEvents.length, 1, 'control event is forwarded before the first genuine token');
+  equal(streamedEvents[0].type, 'TOKEN', 'control fixture remains a token-shaped event');
+  assert(streamedEvents[0].type === 'TOKEN' && streamedEvents[0].text.length === 0, 'empty token does not count as the first genuine token');
+  equal(cleared, false, 'empty token does not clear the thinking timeout');
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  equal(streamedEvents.length, 2, 'first genuine token is forwarded immediately');
+  equal(streamedEvents[1].type, 'TOKEN', 'genuine generated token is forwarded');
   equal(cleared, true, 'first genuine token permanently clears the thinking timeout');
+  const raceCountBeforeGeneration = raceCallCount();
+  timeoutHandler!();
+  equal(runtime.aborted, false, 'an expired stale timeout callback cannot abort after the first token');
   runtime.release!();
   await streamed;
-  equal(streamedEvents.length, 3, 'post-token generation continues without a timeout race');
-  equal(streamedEvents[2].type, 'COMPLETE', 'post-token generation completes normally');
+  equal(streamedEvents.length, 4, 'post-token generation continues without a timeout race');
+  equal(streamedEvents[3].type, 'COMPLETE', 'post-token generation completes normally');
+  equal(raceCallCount(), raceCountBeforeGeneration, 'no Promise.race calls occur after the first genuine token');
 
-  timeoutHandler = null; cleared = false; runtime.aborted = false; runtime.emitToken = false;
+  timeoutHandler = null; cleared = false; runtime.aborted = false; runtime.emitToken = true; runtime.emitControlFirst = false; runtime.release = null;
   const parent = new AbortController();
   const abortedEvents: InferenceStreamEvent[] = [];
   const abortPending = (async () => { for await (const event of strict.stream({ ...request, signal: parent.signal })) abortedEvents.push(event); })();
   await new Promise((resolve) => setTimeout(resolve, 0));
+  equal(abortedEvents.length, 1, 'first token arrives before explicit cancellation');
+  equal(abortedEvents[0].type, 'TOKEN', 'cancellation test reaches generation phase');
+  equal(cleared, true, 'post-token cancellation test has already cleared the thinking timer');
   parent.abort();
   await abortPending;
-  equal(abortedEvents.length, 1, 'explicit abort emits one terminal error');
-  assert(abortedEvents[0].type === 'ERROR' && abortedEvents[0].error instanceof LocalInferenceRuntimeError && abortedEvents[0].error.code === 'INFERENCE_CANCELLED', 'explicit abort is not mislabeled as timeout');
-  equal(cleared, true, 'abort timer is cleaned up');
+  equal(runtime.aborted, true, 'user cancellation still aborts the underlying runtime after the first token');
+  equal(abortedEvents.length, 2, 'post-token cancellation emits one terminal cancellation event');
+  assert(abortedEvents[1].type === 'ERROR' && abortedEvents[1].error instanceof LocalInferenceRuntimeError && abortedEvents[1].error.code === 'INFERENCE_CANCELLED', 'post-token cancellation is not mislabeled as timeout');
 
   timeoutHandler = null; cleared = false; runtime.aborted = false; runtime.emitToken = false;
   const success = await strict.generate(request);
@@ -94,6 +108,21 @@ async function run(): Promise<void> {
   assert(timeoutHandler !== null, 'non-streaming generation still arms the authoritative 40-second deadline');
   equal(cleared, true, 'successful generation clears its timer');
 
-  console.log('Strict Offline inference tests passed: 40s first-token timeout, post-token timeout cancellation, underlying abort propagation, honest timeout failure, cleanup, success, explicit abort.');
+  console.log('Strict Offline inference tests passed: 40s first-token timeout, genuine-token detection, unrestricted post-token streaming, stale-timeout immunity, direct post-token iterator reads, post-token cancellation, cleanup, success, explicit abort.');
 }
-run().catch((error: unknown) => { console.error(error); throw error; });
+
+let raceCalls = 0;
+const originalPromiseRace = Promise.race;
+Object.defineProperty(Promise, 'race', {
+  configurable: true,
+  writable: true,
+  value: function <T>(iterable: Iterable<T | PromiseLike<T>>): Promise<Awaited<T>> {
+    raceCalls += 1;
+    return originalPromiseRace(iterable);
+  },
+});
+function raceCallCount(): number { return raceCalls; }
+
+run().catch((error: unknown) => { console.error(error); throw error; }).finally(() => {
+  Object.defineProperty(Promise, 'race', { configurable: true, writable: true, value: originalPromiseRace });
+});
