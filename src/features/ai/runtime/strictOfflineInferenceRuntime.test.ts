@@ -74,11 +74,11 @@ async function run(): Promise<void> {
   const streamed = (async () => { for await (const event of strict.stream(request)) streamedEvents.push(event); })();
   await new Promise((resolve) => setTimeout(resolve, 0));
   assert(timeoutHandler !== null, 'thinking timeout is armed before the first token');
-  await new Promise((resolve) => setTimeout(resolve, 0));
   equal(streamedEvents.length, 1, 'control event is forwarded before the first genuine token');
   equal(streamedEvents[0].type, 'TOKEN', 'control fixture remains a token-shaped event');
   assert(streamedEvents[0].type === 'TOKEN' && streamedEvents[0].text.length === 0, 'empty token does not count as the first genuine token');
   equal(cleared, false, 'empty token does not clear the thinking timeout');
+  assert(runtime.controlRelease !== null, 'control fixture is paused before the genuine token');
   runtime.controlRelease!();
   await new Promise((resolve) => setTimeout(resolve, 0));
   equal(streamedEvents.length, 2, 'first genuine token is forwarded immediately');
@@ -117,13 +117,13 @@ async function run(): Promise<void> {
 }
 
 let raceCalls = 0;
-const originalPromiseRace = Promise.race;
+const originalPromiseRace = Promise.race as <T>(iterable: Iterable<T | PromiseLike<T>>) => Promise<Awaited<T>>;
 Object.defineProperty(Promise, 'race', {
   configurable: true,
   writable: true,
   value: function <T>(iterable: Iterable<T | PromiseLike<T>>): Promise<Awaited<T>> {
     raceCalls += 1;
-    return originalPromiseRace.call(Promise, iterable);
+    return originalPromiseRace(iterable);
   },
 });
 function raceCallCount(): number { return raceCalls; }
