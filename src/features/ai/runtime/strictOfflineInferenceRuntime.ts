@@ -2,7 +2,7 @@ import type { InferenceRequest, InferenceResponse, InferenceStreamEvent, LocalIn
 import { BROWSER_LOCAL_INFERENCE_CAPABILITIES, LocalInferenceRuntimeError } from './localInferenceContracts';
 import { offlineAiTrace } from './localAiDiagnostics';
 
-export const OFFLINE_GENERATION_TIMEOUT_MS = 60_000;
+export const OFFLINE_GENERATION_TIMEOUT_MS = 120_000;
 type TimeoutHandle = ReturnType<typeof setTimeout>;
 type SetTimeoutLike = (handler: () => void, timeout: number) => TimeoutHandle;
 type ClearTimeoutLike = (handle: TimeoutHandle) => void;
