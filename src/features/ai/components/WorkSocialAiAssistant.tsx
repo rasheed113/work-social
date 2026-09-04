@@ -83,7 +83,7 @@ export function WorkSocialAiAssistant({ profileId: _profileId, mode }: Props) {
     return () => { active = false; };
   }, [open, _profileId]);
 
-  useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); const latest = messages[messages.length - 1]; if (latest?.role === 'assistant') offlineAiTrace('RESPONSE_RENDERED', { provider: latest.provider ?? null, mode: latest.mode ?? null, provenanceKnown: Boolean(latest.provider && latest.mode) }); }, [messages, pendingActions, sending]);
+  useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); const latest = messages[messages.length - 1]; if (latest?.role === 'assistant') offlineAiTrace('RESPONSE_RENDERED', { provider: latest.provider ?? null, mode: latest.mode ?? null, provenanceKnown: Boolean(latest.provider && latest.mode) }); }, [messages]);
 
   useEffect(() => {
     const Recognition = window.SpeechRecognition ?? window.webkitSpeechRecognition;
