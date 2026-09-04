@@ -2,7 +2,7 @@ import type { InferenceRequest, InferenceResponse, InferenceStreamEvent, LocalIn
 import { BROWSER_LOCAL_INFERENCE_CAPABILITIES, LocalInferenceRuntimeError } from './localInferenceContracts';
 import { offlineAiTrace } from './localAiDiagnostics';
 
-export const OFFLINE_GENERATION_TIMEOUT_MS = 60_000;
+export const OFFLINE_GENERATION_TIMEOUT_MS = 40_000;
 type TimeoutHandle = ReturnType<typeof setTimeout>;
 type SetTimeoutLike = (handler: () => void, timeout: number) => TimeoutHandle;
 type ClearTimeoutLike = (handle: TimeoutHandle) => void;
@@ -56,11 +56,12 @@ export class StrictOfflineInferenceRuntime implements LocalInferenceRuntime {
     const controller = new AbortController();
     const cleanupParent = linkAbortSignal(request.signal, controller);
     let timedOut = false;
+    let firstTokenReceived = false;
     let timer: TimeoutHandle | null = null;
     let rejectTimeout: ((reason?: unknown) => void) | null = null;
     const startedAt = nowMs();
     const timeout = () => {
-      if (controller.signal.aborted) return;
+      if (controller.signal.aborted || firstTokenReceived) return;
       timedOut = true;
       offlineAiTrace('TIMEOUT', { generationId, elapsedMs: nowMs() - startedAt, timeoutMs: OFFLINE_GENERATION_TIMEOUT_MS });
       controller.abort();
@@ -70,11 +71,18 @@ export class StrictOfflineInferenceRuntime implements LocalInferenceRuntime {
     const iterator = this.inner.stream({ ...request, signal: controller.signal })[Symbol.asyncIterator]();
     try {
       while (true) {
-        const result = await Promise.race([iterator.next(), timeoutPromise]);
+        const result = firstTokenReceived ? await iterator.next() : await Promise.race([iterator.next(), timeoutPromise]);
         if (result.done) break;
         if (timedOut) {
           yield { type: 'ERROR', error: timeoutError(generationId, startedAt) };
           return;
+        }
+        if (!firstTokenReceived && result.value.type === 'TOKEN' && result.value.text.length > 0) {
+          firstTokenReceived = true;
+          if (timer !== null) {
+            this.clearTimeoutImpl(timer);
+            timer = null;
+          }
         }
         yield result.value;
       }
