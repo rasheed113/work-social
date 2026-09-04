@@ -117,7 +117,7 @@ async function run(): Promise<void> {
 }
 
 let raceCalls = 0;
-const originalPromiseRace = Promise.race as <T>(iterable: Iterable<T | PromiseLike<T>>) => Promise<Awaited<T>>;
+const originalPromiseRace = Promise.race.bind(Promise) as <T>(iterable: Iterable<T | PromiseLike<T>>) => Promise<Awaited<T>>;
 Object.defineProperty(Promise, 'race', {
   configurable: true,
   writable: true,
