@@ -25,6 +25,8 @@ type SpeechRecognitionLike = {
 type SpeechRecognitionConstructor = new () => SpeechRecognitionLike;
 declare global { interface Window { SpeechRecognition?: SpeechRecognitionConstructor; webkitSpeechRecognition?: SpeechRecognitionConstructor; } }
 
+const VOICE_SILENCE_DELAY_MS = 5000;
+
 function formatDate(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return '';
@@ -62,6 +64,8 @@ export function WorkSocialAiAssistant({ profileId: _profileId, mode }: Props) {
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const speechRef = useRef<SpeechSynthesisUtterance | null>(null);
   const restartTimerRef = useRef<number | null>(null);
+  const voiceSilenceTimerRef = useRef<number | null>(null);
+  const voiceTranscriptRef = useRef('');
   const voiceSessionRef = useRef(0);
   const speechTokenRef = useRef(0);
   const conversationIdRef = useRef<string | null>(null);
@@ -96,7 +100,8 @@ export function WorkSocialAiAssistant({ profileId: _profileId, mode }: Props) {
     return () => {
       voiceActiveRef.current = false; voiceSessionRef.current += 1;
       if (restartTimerRef.current !== null) window.clearTimeout(restartTimerRef.current);
-      restartTimerRef.current = null;
+      if (voiceSilenceTimerRef.current !== null) window.clearTimeout(voiceSilenceTimerRef.current);
+      restartTimerRef.current = null; voiceSilenceTimerRef.current = null;
       try { recognitionRef.current?.stop(); } catch { /* already stopped */ }
       recognitionRef.current = null; window.speechSynthesis?.cancel(); speechRef.current = null; setVoice('IDLE');
     };
@@ -108,6 +113,7 @@ export function WorkSocialAiAssistant({ profileId: _profileId, mode }: Props) {
     if (current) { current.onresult = null; current.onstart = null; current.onerror = null; current.onend = null; try { current.stop(); } catch { /* already stopped */ } }
   };
   const clearRestartTimer = () => { if (restartTimerRef.current !== null) window.clearTimeout(restartTimerRef.current); restartTimerRef.current = null; };
+  const clearVoiceSilenceTimer = () => { if (voiceSilenceTimerRef.current !== null) window.clearTimeout(voiceSilenceTimerRef.current); voiceSilenceTimerRef.current = null; };
 
   const speakVoiceResponse = (text: string, sessionId: number, messageId: string) => {
     if (!voiceActiveRef.current || sessionId !== voiceSessionRef.current) return;
@@ -127,33 +133,48 @@ export function WorkSocialAiAssistant({ profileId: _profileId, mode }: Props) {
     setVoice('LISTENING'); restartTimerRef.current = window.setTimeout(() => { restartTimerRef.current = null; if (!voiceActiveRef.current || sessionId !== voiceSessionRef.current) return; startListeningSegment(sessionId); }, delay);
   };
 
+  const submitAccumulatedVoice = (sessionId: number) => {
+    if (!voiceActiveRef.current || sessionId !== voiceSessionRef.current) return;
+    const text = voiceTranscriptRef.current.trim();
+    if (!text || sendingRef.current) return;
+    clearVoiceSilenceTimer(); clearRestartTimer(); stopRecognition(); voiceTranscriptRef.current = '';
+    setDraft(''); setVoice('PROCESSING'); void submitText(text, sessionId, true);
+  };
+
+  const armVoiceSilenceTimer = (sessionId: number) => {
+    clearVoiceSilenceTimer();
+    if (!voiceActiveRef.current || sessionId !== voiceSessionRef.current || !voiceTranscriptRef.current.trim()) return;
+    voiceSilenceTimerRef.current = window.setTimeout(() => { voiceSilenceTimerRef.current = null; submitAccumulatedVoice(sessionId); }, VOICE_SILENCE_DELAY_MS);
+  };
+
   const startListeningSegment = (sessionId: number) => {
     const Recognition = recognitionCtorRef.current;
     if (!Recognition || !voiceActiveRef.current || sessionId !== voiceSessionRef.current || recognitionRef.current) return;
     const recognition = new Recognition(); recognitionRef.current = recognition; recognition.lang = 'ur-PK'; recognition.continuous = false; recognition.interimResults = true;
-    let finalText = ''; let handledFinal = false;
+    let segmentFinalHandled = false;
     recognition.onstart = () => { if (!voiceActiveRef.current || sessionId !== voiceSessionRef.current) return; setVoice('LISTENING'); };
     recognition.onresult = (event) => {
-      if (!voiceActiveRef.current || sessionId !== voiceSessionRef.current || handledFinal) return;
-      let latestFinal = ''; let interim = '';
-      for (let i = 0; i < event.results.length; i += 1) { const result = event.results[i]; const text = result[0]?.transcript ?? ''; if (result.isFinal) latestFinal += `${text} `; else interim += text; }
-      if (latestFinal.trim()) finalText = latestFinal.trim(); const visible = `${finalText} ${interim}`.trim(); if (visible) setDraft(visible);
-      if (!finalText.trim() || handledFinal) return; handledFinal = true; stopRecognition(); setDraft(''); setVoice('PROCESSING'); void submitText(finalText.trim(), sessionId, true);
+      if (!voiceActiveRef.current || sessionId !== voiceSessionRef.current) return;
+      let segmentFinal = ''; let interim = '';
+      for (let i = 0; i < event.results.length; i += 1) { const result = event.results[i]; const text = result[0]?.transcript ?? ''; if (result.isFinal) segmentFinal += `${text} `; else interim += text; }
+      if (segmentFinal.trim() && !segmentFinalHandled) { segmentFinalHandled = true; voiceTranscriptRef.current = `${voiceTranscriptRef.current} ${segmentFinal.trim()}`.trim(); }
+      const visible = `${voiceTranscriptRef.current} ${interim}`.trim(); if (visible) setDraft(visible);
+      if (visible) armVoiceSilenceTimer(sessionId);
     };
     recognition.onerror = (event) => {
       if (recognitionRef.current === recognition) recognitionRef.current = null;
       if (!voiceActiveRef.current || sessionId !== voiceSessionRef.current) return;
       if (event.error === 'aborted') return;
-      if (event.error === 'not-allowed' || event.error === 'service-not-allowed') { voiceActiveRef.current = false; setVoice('IDLE'); setError('Microphone permission is required.'); return; }
+      if (event.error === 'not-allowed' || event.error === 'service-not-allowed') { voiceActiveRef.current = false; clearVoiceSilenceTimer(); setVoice('IDLE'); setError('Microphone permission is required.'); return; }
       if (event.error === 'no-speech') { scheduleListening(sessionId, 120); return; }
       setError('Voice input could not be heard. Voice Chat will retry.'); scheduleListening(sessionId, 500);
     };
-    recognition.onend = () => { if (recognitionRef.current === recognition) recognitionRef.current = null; if (!voiceActiveRef.current || sessionId !== voiceSessionRef.current) return; if (handledFinal) return; if (voiceStateRef.current === 'LISTENING') scheduleListening(sessionId, 120); };
+    recognition.onend = () => { if (recognitionRef.current === recognition) recognitionRef.current = null; if (!voiceActiveRef.current || sessionId !== voiceSessionRef.current) return; if (voiceStateRef.current === 'LISTENING') scheduleListening(sessionId, 120); };
     try { recognition.start(); } catch { if (recognitionRef.current === recognition) recognitionRef.current = null; if (voiceActiveRef.current && sessionId === voiceSessionRef.current) scheduleListening(sessionId, 300); }
   };
 
-  const stopVoiceMode = () => { voiceActiveRef.current = false; voiceSessionRef.current += 1; setVoice('STOPPING'); clearRestartTimer(); stopRecognition(); speechTokenRef.current += 1; window.speechSynthesis?.cancel(); speechRef.current = null; setSpeakingId(null); setDraft(''); setVoice('IDLE'); };
-  const startVoiceMode = () => { if (!voiceAvailable || !recognitionCtorRef.current) { setError('Voice input is not supported by this browser.'); return; } if (voiceActiveRef.current) return; setError(null); voiceActiveRef.current = true; const sessionId = ++voiceSessionRef.current; setVoice('LISTENING'); scheduleListening(sessionId, 0); };
+  const stopVoiceMode = () => { voiceActiveRef.current = false; voiceSessionRef.current += 1; setVoice('STOPPING'); clearRestartTimer(); clearVoiceSilenceTimer(); stopRecognition(); voiceTranscriptRef.current = ''; speechTokenRef.current += 1; window.speechSynthesis?.cancel(); speechRef.current = null; setSpeakingId(null); setDraft(''); setVoice('IDLE'); };
+  const startVoiceMode = () => { if (!voiceAvailable || !recognitionCtorRef.current) { setError('Voice input is not supported by this browser.'); return; } if (voiceActiveRef.current) return; setError(null); voiceTranscriptRef.current = ''; clearVoiceSilenceTimer(); voiceActiveRef.current = true; const sessionId = ++voiceSessionRef.current; setVoice('LISTENING'); scheduleListening(sessionId, 0); };
 
   async function selectConversation(id: string) {
     if (sending || id === conversationId) return; setError(null);
