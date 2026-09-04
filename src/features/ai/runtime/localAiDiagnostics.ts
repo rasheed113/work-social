@@ -7,7 +7,7 @@ export interface LocalAiDiagnostic {
   stage: LocalAiDiagnosticStage; code: string; message: string; result?: 'PASS' | 'FAIL'; resource?: string; url?: string; status?: number; statusText?: string; responseType?: string; responseOk?: boolean; responseRedirected?: boolean; responseUrl?: string; responseBodyAvailable?: boolean; contentLength?: number; contentType?: string; downloadedBytes?: number; elapsedMs?: number; browserUserAgent?: string; errorName?: string; errorMessage?: string; cause?: string; filename?: string; expectedBytes?: number; actualBytes?: number; sha256?: string; checksum?: 'PASS' | 'FAIL'; gguf?: 'VALID' | 'INVALID'; storage?: 'SUCCESS' | 'FAILED' | 'ABORTED'; provider?: 'local' | 'gemini'; runtime?: string; source?: 'imported-local-gguf' | 'downloaded-local-gguf'; timestamp: string; modelId?: string; modelVersion?: string;
 }
 const STAGES: Record<string, LocalAiDiagnosticStage> = {
-  MODEL_DOWNLOAD_FAILED: 'MODEL_DOWNLOAD', MODEL_DOWNLOAD_HTTP_FAILED: 'MODEL_DOWNLOAD', MODEL_DOWNLOAD_FETCH_FAILED: 'MODEL_DOWNLOAD', MODEL_DOWNLOAD_RESPONSE_READ_FAILED: 'MODEL_DOWNLOAD', MODEL_DOWNLOAD_ABORTED: 'MODEL_DOWNLOAD', MODEL_DOWNLOAD_INCOMPLETE: 'MODEL_DOWNLOAD', MODEL_DOWNLOAD_CHECKSUM_FAILED: 'MODEL_DOWNLOAD', MODEL_IMPORT_SIZE_FAILED: 'MODEL_IMPORT', MODEL_IMPORT_GGUF_INVALID: 'MODEL_IMPORT', MODEL_IMPORT_CHECKSUM_FAILED: 'MODEL_IMPORT', MODEL_IMPORT_STORAGE_VERIFY_FAILED: 'MODEL_IMPORT', MODEL_IMPORT_ABORTED: 'MODEL_IMPORT', MODEL_IMPORT_VERIFIED: 'MODEL_IMPORT', MODEL_STORAGE_READ_FAILED: 'MODEL_STORAGE_READ', MODEL_STORAGE_WRITE_FAILED: 'MODEL_STORAGE_WRITE', WLLAMA_WASM_FETCH_FAILED: 'WLLAMA_WASM', WLLAMA_COMPAT_WASM_FETCH_FAILED: 'WLLAMA_COMPAT_WASM', WLLAMA_JS_FETCH_FAILED: 'WLLAMA_JS', WLLAMA_WORKER_ASSET_FAILED: 'WLLAMA_WORKER', RUNTIME_INITIALIZATION_FAILED: 'RUNTIME_INITIALIZATION', MODEL_LOAD_FAILED: 'MODEL_LOAD', INFERENCE_FAILED: 'INFERENCE',
+  MODEL_DOWNLOAD_FAILED: 'MODEL_DOWNLOAD', MODEL_DOWNLOAD_HTTP_FAILED: 'MODEL_DOWNLOAD', MODEL_DOWNLOAD_FETCH_FAILED: 'MODEL_DOWNLOAD', MODEL_DOWNLOAD_RESPONSE_READ_FAILED: 'MODEL_DOWNLOAD', MODEL_DOWNLOAD_ABORTED: 'MODEL_DOWNLOAD', MODEL_DOWNLOAD_INCOMPLETE: 'MODEL_DOWNLOAD', MODEL_DOWNLOAD_CHECKSUM_FAILED: 'MODEL_DOWNLOAD', MODEL_IMPORT_SIZE_FAILED: 'MODEL_IMPORT', MODEL_IMPORT_GGUF_INVALID: 'MODEL_IMPORT', MODEL_IMPORT_CHECKSUM_FAILED: 'MODEL_IMPORT', MODEL_IMPORT_STORAGE_VERIFY_FAILED: 'MODEL_IMPORT', MODEL_IMPORT_ABORTED: 'MODEL_IMPORT', MODEL_IMPORT_VERIFIED: 'MODEL_IMPORT', MODEL_STORAGE_READ_FAILED: 'MODEL_STORAGE_READ', MODEL_STORAGE_WRITE_FAILED: 'MODEL_STORAGE_WRITE', WLLAMA_WASM_FETCH_FAILED: 'WLLAMA_WASM', WLLAMA_COMPAT_WASM_FETCH_FAILED: 'WLLAMA_COMPAT_WASM', WLLAMA_JS_FETCH_FAILED: 'WLLAMA_JS', WLLAMA_WORKER_ASSET_FAILED: 'WLLAMA_WORKER', RUNTIME_INITIALIZATION_FAILED: 'RUNTIME_INITIALIZATION', MODEL_LOAD_FAILED: 'MODEL_LOAD', INFERENCE_FAILED: 'INFERENCE_FAILED' as LocalAiDiagnosticStage,
 };
 
 /** Safe production trace. It deliberately excludes message contents, credentials and tokens. */
@@ -18,6 +18,61 @@ export function offlineAiTrace(event: string, fields: Record<string, unknown> = 
     return ['string', 'number', 'boolean'].includes(typeof value) || value === null;
   }));
   console.info(`[OfflineAI] ${event}`, safe);
+  renderOfflineAiDiagnostics(event, safe);
+}
+
+type OfflineAiDiagnosticSnapshot = Record<string, unknown>;
+let offlineAiDiagnosticSnapshot: OfflineAiDiagnosticSnapshot = {};
+let offlineAiDiagnosticsOverlay: HTMLDivElement | null = null;
+
+function renderOfflineAiDiagnostics(event: string, fields: Record<string, unknown>): void {
+  if (typeof document === 'undefined') return;
+  offlineAiDiagnosticSnapshot = { ...offlineAiDiagnosticSnapshot, ...fields, last_event: event };
+  if (!offlineAiDiagnosticsOverlay) {
+    const overlay = document.createElement('div');
+    overlay.id = 'offline-ai-diagnostics-overlay';
+    overlay.setAttribute('aria-label', 'Offline AI diagnostics');
+    overlay.style.cssText = 'position:fixed;left:8px;right:8px;bottom:8px;z-index:2147483647;background:rgba(0,0,0,.88);color:#fff;font:12px/1.35 monospace;padding:10px;border:1px solid rgba(255,255,255,.35);border-radius:8px;max-height:45vh;overflow:auto;white-space:pre-wrap;pointer-events:none;box-sizing:border-box;';
+    document.body?.appendChild(overlay);
+    offlineAiDiagnosticsOverlay = overlay;
+  }
+  const s = offlineAiDiagnosticSnapshot;
+  const rows = [
+    'OFFLINE AI DIAGNOSTICS (TEMPORARY)',
+    `event=${String(s.last_event ?? event)}`,
+    `TTFT_ms=${formatValue(s.ttft_ms)}`,
+    `generation_ms=${formatValue(s.generation_ms)}`,
+    `delta_count=${formatValue(s.delta_count)}`,
+    `deltas_per_second=${formatValue(s.deltas_per_second)}`,
+    `wllama_wait_ms=${formatValue(s.wllama_wait_ms)}`,
+    `wllama_deltas_per_second=${formatValue(s.wllama_deltas_per_second)}`,
+    `n_threads=${formatValue(s.num_threads ?? s.nThreads ?? s.n_threads)}`,
+    `multithread=${formatValue(s.multithread)}`,
+    `WebGPU=${formatValue(s.webgpu_supported)}`,
+    `crossOriginIsolated=${typeof crossOriginIsolated === 'boolean' ? String(crossOriginIsolated) : 'UNREADABLE'}`,
+    `gpu_layers=${formatValue(s.gpu_layers)}`,
+    `compat_mode=${formatValue(s.compat_mode)}`,
+    `model=${formatValue(s.modelId)}`,
+    `model_version=${formatValue(s.modelVersion)}`,
+    `context_size=${formatValue(s.context_size ?? s.nCtx)}`,
+    `batch_size=${formatValue(s.batch_size ?? s.nBatch)}`,
+    `max_tokens=${formatValue(s.maxTokens)}`,
+    `completed=${formatValue(s.completed)}`,
+    `cancelled=${formatValue(s.cancelled)}`,
+    `errored=${formatValue(s.errored)}`,
+    `error_code=${formatValue(s.errorCode)}`,
+    `error_name=${formatValue(s.errorName)}`,
+  ];
+  offlineAiDiagnosticsOverlay.textContent = rows.join('\n');
+}
+
+function formatValue(value: unknown): string {
+  return value === undefined ? 'UNREADABLE' : value === null ? 'null' : String(value);
+}
+
+export function hideOfflineAiDiagnosticsOverlay(): void {
+  offlineAiDiagnosticsOverlay?.remove();
+  offlineAiDiagnosticsOverlay = null;
 }
 
 export function sanitizeDiagnosticUrl(value: string | undefined): string | undefined { if (!value) return undefined; try { const url = new URL(value); url.username = ''; url.password = ''; url.search = ''; url.hash = ''; return url.toString(); } catch { return '[invalid-url]'; } }
