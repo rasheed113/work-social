@@ -231,8 +231,14 @@ export class DefaultLocalInferenceRuntime implements LocalInferenceRuntime {
       offlineAiTrace('GENERATION_STARTED', { generationId, runtime: this.adapter?.name ?? 'unknown', streaming: true, modelLoaded: true, messageCount: request.messages.length, startedAtMs: nowMs() });
       offlineAiTrace('CREATE_CHAT_COMPLETION_STARTED', { generationId, streaming: true, startedAtMs: nowMs() });
       let completed = false;
+      let firstTokenSeen = false;
       for await (const event of this.adapter!.stream({ ...request, signal, diagnosticRequestId: generationId }, signal)) {
-        if (event.type === 'TOKEN') offlineAiTrace('FIRST_TOKEN_RECEIVED', { generationId, note: 'stream-token' });
+        if (event.type === 'TOKEN') {
+          if (!firstTokenSeen) {
+            firstTokenSeen = true;
+            offlineAiTrace('FIRST_TOKEN_RECEIVED', { generationId, note: 'stream-token' });
+          }
+        }
         if (event.type === 'ERROR') {
           this.status = this.loadedModel ? 'MODEL_READY' : 'ERROR';
           offlineAiTrace('GENERATION_FAILED', { generationId, errorCode: event.error instanceof LocalInferenceRuntimeError ? event.error.code : 'INFERENCE_FAILED' });
