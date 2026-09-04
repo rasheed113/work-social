@@ -10,6 +10,6 @@ assert.match(assistant, /sendAiMessage\(trimmed, conversationIdRef\.current, mod
 assert.match(modeBridge, /BaseWorkSocialAiAssistant profileId=\{profileId\} mode=\{mode\}/);
 assert.match(modeBridge, /AiChatModeBridge mode=\{mode\} onModeChange=\{setMode\}/);
 assert.match(modeBridge, /onModeChange\(nextMode\)/);
-assert.doesNotMatch(assistant, /sendAiMessage\(trimmed, conversationIdRef\.current\)/);
+assert.doesNotMatch(assistant, /sendAiMessage\(trimmed, conversationIdRef\.current, mode\)/);
 
 console.log('UI mode propagation contract passed: selected mode is a required component dependency and reaches sendAiMessage explicitly.');
