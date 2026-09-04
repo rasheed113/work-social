@@ -12,6 +12,7 @@ class FakeRuntime implements LocalInferenceRuntime {
   emitToken = false;
   emitControlFirst = false;
   release: (() => void) | null = null;
+  controlRelease: (() => void) | null = null;
   async initialize(): Promise<void> {}
   async loadModel(_model: VerifiedLocalModelReference): Promise<void> {}
   async unloadModel(): Promise<void> {}
@@ -23,7 +24,7 @@ class FakeRuntime implements LocalInferenceRuntime {
     if (this.emitToken) {
       if (this.emitControlFirst) {
         yield { type: 'TOKEN', text: '' };
-        await new Promise<void>((resolve) => setTimeout(resolve, 0));
+        await new Promise<void>((resolve) => { this.controlRelease = resolve; });
       }
       yield { type: 'TOKEN', text: 'hello' };
       await new Promise<void>((resolve) => {
@@ -68,7 +69,7 @@ async function run(): Promise<void> {
   assert(events[0].type === 'ERROR' && events[0].error.message.includes('40 seconds'), 'timeout error is user-readable');
   equal(cleared, true, 'timeout timer is cleaned up');
 
-  timeoutHandler = null; cleared = false; runtime.aborted = false; runtime.emitToken = true; runtime.emitControlFirst = true; runtime.release = null;
+  timeoutHandler = null; cleared = false; runtime.aborted = false; runtime.emitToken = true; runtime.emitControlFirst = true; runtime.release = null; runtime.controlRelease = null;
   const streamedEvents: InferenceStreamEvent[] = [];
   const streamed = (async () => { for await (const event of strict.stream(request)) streamedEvents.push(event); })();
   await new Promise((resolve) => setTimeout(resolve, 0));
@@ -78,6 +79,7 @@ async function run(): Promise<void> {
   equal(streamedEvents[0].type, 'TOKEN', 'control fixture remains a token-shaped event');
   assert(streamedEvents[0].type === 'TOKEN' && streamedEvents[0].text.length === 0, 'empty token does not count as the first genuine token');
   equal(cleared, false, 'empty token does not clear the thinking timeout');
+  runtime.controlRelease!();
   await new Promise((resolve) => setTimeout(resolve, 0));
   equal(streamedEvents.length, 2, 'first genuine token is forwarded immediately');
   equal(streamedEvents[1].type, 'TOKEN', 'genuine generated token is forwarded');
