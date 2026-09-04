@@ -21,7 +21,10 @@ class FakeRuntime implements LocalInferenceRuntime {
     const signal = request.signal;
     if (!signal) throw new Error('signal missing');
     if (this.emitToken) {
-      if (this.emitControlFirst) yield { type: 'TOKEN', text: '' };
+      if (this.emitControlFirst) {
+        yield { type: 'TOKEN', text: '' };
+        await new Promise<void>((resolve) => setTimeout(resolve, 0));
+      }
       yield { type: 'TOKEN', text: 'hello' };
       await new Promise<void>((resolve) => {
         this.release = resolve;
