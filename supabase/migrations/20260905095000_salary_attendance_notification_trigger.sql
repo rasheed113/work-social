@@ -6,6 +6,7 @@ alter table public.notifications add constraint notifications_type_check check (
 
 grant select, insert, update, delete on public.salary_policies to service_role;
 grant select, insert, update, delete on public.salary_attendance_records to service_role;
+grant select, insert, update, delete on public.worker_profiles to service_role;
 grant select, insert, update, delete on public.notifications to service_role;
 grant select, insert, update, delete on public.worker_diary_push_subscriptions to service_role;
 
