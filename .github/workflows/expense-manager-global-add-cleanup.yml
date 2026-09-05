@@ -15,7 +15,6 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.ref }}
           fetch-depth: 0
-
       - name: Remove page-level Add buttons
         shell: bash
         run: |
@@ -40,7 +39,6 @@ jobs:
           git diff --check
           npm install
           npm run build
-
       - name: Commit source cleanup
         shell: bash
         run: |
