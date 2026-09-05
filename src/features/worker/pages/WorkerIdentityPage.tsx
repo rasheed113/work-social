@@ -20,7 +20,7 @@ export function WorkerIdentityPage({ profileId }: WorkerIdentityPageProps) {
     setSwitching(false);
     if (updateError) { setSwitchError(updateError.message); return; }
     await reload();
-    if (value === 'salary_person') navigate('/work/salary/setup');
+    if (value === 'salary_person') navigate('/work/finance?setup=1');
   };
 
   return <main className="worker-identity-page" style={{ width: '100%', maxWidth: 760, margin: '0 auto', padding: '24px 14px 112px', boxSizing: 'border-box' }}>
