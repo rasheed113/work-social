@@ -23,32 +23,59 @@ function activeModule(pathname: string): ModuleId {
 export function GlobalModuleMenu({ onNavigate }: GlobalModuleMenuProps) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
-  const firstItemRef = useRef<HTMLButtonElement>(null);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const itemRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const currentModule = activeModule(window.location.pathname);
+
+  const closeMenu = (restoreFocus = false) => {
+    setOpen(false);
+    if (restoreFocus) window.requestAnimationFrame(() => menuButtonRef.current?.focus());
+  };
 
   useEffect(() => {
     if (!open) return;
     const onPointerDown = (event: PointerEvent) => {
-      if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
-    };
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setOpen(false);
-        return;
-      }
-      if (event.key === 'Tab' && !rootRef.current?.contains(document.activeElement)) setOpen(false);
+      if (!rootRef.current?.contains(event.target as Node)) closeMenu();
     };
     document.addEventListener('pointerdown', onPointerDown);
-    document.addEventListener('keydown', onKeyDown);
-    firstItemRef.current?.focus();
-    return () => {
-      document.removeEventListener('pointerdown', onPointerDown);
-      document.removeEventListener('keydown', onKeyDown);
-    };
+    return () => document.removeEventListener('pointerdown', onPointerDown);
   }, [open]);
 
+  useEffect(() => {
+    if (!open) return;
+    window.requestAnimationFrame(() => itemRefs.current[0]?.focus());
+  }, [open]);
+
+  const moveFocus = (index: number) => {
+    const count = modules.length;
+    itemRefs.current[(index + count) % count]?.focus();
+  };
+
+  const handleMenuKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    const target = event.target as HTMLElement;
+    const itemIndex = itemRefs.current.findIndex((item) => item === target);
+    if (itemIndex < 0) return;
+
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      moveFocus(itemIndex + 1);
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      moveFocus(itemIndex - 1);
+    } else if (event.key === 'Home') {
+      event.preventDefault();
+      moveFocus(0);
+    } else if (event.key === 'End') {
+      event.preventDefault();
+      moveFocus(modules.length - 1);
+    } else if (event.key === 'Escape') {
+      event.preventDefault();
+      closeMenu(true);
+    }
+  };
+
   const selectModule = (path: string) => {
-    setOpen(false);
+    closeMenu();
     onNavigate(path);
   };
 
@@ -89,6 +116,7 @@ export function GlobalModuleMenu({ onNavigate }: GlobalModuleMenuProps) {
         @media (max-width:340px){.ws-main-header__menu{min-width:34px;min-height:34px;width:34px;flex-basis:34px;border-radius:10px}.ws-main-header__menu-panel{width:calc(100vw - 14px);right:-1px}}
       `}</style>
       <button
+        ref={menuButtonRef}
         type="button"
         className="ws-main-header__menu"
         aria-label="Open Work Social menu"
@@ -104,7 +132,7 @@ export function GlobalModuleMenu({ onNavigate }: GlobalModuleMenuProps) {
         </svg>
       </button>
       {open && (
-        <div id="work-social-global-module-menu" className="ws-main-header__menu-panel" role="menu" aria-label="Work Social modules">
+        <div id="work-social-global-module-menu" className="ws-main-header__menu-panel" role="menu" aria-label="Work Social modules" onKeyDown={handleMenuKeyDown}>
           <div className="ws-main-header__menu-heading">
             <span className="ws-main-header__menu-title">Work Social</span>
             <span className="ws-main-header__menu-subtitle">Switch workspace</span>
@@ -115,7 +143,7 @@ export function GlobalModuleMenu({ onNavigate }: GlobalModuleMenuProps) {
             return (
               <button
                 key={module.id}
-                ref={index === 0 ? firstItemRef : undefined}
+                ref={(element) => { itemRefs.current[index] = element; }}
                 type="button"
                 role="menuitem"
                 className="ws-main-header__menu-item"
