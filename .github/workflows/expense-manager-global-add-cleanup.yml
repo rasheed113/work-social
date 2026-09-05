@@ -22,26 +22,28 @@ jobs:
           from pathlib import Path
           import re
           targets = {
-            'src/features/expense-manager/pages/ExpenseAccountsPage.tsx': ('accounts', 'account'),
-            'src/features/expense-manager/pages/ExpenseCategoriesPage.tsx': ('categories', 'category'),
-            'src/features/expense-manager/pages/ExpenseBudgetsPage.tsx': ('budgets', 'budget'),
-            'src/features/expense-manager/pages/ExpenseTransactionsPage.tsx': ('transactions', 'transaction'),
+            'src/features/expense-manager/pages/ExpenseAccountsPage.tsx': ('accounts', 'account', '＋ Add account'),
+            'src/features/expense-manager/pages/ExpenseCategoriesPage.tsx': ('categories', 'category', '＋ Add category'),
+            'src/features/expense-manager/pages/ExpenseBudgetsPage.tsx': ('budgets', 'budget', '＋ Add budget'),
+            'src/features/expense-manager/pages/ExpenseTransactionsPage.tsx': ('transactions', 'transaction', '＋ Add transaction'),
           }
-          for name, (key, noun) in targets.items():
+          for name, (key, noun, label) in targets.items():
             path = Path(name)
             text = path.read_text()
             cls = f'expense-{key}__add'
             wrapper = r'\{\s*' + key + r'\.length\s*>\s*0\s*&&\s*\(\s*<button\b[^>]*className="' + re.escape(cls) + r'"[\s\S]*?</button>\s*\)\s*\}'
             text = re.sub(wrapper, '', text)
-            empty = r'<button\b[^>]*onClick=\{openAdd\}[^>]*>[\s\S]*?Add your first ' + noun + r'[\s\S]*?</button>'
-            text = re.sub(empty, '', text)
-            text = re.sub(r'\.' + re.escape(cls) + r'(?::after)?\{[^{}]*\}', '', text)
+            text = text.replace('<button type="button" className="' + cls + '" onClick={openAdd}><span>' + label + '</span></button>', '')
+            text = text.replace('<button type="button" className="' + cls + '" onClick={openAdd} aria-label="Add ' + noun + '"><span>' + label + '</span></button>', '')
+            text = text.replace('<button type="button" className="expense-' + key + '__empty-action" onClick={openAdd}>' + label + '</button>', '')
+            text = re.sub(r'\.expense-' + re.escape(key) + r'__add(?::after)?\{[^{}]*\}', '', text)
             text = '\n'.join(line.rstrip() for line in text.splitlines()) + '\n'
             path.write_text(text)
 
           path = Path('src/features/expense-manager/components/ExpenseOverviewDashboard.tsx')
           text = path.read_text()
           text = re.sub(r'<button\b[^>]*className="expense-overview__add"[^>]*>[\s\S]*?</button>', '', text)
+          text = text.replace('<button type="button" className="expense-overview__add" onClick={() => onNavigate(\'/expense-manager/transactions?intent=add\')}>＋ Add transaction</button>', '')
           text = re.sub(r'\.expense-overview__add(?::after)?\{[^{}]*\}', '', text)
           text = '\n'.join(line.rstrip() for line in text.splitlines()) + '\n'
           path.write_text(text)
