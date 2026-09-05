@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
 import type { WorkerProfile } from '../types/workerProfile';
 
@@ -9,10 +9,45 @@ interface WorkerIdentityFormProps {
   onSave: (input: { work_description: string; skills: string[] }) => Promise<{ error: Error | null }>;
 }
 
+const SKILL_OPTIONS = [
+  'Machine Operator',
+  'Pressing / Ironing',
+  'Packing',
+  'Cutting / Cropping',
+  'Production / Assembly',
+  'Quality Control',
+  'Warehouse / Store',
+  'Driver / Delivery',
+  'Office / Admin',
+  'Sales / Customer Service',
+  'Technician / Maintenance',
+  'Other',
+] as const;
+
+const MACHINE_TYPES = [
+  'Singer / Sewing Machine',
+  'Button Machine',
+  'Kaaj / Overlock Machine',
+  'Industrial Sewing Machine',
+  'Cutting Machine',
+  'Press / Ironing Machine',
+  'Packaging Machine',
+  'CNC Machine',
+  'Lathe Machine',
+  'Drill Machine',
+  'Other Machine',
+] as const;
+
+function skillKey(skill: string) {
+  return skill.split(' — ')[0].trim();
+}
+
 export function WorkerIdentityForm({ workerProfile, profile, saving, onSave }: WorkerIdentityFormProps) {
   const [description, setDescription] = useState('');
   const [skills, setSkills] = useState<string[]>([]);
-  const [skillInput, setSkillInput] = useState('');
+  const [machineType, setMachineType] = useState('');
+  const [machineOther, setMachineOther] = useState('');
+  const [otherSkill, setOtherSkill] = useState('');
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
@@ -20,11 +55,56 @@ export function WorkerIdentityForm({ workerProfile, profile, saving, onSave }: W
     setSkills(workerProfile?.skills ?? []);
   }, [workerProfile]);
 
-  const addSkill = () => {
-    const value = skillInput.trim();
-    if (!value || skills.includes(value)) return;
-    setSkills((current) => [...current, value]);
-    setSkillInput('');
+  const selectedKeys = useMemo(() => new Set(skills.map(skillKey)), [skills]);
+  const hasMachine = selectedKeys.has('Machine Operator');
+  const hasOther = selectedKeys.has('Other');
+
+  const addSkill = (skill: string) => {
+    if (selectedKeys.has(skill)) return;
+    setSkills((current) => [...current, skill]);
+    setSaved(false);
+  };
+
+  const removeSkill = (skill: string) => {
+    setSkills((current) => current.filter((item) => item !== skill));
+    if (skillKey(skill) === 'Machine Operator') {
+      setMachineType('');
+      setMachineOther('');
+    }
+    if (skillKey(skill) === 'Other') setOtherSkill('');
+    setSaved(false);
+  };
+
+  const applyMachineType = (value: string) => {
+    setMachineType(value);
+    setSkills((current) => {
+      const withoutMachine = current.filter((item) => skillKey(item) !== 'Machine Operator');
+      if (!value) return withoutMachine;
+      const label = value === 'Other Machine' && machineOther.trim()
+        ? `Machine Operator — ${machineOther.trim()}`
+        : `Machine Operator — ${value}`;
+      return [...withoutMachine, label];
+    });
+    setSaved(false);
+  };
+
+  const applyMachineOther = (value: string) => {
+    setMachineOther(value);
+    if (machineType !== 'Other Machine') return;
+    setSkills((current) => [
+      ...current.filter((item) => skillKey(item) !== 'Machine Operator'),
+      ...(value.trim() ? [`Machine Operator — ${value.trim()}`] : []),
+    ]);
+    setSaved(false);
+  };
+
+  const applyOtherSkill = (value: string) => {
+    setOtherSkill(value);
+    setSkills((current) => [
+      ...current.filter((item) => skillKey(item) !== 'Other'),
+      ...(value.trim() ? [`Other — ${value.trim()}`] : []),
+    ]);
+    setSaved(false);
   };
 
   const submit = async (event: FormEvent) => {
@@ -51,7 +131,7 @@ export function WorkerIdentityForm({ workerProfile, profile, saving, onSave }: W
         </div>
       </section>
 
-      <section className="foundation-card" style={{ display: 'grid', gap: 12 }}>
+      <section className="foundation-card" style={{ display: 'grid', gap: 14 }}>
         <label>
           <span style={{ display: 'block', marginBottom: 6, fontWeight: 700 }}>Work Role</span>
           <input value="Worker" readOnly aria-readonly="true" style={{ width: '100%', boxSizing: 'border-box' }} />
@@ -62,45 +142,91 @@ export function WorkerIdentityForm({ workerProfile, profile, saving, onSave }: W
           <textarea
             value={description}
             onChange={(event) => setDescription(event.target.value)}
-            rows={5}
-            placeholder="Tell people what you do."
+            rows={4}
+            placeholder="Tell people what you do, your experience, or the kind of work you handle."
             style={{ width: '100%', boxSizing: 'border-box', resize: 'vertical' }}
           />
         </label>
 
         <div>
-          <span style={{ display: 'block', marginBottom: 6, fontWeight: 700 }}>Skills</span>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <input
-              value={skillInput}
-              onChange={(event) => setSkillInput(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter') {
-                  event.preventDefault();
-                  addSkill();
-                }
-              }}
-              placeholder="Add a skill"
-              style={{ flex: 1, minWidth: 0 }}
-            />
-            <button type="button" onClick={addSkill}>Add</button>
-          </div>
-          {skills.length > 0 && (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginTop: 9 }}>
-              {skills.map((skill) => (
+          <span style={{ display: 'block', marginBottom: 4, fontWeight: 700 }}>Skills & Work Areas</span>
+          <span style={{ display: 'block', color: '#64748b', fontSize: 13, lineHeight: 1.45, marginBottom: 10 }}>
+            Choose the work you actually do. You can add more than one skill.
+          </span>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {SKILL_OPTIONS.map((skill) => {
+              const selected = selectedKeys.has(skill);
+              return (
                 <button
                   key={skill}
                   type="button"
-                  onClick={() => setSkills((current) => current.filter((item) => item !== skill))}
-                  aria-label={`Remove ${skill}`}
-                  style={{ borderRadius: 999, padding: '6px 10px' }}
+                  onClick={() => selected ? removeSkill(skill) : addSkill(skill)}
+                  aria-pressed={selected}
+                  style={{
+                    borderRadius: 999,
+                    padding: '8px 12px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    border: selected ? '1px solid #0f172a' : '1px solid #cbd5e1',
+                    background: selected ? '#0f172a' : '#fff',
+                    color: selected ? '#fff' : '#334155',
+                  }}
                 >
-                  {skill} ×
+                  {selected ? '✓ ' : ''}{skill}
                 </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {hasMachine && (
+          <div style={{ padding: 12, borderRadius: 12, background: '#f8fafc', border: '1px solid #e2e8f0', display: 'grid', gap: 10 }}>
+            <label>
+              <span style={{ display: 'block', marginBottom: 6, fontWeight: 700 }}>Machine Type</span>
+              <select value={machineType} onChange={(event) => applyMachineType(event.target.value)} style={{ width: '100%', boxSizing: 'border-box' }}>
+                <option value="">Select machine type</option>
+                {MACHINE_TYPES.map((machine) => <option key={machine} value={machine}>{machine}</option>)}
+              </select>
+            </label>
+            {machineType === 'Other Machine' && (
+              <label>
+                <span style={{ display: 'block', marginBottom: 6, fontWeight: 700 }}>Machine name / type</span>
+                <input
+                  value={machineOther}
+                  onChange={(event) => applyMachineOther(event.target.value)}
+                  placeholder="Enter the machine name or type"
+                  style={{ width: '100%', boxSizing: 'border-box' }}
+                />
+              </label>
+            )}
+          </div>
+        )}
+
+        {hasOther && (
+          <label style={{ padding: 12, borderRadius: 12, background: '#f8fafc', border: '1px solid #e2e8f0' }}>
+            <span style={{ display: 'block', marginBottom: 6, fontWeight: 700 }}>Describe the other skill</span>
+            <input
+              value={otherSkill}
+              onChange={(event) => applyOtherSkill(event.target.value)}
+              placeholder="e.g. Tailor, Electrician, Welder, Accountant"
+              style={{ width: '100%', boxSizing: 'border-box' }}
+            />
+          </label>
+        )}
+
+        {skills.length > 0 && (
+          <div>
+            <span style={{ display: 'block', marginBottom: 7, fontWeight: 700, fontSize: 13 }}>Selected</span>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
+              {skills.map((skill) => (
+                <span key={skill} style={{ borderRadius: 999, padding: '6px 10px', background: '#f1f5f9', color: '#334155', fontSize: 13, fontWeight: 700 }}>
+                  {skill}
+                  <button type="button" onClick={() => removeSkill(skill)} aria-label={`Remove ${skill}`} style={{ border: 0, background: 'transparent', marginLeft: 5, cursor: 'pointer', fontWeight: 900 }}>×</button>
+                </span>
               ))}
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </section>
 
       {workerProfile?.work_id && (
