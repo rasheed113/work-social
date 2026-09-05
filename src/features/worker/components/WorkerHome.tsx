@@ -3,11 +3,21 @@ import { navigate } from '../../../app/Router';
 import { useWorkerWorkDashboard } from '../hooks/useWorkerWorkDashboard';
 import { WorkerNewWorkEntryModal } from './WorkerNewWorkEntryModal';
 import { WorkerWorkSummaryCards } from './WorkerWorkSummaryCards';
+import { WorkerDashboardCustomize } from './WorkerDashboardCustomize';
 
 interface WorkerHomeProps { profileId: string; }
 
+const defaultDashboardCards = [
+  { id: 'daily', label: 'Daily Earnings', description: 'Today\'s persisted work total.' },
+  { id: 'weekly', label: 'Weekly', description: 'Current week\'s work total.' },
+  { id: 'monthly', label: 'Monthly', description: 'Current month\'s work total.' },
+  { id: 'lifetime', label: 'Lifetime / Grand Total', description: 'Cumulative persisted work total.' },
+];
+
 export function WorkerHome({ profileId }: WorkerHomeProps) {
   const [newEntryOpen, setNewEntryOpen] = useState(false);
+  const [dashboardOrder, setDashboardOrder] = useState(defaultDashboardCards.map(card => card.id));
+  const [hiddenDashboardCards, setHiddenDashboardCards] = useState<string[]>([]);
   const dashboard = useWorkerWorkDashboard(profileId);
 
   const saveEntry = async (input: Parameters<typeof dashboard.createEntry>[0]) => dashboard.createEntry(input);
@@ -55,9 +65,9 @@ export function WorkerHome({ profileId }: WorkerHomeProps) {
         .worker-home__resource-icon{display:grid;place-items:center;flex:0 0 31px;width:31px;height:31px;border:1px solid rgba(var(--resource-accent),.18);border-radius:10px;background:linear-gradient(145deg,#fff,rgba(var(--resource-accent),.08));color:rgb(var(--resource-accent));font-size:13px;font-weight:950;box-shadow:0 5px 10px rgba(15,23,42,.065),inset 0 1px 0 #fff,inset 0 -1px 2px rgba(var(--resource-accent),.08);text-shadow:0 1px 0 #fff}
         .worker-home__resource h2{margin:0;font-size:15px;letter-spacing:-.02em;line-height:1.2}
         .worker-home__private{flex:0 0 auto;border:1px solid rgba(22,163,74,.16);border-radius:999px;padding:5px 8px;background:linear-gradient(145deg,rgba(240,253,244,.98),rgba(220,252,231,.72));color:#15803d;font-size:9px;font-weight:950;white-space:nowrap;box-shadow:0 3px 6px rgba(22,163,74,.07),inset 0 1px 0 #fff}
-        @media (min-width:760px){.worker-home__hero{display:flex;align-items:center;justify-content:space-between;gap:20px}.worker-home__actions{flex:0 0 auto;margin-top:0;max-width:300px}.worker-home__description{font-size:12px}}
+        @media (min-width:760px){.worker-home__hero{display:flex;align-items:center;justify-content:space-between;gap:20px}.worker-home__actions{flex:0 0 auto;margin-top:0;max-width:360px}.worker-home__description{font-size:12px}}
         @media (max-width:759px){.worker-home__resource-grid{grid-template-columns:1fr}}
-        @media (max-width:430px){.worker-home{padding-left:9px;padding-right:9px}.worker-home__hero{padding:15px;border-radius:18px}.worker-home__title{font-size:clamp(29px,11vw,38px)}.worker-home__description{font-size:12px}.worker-home__actions{display:grid;grid-template-columns:1fr 1.2fr;gap:7px}.worker-home__button{width:100%;min-height:39px;padding:0 9px}.worker-home__resource{padding:14px}.worker-home__resource-icon{flex-basis:29px;width:29px;height:29px}.worker-home__private{font-size:8px;padding:5px 7px}}
+        @media (max-width:430px){.worker-home{padding-left:9px;padding-right:9px}.worker-home__hero{padding:15px;border-radius:18px}.worker-home__title{font-size:clamp(29px,11vw,38px)}.worker-home__description{font-size:12px}.worker-home__actions{display:grid;grid-template-columns:auto 1fr;gap:7px}.worker-home__button{width:100%;min-height:39px;padding:0 9px}.worker-home__resource{padding:14px}.worker-home__resource-icon{flex-basis:29px;width:29px}.worker-home__private{font-size:8px;padding:5px 7px}}
       `}</style>
 
       <header className="worker-home__hero">
@@ -67,6 +77,7 @@ export function WorkerHome({ profileId }: WorkerHomeProps) {
           <p className="worker-home__description">Your persisted My Work overview and real Work totals.</p>
         </div>
         <div className="worker-home__actions">
+          <WorkerDashboardCustomize workerProfileId={dashboard.workerProfileId ?? ''} cards={defaultDashboardCards} onLayoutChange={(order, hidden) => { setDashboardOrder(order); setHiddenDashboardCards(hidden); }} />
           <button className="worker-home__button" type="button" onClick={() => navigate('/work/trash')}>🗑️ Trash</button>
           <button className="worker-home__button worker-home__button--primary" type="button" onClick={() => setNewEntryOpen(true)} disabled={!dashboard.workerProfileId || dashboard.loading}>+ New Entry</button>
         </div>
@@ -82,7 +93,7 @@ export function WorkerHome({ profileId }: WorkerHomeProps) {
         </section>
       ) : (
         <>
-          <WorkerWorkSummaryCards totals={dashboard.totals} periodLabels={dashboard.periodLabels} onOpenHistory={(period) => navigate(period === 'lifetime' ? '/work/history' : `/work/history?period=${period}`)} />
+          <WorkerWorkSummaryCards totals={dashboard.totals} periodLabels={dashboard.periodLabels} onOpenHistory={(period) => navigate(period === 'lifetime' ? '/work/history' : `/work/history?period=${period}`)} cardOrder={dashboardOrder} hiddenCards={hiddenDashboardCards} />
 
           <div className="worker-home__resource-grid">
             <section className="worker-home__section worker-home__resource worker-home__resource--team" aria-labelledby="worker-home-team">
