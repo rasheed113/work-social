@@ -1,9 +1,11 @@
 import { navigate } from '../../../app/Router';
 import '../worker-compact.css';
+import { useCurrentWorkerProfileId } from '../hooks/useCurrentWorkerProfileId';
+import { useWorkerProfile } from '../hooks/useWorkerProfile';
 
 const destinations = [
   { path: '/work', label: 'Home', icon: '⌂' },
-  { path: '/work/finance', label: 'Finance', icon: '¤' },
+  { path: '/work/finance', label: 'Finance', salaryLabel: 'Salary', icon: '¤' },
   { path: '/work/settings', label: 'Settings', icon: '⚙' },
 ];
 
@@ -14,6 +16,9 @@ function isActive(pathname: string, path: string) {
 
 export function WorkerNavigation() {
   const pathname = window.location.pathname;
+  const session = useCurrentWorkerProfileId();
+  const { workerProfile } = useWorkerProfile(session.profileId);
+  const isSalaryPerson = workerProfile?.worker_type === 'salary_person';
 
   return (
     <nav
@@ -37,6 +42,7 @@ export function WorkerNavigation() {
     >
       {destinations.map((destination) => {
         const active = isActive(pathname, destination.path);
+        const label = isSalaryPerson && destination.salaryLabel ? destination.salaryLabel : destination.label;
         return (
           <button
             key={destination.path}
@@ -56,7 +62,7 @@ export function WorkerNavigation() {
             }}
           >
             <span aria-hidden="true" style={{ display: 'block', fontSize: 20 }}>{destination.icon}</span>
-            <span style={{ fontSize: 10, fontWeight: 800 }}>{destination.label}</span>
+            <span style={{ fontSize: 10, fontWeight: 800 }}>{label}</span>
           </button>
         );
       })}
