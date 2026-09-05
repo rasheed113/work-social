@@ -3,6 +3,7 @@ import { navigate } from '../../../app/Router';
 import { getFinalizedSalaryTotals, getSalaryMonthSummary, getSalaryPolicy, saveAttendance, saveOvertime } from '../api/salary';
 import { listSalaryAllowances, type SalaryAllowance } from '../api/salaryAllowances';
 import { useWorkerProfile } from '../hooks/useWorkerProfile';
+import { WorkerDashboardCustomize } from '../components/WorkerDashboardCustomize';
 import type { AttendanceStatus, SalaryMonthSummary, SalaryPolicy } from '../types/salary';
 
 const shell = { width: '100%', maxWidth: 1080, margin: '0 auto', padding: '20px 14px 120px', boxSizing: 'border-box' as const };
@@ -12,6 +13,14 @@ const button = { minHeight: 42, padding: '0 14px', borderRadius: 11, border: '1p
 const primaryButton = { ...button, border: '0', background: '#111827', color: '#fff' };
 const money = (value: number, currency: string) => `${currency} ${Number(value || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 function monthValue(offset: number) { const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() + offset); return d.toISOString().slice(0, 10); }
+
+const defaultDashboardCards = [
+  { id: 'current_salary', label: 'Current Month Salary', description: 'Current month salary summary.' },
+  { id: 'grand_salary', label: 'Grand Salary', description: 'Finalized salary totals.' },
+  { id: 'salary_overview', label: 'Attendance · Overtime · Allowance · Bonus', description: 'Monthly salary component cards.' },
+  { id: 'daily_work', label: 'Daily Work Record', description: 'Attendance and overtime entry controls.' },
+  { id: 'monthly_detail', label: 'Monthly Detail', description: 'Current month detail summary.' },
+];
 
 export function SalaryDashboardPage({ profileId }: { profileId: string }) {
   const { workerProfile, loading } = useWorkerProfile(profileId);
@@ -29,6 +38,8 @@ export function SalaryDashboardPage({ profileId }: { profileId: string }) {
   const [overtimeOpen, setOvertimeOpen] = useState(false);
   const [status, setStatus] = useState('');
   const [busy, setBusy] = useState(false);
+  const [dashboardOrder, setDashboardOrder] = useState(defaultDashboardCards.map(card => card.id));
+  const [hiddenDashboardCards, setHiddenDashboardCards] = useState<string[]>([]);
   const month = useMemo(() => monthValue(monthOffset), [monthOffset]);
 
   const refresh = async () => {
@@ -51,6 +62,7 @@ export function SalaryDashboardPage({ profileId }: { profileId: string }) {
   const allowanceTotal = allowances.reduce((total, row) => total + Number(row.amount || 0), 0);
   const allowanceRuleLabel = (row: SalaryAllowance) => row.eligibility_rule === 'present_only' ? 'Present only' : row.eligibility_rule === 'after_absences' ? `After ${row.loss_after_count ?? 0} absences` : row.eligibility_rule === 'after_unpaid_leaves' ? `After ${row.loss_after_count ?? 0} unpaid leaves` : row.eligibility_rule === 'custom' ? (row.rule_note || 'Custom condition') : 'Always paid';
   const allowanceSettingsButton = <button type="button" onClick={() => navigate('/work/finance?setup=1&focus=allowances')} style={{ ...button, minHeight: 36, padding: '0 11px', fontSize: 12 }}>Change</button>;
+  const dashboardStyle = (id: string) => ({ order: dashboardOrder.indexOf(id) + 1, display: hiddenDashboardCards.includes(id) ? 'none' : undefined });
 
   const saveAttendanceEntry = async () => {
     setStatus(''); setBusy(true);
@@ -67,17 +79,17 @@ export function SalaryDashboardPage({ profileId }: { profileId: string }) {
     if (!error) { setOvertimeHours(''); setOvertimeOpen(false); await refresh(); }
   };
 
-  return <main style={{ ...shell, background: 'linear-gradient(180deg,#f8fafc 0%,#f1f5f9 100%)' }}>
+  return <main style={{ ...shell, display: 'flex', flexDirection: 'column', background: 'linear-gradient(180deg,#f8fafc 0%,#f1f5f9 100%)' }}>
     <header style={{ display: 'flex', justifyContent: 'space-between', gap: 16, alignItems: 'flex-start', marginBottom: 18 }}>
       <div>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '6px 10px', borderRadius: 999, background: '#ecfdf5', color: '#047857', fontSize: 11, fontWeight: 900, letterSpacing: '.08em', textTransform: 'uppercase' }}><span style={{ width: 7, height: 7, borderRadius: 99, background: '#10b981' }} /> Salary Person</div>
         <h1 style={{ margin: '10px 0 4px', fontSize: 'clamp(28px,6vw,40px)', letterSpacing: '-.035em' }}>Your Salary Dashboard</h1>
         <p style={{ margin: 0, color: '#64748b', lineHeight: 1.5 }}>A clear view of your salary, attendance, overtime and completed salary history.</p>
       </div>
-      <button type="button" onClick={() => navigate('/work/identity')} style={button}>Work Identity</button>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}><WorkerDashboardCustomize workerProfileId={workerProfile.id} cards={defaultDashboardCards} onLayoutChange={(order, hidden) => { setDashboardOrder(order); setHiddenDashboardCards(hidden); }} /><button type="button" onClick={() => navigate('/work/identity')} style={button}>Work Identity</button></div>
     </header>
 
-    <section style={{ ...panel, marginBottom: 16 }}>
+    <section style={{ ...panel, ...dashboardStyle('current_salary'), marginBottom: 16 }}>
       <div style={{ padding: '20px 18px', background: 'linear-gradient(135deg,#111827,#1f2937)', color: '#fff' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, alignItems: 'center', flexWrap: 'wrap' }}>
           <div><div style={{ fontSize: 11, fontWeight: 900, letterSpacing: '.1em', opacity: .7, textTransform: 'uppercase' }}>Current Month Salary</div><h2 style={{ margin: '7px 0 0', fontSize: 25 }}>{title}</h2></div>
@@ -94,12 +106,12 @@ export function SalaryDashboardPage({ profileId }: { profileId: string }) {
       </div>
     </section>
 
-    <section style={{ ...panel, marginBottom: 16, padding: 18 }}>
+    <section style={{ ...panel, ...dashboardStyle('grand_salary'), marginBottom: 16, padding: 18 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', flexWrap: 'wrap' }}><div><div style={{ color: '#64748b', fontSize: 11, fontWeight: 900, letterSpacing: '.1em' }}>GRAND SALARY</div><h2 style={{ margin: '5px 0 2px', fontSize: 28 }}>{money(grand.total, currency)}</h2><p style={{ margin: 0, color: '#64748b', fontSize: 13 }}>Finalized salary months only</p></div><div style={{ padding: '9px 12px', borderRadius: 12, background: '#f8fafc', color: '#334155', fontWeight: 900 }}>{grand.months} completed {grand.months === 1 ? 'month' : 'months'}</div></div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(145px,1fr))', gap: 10, marginTop: 16 }}><Metric label="Total Base" value={money(grand.base, currency)} /><Metric label="Total Overtime" value={money(grand.overtime, currency)} /><Metric label="Total Bonuses" value={money(grand.bonuses, currency)} /><Metric label="Total Adjustments" value={money(grand.adjustments, currency)} /></div>
     </section>
 
-    <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(250px,1fr))', gap: 14, marginBottom: 16 }}>
+    <section style={{ ...dashboardStyle('salary_overview'), display: hiddenDashboardCards.includes('salary_overview') ? 'none' : 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(250px,1fr))', gap: 14, marginBottom: 16 }}>
       <InfoCard title="Attendance" icon="✓"><div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}><Mini label="Present" value={String(summary?.present_days ?? 0)} /><Mini label="Absent" value={String(summary?.absent_days ?? 0)} /><Mini label="Leave" value={String(summary?.leave_days ?? 0)} /><Mini label="Paid Days" value={String(summary?.paid_days ?? 0)} /></div><div style={{ marginTop: 14, padding: 11, borderRadius: 12, background: '#f8fafc' }}><strong>{Number(summary?.attendance_percentage ?? 0).toFixed(1)}%</strong> attendance</div></InfoCard>
       <InfoCard title="Overtime" icon="↗"><div style={{ fontSize: 28, fontWeight: 950 }}>{Number(summary?.overtime_hours ?? 0).toFixed(2)} h</div><p style={{ margin: '4px 0 0', color: '#64748b', fontSize: 13 }}>Total overtime hours</p><div style={{ marginTop: 14, fontWeight: 900 }}>{money(summary?.overtime_amount ?? 0, currency)}</div><p style={{ margin: '3px 0 0', color: '#64748b', fontSize: 12 }}>Calculated from your saved salary policy.</p></InfoCard>
       <InfoCard title="Allowance" icon="＋">
@@ -118,7 +130,7 @@ export function SalaryDashboardPage({ profileId }: { profileId: string }) {
       <InfoCard title="Bonus" icon="★"><div style={{ fontSize: 24, fontWeight: 950 }}>{money(summary?.bonus_amount ?? 0, currency)}</div><p style={{ margin: '4px 0 0', color: '#64748b', fontSize: 13 }}>Bonuses recorded this month</p><div style={{ marginTop: 14, padding: 10, borderRadius: 12, background: '#f8fafc', color: '#475569', fontSize: 13 }}>{policy ? salaryTypeAction : 'Complete salary setup to configure your policy.'}</div></InfoCard>
     </section>
 
-    <section style={{ ...panel, marginBottom: 16, padding: 18 }}>
+    <section style={{ ...panel, ...dashboardStyle('daily_work'), marginBottom: 16, padding: 18 }}>
       <div style={{ marginBottom: 14 }}><div style={{ color: '#64748b', fontSize: 11, fontWeight: 900, letterSpacing: '.1em' }}>DAILY WORK RECORD</div><h2 style={{ margin: '5px 0 3px' }}>Attendance & Overtime</h2><p style={{ margin: 0, color: '#64748b', fontSize: 13 }}>Keep today's work record accurate. Overtime is calculated using your saved policy.</p></div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(230px,1fr))', gap: 14 }}>
         <div style={{ padding: 15, borderRadius: 16, background: '#f8fafc' }}>
@@ -139,7 +151,7 @@ export function SalaryDashboardPage({ profileId }: { profileId: string }) {
       {status && <div role="status" style={{ marginTop: 12, padding: 11, borderRadius: 12, background: '#f1f5f9', color: '#334155', fontSize: 13 }}>{status}</div>}
     </section>
 
-    <section style={{ ...panel, padding: 18 }}>
+    <section style={{ ...panel, ...dashboardStyle('monthly_detail'), padding: 18 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', marginBottom: 12 }}><div><div style={{ color: '#64748b', fontSize: 11, fontWeight: 900, letterSpacing: '.1em' }}>MONTHLY DETAIL</div><h2 style={{ margin: '5px 0' }}>{title}</h2></div>{salaryTypeAction}</div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: 10 }}><Metric label="Present" value={`${summary?.present_days ?? 0} days`} /><Metric label="Absent" value={`${summary?.absent_days ?? 0} days`} /><Metric label="Leave" value={`${summary?.leave_days ?? 0} days`} /><Metric label="Overtime" value={`${Number(summary?.overtime_hours ?? 0).toFixed(2)} h`} /><Metric label="Final Salary" value={money(summary?.final_salary ?? 0, currency)} strong /></div>
       <p style={{ margin: '14px 0 0', color: '#64748b', fontSize: 12 }}>Previous months can be reviewed with the Previous button above. Grand Salary counts only finalized periods.</p>
