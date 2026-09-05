@@ -11,12 +11,14 @@ type NotificationRow = {
 const labels: Record<string, string> = {
   friend_request: 'sent you a friend request', friend_accept: 'accepted your friend request', like: 'liked your post', comment: 'commented on your post',
   comment_reply: 'replied to your comment', mention_post: 'mentioned you in a post', mention_comment: 'mentioned you in a comment', follow: 'started following you', message: 'sent you a message',
+  attendance_reminder: 'Attendance reminder — please mark today’s attendance',
 };
 const typeIcons: Record<string, string> = {
-  friend_request: '👥', friend_accept: '🤝', like: '❤️', comment: '💬', comment_reply: '↩️', mention_post: '@', mention_comment: '@', follow: '✨', message: '💌',
+  friend_request: '👥', friend_accept: '🤝', like: '❤️', comment: '💬', comment_reply: '↩️', mention_post: '@', mention_comment: '@', follow: '✨', message: '💌', attendance_reminder: '⏰',
 };
 function formatTime(value: string) { const date = new Date(value); return Number.isNaN(date.getTime()) ? '' : date.toLocaleString(); }
 function openNotificationTarget(item: NotificationRow) {
+  if (item.type === 'attendance_reminder') { navigate('/work/finance'); return; }
   if (item.post_id) {
     const params = new URLSearchParams({ post: item.post_id }); if (item.comment_id) params.set('comment', item.comment_id);
     window.sessionStorage.setItem('work-social:notification-target', JSON.stringify({ postId: item.post_id, commentId: item.comment_id, type: item.type }));
@@ -36,7 +38,7 @@ export function NotificationsPage() {
     if (authError || !auth.user) { setError(authError?.message ?? 'You must be signed in.'); setLoading(false); return; }
     const { data, error: notificationError } = await supabase.from('notifications').select('id, receiver_id, sender_id, type, post_id, comment_id, is_read, created_at, metadata').eq('receiver_id', auth.user.id).order('created_at', { ascending: false }).limit(100);
     if (notificationError) { setError(notificationError.message); setLoading(false); return; }
-    const rows = (data ?? []) as NotificationRow[]; const senderIds = [...new Set(rows.map((row) => row.sender_id).filter(Boolean))]; let senderMap = new Map<string, { display_name: string | null; username: string | null; avatar_url: string | null }>();
+    const rows = (data ?? []) as NotificationRow[]; const senderIds = [...new Set(rows.map((row) => row.sender_id).filter((id) => id && !rows.some((notification) => notification.type === 'attendance_reminder' && notification.sender_id === id)))]; let senderMap = new Map<string, { display_name: string | null; username: string | null; avatar_url: string | null }>();
     if (senderIds.length) { const { data: senders, error: senderError } = await supabase.from('profiles').select('id, display_name, username, avatar_url').in('id', senderIds); if (senderError) { setError(senderError.message); setLoading(false); return; } senderMap = new Map((senders ?? []).map((sender: any) => [sender.id, sender])); }
     setItems(rows.map((row) => ({ ...row, sender: senderMap.get(row.sender_id) }))); setLoading(false);
   };
@@ -56,12 +58,13 @@ export function NotificationsPage() {
     {!loading && !error && items.length === 0 && <div style={{ padding: 22, textAlign: 'center', border: '1px solid rgba(0,0,0,.08)', borderRadius: 18, background: 'linear-gradient(145deg, rgba(255,255,255,.96), rgba(245,247,255,.9))', boxShadow: '0 10px 28px rgba(0,0,0,.06)' }}><div style={{ fontSize: 30 }}>🔔</div><strong>No notifications yet.</strong><p style={{ margin: '6px 0 0', opacity: .62 }}>Activity from your community will appear here.</p></div>}
     {!loading && items.map((item) => {
       const icon = typeIcons[item.type] ?? '🔔';
+      const isAttendance = item.type === 'attendance_reminder';
       return <article key={item.id} onClick={() => void handleNotificationClick(item)} style={{ display: 'flex', gap: 11, alignItems: 'center', minWidth: 0, padding: 11, marginTop: 9, border: item.is_read ? '1px solid rgba(0,0,0,.08)' : '1px solid rgba(91,91,245,.22)', borderRadius: 15, background: item.is_read ? 'rgba(255,255,255,.88)' : 'linear-gradient(135deg, rgba(245,247,255,.98), rgba(255,255,255,.98))', boxShadow: item.is_read ? '0 5px 16px rgba(0,0,0,.045)' : '0 7px 20px rgba(80,82,190,.10)', cursor: 'pointer', transition: 'transform .18s ease, box-shadow .18s ease' }}>
         <div style={{ position: 'relative', flexShrink: 0 }}>
-          {item.sender?.avatar_url ? <img src={item.sender.avatar_url} alt="" width={43} height={43} style={{ borderRadius: '50%', objectFit: 'cover', border: '2px solid white', boxShadow: '0 3px 10px rgba(0,0,0,.12)' }} /> : <div aria-hidden="true" style={{ width: 43, height: 43, borderRadius: '50%', display: 'grid', placeItems: 'center', background: 'linear-gradient(135deg, #e9e7ff, #dbeafe)', fontSize: 19 }}>👤</div>}
+          {isAttendance ? <div aria-hidden="true" style={{ width: 43, height: 43, borderRadius: '50%', display: 'grid', placeItems: 'center', background: 'linear-gradient(135deg, #fff7ed, #fef3c7)', fontSize: 20 }}>⏰</div> : item.sender?.avatar_url ? <img src={item.sender.avatar_url} alt="" width={43} height={43} style={{ borderRadius: '50%', objectFit: 'cover', border: '2px solid white', boxShadow: '0 3px 10px rgba(0,0,0,.12)' }} /> : <div aria-hidden="true" style={{ width: 43, height: 43, borderRadius: '50%', display: 'grid', placeItems: 'center', background: 'linear-gradient(135deg, #e9e7ff, #dbeafe)', fontSize: 19 }}>👤</div>}
           <span aria-hidden="true" style={{ position: 'absolute', right: -3, bottom: -2, width: 21, height: 21, borderRadius: '50%', display: 'grid', placeItems: 'center', background: 'white', boxShadow: '0 2px 7px rgba(0,0,0,.13)', fontSize: 11 }}>{icon}</span>
         </div>
-        <div style={{ flex: 1, minWidth: 0, lineHeight: 1.35 }}><div><strong>{item.sender?.display_name ?? item.sender?.username ?? 'Someone'}</strong>{' '}{labels[item.type] ?? 'sent you a notification'}</div><small style={{ display: 'block', marginTop: 3, opacity: .55 }}>{formatTime(item.created_at)}</small></div>
+        <div style={{ flex: 1, minWidth: 0, lineHeight: 1.35 }}>{isAttendance ? <div><strong>Attendance Reminder</strong>{' '}— Please mark today’s attendance.</div> : <div><strong>{item.sender?.display_name ?? item.sender?.username ?? 'Someone'}</strong>{' '}{labels[item.type] ?? 'sent you a notification'}</div>}<small style={{ display: 'block', marginTop: 3, opacity: .55 }}>{formatTime(item.created_at)}</small></div>
         {!item.is_read && <span aria-label="Unread" style={{ width: 8, height: 8, flexShrink: 0, borderRadius: '50%', background: '#4f46e5', boxShadow: '0 0 0 4px rgba(79,70,229,.10)' }} />}
       </article>;
     })}
