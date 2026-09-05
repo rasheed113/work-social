@@ -22,25 +22,29 @@ jobs:
           from pathlib import Path
           import re
           targets = {
-            'src/features/expense-manager/pages/ExpenseAccountsPage.tsx': 'accounts',
-            'src/features/expense-manager/pages/ExpenseCategoriesPage.tsx': 'categories',
-            'src/features/expense-manager/pages/ExpenseBudgetsPage.tsx': 'budgets',
-            'src/features/expense-manager/pages/ExpenseTransactionsPage.tsx': 'transactions',
-            'src/features/expense-manager/components/ExpenseOverviewDashboard.tsx': 'overview',
+            'src/features/expense-manager/pages/ExpenseAccountsPage.tsx': ('accounts', 'account'),
+            'src/features/expense-manager/pages/ExpenseCategoriesPage.tsx': ('categories', 'category'),
+            'src/features/expense-manager/pages/ExpenseBudgetsPage.tsx': ('budgets', 'budget'),
+            'src/features/expense-manager/pages/ExpenseTransactionsPage.tsx': ('transactions', 'transaction'),
           }
-          for name, key in targets.items():
+          for name, (key, noun) in targets.items():
             path = Path(name)
             text = path.read_text()
-            if key != 'overview':
-              cls = f'expense-{key}__add'
-              text = re.sub(r'\{\s*' + key + r'\.length\s*>\s*0\s*&&\s*\(\s*<button\b[^>]*className="' + re.escape(cls) + r'"[\s\S]*?</button>\s*\)\s*\}', '', text)
-              text = re.sub(r'<button\b[^>]*onClick=\{openAdd\}[^>]*>[\s\S]*?</button>', '', text)
-              text = re.sub(r'\.' + re.escape(cls) + r'(?::after)?\{[^{}]*\}', '', text)
-            else:
-              text = re.sub(r'<button\b[^>]*className="expense-overview__add"[^>]*>[\s\S]*?</button>', '', text)
-              text = re.sub(r'\.expense-overview__add(?::after)?\{[^{}]*\}', '', text)
+            cls = f'expense-{key}__add'
+            wrapper = r'\{\s*' + key + r'\.length\s*>\s*0\s*&&\s*\(\s*<button\b[^>]*className="' + re.escape(cls) + r'"[\s\S]*?</button>\s*\)\s*\}'
+            text = re.sub(wrapper, '', text)
+            empty = r'<button\b[^>]*onClick=\{openAdd\}[^>]*>[\s\S]*?Add your first ' + noun + r'[\s\S]*?</button>'
+            text = re.sub(empty, '', text)
+            text = re.sub(r'\.' + re.escape(cls) + r'(?::after)?\{[^{}]*\}', '', text)
             text = '\n'.join(line.rstrip() for line in text.splitlines()) + '\n'
             path.write_text(text)
+
+          path = Path('src/features/expense-manager/components/ExpenseOverviewDashboard.tsx')
+          text = path.read_text()
+          text = re.sub(r'<button\b[^>]*className="expense-overview__add"[^>]*>[\s\S]*?</button>', '', text)
+          text = re.sub(r'\.expense-overview__add(?::after)?\{[^{}]*\}', '', text)
+          text = '\n'.join(line.rstrip() for line in text.splitlines()) + '\n'
+          path.write_text(text)
           PY
           npm install
           npm run build
