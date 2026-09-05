@@ -28,7 +28,8 @@ export function ExpenseManagerNavigation({ pathname, onNavigate }: ExpenseManage
   const moreButtonRef = useRef<HTMLButtonElement>(null);
   const activeSection = sectionFromPath(pathname);
   const mobilePrimary = sections.slice(0, 2);
-  const mobileMore = sections.slice(2);
+  const mobileAccount = sections[2];
+  const mobileMore = sections.slice(3);
 
   useEffect(() => {
     if (!moreOpen) return;
@@ -111,6 +112,10 @@ export function ExpenseManagerNavigation({ pathname, onNavigate }: ExpenseManage
               return <button key={section.id} type="button" className="expense-manager-navigation__item" data-active={active} aria-current={active ? 'page' : undefined} onClick={() => navigate(section.path)}><span className="expense-manager-navigation__icon" aria-hidden="true">{section.icon}</span><span>{section.label}</span></button>;
             })}
             <button type="button" className="expense-manager-navigation__quick-add" aria-label="Add transaction" onClick={() => navigate('/expense-manager/transactions?intent=add')}>+</button>
+            {mobileAccount && (() => {
+              const active = mobileAccount.id === activeSection;
+              return <button key={mobileAccount.id} type="button" className="expense-manager-navigation__item" data-active={active} aria-current={active ? 'page' : undefined} onClick={() => navigate(mobileAccount.path)}><span className="expense-manager-navigation__icon" aria-hidden="true">{mobileAccount.icon}</span><span>{mobileAccount.label}</span></button>;
+            })()}
             <div ref={moreRef} className="expense-manager-navigation__more-wrap" onKeyDown={handleMoreKeyDown}>
               <button ref={moreButtonRef} type="button" className="expense-manager-navigation__more-button" data-active={moreOpen || mobileMore.some((section) => section.id === activeSection)} aria-expanded={moreOpen} aria-haspopup="menu" aria-controls="expense-manager-more-menu" onClick={() => setMoreOpen((value) => !value)}><span className="expense-manager-navigation__icon" aria-hidden="true">⋯</span><span>More</span></button>
               {moreOpen && <div id="expense-manager-more-menu" className="expense-manager-navigation__more-panel" role="menu" aria-label="More Expense Manager sections">{mobileMore.map((section) => <button key={section.id} type="button" role="menuitem" className="expense-manager-navigation__more-item" data-active={section.id === activeSection} aria-current={section.id === activeSection ? 'page' : undefined} onClick={() => navigate(section.path)}><span className="expense-manager-navigation__icon" aria-hidden="true">{section.icon}</span><span>{section.label}</span></button>)}</div>}
