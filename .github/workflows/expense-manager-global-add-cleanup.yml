@@ -21,18 +21,18 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           import re
-          files = [
-            'src/features/expense-manager/pages/ExpenseAccountsPage.tsx',
-            'src/features/expense-manager/pages/ExpenseCategoriesPage.tsx',
-            'src/features/expense-manager/pages/ExpenseBudgetsPage.tsx',
-            'src/features/expense-manager/pages/ExpenseTransactionsPage.tsx',
-            'src/features/expense-manager/components/ExpenseOverviewDashboard.tsx',
-          ]
-          for name in files:
+          targets = {
+            'src/features/expense-manager/pages/ExpenseAccountsPage.tsx': [r'<button\b[^>]*className="expense-accounts__add"[^>]*>[\s\S]*?</button>', r'<button\b[^>]*onClick=\{openAdd\}[^>]*>[\s\S]*?</button>'],
+            'src/features/expense-manager/pages/ExpenseCategoriesPage.tsx': [r'<button\b[^>]*className="expense-categories__add"[^>]*>[\s\S]*?</button>', r'<button\b[^>]*onClick=\{openAdd\}[^>]*>[\s\S]*?</button>'],
+            'src/features/expense-manager/pages/ExpenseBudgetsPage.tsx': [r'<button\b[^>]*className="expense-budgets__add"[^>]*>[\s\S]*?</button>', r'<button\b[^>]*onClick=\{openAdd\}[^>]*>[\s\S]*?</button>'],
+            'src/features/expense-manager/pages/ExpenseTransactionsPage.tsx': [r'<button\b[^>]*className="expense-transactions__add"[^>]*>[\s\S]*?</button>', r'<button\b[^>]*onClick=\{openAdd\}[^>]*>[\s\S]*?</button>'],
+            'src/features/expense-manager/components/ExpenseOverviewDashboard.tsx': [r'<button\b[^>]*className="expense-overview__add"[^>]*>[\s\S]*?</button>', r'<button\b[^>]*onClick=\{\(\) => onNavigate\(\x27/expense-manager/transactions\?intent=add\x27\)\}[^>]*>[\s\S]*?</button>'],
+          }
+          for name, patterns in targets.items():
             path = Path(name)
             text = path.read_text()
-            text = re.sub(r'<button\b(?=[^>]*className="expense-[^"]+__add")[\s\S]*?</button>', '', text)
-            text = re.sub(r'<button\b[^>]*>[\s\S]*?\bAdd(?: your first)?(?: account| category| budget| transaction)[\s\S]*?</button>', '', text)
+            for pattern in patterns:
+              text = re.sub(pattern, '', text)
             text = re.sub(r'\.expense-[a-z-]+__add(?::after)?\{[^{}]*\}', '', text)
             text = '\n'.join(line.rstrip() for line in text.splitlines()) + '\n'
             path.write_text(text)
