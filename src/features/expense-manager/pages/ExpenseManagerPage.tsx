@@ -45,7 +45,8 @@ export function ExpenseManagerPage({ pathname, onNavigate }: ExpenseManagerPageP
       .expense-manager-page__eyebrow{display:inline-flex;align-items:center;min-height:24px;padding:0 8px;border:1px solid rgba(37,99,235,.12);border-radius:999px;background:rgba(255,255,255,.72);color:#2563eb;font-size:9px;font-weight:900;letter-spacing:.11em;text-transform:uppercase;box-shadow:0 3px 9px rgba(15,23,42,.035)}
       .expense-manager-page__title{margin:7px 0 4px;font-size:clamp(23px,6vw,42px);line-height:1.06;letter-spacing:-.045em;font-weight:950;color:#0f172a}
       .expense-manager-page__description{max-width:680px;margin:0;color:#64748b;font-size:12px;line-height:1.45;font-weight:600}
-      .expense-manager-page .expense-transactions__title,.expense-manager-page .expense-categories__title,.expense-manager-page .expense-budgets__title{display:none}
+      .expense-manager-page .expense-transactions__title,.expense-manager-page .expense-categories__title,.expense-manager-page .expense-budgets__title{display:none!important}
+      .expense-manager-page #transactions-heading,.expense-manager-page #categories-heading,.expense-manager-page #budgets-heading{display:none!important}
       @media(min-width:768px){.expense-manager-page{padding-left:18px;padding-right:18px}.expense-manager-page__hero{padding-top:18px;padding-bottom:16px}}
       @media(max-width:767px){
         .expense-manager-page{padding-left:8px;padding-right:8px;padding-bottom:max(84px,calc(env(safe-area-inset-bottom) + 76px))}
