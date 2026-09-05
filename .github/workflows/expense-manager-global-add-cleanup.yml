@@ -1,0 +1,41 @@
+name: Expense Manager final Add cleanup
+
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize]
+
+jobs:
+  cleanup:
+    if: github.event.pull_request.base.ref == 'main' && github.event.pull_request.number == 45
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+      - name: Remove transaction empty-state Add CTA
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          path = Path('src/features/expense-manager/pages/ExpenseTransactionsPage.tsx')
+          text = path.read_text()
+          pattern = r'\{transactions\.length === 0 \? <button type="button" className="expense-transactions__empty-action" onClick=\{openAdd\}>＋ Add transaction</button> : '
+          text, count = re.subn(pattern, '{transactions.length !== 0 && ', text)
+          if count != 1:
+            raise SystemExit(f'Expected exactly one transaction Add CTA, found {count}')
+          path.write_text(text)
+          PY
+          npm install
+          npm run build
+      - name: Commit source cleanup
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/features/expense-manager/pages/ExpenseTransactionsPage.tsx
+          git commit -m 'Remove transaction page Add CTA'
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
