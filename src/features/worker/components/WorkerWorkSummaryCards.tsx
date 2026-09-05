@@ -6,14 +6,18 @@ interface WorkerWorkSummaryCardsProps {
   totals: WorkerWorkTotals;
   periodLabels: { day: string; week: string; month: string };
   onOpenHistory: (period: WorkHistoryPeriod) => void;
+  cardOrder?: string[];
+  hiddenCards?: string[];
 }
 
-export function WorkerWorkSummaryCards({ totals, periodLabels, onOpenHistory }: WorkerWorkSummaryCardsProps) {
+export function WorkerWorkSummaryCards({ totals, periodLabels, onOpenHistory, cardOrder, hiddenCards = [] }: WorkerWorkSummaryCardsProps) {
   const cards = [
-    { label: 'Daily Earnings', period: periodLabels.day, value: totals.daily_total, history: 'day' as const, icon: '◷', tone: 'daily' },
-    { label: 'Weekly', period: periodLabels.week, value: totals.weekly_total, history: 'week' as const, icon: '▦', tone: 'weekly' },
-    { label: 'Monthly', period: periodLabels.month, value: totals.monthly_total, history: 'month' as const, icon: '◈', tone: 'monthly' },
+    { id: 'daily', label: 'Daily Earnings', period: periodLabels.day, value: totals.daily_total, history: 'day' as const, icon: '◷', tone: 'daily' },
+    { id: 'weekly', label: 'Weekly', period: periodLabels.week, value: totals.weekly_total, history: 'week' as const, icon: '▦', tone: 'weekly' },
+    { id: 'monthly', label: 'Monthly', period: periodLabels.month, value: totals.monthly_total, history: 'month' as const, icon: '◈', tone: 'monthly' },
   ];
+  const orderedCards = [...cards].sort((a, b) => (cardOrder?.indexOf(a.id) ?? 0) - (cardOrder?.indexOf(b.id) ?? 0));
+  const lifetimeHidden = hiddenCards.includes('lifetime');
 
   return (
     <>
@@ -47,8 +51,8 @@ export function WorkerWorkSummaryCards({ totals, periodLabels, onOpenHistory }: 
         @media (max-width:430px){.worker-summary{gap:9px}.worker-summary__card{padding:12px;border-radius:15px}.worker-summary__icon{flex-basis:28px;width:28px;height:28px}.worker-summary__lifetime{padding:14px}.worker-summary__lifetime-value{font-size:clamp(27px,10vw,35px)}}
       `}</style>
       <section className="worker-summary" aria-label="Worker Work totals">
-        {cards.map((card) => (
-          <button className={`worker-summary__card worker-summary__card--${card.tone}`} key={card.label} type="button" onClick={() => onOpenHistory(card.history)}>
+        {orderedCards.filter(card => !hiddenCards.includes(card.id)).map((card) => (
+          <button className={`worker-summary__card worker-summary__card--${card.tone}`} key={card.id} type="button" onClick={() => onOpenHistory(card.history)}>
             <span className="worker-summary__head">
               <span className="worker-summary__icon" aria-hidden="true">{card.icon}</span>
               <span className="worker-summary__label">{card.label}</span>
@@ -57,7 +61,7 @@ export function WorkerWorkSummaryCards({ totals, periodLabels, onOpenHistory }: 
             <span className="worker-summary__period">{card.period}</span>
           </button>
         ))}
-        <button className="worker-summary__card worker-summary__lifetime" type="button" onClick={() => onOpenHistory('lifetime')} aria-label="Open Work History">
+        {!lifetimeHidden && <button className="worker-summary__card worker-summary__lifetime" type="button" onClick={() => onOpenHistory('lifetime')} aria-label="Open Work History">
           <span className="worker-summary__head">
             <span className="worker-summary__icon" aria-hidden="true">∞</span>
             <span>
@@ -66,7 +70,7 @@ export function WorkerWorkSummaryCards({ totals, periodLabels, onOpenHistory }: 
             </span>
           </span>
           <span className="worker-summary__lifetime-copy">Cumulative total from persisted Work Entries. Tap to view Work History →</span>
-        </button>
+        </button>}
       </section>
     </>
   );
