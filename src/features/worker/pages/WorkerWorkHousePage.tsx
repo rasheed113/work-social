@@ -19,6 +19,12 @@ export function WorkerWorkHousePage() {
     return <main style={{ width: '100%', maxWidth: 900, margin: '0 auto', padding: '24px 14px 112px', boxSizing: 'border-box' }}><p role="alert" style={{ color: '#b91c1c', fontWeight: 700 }}>{profile.error}</p></main>;
   }
 
+  // Personal Diary is a global module and must remain reachable from the
+  // module switcher regardless of worker profile type.
+  if (window.location.pathname === '/work/diary') {
+    return <WorkerWorkHouse profileId={session.profileId} />;
+  }
+
   if (profile.workerProfile?.worker_type === 'salary_person') {
     return <SalaryDashboardPage profileId={session.profileId} />;
   }
