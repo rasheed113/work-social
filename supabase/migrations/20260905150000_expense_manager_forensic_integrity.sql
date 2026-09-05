@@ -5,6 +5,7 @@ set search_path = public
 as $$
 declare
   category_type text;
+  category_archived boolean;
   source_currency text;
   destination_currency text;
 begin
@@ -13,14 +14,18 @@ begin
       raise exception 'Invalid % transaction shape', new.type using errcode = '23514';
     end if;
 
-    select c.type
-      into category_type
+    select c.type, c.is_archived
+      into category_type, category_archived
       from public.expense_categories c
      where c.id = new.category_id
        and c.user_id = new.user_id;
 
     if category_type is null or category_type <> new.type then
       raise exception 'Transaction category type does not match transaction type' using errcode = '23514';
+    end if;
+
+    if coalesce(category_archived, false) and (tg_op = 'INSERT' or old.category_id is distinct from new.category_id) then
+      raise exception 'Archived categories cannot receive new transactions' using errcode = '23514';
     end if;
 
     select a.currency
