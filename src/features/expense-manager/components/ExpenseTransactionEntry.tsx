@@ -35,6 +35,7 @@ export function ExpenseTransactionEntry({ accounts, categories, initialTransacti
   const visibleCategories = useMemo(() => categories.filter((category) => category.type === (type === 'transfer' ? 'expense' : type)), [categories, type]);
 
   useEffect(() => { if (type !== 'transfer' && categoryId && !visibleCategories.some((category) => category.id === categoryId)) setCategoryId(''); }, [type, categoryId, visibleCategories]);
+  useEffect(() => { const handleKeyDown = (event: KeyboardEvent) => { if (event.key === 'Escape' && !saving && !setupSaving) { if (setup) setSetup(null); else onClose(); } }; window.addEventListener('keydown', handleKeyDown); return () => window.removeEventListener('keydown', handleKeyDown); }, [onClose, saving, setup, setupSaving]);
 
   const submit = async (event: FormEvent) => {
     event.preventDefault(); setError('');

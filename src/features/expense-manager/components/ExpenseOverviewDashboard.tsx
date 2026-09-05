@@ -69,11 +69,15 @@ export function ExpenseOverviewDashboard({ onNavigate }: ExpenseOverviewDashboar
   const periods = data ? periodRows(data) : [];
   const singlePeriod = periods.length === 1 ? periods[0] : null;
   const spendingTotal = data?.expenses ?? 0;
-  const categoryTotal = data?.top_categories.reduce((sum, item) => sum + item.amount, 0) ?? 0;
+  const chartCategories = useMemo(
+    () => singlePeriod && data ? data.top_categories.filter((item) => item.currency === singlePeriod.currency) : [],
+    [data, singlePeriod],
+  );
+  const categoryTotal = chartCategories.reduce((sum, item) => sum + item.amount, 0);
   const chartGradient = useMemo(() => {
-    if (!data?.top_categories.length || categoryTotal <= 0) return 'conic-gradient(#e2e8f0 0deg 360deg)';
+    if (!chartCategories.length || categoryTotal <= 0) return 'conic-gradient(#e2e8f0 0deg 360deg)';
     let cursor = 0;
-    const stops = data.top_categories.map((item, index) => {
+    const stops = chartCategories.map((item, index) => {
       const next = cursor + (item.amount / categoryTotal) * 360;
       const hue = (index * 53 + 205) % 360;
       const stop = `hsl(${hue} 72% 52%) ${cursor}deg ${next}deg`;
@@ -81,7 +85,7 @@ export function ExpenseOverviewDashboard({ onNavigate }: ExpenseOverviewDashboar
       return stop;
     });
     return `conic-gradient(${stops.join(',')})`;
-  }, [categoryTotal, data?.top_categories]);
+  }, [categoryTotal, chartCategories]);
 
   const shiftMonth = (delta: number) => {
     setAnchor((current) => new Date(current.getFullYear(), current.getMonth() + delta, 1));
@@ -215,16 +219,18 @@ export function ExpenseOverviewDashboard({ onNavigate }: ExpenseOverviewDashboar
             <article className="expense-overview__card expense-overview__wide">
               <div className="expense-overview__card-head"><h2 className="expense-overview__card-title">Spending</h2><span className="expense-overview__metric-note">{singlePeriod ? formatCurrency(spendingTotal, singlePeriod.currency) : 'Multiple currencies'}</span></div>
               {data.top_categories.length ? (
-                <div className="expense-overview__spending">
-                  <div className="expense-overview__donut" style={{ background: chartGradient }} aria-label="Spending distribution chart" />
-                  <div className="expense-overview__legend">
-                    {data.top_categories.map((item, index) => {
-                      const percent = categoryTotal > 0 ? Math.round((item.amount / categoryTotal) * 100) : 0;
-                      const hue = (index * 53 + 205) % 360;
-                      return <div className="expense-overview__legend-row" key={`${item.id}-${item.currency}`}><span className="expense-overview__dot" style={{ ['--hue' as string]: hue }} /><span className="expense-overview__legend-name">{item.name} · {item.currency}</span><span className="expense-overview__legend-value">{percent}%</span></div>;
-                    })}
+                singlePeriod && chartCategories.length ? (
+                  <div className="expense-overview__spending">
+                    <div className="expense-overview__donut" style={{ background: chartGradient }} aria-label="Spending distribution chart" />
+                    <div className="expense-overview__legend">
+                      {chartCategories.map((item, index) => {
+                        const percent = categoryTotal > 0 ? Math.round((item.amount / categoryTotal) * 100) : 0;
+                        const hue = (index * 53 + 205) % 360;
+                        return <div className="expense-overview__legend-row" key={`${item.id}-${item.currency}`}><span className="expense-overview__dot" style={{ ['--hue' as string]: hue }} /><span className="expense-overview__legend-name">{item.name} · {item.currency}</span><span className="expense-overview__legend-value">{percent}%</span></div>;
+                      })}
+                    </div>
                   </div>
-                </div>
+                ) : <div className="expense-overview__empty-mini">Distribution is shown separately by currency. No exchange rate is applied.</div>
               ) : <div className="expense-overview__empty-mini">No expenses recorded for this period.</div>}
             </article>
 
