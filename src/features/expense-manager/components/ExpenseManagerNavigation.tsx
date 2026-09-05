@@ -63,6 +63,7 @@ export function ExpenseManagerNavigation({ pathname, onNavigate }: ExpenseManage
         .expense-manager-navigation__item:focus-visible,.expense-manager-navigation__more-button:focus-visible,.expense-manager-navigation__quick-add:focus-visible{outline:2px solid rgba(37,99,235,.55);outline-offset:2px}
         .expense-manager-navigation__item[data-active="true"]{background:linear-gradient(135deg,rgba(37,99,235,.12),rgba(20,184,166,.08));border-color:rgba(37,99,235,.16);color:#172033;box-shadow:inset 0 1px 0 rgba(255,255,255,.8)}
         .expense-manager-navigation__icon{font-size:16px;line-height:1;font-weight:900;flex:0 0 auto}
+        .expense-manager-navigation__item > span:last-child{white-space:nowrap}
         .expense-manager-navigation__mobile{display:none}
         .expense-manager-navigation__mobile-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px;padding:6px}
         .expense-manager-navigation__more-wrap{position:relative;min-width:0}
