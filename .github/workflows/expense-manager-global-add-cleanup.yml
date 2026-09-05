@@ -22,18 +22,23 @@ jobs:
           from pathlib import Path
           import re
           targets = {
-            'src/features/expense-manager/pages/ExpenseAccountsPage.tsx': [r'<button\b[^>]*className="expense-accounts__add"[^>]*>[\s\S]*?</button>', r'<button\b[^>]*onClick=\{openAdd\}[^>]*>[\s\S]*?</button>'],
-            'src/features/expense-manager/pages/ExpenseCategoriesPage.tsx': [r'<button\b[^>]*className="expense-categories__add"[^>]*>[\s\S]*?</button>', r'<button\b[^>]*onClick=\{openAdd\}[^>]*>[\s\S]*?</button>'],
-            'src/features/expense-manager/pages/ExpenseBudgetsPage.tsx': [r'<button\b[^>]*className="expense-budgets__add"[^>]*>[\s\S]*?</button>', r'<button\b[^>]*onClick=\{openAdd\}[^>]*>[\s\S]*?</button>'],
-            'src/features/expense-manager/pages/ExpenseTransactionsPage.tsx': [r'<button\b[^>]*className="expense-transactions__add"[^>]*>[\s\S]*?</button>', r'<button\b[^>]*onClick=\{openAdd\}[^>]*>[\s\S]*?</button>'],
-            'src/features/expense-manager/components/ExpenseOverviewDashboard.tsx': [r'<button\b[^>]*className="expense-overview__add"[^>]*>[\s\S]*?</button>', r'<button\b[^>]*onClick=\{\(\) => onNavigate\(\x27/expense-manager/transactions\?intent=add\x27\)\}[^>]*>[\s\S]*?</button>'],
+            'src/features/expense-manager/pages/ExpenseAccountsPage.tsx': 'accounts',
+            'src/features/expense-manager/pages/ExpenseCategoriesPage.tsx': 'categories',
+            'src/features/expense-manager/pages/ExpenseBudgetsPage.tsx': 'budgets',
+            'src/features/expense-manager/pages/ExpenseTransactionsPage.tsx': 'transactions',
+            'src/features/expense-manager/components/ExpenseOverviewDashboard.tsx': 'overview',
           }
-          for name, patterns in targets.items():
+          for name, key in targets.items():
             path = Path(name)
             text = path.read_text()
-            for pattern in patterns:
-              text = re.sub(pattern, '', text)
-            text = re.sub(r'\.expense-[a-z-]+__add(?::after)?\{[^{}]*\}', '', text)
+            if key != 'overview':
+              cls = f'expense-{key}__add'
+              text = re.sub(r'\{\s*' + key + r'\.length\s*>\s*0\s*&&\s*\(\s*<button\b[^>]*className="' + re.escape(cls) + r'"[\s\S]*?</button>\s*\)\s*\}', '', text)
+              text = re.sub(r'<button\b[^>]*onClick=\{openAdd\}[^>]*>[\s\S]*?</button>', '', text)
+              text = re.sub(r'\.' + re.escape(cls) + r'(?::after)?\{[^{}]*\}', '', text)
+            else:
+              text = re.sub(r'<button\b[^>]*className="expense-overview__add"[^>]*>[\s\S]*?</button>', '', text)
+              text = re.sub(r'\.expense-overview__add(?::after)?\{[^{}]*\}', '', text)
             text = '\n'.join(line.rstrip() for line in text.splitlines()) + '\n'
             path.write_text(text)
           PY
