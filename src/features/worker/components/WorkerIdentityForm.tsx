@@ -24,30 +24,33 @@ const SKILL_OPTIONS = [
   'Other',
 ] as const;
 
-const MACHINE_TYPES = [
-  'Singer / Sewing Machine',
-  'Button Machine',
-  'Kaaj / Overlock Machine',
-  'Industrial Sewing Machine',
-  'Cutting Machine',
-  'Press / Ironing Machine',
-  'Packaging Machine',
-  'CNC Machine',
-  'Lathe Machine',
-  'Drill Machine',
-  'Other Machine',
-] as const;
-
 function skillKey(skill: string) {
   return skill.split(' — ')[0].trim();
+}
+
+function skillPrompt(skill: string) {
+  const prompts: Record<string, string> = {
+    'Machine Operator': 'Describe the machine or machine work you handle. Example: Singer sewing machine, CNC machine, or another machine.',
+    'Pressing / Ironing': 'Describe the pressing or ironing work you do. Example: steam press, garment ironing, or industrial press.',
+    Packing: 'Describe the packing work you do. Example: garment packing, warehouse packing, or product packaging.',
+    'Cutting / Cropping': 'Describe the cutting or cropping work you do. Example: fabric cutting, metal cutting, or crop work.',
+    'Production / Assembly': 'Describe the production or assembly work you do.',
+    'Quality Control': 'Describe what you inspect or check. Example: garment quality, product inspection, or final checking.',
+    'Warehouse / Store': 'Describe your warehouse or store work. Example: stock handling, inventory, loading, or store management.',
+    'Driver / Delivery': 'Describe the vehicle or delivery work you do. Example: Suzuki driver, truck driver, rider, or delivery van.',
+    'Office / Admin': 'Describe your office or admin work. Example: data entry, accounts, reception, or office management.',
+    'Sales / Customer Service': 'Describe your sales or customer service work.',
+    'Technician / Maintenance': 'Describe the technical or maintenance work you do. Example: electrician, mechanic, machine maintenance, or HVAC.',
+    Other: 'Describe this skill or type of work in your own words.',
+  };
+  return prompts[skill] ?? 'Describe this skill or type of work in your own words.';
 }
 
 export function WorkerIdentityForm({ workerProfile, profile, saving, onSave }: WorkerIdentityFormProps) {
   const [description, setDescription] = useState('');
   const [skills, setSkills] = useState<string[]>([]);
-  const [machineType, setMachineType] = useState('');
-  const [machineOther, setMachineOther] = useState('');
-  const [otherSkill, setOtherSkill] = useState('');
+  const [skillDialog, setSkillDialog] = useState<string | null>(null);
+  const [skillDescription, setSkillDescription] = useState('');
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
@@ -56,54 +59,24 @@ export function WorkerIdentityForm({ workerProfile, profile, saving, onSave }: W
   }, [workerProfile]);
 
   const selectedKeys = useMemo(() => new Set(skills.map(skillKey)), [skills]);
-  const hasMachine = selectedKeys.has('Machine Operator');
-  const hasOther = selectedKeys.has('Other');
 
   const addSkill = (skill: string) => {
     if (selectedKeys.has(skill)) return;
-    setSkills((current) => [...current, skill]);
+    setSkillDescription('');
+    setSkillDialog(skill);
+  };
+
+  const confirmSkill = () => {
+    const value = skillDescription.trim();
+    if (!skillDialog || !value) return;
+    setSkills((current) => [...current, `${skillDialog} — ${value}`]);
+    setSkillDialog(null);
+    setSkillDescription('');
     setSaved(false);
   };
 
   const removeSkill = (skill: string) => {
     setSkills((current) => current.filter((item) => item !== skill));
-    if (skillKey(skill) === 'Machine Operator') {
-      setMachineType('');
-      setMachineOther('');
-    }
-    if (skillKey(skill) === 'Other') setOtherSkill('');
-    setSaved(false);
-  };
-
-  const applyMachineType = (value: string) => {
-    setMachineType(value);
-    setSkills((current) => {
-      const withoutMachine = current.filter((item) => skillKey(item) !== 'Machine Operator');
-      if (!value) return withoutMachine;
-      const label = value === 'Other Machine' && machineOther.trim()
-        ? `Machine Operator — ${machineOther.trim()}`
-        : `Machine Operator — ${value}`;
-      return [...withoutMachine, label];
-    });
-    setSaved(false);
-  };
-
-  const applyMachineOther = (value: string) => {
-    setMachineOther(value);
-    if (machineType !== 'Other Machine') return;
-    setSkills((current) => [
-      ...current.filter((item) => skillKey(item) !== 'Machine Operator'),
-      ...(value.trim() ? [`Machine Operator — ${value.trim()}`] : []),
-    ]);
-    setSaved(false);
-  };
-
-  const applyOtherSkill = (value: string) => {
-    setOtherSkill(value);
-    setSkills((current) => [
-      ...current.filter((item) => skillKey(item) !== 'Other'),
-      ...(value.trim() ? [`Other — ${value.trim()}`] : []),
-    ]);
     setSaved(false);
   };
 
@@ -148,12 +121,12 @@ export function WorkerIdentityForm({ workerProfile, profile, saving, onSave }: W
           />
         </label>
 
-        <div>
-          <span style={{ display: 'block', marginBottom: 4, fontWeight: 700 }}>Skills & Work Areas</span>
-          <span style={{ display: 'block', color: '#64748b', fontSize: 13, lineHeight: 1.45, marginBottom: 10 }}>
-            Choose the work you actually do. You can add more than one skill.
-          </span>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+        <details>
+          <summary style={{ cursor: 'pointer', fontWeight: 800, padding: '4px 0' }}>Skills & Work Areas</summary>
+          <div style={{ marginTop: 10, color: '#64748b', fontSize: 13, lineHeight: 1.45 }}>
+            Select a skill and briefly describe exactly what you do. This works for any type of worker or company.
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 12 }}>
             {SKILL_OPTIONS.map((skill) => {
               const selected = selectedKeys.has(skill);
               return (
@@ -177,47 +150,8 @@ export function WorkerIdentityForm({ workerProfile, profile, saving, onSave }: W
               );
             })}
           </div>
-        </div>
-
-        {hasMachine && (
-          <div style={{ padding: 12, borderRadius: 12, background: '#f8fafc', border: '1px solid #e2e8f0', display: 'grid', gap: 10 }}>
-            <label>
-              <span style={{ display: 'block', marginBottom: 6, fontWeight: 700 }}>Machine Type</span>
-              <select value={machineType} onChange={(event) => applyMachineType(event.target.value)} style={{ width: '100%', boxSizing: 'border-box' }}>
-                <option value="">Select machine type</option>
-                {MACHINE_TYPES.map((machine) => <option key={machine} value={machine}>{machine}</option>)}
-              </select>
-            </label>
-            {machineType === 'Other Machine' && (
-              <label>
-                <span style={{ display: 'block', marginBottom: 6, fontWeight: 700 }}>Machine name / type</span>
-                <input
-                  value={machineOther}
-                  onChange={(event) => applyMachineOther(event.target.value)}
-                  placeholder="Enter the machine name or type"
-                  style={{ width: '100%', boxSizing: 'border-box' }}
-                />
-              </label>
-            )}
-          </div>
-        )}
-
-        {hasOther && (
-          <label style={{ padding: 12, borderRadius: 12, background: '#f8fafc', border: '1px solid #e2e8f0' }}>
-            <span style={{ display: 'block', marginBottom: 6, fontWeight: 700 }}>Describe the other skill</span>
-            <input
-              value={otherSkill}
-              onChange={(event) => applyOtherSkill(event.target.value)}
-              placeholder="e.g. Tailor, Electrician, Welder, Accountant"
-              style={{ width: '100%', boxSizing: 'border-box' }}
-            />
-          </label>
-        )}
-
-        {skills.length > 0 && (
-          <div>
-            <span style={{ display: 'block', marginBottom: 7, fontWeight: 700, fontSize: 13 }}>Selected</span>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
+          {skills.length > 0 && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginTop: 12 }}>
               {skills.map((skill) => (
                 <span key={skill} style={{ borderRadius: 999, padding: '6px 10px', background: '#f1f5f9', color: '#334155', fontSize: 13, fontWeight: 700 }}>
                   {skill}
@@ -225,9 +159,38 @@ export function WorkerIdentityForm({ workerProfile, profile, saving, onSave }: W
                 </span>
               ))}
             </div>
-          </div>
-        )}
+          )}
+        </details>
       </section>
+
+      {skillDialog && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="worker-skill-dialog-title"
+          onClick={() => setSkillDialog(null)}
+          style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(15, 23, 42, .45)', display: 'grid', placeItems: 'center', padding: 20 }}
+        >
+          <div className="foundation-card" onClick={(event) => event.stopPropagation()} style={{ width: 'min(100%, 480px)', boxSizing: 'border-box', display: 'grid', gap: 12 }}>
+            <div>
+              <div id="worker-skill-dialog-title" style={{ fontSize: 18, fontWeight: 900 }}>Describe {skillDialog}</div>
+              <div style={{ marginTop: 5, color: '#64748b', fontSize: 13, lineHeight: 1.45 }}>{skillPrompt(skillDialog)}</div>
+            </div>
+            <textarea
+              autoFocus
+              value={skillDescription}
+              onChange={(event) => setSkillDescription(event.target.value)}
+              rows={4}
+              placeholder="Describe it here…"
+              style={{ width: '100%', boxSizing: 'border-box', resize: 'vertical' }}
+            />
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+              <button type="button" onClick={() => setSkillDialog(null)}>Cancel</button>
+              <button type="button" disabled={!skillDescription.trim()} onClick={confirmSkill}>Add Skill</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {workerProfile?.work_id && (
         <section className="foundation-card">
