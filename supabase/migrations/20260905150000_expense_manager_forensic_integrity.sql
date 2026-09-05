@@ -24,7 +24,7 @@ begin
       raise exception 'Transaction category type does not match transaction type' using errcode = '23514';
     end if;
 
-    if coalesce(category_archived, false) and (tg_op = 'INSERT' or old.category_id is distinct from new.category_id) then
+    if coalesce(category_archived, false) and (tg_op = 'INSERT' or (tg_op = 'UPDATE' and old.category_id is distinct from new.category_id)) then
       raise exception 'Archived categories cannot receive new transactions' using errcode = '23514';
     end if;
 
