@@ -43,7 +43,9 @@ export function SalarySetupPage({ profileId }: { profileId: string }) {
   const [bonusExpectedMonths, setBonusExpectedMonths] = useState('1');
   const [bonusFixedAmount, setBonusFixedAmount] = useState('');
 
-  const expectedMonths = useMemo(() => ({ yearly: 1, '6_months': 2, '3_months': 4 }[bonusFrequency] ?? Number(bonusExpectedMonths) || 0), [bonusFrequency, bonusExpectedMonths]);
+  const expectedMonths = useMemo(() => bonusFrequency === 'custom'
+    ? (Number(bonusExpectedMonths) || 0)
+    : ({ yearly: 1, '6_months': 2, '3_months': 4 } as Record<Exclude<BonusFrequency, 'custom'>, number>)[bonusFrequency], [bonusFrequency, bonusExpectedMonths]);
 
   if (loading) return <main style={{ padding: 24 }}>Loading Salary Setup…</main>;
   if (error || !workerProfile) return <main style={{ padding: 24 }}><p role="alert">{error ?? 'Worker profile unavailable.'}</p></main>;
@@ -138,7 +140,7 @@ export function SalarySetupPage({ profileId }: { profileId: string }) {
       </div>}</section>
 
       <section style={{ ...card, display: 'grid', gap: 14 }}><button type="button" onClick={() => setShowBonus(v => !v)} style={{ border: 0, background: 'transparent', padding: 0, textAlign: 'left', cursor: 'pointer' }}><SectionTitle title="Bonus Settings" subtitle="Optional: configure expected bonus frequency and amount." open={showBonus}/></button>{showBonus && <div style={{ display: 'grid', gap: 12 }}>
-        <label style={label}>Bonus Frequency<select value={bonusFrequency} onChange={e => { const value = e.target.value as BonusFrequency; setBonusFrequency(value); if (value !== 'custom') setBonusExpectedMonths(String({ yearly: 1, '6_months': 2, '3_months': 4 }[value])); }} style={input}><option value="yearly">Yearly</option><option value="6_months">Every 6 Months</option><option value="3_months">Every 3 Months</option><option value="custom">Custom</option></select></label>
+        <label style={label}>Bonus Frequency<select value={bonusFrequency} onChange={e => { const value = e.target.value as BonusFrequency; setBonusFrequency(value); if (value !== 'custom') setBonusExpectedMonths(String({ yearly: 1, '6_months': 2, '3_months': 4 }[value as Exclude<BonusFrequency, 'custom'>])); }} style={input}><option value="yearly">Yearly</option><option value="6_months">Every 6 Months</option><option value="3_months">Every 3 Months</option><option value="custom">Custom</option></select></label>
         <label style={label}>Expected Bonus Months<input type="number" min="1" step="1" value={expectedMonths || ''} onChange={e => setBonusExpectedMonths(e.target.value)} disabled={bonusFrequency !== 'custom'} style={{ ...input, opacity: bonusFrequency === 'custom' ? 1 : .7 }}/><span style={hint}>Yearly = 1, every 6 months = 2, every 3 months = 4. Custom lets you choose the count.</span></label>
         <label style={label}>Bonus Amount<select value={bonusAmountType} onChange={e => setBonusAmountType(e.target.value as BonusAmountType)} style={input}><option value="half_salary">Half Salary</option><option value="full_salary">Full Salary</option><option value="fixed_amount">Fixed Amount</option></select></label>
         {bonusAmountType === 'fixed_amount' && <label style={label}>Fixed Bonus Amount<input type="number" min="0.01" step="0.01" value={bonusFixedAmount} onChange={e => setBonusFixedAmount(e.target.value)} style={input}/></label>}
