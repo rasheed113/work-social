@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { navigate } from '../../../app/Router';
 import { getFinalizedSalaryTotals, getSalaryMonthSummary, getSalaryPolicy, saveAttendance, saveOvertime } from '../api/salary';
+import { listSalaryAllowances, type SalaryAllowance } from '../api/salaryAllowances';
 import { useWorkerProfile } from '../hooks/useWorkerProfile';
 import type { AttendanceStatus, SalaryMonthSummary, SalaryPolicy } from '../types/salary';
 
@@ -16,6 +17,7 @@ export function SalaryDashboardPage({ profileId }: { profileId: string }) {
   const { workerProfile, loading } = useWorkerProfile(profileId);
   const [policy, setPolicy] = useState<SalaryPolicy | null>(null);
   const [summary, setSummary] = useState<SalaryMonthSummary | null>(null);
+  const [allowances, setAllowances] = useState<SalaryAllowance[]>([]);
   const [grand, setGrand] = useState({ months: 0, base: 0, overtime: 0, bonuses: 0, adjustments: 0, total: 0 });
   const [monthOffset, setMonthOffset] = useState(0);
   const [attendanceDate, setAttendanceDate] = useState(() => new Date().toISOString().slice(0, 10));
@@ -29,9 +31,10 @@ export function SalaryDashboardPage({ profileId }: { profileId: string }) {
   const month = useMemo(() => monthValue(monthOffset), [monthOffset]);
 
   const refresh = async () => {
-    const [p, s, g] = await Promise.all([getSalaryPolicy(profileId), getSalaryMonthSummary(month), getFinalizedSalaryTotals(profileId)]);
-    setPolicy(p.data); setSummary(s.data);
+    const [p, s, g, a] = await Promise.all([getSalaryPolicy(profileId), getSalaryMonthSummary(month), getFinalizedSalaryTotals(profileId), listSalaryAllowances(profileId)]);
+    setPolicy(p.data); setSummary(s.data); setAllowances(a.data ?? []);
     if (s.error) setStatus(s.error.message);
+    if (a.error) setStatus(a.error.message);
     if (!g.error) setGrand(g.data.reduce((acc, row) => ({ months: acc.months + 1, base: acc.base + Number(row.base_salary || 0), overtime: acc.overtime + Number(row.overtime_amount || 0), bonuses: acc.bonuses + Number(row.bonus_amount || 0), adjustments: acc.adjustments + Number(row.adjustments || 0), total: acc.total + Number(row.final_amount || 0) }), { months: 0, base: 0, overtime: 0, bonuses: 0, adjustments: 0, total: 0 }));
   };
   useEffect(() => { if (workerProfile) void refresh(); }, [workerProfile, month]);
@@ -44,6 +47,8 @@ export function SalaryDashboardPage({ profileId }: { profileId: string }) {
   const salaryTypeMissing = !policy?.salary_type;
   const salaryTypeLabel = policy?.salary_type === '15_days' ? '15 Days' : policy?.salary_type ? policy.salary_type.charAt(0).toUpperCase() + policy.salary_type.slice(1) : 'Not set';
   const salaryTypeAction = <button type="button" onClick={() => navigate('/work/finance?setup=1&focus=salary-type')} style={{ border: 0, background: 'transparent', padding: 0, color: salaryTypeMissing ? '#b45309' : '#334155', fontWeight: 900, textDecoration: 'underline', textUnderlineOffset: 3, cursor: 'pointer' }}>{salaryTypeMissing ? 'Salary cycle: Not set — fix setup' : `Salary cycle: ${salaryTypeLabel}`}</button>;
+  const allowanceTotal = allowances.reduce((total, row) => total + Number(row.amount || 0), 0);
+  const allowanceAction = <button type="button" onClick={() => navigate('/work/finance?setup=1&focus=allowances')} style={{ width: '100%', border: 0, background: 'transparent', padding: 0, textAlign: 'left', cursor: 'pointer', font: 'inherit' }}><div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}><div><div style={{ fontSize: 11, color: allowances.length ? '#047857' : '#b45309', fontWeight: 900, letterSpacing: '.08em', textTransform: 'uppercase' }}>{allowances.length ? 'Set' : 'Not set'}</div><div style={{ marginTop: 5, fontSize: 24, fontWeight: 950 }}>{allowances.length ? money(allowanceTotal, currency) : 'Configure allowances'}</div></div><div style={{ color: allowances.length ? '#047857' : '#b45309', fontWeight: 900 }}>{allowances.length ? 'Change →' : 'Set →'}</div></div><p style={{ margin: '8px 0 0', color: '#64748b', fontSize: 13 }}>{allowances.length ? `${allowances.length} allowance${allowances.length === 1 ? '' : 's'} configured · tap to change` : 'Tap to open Salary Settings and set your allowance rules.'}</p></button>;
 
   const saveAttendanceEntry = async () => {
     setStatus(''); setBusy(true);
@@ -95,6 +100,7 @@ export function SalaryDashboardPage({ profileId }: { profileId: string }) {
     <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(250px,1fr))', gap: 14, marginBottom: 16 }}>
       <InfoCard title="Attendance" icon="✓"><div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}><Mini label="Present" value={String(summary?.present_days ?? 0)} /><Mini label="Absent" value={String(summary?.absent_days ?? 0)} /><Mini label="Leave" value={String(summary?.leave_days ?? 0)} /><Mini label="Paid Days" value={String(summary?.paid_days ?? 0)} /></div><div style={{ marginTop: 14, padding: 11, borderRadius: 12, background: '#f8fafc' }}><strong>{Number(summary?.attendance_percentage ?? 0).toFixed(1)}%</strong> attendance</div></InfoCard>
       <InfoCard title="Overtime" icon="↗"><div style={{ fontSize: 28, fontWeight: 950 }}>{Number(summary?.overtime_hours ?? 0).toFixed(2)} h</div><p style={{ margin: '4px 0 0', color: '#64748b', fontSize: 13 }}>Total overtime hours</p><div style={{ marginTop: 14, fontWeight: 900 }}>{money(summary?.overtime_amount ?? 0, currency)}</div><p style={{ margin: '3px 0 0', color: '#64748b', fontSize: 12 }}>Calculated from your saved salary policy.</p></InfoCard>
+      <InfoCard title="Allowance" icon="＋"><div style={{ padding: 13, borderRadius: 14, background: allowances.length ? '#ecfdf5' : '#fffbeb', border: allowances.length ? '1px solid #bbf7d0' : '1px solid #fde68a' }}>{allowanceAction}</div>{allowances.length > 0 && <div style={{ display: 'grid', gap: 7, marginTop: 12 }}>{allowances.slice(0, 4).map(row => <div key={row.id} style={{ display: 'flex', justifyContent: 'space-between', gap: 10, fontSize: 12, color: '#475569' }}><span>{row.allowance_type}</span><strong>{money(Number(row.amount), currency)}</strong></div>)}{allowances.length > 4 && <span style={{ color: '#64748b', fontSize: 12 }}>+{allowances.length - 4} more</span>}</div>}</InfoCard>
       <InfoCard title="Bonus" icon="★"><div style={{ fontSize: 24, fontWeight: 950 }}>{money(summary?.bonus_amount ?? 0, currency)}</div><p style={{ margin: '4px 0 0', color: '#64748b', fontSize: 13 }}>Bonuses recorded this month</p><div style={{ marginTop: 14, padding: 10, borderRadius: 12, background: '#f8fafc', color: '#475569', fontSize: 13 }}>{policy ? salaryTypeAction : 'Complete salary setup to configure your policy.'}</div></InfoCard>
     </section>
 
@@ -127,7 +133,7 @@ export function SalaryDashboardPage({ profileId }: { profileId: string }) {
   </main>;
 }
 
+function InfoCard({ title, icon, children }: { title: string; icon: string; children: React.ReactNode }) { return <section style={{ ...panel, padding: 16 }}><div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}><span style={{ width: 28, height: 28, display: 'grid', placeItems: 'center', borderRadius: 9, background: '#eef2ff', color: '#4338ca', fontWeight: 900 }}>{icon}</span><h2 style={{ margin: 0, fontSize: 17 }}>{title}</h2></div>{children}</section>; }
 function Metric({ label, value, strong = false }: { label: string; value: string; strong?: boolean }) { return <div style={{ padding: 12, borderRadius: 14, background: '#f8fafc', border: '1px solid #eef2f7' }}><div style={{ color: '#64748b', fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '.06em' }}>{label}</div><div style={{ marginTop: 5, fontSize: strong ? 20 : 15, fontWeight: strong ? 950 : 850 }}>{value}</div></div>; }
 function Mini({ label, value }: { label: string; value: string }) { return <div style={{ padding: 11, borderRadius: 12, background: '#fff', border: '1px solid #eef2f7' }}><div style={{ color: '#64748b', fontSize: 11 }}>{label}</div><strong style={{ display: 'block', marginTop: 3, fontSize: 18 }}>{value}</strong></div>; }
-function InfoCard({ title, icon, children }: { title: string; icon: string; children: React.ReactNode }) { return <section style={{ ...panel, padding: 17 }}><div style={{ display: 'flex', gap: 9, alignItems: 'center', marginBottom: 14 }}><span aria-hidden="true" style={{ width: 30, height: 30, display: 'grid', placeItems: 'center', borderRadius: 10, background: '#f1f5f9', fontWeight: 950 }}>{icon}</span><h2 style={{ margin: 0, fontSize: 18 }}>{title}</h2></div>{children}</section>; }
-const labelStyle = { display: 'grid', gap: 6, marginBottom: 11, color: '#334155', fontSize: 13, fontWeight: 800 };
+const labelStyle: React.CSSProperties = { display: 'grid', gap: 6, marginBottom: 10, color: '#334155', fontWeight: 800, fontSize: 12 };
