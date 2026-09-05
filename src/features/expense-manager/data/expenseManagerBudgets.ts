@@ -1,8 +1,6 @@
 import { supabase } from '../../../lib/supabase/client';
 import type { ExpenseBudgetInput, ExpenseBudgetRecord } from '../domain/budgets';
 
-const BUDGET_SELECT = 'id,category_id,amount,period,start_date,end_date,created_at,updated_at';
-
 interface BudgetRpcRow {
   id: string;
   category_id: string;
@@ -66,5 +64,3 @@ export async function getExpenseBudgetByPeriod(userId: string, categoryId: strin
   if (error) throw error;
   return (count ?? 0) > 0;
 }
-
-export { BUDGET_SELECT };
