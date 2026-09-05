@@ -17,7 +17,7 @@ export function SalarySetupPage({ profileId }: { profileId: string }) {
   const focusSalaryType = focus === 'salary-type';
   const focusAllowances = focus === 'allowances';
   const salaryTypeRef = useRef<HTMLLabelElement>(null);
-  const [privacyAccepted, setPrivacyAccepted] = useState(!focusSalaryType && !focusAllowances);
+  const [privacyAccepted, setPrivacyAccepted] = useState(focusSalaryType || focusAllowances);
   const [salaryTypeHighlighted, setSalaryTypeHighlighted] = useState(focusSalaryType);
   const [showRules, setShowRules] = useState(true);
   const [showBonus, setShowBonus] = useState(false);
