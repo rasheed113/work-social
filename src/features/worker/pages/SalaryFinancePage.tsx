@@ -8,8 +8,11 @@ const shell = { width: '100%', maxWidth: 760, margin: '0 auto', padding: '18px 1
 const card = { border: '1px solid rgba(148,163,184,.2)', borderRadius: 18, background: '#fff', boxShadow: '0 10px 28px rgba(15,23,42,.06)' };
 const button = { minHeight: 42, padding: '0 14px', borderRadius: 11, border: '1px solid #cbd5e1', background: '#fff', fontWeight: 800, cursor: 'pointer' };
 const input = { width: '100%', minHeight: 44, boxSizing: 'border-box' as const, border: '1px solid #cbd5e1', borderRadius: 11, padding: '0 12px', font: 'inherit', background: '#fff' };
-const money = (value: number, currency: string) => `${currency} ${Number(value || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const money = (value: number, currency: string) => `${currency} ${Math.abs(Number(value || 0)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 const monthKey = new Date().toISOString().slice(0, 10);
+const positive = '#15803d';
+const negative = '#dc2626';
+const neutral = '#0f172a';
 
 function recordLabel(type: SalaryFinanceRecordType) {
   return type === 'payment' ? 'Payment Received' : type === 'advance' ? 'Advance Received' : 'Other Adjustment';
@@ -17,6 +20,15 @@ function recordLabel(type: SalaryFinanceRecordType) {
 
 function dateLabel(value: string) {
   return new Date(value).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+function amountColor(value: number) {
+  return value > 0 ? positive : value < 0 ? negative : neutral;
+}
+
+function signedMoney(value: number, currency: string) {
+  const sign = value > 0 ? '+' : value < 0 ? '-' : '';
+  return `${sign}${money(value, currency)}`;
 }
 
 export function SalaryFinancePage({ profileId }: { profileId: string }) {
@@ -65,8 +77,12 @@ export function SalaryFinancePage({ profileId }: { profileId: string }) {
     const date = new Date(record.received_at);
     return date.getMonth() === currentMonth && date.getFullYear() === currentYear && (record.entry_type === 'payment' || record.entry_type === 'advance');
   }).reduce((total, record) => total + Number(record.amount || 0), 0), [records, currentMonth, currentYear]);
-  const remaining = Math.max(0, currentSalary - currentReceived);
-  const status = currentReceived <= 0 ? 'Pending' : currentReceived >= currentSalary && currentSalary > 0 ? 'Paid' : 'Partially Paid';
+  const currentOtherAdjustment = useMemo(() => records.filter((record) => {
+    const date = new Date(record.received_at);
+    return date.getMonth() === currentMonth && date.getFullYear() === currentYear && record.entry_type === 'other';
+  }).reduce((total, record) => total + Number(record.amount || 0), 0), [records, currentMonth, currentYear]);
+  const remaining = currentSalary - currentReceived + currentOtherAdjustment;
+  const status = remaining <= 0 && currentSalary > 0 ? 'Paid' : currentReceived <= 0 && currentOtherAdjustment >= 0 ? 'Pending' : 'Partially Paid';
 
   const submit = async () => {
     const numeric = Number(amount);
@@ -100,10 +116,10 @@ export function SalaryFinancePage({ profileId }: { profileId: string }) {
 
     <section style={{ ...card, padding: 16, marginBottom: 14 }} aria-label="Salary summary">
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,minmax(0,1fr))', gap: 10 }}>
-        <Summary label="Total Salary" value={money(totalSalary, currency)} />
-        <Summary label="Current Salary" value={money(currentSalary, currency)} />
-        <Summary label="Received" value={money(currentReceived, currency)} />
-        <Summary label="Remaining" value={money(remaining, currency)} />
+        <Summary label="Total Salary" value={money(totalSalary, currency)} tone={amountColor(totalSalary)} />
+        <Summary label="Current Salary" value={money(currentSalary, currency)} tone={amountColor(currentSalary)} />
+        <Summary label="Received" value={`-${money(currentReceived, currency)}`} tone={negative} />
+        <Summary label="Remaining" value={signedMoney(remaining, currency)} tone={amountColor(remaining)} />
       </div>
       <div style={{ marginTop: 12, padding: '12px 13px', borderRadius: 13, background: status === 'Paid' ? '#f0fdf4' : '#f8fafc', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
         <span style={{ color: '#64748b', fontSize: 12, fontWeight: 800 }}>Current Salary Status</span>
@@ -137,15 +153,19 @@ export function SalaryFinancePage({ profileId }: { profileId: string }) {
     <section aria-labelledby="finance-history-heading">
       <h2 id="finance-history-heading" style={{ margin: '0 0 10px', fontSize: 19 }}>Finance History</h2>
       {records.length === 0 ? <div style={{ ...card, padding: 24, textAlign: 'center', color: '#64748b' }}>No finance records yet.</div> : <div style={{ display: 'grid', gap: 9 }}>
-        {records.map((record) => <article key={record.id} style={{ ...card, padding: '13px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
-          <div><div style={{ fontWeight: 850 }}>{recordLabel(record.entry_type)}</div><div style={{ marginTop: 3, color: '#64748b', fontSize: 12 }}>{dateLabel(record.received_at)}</div></div>
-          <strong style={{ whiteSpace: 'nowrap' }}>{money(Number(record.amount || 0), currency)}</strong>
-        </article>)}
+        {records.map((record) => {
+          const rawAmount = Number(record.amount || 0);
+          const signedAmount = record.entry_type === 'payment' || record.entry_type === 'advance' ? -Math.abs(rawAmount) : rawAmount;
+          return <article key={record.id} style={{ ...card, padding: '13px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+            <div><div style={{ fontWeight: 850 }}>{recordLabel(record.entry_type)}</div><div style={{ marginTop: 3, color: '#64748b', fontSize: 12 }}>{dateLabel(record.received_at)}</div></div>
+            <strong style={{ whiteSpace: 'nowrap', color: amountColor(signedAmount) }}>{signedMoney(signedAmount, currency)}</strong>
+          </article>;
+        })}
       </div>}
     </section>
   </main>;
 }
 
-function Summary({ label, value }: { label: string; value: string }) {
-  return <div style={{ padding: 12, borderRadius: 13, background: '#f8fafc' }}><div style={{ color: '#64748b', fontSize: 11, fontWeight: 800 }}>{label}</div><div style={{ marginTop: 4, fontWeight: 900, fontSize: 16 }}>{value}</div></div>;
+function Summary({ label, value, tone = neutral }: { label: string; value: string; tone?: string }) {
+  return <div style={{ padding: 12, borderRadius: 13, background: '#f8fafc' }}><div style={{ color: '#64748b', fontSize: 11, fontWeight: 800 }}>{label}</div><div style={{ marginTop: 4, fontWeight: 900, fontSize: 16, color: tone }}>{value}</div></div>;
 }
