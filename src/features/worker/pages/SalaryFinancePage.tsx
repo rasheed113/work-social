@@ -46,7 +46,7 @@ export function SalaryFinancePage({ profileId }: { profileId: string }) {
       <div>
         <div style={{ display: 'inline-flex', padding: '6px 10px', borderRadius: 999, background: '#eff6ff', color: '#1d4ed8', fontSize: 11, fontWeight: 900, letterSpacing: '.08em', textTransform: 'uppercase' }}>Salary Finance</div>
         <h1 style={{ margin: '10px 0 4px', fontSize: 'clamp(28px,6vw,40px)', letterSpacing: '-.035em' }}>Your Salary Finance</h1>
-        <p style={{ margin: 0, color: '#64748b', lineHeight: 1.5 }}>Manage your salary policy and review finalized financial totals.</p>
+        <p style={{ margin: 0, color: '#64748b', lineHeight: 1.5 }}>Your pay structure and finalized salary finances, kept separate from the dashboard.</p>
       </div>
       <button type="button" onClick={() => navigate('/work')} style={button}>Salary Dashboard</button>
     </header>
@@ -59,9 +59,12 @@ export function SalaryFinancePage({ profileId }: { profileId: string }) {
       <div style={{ padding: 16, display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 10 }}>
         <Metric label="Salary Type" value={salaryType} />
         <Metric label="Currency" value={currency} />
-        <Metric label="Base Salary" value={money(policy?.base_salary ?? 0, currency)} />
-        <Metric label="Working Hours" value={`${Number(policy?.working_hours ?? 0)} h/day`} />
+        <Metric label="Salary Amount" value={money(policy?.salary_amount ?? 0, currency)} />
+        <Metric label="Basic Salary" value={money(policy?.basic_salary ?? 0, currency)} />
+        <Metric label="Working Hours" value={policy?.working_hours ? `${policy.working_hours} h/day` : 'Not set'} />
         <Metric label="OT Multiplier" value={`${Number(policy?.overtime_multiplier ?? 0)}×`} />
+        <Metric label="Attendance Allowance" value={money(policy?.attendance_allowance ?? 0, currency)} />
+        <Metric label="Other Allowance" value={money(policy?.other_allowance ?? 0, currency)} />
       </div>
       <div style={{ padding: '0 16px 16px' }}><button type="button" onClick={() => navigate('/work/finance?setup=1')} style={button}>Edit Salary Setup</button></div>
     </section>
