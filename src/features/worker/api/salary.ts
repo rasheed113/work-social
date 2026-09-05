@@ -8,11 +8,15 @@ export async function setWorkerType(workerProfileId: string, workerType: WorkerT
 export async function getSalaryPolicy(profileId: string) {
   const { data: worker, error: workerError } = await supabase.from('worker_profiles').select('id').eq('profile_id', profileId).maybeSingle<{ id: string }>();
   if (workerError || !worker?.id) return { data: null as SalaryPolicy | null, error: workerError ?? new Error('Worker Identity is unavailable.') };
-  return supabase.from('salary_policies').select('*').eq('worker_profile_id', worker.id).order('salary_start_date', { ascending: false }).limit(1).maybeSingle<SalaryPolicy>();
+  return supabase.from('salary_policies').select('*').eq('worker_profile_id', worker.id).order('salary_start_date', { ascending: false }).order('created_at', { ascending: false }).limit(1).maybeSingle<SalaryPolicy>();
 }
 
 export async function saveSalaryPolicy(workerProfileId: string, input: SalaryPolicyInput) {
   return supabase.from('salary_policies').insert({ worker_profile_id: workerProfileId, ...input }).select('*').single<SalaryPolicy>();
+}
+
+export async function updateSalaryPolicy(workerProfileId: string, policyId: string, input: SalaryPolicyInput) {
+  return supabase.from('salary_policies').update({ ...input, updated_at: new Date().toISOString() }).eq('id', policyId).eq('worker_profile_id', workerProfileId).select('*').single<SalaryPolicy>();
 }
 
 export async function saveBonusPolicy(workerProfileId: string, input: { frequency: BonusFrequency; expected_month_count: number; amount_type: BonusAmountType; fixed_amount: number | null; effective_from: string }) {
