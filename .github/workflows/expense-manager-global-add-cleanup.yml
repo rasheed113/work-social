@@ -1,0 +1,50 @@
+name: Expense Manager global Add cleanup
+
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize]
+
+jobs:
+  cleanup:
+    if: github.event.pull_request.base.ref == 'main' && github.event.pull_request.number == 45
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+      - name: Remove page-level Add buttons
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          files = {
+            'src/features/expense-manager/pages/ExpenseAccountsPage.tsx': 'expense-accounts__add',
+            'src/features/expense-manager/pages/ExpenseCategoriesPage.tsx': 'expense-categories__add',
+            'src/features/expense-manager/pages/ExpenseBudgetsPage.tsx': 'expense-budgets__add',
+            'src/features/expense-manager/pages/ExpenseTransactionsPage.tsx': 'expense-transactions__add',
+            'src/features/expense-manager/components/ExpenseOverviewDashboard.tsx': 'expense-overview__add',
+          }
+          for name, cls in files.items():
+            path = Path(name)
+            text = path.read_text()
+            text = re.sub(rf'<button\s+type="button"\s+className="{re.escape(cls)}"[\s\S]*?</button>', '', text)
+            text = re.sub(rf'\.{re.escape(cls)}\{{[^}}]*\}}', '', text)
+            text = re.sub(rf'\.{re.escape(cls)}::after\{{[^}}]*\}}', '', text)
+            path.write_text(text)
+          PY
+          git diff --check
+          npm install
+          npm run build
+      - name: Commit source cleanup
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/features/expense-manager/pages src/features/expense-manager/components/ExpenseOverviewDashboard.tsx
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'Remove redundant Expense Manager page Add buttons'
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
