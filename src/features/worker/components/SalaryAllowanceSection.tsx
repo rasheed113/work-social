@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { listSalaryAllowances, replaceSalaryAllowances, type SalaryAllowance, type SalaryAllowanceFrequency, type SalaryAllowanceInput, type SalaryAllowanceRule } from '../api/salaryAllowances';
 
 const input: React.CSSProperties = { width: '100%', boxSizing: 'border-box', minHeight: 44, padding: '9px 12px', borderRadius: 12, border: '1px solid #cbd5e1', background: '#fff', font: 'inherit', outline: 'none' };
@@ -13,12 +13,14 @@ function emptyDraft(effectiveFrom: string): Draft {
   return { localId: crypto.randomUUID(), allowance_type: 'Attendance', amount: 0, frequency: 'monthly', eligibility_rule: 'always', loss_after_count: null, rule_note: null, effective_from: effectiveFrom };
 }
 
-export function SalaryAllowanceSection({ profileId, effectiveFrom }: { profileId: string; effectiveFrom: string }) {
+export function SalaryAllowanceSection({ profileId, effectiveFrom, focused = false }: { profileId: string; effectiveFrom: string; focused?: boolean }) {
   const [open, setOpen] = useState(true);
   const [rows, setRows] = useState<Draft[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
+  const sectionRef = useRef<HTMLElement>(null);
+  const [highlighted, setHighlighted] = useState(focused);
 
   useEffect(() => {
     let active = true;
@@ -40,6 +42,16 @@ export function SalaryAllowanceSection({ profileId, effectiveFrom }: { profileId
     return () => { active = false; };
   }, [profileId]);
 
+  useEffect(() => {
+    if (!focused || loading) return;
+    const scrollTimer = window.setTimeout(() => {
+      sectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setHighlighted(true);
+      window.setTimeout(() => setHighlighted(false), 3600);
+    }, 180);
+    return () => window.clearTimeout(scrollTimer);
+  }, [focused, loading]);
+
   const update = (localId: string, patch: Partial<Draft>) => setRows(current => current.map(row => row.localId === localId ? { ...row, ...patch } : row));
 
   const save = async () => {
@@ -52,7 +64,7 @@ export function SalaryAllowanceSection({ profileId, effectiveFrom }: { profileId
     setMessage(result.error ? result.error.message : rows.length ? 'Allowance rules saved.' : 'No allowances are configured.');
   };
 
-  return <section style={{ padding: 20, border: '1px solid rgba(99,102,241,.14)', borderRadius: 20, background: 'rgba(255,255,255,.96)', boxShadow: '0 12px 34px rgba(15,23,42,.07)', display: 'grid', gap: 14 }}>
+  return <section ref={sectionRef} style={{ padding: 20, border: highlighted ? '1px solid #f59e0b' : '1px solid rgba(99,102,241,.14)', borderRadius: 20, background: highlighted ? '#fffbeb' : 'rgba(255,255,255,.96)', boxShadow: highlighted ? '0 0 0 7px rgba(245,158,11,.18), 0 14px 36px rgba(245,158,11,.12)' : '0 12px 34px rgba(15,23,42,.07)', display: 'grid', gap: 14, transition: 'box-shadow .25s ease, background .25s ease, border-color .25s ease' }}>
     <button type="button" onClick={() => setOpen(value => !value)} style={{ border: 0, background: 'transparent', padding: 0, textAlign: 'left', cursor: 'pointer' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}><div><h2 style={{ margin: 0, fontSize: 18, color: '#0f172a' }}>Dynamic Allowances</h2><p style={{ margin: '5px 0 0', color: '#64748b', fontSize: 13, lineHeight: 1.45 }}>Record each allowance separately so salary history can explain exactly why it was paid or lost.</p></div><span style={{ color: '#4f46e5', fontWeight: 900 }}>{open ? '−' : '+'}</span></div>
     </button>
