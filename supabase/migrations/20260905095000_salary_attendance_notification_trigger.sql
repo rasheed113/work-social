@@ -4,6 +4,11 @@ alter table public.notifications add constraint notifications_type_check check (
   'like','comment','comment_reply','mention_post','mention_comment','follow','message','friend_request','friend_accept','attendance_reminder'
 ]));
 
+grant select, insert, update, delete on public.salary_policies to service_role;
+grant select, insert, update, delete on public.salary_attendance_records to service_role;
+grant select, insert, update, delete on public.notifications to service_role;
+grant select, insert, update, delete on public.worker_diary_push_subscriptions to service_role;
+
 create index if not exists notifications_attendance_reminder_lookup_idx
   on public.notifications(receiver_id, type, created_at desc)
   where type = 'attendance_reminder';
