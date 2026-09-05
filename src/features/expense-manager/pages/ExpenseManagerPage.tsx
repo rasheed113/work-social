@@ -46,8 +46,14 @@ export function ExpenseManagerPage({ pathname, onNavigate }: ExpenseManagerPageP
       .expense-manager-page__title{margin:7px 0 4px;font-size:clamp(23px,6vw,42px);line-height:1.06;letter-spacing:-.045em;font-weight:950;color:#0f172a}
       .expense-manager-page__description{max-width:680px;margin:0;color:#64748b;font-size:12px;line-height:1.45;font-weight:600}
       @media(min-width:768px){.expense-manager-page{padding-left:18px;padding-right:18px}.expense-manager-page__hero{padding-top:18px;padding-bottom:16px}}
-      @media(max-width:767px){.expense-manager-page{padding-left:4px;padding-right:4px}.expense-manager-page__hero{padding:8px 4px 10px}.expense-manager-page__description{font-size:11px;line-height:1.4}}
-      @media(max-width:380px){.expense-manager-page__hero{padding-top:6px;padding-bottom:8px}.expense-manager-page__title{font-size:22px}.expense-manager-page__description{font-size:10.5px}}
+      @media(max-width:767px){
+        .expense-manager-page{padding-left:8px;padding-right:8px;padding-bottom:max(84px,calc(env(safe-area-inset-bottom) + 76px))}
+        .expense-manager-page__hero{padding:8px 4px 7px}
+        .expense-manager-page__eyebrow{display:none}
+        .expense-manager-page__title{margin:0;font-size:21px;line-height:1.15;letter-spacing:-.03em}
+        .expense-manager-page__description{display:none}
+      }
+      @media(max-width:380px){.expense-manager-page{padding-left:6px;padding-right:6px}.expense-manager-page__hero{padding-top:6px;padding-bottom:6px}.expense-manager-page__title{font-size:20px}}
       @media(prefers-reduced-motion:reduce){.expense-manager-page *,.expense-manager-page *::before,.expense-manager-page *::after{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important}}
     `}</style>
     <ExpenseManagerNavigation pathname={pathname} onNavigate={onNavigate} />
