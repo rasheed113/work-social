@@ -1,0 +1,173 @@
+import { useEffect, useMemo, useState } from 'react';
+import { loadExpenseReports } from '../data/expenseManagerReports';
+import { budgetRatio, budgetState } from '../domain/budgets';
+import { formatDate, formatMonth, monthBounds, monthValue, shiftMonth } from '../domain/reports';
+import type { ExpenseReportCategory, ExpenseReportMonthlyPoint, ExpenseReportsData } from '../domain/reports';
+
+interface ExpenseReportsPageProps { onNavigate: (path: string) => void; }
+
+function currentMonth(): string { return monthValue(new Date()); }
+function money(value: number, currency: string): string {
+  return new Intl.NumberFormat(undefined, { style: 'currency', currency, maximumFractionDigits: 2 }).format(value);
+}
+function compactMoney(value: number, currency: string): string {
+  return new Intl.NumberFormat(undefined, { style: 'currency', currency, notation: 'compact', maximumFractionDigits: 1 }).format(value);
+}
+function pct(value: number): string { return `${Math.round(value * 100)}%`; }
+function delta(current: number, previous: number): number | null { return previous === 0 ? (current === 0 ? 0 : null) : (current - previous) / previous; }
+
+function Section({ title, eyebrow, children }: { title: string; eyebrow?: string; children: React.ReactNode }) {
+  return <section className="expense-reports__section" aria-labelledby={`report-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}>
+    <div className="expense-reports__section-head"><div>{eyebrow && <span className="expense-reports__section-eyebrow">{eyebrow}</span>}<h2 id={`report-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}>{title}</h2></div></div>
+    {children}
+  </section>;
+}
+
+function CategoryList({ items }: { items: ExpenseReportCategory[] }) {
+  const totals = useMemo(() => new Map<string, number>(), [items]);
+  items.forEach((item) => totals.set(item.currency, (totals.get(item.currency) ?? 0) + item.amount));
+  return <div className="expense-reports__category-list">{items.map((item, index) => {
+    const total = totals.get(item.currency) ?? 0;
+    const percentage = total > 0 ? item.amount / total : 0;
+    return <article className="expense-reports__category-row" key={`${item.currency}-${item.id}`}>
+      <div className="expense-reports__rank" aria-label={`Rank ${index + 1}`}>{index + 1}</div>
+      <div className="expense-reports__category-icon" aria-hidden="true">{item.icon || '◈'}</div>
+      <div className="expense-reports__category-main"><div className="expense-reports__category-name">{item.name}</div><div className="expense-reports__category-meta">{item.currency} · {item.transaction_count} transaction{item.transaction_count === 1 ? '' : 's'}</div><div className="expense-reports__progress"><span style={{ width: `${Math.min(100, percentage * 100)}%` }} /></div></div>
+      <div className="expense-reports__category-value"><strong>{money(item.amount, item.currency)}</strong><span>{pct(percentage)}</span></div>
+    </article>;
+  })}</div>;
+}
+
+function DailyChart({ points }: { points: ExpenseReportsData['daily_spending'] }) {
+  const currencies = [...new Set(points.map((point) => point.currency))];
+  return <div className="expense-reports__chart-wrap">
+    {currencies.map((currency) => {
+      const values = points.filter((point) => point.currency === currency);
+      const max = Math.max(...values.map((point) => point.amount), 0);
+      return <div className="expense-reports__chart-block" key={currency}>
+        <div className="expense-reports__chart-label"><strong>{currency}</strong><span>{max > 0 ? `Peak ${money(max, currency)}` : 'No spending'}</span></div>
+        <div className="expense-reports__daily-chart" role="img" aria-label={`${currency} daily spending chart for the selected month`}>
+          {values.map((point) => <div className="expense-reports__bar-column" key={`${currency}-${point.date}`}>
+            <div className="expense-reports__bar-track"><span style={{ height: max > 0 ? `${Math.max(2, (point.amount / max) * 100)}%` : '0%' }} /></div>
+            <span className="expense-reports__bar-label">{Number(point.date.slice(8)) % 5 === 0 || point.date === values[0]?.date ? Number(point.date.slice(8)) : ''}</span>
+          </div>)}
+        </div>
+        <div className="expense-reports__chart-foot"><span>{formatDate(values[0]?.date ?? '')}</span><span>{formatDate(values[values.length - 1]?.date ?? '')}</span></div>
+      </div>;
+    })}
+  </div>;
+}
+
+function MonthlyTrend({ points }: { points: ExpenseReportMonthlyPoint[] }) {
+  const currencies = [...new Set(points.map((point) => point.currency))];
+  return <div className="expense-reports__monthly-grid">{currencies.map((currency) => {
+    const values = points.filter((point) => point.currency === currency);
+    const max = Math.max(...values.map((point) => Math.max(point.income, point.expenses)), 0);
+    return <div className="expense-reports__monthly-card" key={currency}>
+      <div className="expense-reports__chart-label"><strong>{currency}</strong><span>Last 6 months</span></div>
+      <div className="expense-reports__monthly-chart" role="img" aria-label={`${currency} income and expense trend for the last six months`}>
+        {values.map((point) => <div className="expense-reports__month-column" key={`${currency}-${point.month_start}`}>
+          <div className="expense-reports__month-bars"><span title={`Income ${money(point.income, currency)}`} style={{ height: max > 0 ? `${Math.max(point.income ? 3 : 0, (point.income / max) * 100)}%` : '0%' }} /><span title={`Expenses ${money(point.expenses, currency)}`} style={{ height: max > 0 ? `${Math.max(point.expenses ? 3 : 0, (point.expenses / max) * 100)}%` : '0%' }} /></div>
+          <span>{new Intl.DateTimeFormat(undefined, { month: 'short', timeZone: 'UTC' }).format(new Date(`${point.month_start}T00:00:00Z`))}</span>
+        </div>)}
+      </div>
+      <div className="expense-reports__legend"><span><i />Income</span><span><i />Expenses</span></div>
+    </div>;
+  })}</div>;
+}
+
+export function ExpenseReportsPage({ onNavigate }: ExpenseReportsPageProps) {
+  const [month, setMonth] = useState(currentMonth);
+  const [data, setData] = useState<ExpenseReportsData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    let active = true;
+    const load = async () => {
+      setLoading(true); setError('');
+      try {
+        const bounds = monthBounds(month);
+        const next = await loadExpenseReports(bounds.start, bounds.end);
+        if (active) setData(next);
+      } catch (cause) {
+        if (active) setError(cause instanceof Error ? cause.message : 'Could not load reports.');
+      } finally { if (active) setLoading(false); }
+    };
+    void load();
+    return () => { active = false; };
+  }, [month]);
+
+  const isCurrent = month === currentMonth();
+  const totalSpending = useMemo(() => {
+    const totals = new Map<string, number>();
+    for (const item of data?.category_breakdown ?? []) totals.set(item.currency, (totals.get(item.currency) ?? 0) + item.amount);
+    return totals;
+  }, [data]);
+
+  const retry = () => setMonth((value) => value);
+  const navigateCategory = () => onNavigate('/expense-manager/transactions');
+
+  return <section className="expense-reports" aria-labelledby="expense-reports-heading">
+    <style>{`
+      .expense-reports{width:min(1120px,100%);margin:0 auto;padding:0 2px 110px;box-sizing:border-box}.expense-reports__toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}.expense-reports__period{display:flex;align-items:center;gap:6px;min-width:0}.expense-reports__period button{width:42px;height:42px;border:1px solid rgba(148,163,184,.18);border-radius:12px;background:#fff;color:#334155;font:inherit;font-size:18px;font-weight:900;cursor:pointer;box-shadow:0 7px 18px rgba(15,23,42,.04)}.expense-reports__period-current{min-width:145px;padding:0 12px;text-align:center;color:#172033;font-size:12px;font-weight:900}.expense-reports__today{min-height:42px;padding:0 12px;border:1px solid rgba(37,99,235,.16);border-radius:12px;background:rgba(37,99,235,.06);color:#2563eb;font:inherit;font-size:10px;font-weight:900;cursor:pointer}.expense-reports__summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:18px}.expense-reports__summary-card{min-width:0;padding:15px;border:1px solid rgba(148,163,184,.16);border-radius:18px;background:linear-gradient(145deg,rgba(255,255,255,.97),rgba(248,250,252,.88));box-shadow:0 10px 24px rgba(15,23,42,.05)}.expense-reports__summary-label{color:#94a3b8;font-size:9px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}.expense-reports__summary-value{margin-top:6px;color:#172033;font-size:20px;font-weight:950;letter-spacing:-.04em;overflow-wrap:anywhere}.expense-reports__summary-note{margin-top:4px;color:#64748b;font-size:9px;font-weight:700}.expense-reports__summary-card--income .expense-reports__summary-value{color:#047857}.expense-reports__summary-card--expense .expense-reports__summary-value{color:#b91c1c}.expense-reports__section{margin-top:14px;padding:16px;border:1px solid rgba(148,163,184,.16);border-radius:21px;background:rgba(255,255,255,.88);box-shadow:0 12px 28px rgba(15,23,42,.05)}.expense-reports__section-head{display:flex;justify-content:space-between;gap:10px;margin-bottom:13px}.expense-reports__section-head h2{margin:2px 0 0;color:#172033;font-size:16px;font-weight:950;letter-spacing:-.025em}.expense-reports__section-eyebrow{color:#2563eb;font-size:8px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}.expense-reports__category-list{display:grid;gap:8px}.expense-reports__category-row{display:grid;grid-template-columns:25px 40px minmax(0,1fr) auto;align-items:center;gap:9px;padding:9px;border:1px solid rgba(148,163,184,.11);border-radius:14px;background:rgba(248,250,252,.65)}.expense-reports__rank{display:grid;place-items:center;color:#94a3b8;font-size:10px;font-weight:950}.expense-reports__category-icon{width:40px;height:40px;display:grid;place-items:center;border-radius:12px;background:rgba(37,99,235,.07);font-size:17px}.expense-reports__category-main{min-width:0}.expense-reports__category-name{color:#172033;font-size:11px;font-weight:900;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.expense-reports__category-meta{margin-top:2px;color:#94a3b8;font-size:8px;font-weight:700}.expense-reports__progress{height:5px;margin-top:7px;overflow:hidden;border-radius:999px;background:#e2e8f0}.expense-reports__progress span{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#2563eb,#4f46e5)}.expense-reports__category-value{text-align:right}.expense-reports__category-value strong{display:block;color:#172033;font-size:10px;font-weight:950;white-space:nowrap}.expense-reports__category-value span{display:block;margin-top:3px;color:#64748b;font-size:8px;font-weight:800}.expense-reports__chart-wrap,.expense-reports__monthly-grid{display:grid;gap:13px}.expense-reports__chart-block,.expense-reports__monthly-card{padding:12px;border:1px solid rgba(148,163,184,.12);border-radius:16px;background:rgba(248,250,252,.62)}.expense-reports__chart-label{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;color:#64748b;font-size:8px;font-weight:750}.expense-reports__chart-label strong{color:#172033;font-size:10px;font-weight:950}.expense-reports__daily-chart{height:145px;display:grid;grid-template-columns:repeat(31,minmax(0,1fr));gap:2px;align-items:end}.expense-reports__bar-column{height:100%;display:grid;grid-template-rows:minmax(0,1fr) 15px;align-items:end;min-width:0}.expense-reports__bar-track{height:100%;display:flex;align-items:flex-end;justify-content:center}.expense-reports__bar-track span{display:block;width:min(100%,10px);min-height:0;border-radius:4px 4px 2px 2px;background:linear-gradient(180deg,#4f46e5,#2563eb);transition:height .2s ease}.expense-reports__bar-label{text-align:center;color:#94a3b8;font-size:7px;font-weight:700}.expense-reports__chart-foot{display:flex;justify-content:space-between;color:#94a3b8;font-size:8px;font-weight:700}.expense-reports__monthly-chart{height:170px;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;align-items:end}.expense-reports__month-column{height:100%;display:grid;grid-template-rows:minmax(0,1fr) 18px;align-items:end;text-align:center;color:#94a3b8;font-size:8px;font-weight:750}.expense-reports__month-bars{height:100%;display:flex;align-items:flex-end;justify-content:center;gap:3px}.expense-reports__month-bars span{display:block;width:8px;min-height:0;border-radius:4px 4px 1px 1px;background:#2563eb}.expense-reports__month-bars span+span{background:#94a3b8}.expense-reports__legend{display:flex;justify-content:flex-end;gap:12px;margin-top:8px;color:#64748b;font-size:8px;font-weight:750}.expense-reports__legend span{display:inline-flex;align-items:center;gap:4px}.expense-reports__legend i{width:7px;height:7px;border-radius:2px;background:#2563eb}.expense-reports__legend span+span i{background:#94a3b8}.expense-reports__trend-list{display:grid;gap:8px}.expense-reports__trend-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:11px 12px;border:1px solid rgba(148,163,184,.11);border-radius:14px}.expense-reports__trend-name{color:#172033;font-size:10px;font-weight:900}.expense-reports__trend-meta{margin-top:2px;color:#94a3b8;font-size:8px;font-weight:700}.expense-reports__trend-value{text-align:right}.expense-reports__trend-value strong{display:block;color:#172033;font-size:10px;font-weight:950}.expense-reports__trend-value span{display:block;margin-top:3px;font-size:8px;font-weight:900}.expense-reports__up{color:#b91c1c}.expense-reports__down{color:#047857}.expense-reports__flat{color:#64748b}.expense-reports__accounts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.expense-reports__account{padding:12px;border:1px solid rgba(148,163,184,.12);border-radius:15px;background:rgba(248,250,252,.62)}.expense-reports__account-head{display:flex;justify-content:space-between;gap:8px}.expense-reports__account-name{min-width:0;color:#172033;font-size:10px;font-weight:900;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.expense-reports__account-currency{color:#94a3b8;font-size:8px;font-weight:850}.expense-reports__account-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px}.expense-reports__account-metric span{display:block;color:#94a3b8;font-size:7px;font-weight:800;text-transform:uppercase}.expense-reports__account-metric strong{display:block;margin-top:2px;color:#172033;font-size:9px;font-weight:950}.expense-reports__account-transfer{margin-top:8px;padding-top:8px;border-top:1px solid rgba(148,163,184,.1);color:#64748b;font-size:8px;font-weight:750}.expense-reports__budgets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.expense-reports__budget{padding:12px;border:1px solid rgba(148,163,184,.12);border-radius:15px;background:rgba(248,250,252,.62)}.expense-reports__budget-head{display:flex;justify-content:space-between;gap:8px}.expense-reports__budget-name{min-width:0;color:#172033;font-size:10px;font-weight:900;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.expense-reports__budget-state{font-size:7px;font-weight:950;white-space:nowrap}.expense-reports__budget-state--healthy{color:#047857}.expense-reports__budget-state--approaching{color:#b45309}.expense-reports__budget-state--exceeded{color:#b91c1c}.expense-reports__budget-numbers{display:flex;justify-content:space-between;gap:8px;margin-top:8px;color:#64748b;font-size:8px;font-weight:750}.expense-reports__budget-numbers strong{color:#172033;font-size:10px;font-weight:950}.expense-reports__budget-bar{height:7px;margin-top:8px;overflow:hidden;border-radius:999px;background:#e2e8f0}.expense-reports__budget-bar span{display:block;height:100%;border-radius:inherit;background:#2563eb}.expense-reports__budget-bar--exceeded span{background:#dc2626}.expense-reports__empty,.expense-reports__state{padding:28px 18px;text-align:center;border:1px solid rgba(148,163,184,.16);border-radius:19px;background:rgba(255,255,255,.9);color:#64748b}.expense-reports__empty-icon{width:56px;height:56px;margin:0 auto 10px;display:grid;place-items:center;border-radius:17px;background:rgba(37,99,235,.08);color:#2563eb;font-size:23px}.expense-reports__empty h3,.expense-reports__state h3{margin:0;color:#172033;font-size:16px;font-weight:950}.expense-reports__empty p,.expense-reports__state p{max-width:500px;margin:7px auto 14px;color:#64748b;font-size:10px;line-height:1.6;font-weight:650}.expense-reports__empty button,.expense-reports__state button{min-height:42px;padding:0 14px;border:1px solid rgba(37,99,235,.18);border-radius:12px;background:#2563eb;color:#fff;font:inherit;font-size:10px;font-weight:900;cursor:pointer}.expense-reports__period button:focus-visible,.expense-reports__today:focus-visible,.expense-reports__empty button:focus-visible,.expense-reports__state button:focus-visible{outline:2px solid rgba(37,99,235,.55);outline-offset:2px}@media(max-width:700px){.expense-reports__toolbar{align-items:stretch;flex-direction:column}.expense-reports__period{justify-content:space-between}.expense-reports__period-current{min-width:0;flex:1}.expense-reports__today{width:100%}.expense-reports__summary{grid-template-columns:1fr}.expense-reports__accounts,.expense-reports__budgets{grid-template-columns:1fr}.expense-reports__section{padding:13px}.expense-reports__daily-chart{height:130px;gap:1px}}@media(min-width:768px){.expense-reports__monthly-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    `}</style>
+
+    <div className="expense-reports__toolbar">
+      <div className="expense-reports__period" aria-label="Report month selector">
+        <button type="button" aria-label="Previous month" onClick={() => setMonth((value) => shiftMonth(value, -1))}>‹</button>
+        <div className="expense-reports__period-current" aria-live="polite">{formatMonth(month)}</div>
+        <button type="button" aria-label="Next month" onClick={() => setMonth((value) => shiftMonth(value, 1))}>›</button>
+      </div>
+      {!isCurrent && <button type="button" className="expense-reports__today" onClick={() => setMonth(currentMonth())}>Current month</button>}
+    </div>
+
+    {loading && <div className="expense-reports__state" role="status"><h3>Loading reports</h3><p>Calculating this period from your persisted Expense Manager data.</p></div>}
+    {!loading && error && <div className="expense-reports__state" role="alert"><h3>Reports could not be loaded</h3><p>{error}</p><button type="button" onClick={retry}>Retry</button></div>}
+    {!loading && !error && data && !data.has_any_transactions && <div className="expense-reports__empty"><div className="expense-reports__empty-icon" aria-hidden="true">▥</div><h3>No transactions yet</h3><p>There is no persisted financial activity to analyze. Add your first expense, income, or transfer to start building reports.</p><button type="button" onClick={() => onNavigate('/expense-manager/transactions?intent=add')}>+ Add Transaction</button></div>}
+
+    {!loading && !error && data && data.has_any_transactions && <>
+      <div className="expense-reports__summary" aria-label="Income versus expense summary">
+        {data.summary.length === 0 && <div className="expense-reports__summary-card"><span className="expense-reports__summary-label">Selected period</span><div className="expense-reports__summary-value">No data</div><div className="expense-reports__summary-note">No income or expense transactions in this month.</div></div>}
+        {data.summary.map((item) => <div className="expense-reports__summary-card" key={item.currency}>
+          <span className="expense-reports__summary-label">Net · {item.currency}</span><div className="expense-reports__summary-value">{money(item.income - item.expenses, item.currency)}</div><div className="expense-reports__summary-note">Income {money(item.income, item.currency)} · Expenses {money(item.expenses, item.currency)}</div>
+        </div>)}
+      </div>
+
+      <Section title="Income vs Expense" eyebrow="Selected month">
+        <div className="expense-reports__accounts">{data.summary.length ? data.summary.map((item) => <article className="expense-reports__account" key={item.currency}>
+          <div className="expense-reports__account-head"><span className="expense-reports__account-name">{item.currency} cash flow</span><span className="expense-reports__account-currency">{item.transaction_count} records</span></div>
+          <div className="expense-reports__account-grid"><div className="expense-reports__account-metric"><span>Income</span><strong>{money(item.income, item.currency)}</strong></div><div className="expense-reports__account-metric"><span>Expenses</span><strong>{money(item.expenses, item.currency)}</strong></div></div>
+          <div className="expense-reports__account-transfer">Net: <strong>{money(item.income - item.expenses, item.currency)}</strong> · transfers excluded</div>
+        </article>) : <div className="expense-reports__state"><h3>No data for this period</h3><p>There are no income or expense records in {formatMonth(month)}.</p></div>}</div>
+      </Section>
+
+      <Section title="Spending by Category" eyebrow="Ranked actual spending">
+        {data.category_breakdown.length ? <><CategoryList items={data.category_breakdown} /><button type="button" className="expense-reports__today" style={{ marginTop: 11 }} onClick={navigateCategory}>View transactions</button></> : <div className="expense-reports__state"><h3>No expense data for this period</h3><p>Income and transfers do not contribute to category spending.</p></div>}
+      </Section>
+
+      <Section title="Spending Over Time" eyebrow="Daily expense activity">
+        {data.daily_spending.length ? <DailyChart points={data.daily_spending} /> : <div className="expense-reports__state"><h3>No spending for this period</h3><p>No expense transactions were persisted in {formatMonth(month)}.</p></div>}
+      </Section>
+
+      <Section title="Monthly Spending" eyebrow="Six-month context">
+        {data.monthly_trend.length ? <MonthlyTrend points={data.monthly_trend} /> : <div className="expense-reports__state"><h3>No trend data</h3><p>No account currency context is available for this report.</p></div>}
+      </Section>
+
+      <Section title="Category Trends" eyebrow="Compared with previous month">
+        {data.category_trends.length ? <div className="expense-reports__trend-list">{data.category_trends.slice(0, 10).map((item) => {
+          const change = delta(item.current_amount, item.previous_amount);
+          return <article className="expense-reports__trend-row" key={`${item.currency}-${item.id}`}><div><div className="expense-reports__trend-name">{item.icon || '◈'} {item.name}</div><div className="expense-reports__trend-meta">{item.currency} · Previous {money(item.previous_amount, item.currency)}</div></div><div className="expense-reports__trend-value"><strong>{money(item.current_amount, item.currency)}</strong><span className={change === null ? 'expense-reports__flat' : change > 0 ? 'expense-reports__up' : change < 0 ? 'expense-reports__down' : 'expense-reports__flat'}>{change === null ? 'New this month' : change === 0 ? 'No change' : `${change > 0 ? '↑' : '↓'} ${Math.abs(Math.round(change * 100))}%`}</span></div></article>;
+        })}</div> : <div className="expense-reports__state"><h3>No category trend data</h3><p>There is no current or previous-month category spending to compare.</p></div>}
+      </Section>
+
+      <Section title="Account Activity" eyebrow="Money movement by account">
+        {data.account_activity.length ? <div className="expense-reports__accounts">{data.account_activity.map((account) => <article className="expense-reports__account" key={account.id}><div className="expense-reports__account-head"><span className="expense-reports__account-name">{account.icon || '◫'} {account.name}</span><span className="expense-reports__account-currency">{account.currency}</span></div><div className="expense-reports__account-grid"><div className="expense-reports__account-metric"><span>Money in</span><strong>{money(account.money_in, account.currency)}</strong></div><div className="expense-reports__account-metric"><span>Money out</span><strong>{money(account.money_out, account.currency)}</strong></div></div><div className="expense-reports__account-transfer">Transfers: {money(account.transfer_in, account.currency)} in · {money(account.transfer_out, account.currency)} out · net activity {money(account.money_in - account.money_out, account.currency)}</div></article>)}</div> : <div className="expense-reports__state"><h3>No account activity</h3><p>No account records are available for this period.</p></div>}
+      </Section>
+
+      <Section title="Budget Performance" eyebrow="Existing Phase 6 budgets">
+        {data.budgets.length ? <div className="expense-reports__budgets">{data.budgets.map((budget) => { const ratio = budgetRatio(budget.spent, budget.budget_amount); const state = budgetState(budget.spent, budget.budget_amount); return <article className="expense-reports__budget" key={budget.id}><div className="expense-reports__budget-head"><span className="expense-reports__budget-name">{budget.category_icon || '◎'} {budget.category_name}{budget.category_archived ? ' · archived' : ''}</span><span className={`expense-reports__budget-state expense-reports__budget-state--${state === 'Healthy' ? 'healthy' : state === 'Approaching Limit' ? 'approaching' : 'exceeded'}`}>{state}</span></div><div className="expense-reports__budget-numbers"><span>Spent <strong>{money(budget.spent, 'PKR')}</strong></span><span>Limit {money(budget.budget_amount, 'PKR')}</span></div><div className={`expense-reports__budget-bar${state === 'Exceeded' ? ' expense-reports__budget-bar--exceeded' : ''}`}><span style={{ width: `${Math.min(100, ratio * 100)}%` }} /></div></article>; })}</div> : <div className="expense-reports__state"><h3>No budgets for this period</h3><p>Budget performance is optional. Create a Phase 6 monthly category budget to see its persisted progress here.</p></div>}
+      </Section>
+    </>}
+  </section>;
+}
