@@ -7,8 +7,6 @@ declare
   category_type text;
   source_currency text;
   destination_currency text;
-  category_currency_count integer;
-  budget_currency_count integer;
 begin
   if new.type in ('expense','income') then
     if new.account_id is null or new.from_account_id is not null or new.to_account_id is not null or new.category_id is null then
@@ -25,74 +23,51 @@ begin
       raise exception 'Transaction category type does not match transaction type' using errcode = '23514';
     end if;
 
-    select count(distinct a.currency)
-      into category_currency_count
-      from public.expense_transactions t
-      join public.expense_accounts a
-        on a.id = t.account_id
-       and a.user_id = t.user_id
-     where t.user_id = new.user_id
-       and t.category_id = new.category_id
-       and t.id <> new.id;
+    select a.currency
+      into source_currency
+      from public.expense_accounts a
+     where a.id = new.account_id
+       and a.user_id = new.user_id;
 
-    select count(distinct a.currency)
-      into budget_currency_count
-      from public.expense_budgets b
-      join public.expense_transactions t
-        on t.user_id = b.user_id
-       and t.category_id = b.category_id
-       and t.type = 'expense'
-       and t.id <> new.id
-       and t.date between b.start_date and b.end_date
-      join public.expense_accounts a
-        on a.id = t.account_id
-       and a.user_id = t.user_id
-     where b.user_id = new.user_id
-       and b.category_id = new.category_id
-       and new.date between b.start_date and b.end_date;
+    if source_currency is null then
+      raise exception 'Transaction account must be a user-owned account' using errcode = '23514';
+    end if;
 
-    if new.type = 'expense' and budget_currency_count > 0 then
-      if category_currency_count > 0 then
-        select a.currency
-          into source_currency
-          from public.expense_accounts a
-         where a.id = new.account_id
-           and a.user_id = new.user_id;
-
-        if exists (
-          select 1
-            from public.expense_transactions t
-            join public.expense_accounts a
-              on a.id = t.account_id
-             and a.user_id = t.user_id
-           where t.user_id = new.user_id
-             and t.category_id = new.category_id
-             and t.id <> new.id
-             and t.date between (
-               select min(b.start_date) from public.expense_budgets b
-                where b.user_id = new.user_id and b.category_id = new.category_id
-             ) and (
-               select max(b.end_date) from public.expense_budgets b
-                where b.user_id = new.user_id and b.category_id = new.category_id
-             )
-             and a.currency <> source_currency
-        ) then
-          raise exception 'Budgeted categories cannot mix currencies without conversion' using errcode = '23514';
-        end if;
-      end if;
+    if new.type = 'expense' and exists (
+      select 1
+        from public.expense_budgets b
+        join public.expense_transactions t
+          on t.user_id = b.user_id
+         and t.category_id = b.category_id
+         and t.type = 'expense'
+         and t.id <> new.id
+         and t.date between b.start_date and b.end_date
+        join public.expense_accounts a
+          on a.id = t.account_id
+         and a.user_id = t.user_id
+       where b.user_id = new.user_id
+         and b.category_id = new.category_id
+         and new.date between b.start_date and b.end_date
+         and a.currency <> source_currency
+    ) then
+      raise exception 'Budgeted categories cannot mix currencies without conversion' using errcode = '23514';
     end if;
   else
     if new.account_id is not null or new.category_id is not null or new.from_account_id is null or new.to_account_id is null or new.from_account_id = new.to_account_id then
       raise exception 'Invalid transfer transaction shape' using errcode = '23514';
     end if;
 
-    select currency into source_currency
+    select currency
+      into source_currency
       from public.expense_accounts
-     where id = new.from_account_id and user_id = new.user_id;
+     where id = new.from_account_id
+       and user_id = new.user_id;
 
-    select currency into destination_currency
+    select currency
+      into destination_currency
       from public.expense_accounts
-     where id = new.to_account_id and user_id = new.user_id;
+     where id = new.to_account_id
+       and user_id = new.user_id;
 
     if source_currency is null or destination_currency is null then
       raise exception 'Transfer accounts must be user-owned accounts' using errcode = '23514';
@@ -131,6 +106,7 @@ begin
 end;
 $$;
 
+drop trigger if exists expense_categories_validate_type on public.expense_categories;
 create trigger expense_categories_validate_type
 before update on public.expense_categories
 for each row execute function public.expense_manager_validate_category();
@@ -176,3 +152,8 @@ begin
   return new;
 end;
 $$;
+
+revoke execute on function public.expense_manager_validate_transaction() from public, anon, authenticated;
+revoke execute on function public.expense_manager_validate_budget() from public, anon, authenticated;
+revoke execute on function public.expense_manager_validate_category() from public, anon, authenticated;
+revoke execute on function public.expense_manager_set_updated_at() from public, anon, authenticated;
