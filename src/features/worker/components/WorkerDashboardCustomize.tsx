@@ -26,6 +26,8 @@ export function WorkerDashboardCustomize({ workerProfileId, cards, onLayoutChang
   const timerRef = useRef<number | null>(null);
   const pressStartRef = useRef({ x: 0, y: 0 });
   const dragRef = useRef<{ id: string; pointerId: number } | null>(null);
+  const orderRef = useRef(defaultOrder);
+  const hiddenRef = useRef<string[]>([]);
 
   const clearPress = () => {
     if (timerRef.current !== null) window.clearTimeout(timerRef.current);
@@ -42,6 +44,8 @@ export function WorkerDashboardCustomize({ workerProfileId, cards, onLayoutChang
       const savedHidden = result.data?.hidden_cards ?? [];
       const normalized = [...savedOrder.filter(id => defaultOrder.includes(id)), ...defaultOrder.filter(id => !savedOrder.includes(id))];
       const normalizedHidden = savedHidden.filter(id => defaultOrder.includes(id));
+      orderRef.current = normalized;
+      hiddenRef.current = normalizedHidden;
       setDraftOrder(normalized);
       setDraftHidden(normalizedHidden);
       onLayoutChange(normalized, normalizedHidden);
@@ -51,7 +55,7 @@ export function WorkerDashboardCustomize({ workerProfileId, cards, onLayoutChang
 
   useEffect(() => {
     const onPointerDown = (event: PointerEvent) => {
-      if (open || event.button !== 0 && event.pointerType === 'mouse') return;
+      if (open || (event.pointerType === 'mouse' && event.button !== 0)) return;
       if (window.location.pathname !== '/work') return;
       const target = event.target as Element | null;
       if (!target?.closest('main')) return;
@@ -84,14 +88,14 @@ export function WorkerDashboardCustomize({ workerProfileId, cards, onLayoutChang
   }, [open]);
 
   const moveCard = (id: string, targetIndex: number) => {
-    setDraftOrder(current => {
-      const from = current.indexOf(id);
-      if (from < 0 || targetIndex < 0 || targetIndex >= current.length || from === targetIndex) return current;
-      const next = [...current];
-      const [item] = next.splice(from, 1);
-      next.splice(targetIndex, 0, item);
-      return next;
-    });
+    const current = orderRef.current;
+    const from = current.indexOf(id);
+    if (from < 0 || targetIndex < 0 || targetIndex >= current.length || from === targetIndex) return;
+    const next = [...current];
+    const [item] = next.splice(from, 1);
+    next.splice(targetIndex, 0, item);
+    orderRef.current = next;
+    setDraftOrder(next);
   };
 
   const handleDragStart = (id: string, event: React.PointerEvent<HTMLDivElement>) => {
@@ -109,21 +113,8 @@ export function WorkerDashboardCustomize({ workerProfileId, cards, onLayoutChang
       return event.clientY >= rect.top && event.clientY <= rect.bottom;
     });
     if (!target?.dataset.dashboardCardId) return;
-    const targetIndex = draftOrder.indexOf(target.dataset.dashboardCardId);
+    const targetIndex = orderRef.current.indexOf(target.dataset.dashboardCardId);
     if (targetIndex >= 0) moveCard(id, targetIndex);
-  };
-
-  const handleDragEnd = async (id: string, event: React.PointerEvent<HTMLDivElement>) => {
-    if (!dragRef.current || dragRef.current.id !== id || dragRef.current.pointerId !== event.pointerId) return;
-    dragRef.current = null;
-    try { event.currentTarget.releasePointerCapture(event.pointerId); } catch { /* already released */ }
-    await persist(draftOrder, draftHidden, false);
-  };
-
-  const toggleHidden = async (id: string) => {
-    const nextHidden = draftHidden.includes(id) ? draftHidden.filter(item => item !== id) : [...draftHidden, id];
-    setDraftHidden(nextHidden);
-    await persist(draftOrder, nextHidden, false);
   };
 
   const persist = async (order: string[], hidden: string[], closeAfterSave: boolean) => {
@@ -138,7 +129,23 @@ export function WorkerDashboardCustomize({ workerProfileId, cards, onLayoutChang
     window.setTimeout(() => setStatus(current => current === 'Saved' ? '' : current), 900);
   };
 
+  const handleDragEnd = async (id: string, event: React.PointerEvent<HTMLDivElement>) => {
+    if (!dragRef.current || dragRef.current.id !== id || dragRef.current.pointerId !== event.pointerId) return;
+    dragRef.current = null;
+    try { event.currentTarget.releasePointerCapture(event.pointerId); } catch { /* already released */ }
+    await persist(orderRef.current, hiddenRef.current, false);
+  };
+
+  const toggleHidden = async (id: string) => {
+    const nextHidden = hiddenRef.current.includes(id) ? hiddenRef.current.filter(item => item !== id) : [...hiddenRef.current, id];
+    hiddenRef.current = nextHidden;
+    setDraftHidden(nextHidden);
+    await persist(orderRef.current, nextHidden, false);
+  };
+
   const reset = async () => {
+    orderRef.current = defaultOrder;
+    hiddenRef.current = [];
     setDraftOrder(defaultOrder);
     setDraftHidden([]);
     await persist(defaultOrder, [], false);
@@ -147,11 +154,7 @@ export function WorkerDashboardCustomize({ workerProfileId, cards, onLayoutChang
   const cardMap = new Map(cards.map(card => [card.id, card]));
 
   return <>
-    <div
-      aria-hidden="true"
-      style={{ position: 'fixed', right: 10, bottom: 84, zIndex: 20, pointerEvents: 'none', padding: '6px 9px', borderRadius: 999, color: '#64748b', background: 'rgba(255,255,255,.76)', border: '1px solid rgba(148,163,184,.14)', boxShadow: '0 5px 14px rgba(15,23,42,.05)', fontSize: 9, fontWeight: 800, opacity: .78 }}
-    >Long press to customize
-    </div>
+    <div aria-hidden="true" style={{ position: 'fixed', right: 10, bottom: 84, zIndex: 20, pointerEvents: 'none', padding: '6px 9px', borderRadius: 999, color: '#64748b', background: 'rgba(255,255,255,.76)', border: '1px solid rgba(148,163,184,.14)', boxShadow: '0 5px 14px rgba(15,23,42,.05)', fontSize: 9, fontWeight: 800, opacity: .78 }}>Long press to customize</div>
 
     {open && <div role="dialog" aria-modal="true" aria-label="Arrange dashboard cards" style={{ position: 'fixed', zIndex: 1000, inset: 0, overflow: 'auto', padding: 'max(14px, env(safe-area-inset-top)) 12px max(100px, calc(18px + env(safe-area-inset-bottom)))', background: 'radial-gradient(circle at 12% 0%,rgba(99,102,241,.12),transparent 28%),radial-gradient(circle at 95% 30%,rgba(20,184,166,.10),transparent 30%),linear-gradient(180deg,#f8fafc,#e9eef5)' }}>
       <style>{`@keyframes hangingCard{0%{transform:rotate(-.55deg) translateY(0)}50%{transform:rotate(.55deg) translateY(1px)}100%{transform:rotate(-.55deg) translateY(0)}}.dash-hanging{transform-origin:50% 0;animation:hangingCard 2.8s ease-in-out infinite}.dash-hanging:nth-child(2n){animation-delay:-.9s}.dash-hanging:nth-child(3n){animation-delay:-1.6s}.dash-hanging__grip{position:absolute;top:-7px;left:50%;width:9px;height:9px;border-radius:50%;transform:translateX(-50%);background:linear-gradient(145deg,#fff,#94a3b8);box-shadow:0 2px 5px rgba(15,23,42,.22),inset 0 1px 0 #fff}.dash-hanging__line{position:absolute;top:0;left:50%;width:1px;height:8px;background:linear-gradient(#64748b,rgba(100,116,139,0));transform:translateX(-50%)}.dash-drag{touch-action:none;user-select:none;-webkit-user-select:none}.dash-drag:active{cursor:grabbing}.dash-hidden{opacity:.58;filter:saturate(.65)}`}</style>
