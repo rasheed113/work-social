@@ -1,5 +1,5 @@
 import { supabase } from '../../../lib/supabase/client';
-import type { AttendanceStatus, SalaryMonthSummary, SalaryPolicy, SalaryPolicyInput, WorkerType } from '../types/salary';
+import type { AttendanceStatus, BonusAmountType, BonusFrequency, SalaryMonthSummary, SalaryPolicy, SalaryPolicyInput, WorkerType } from '../types/salary';
 
 export async function setWorkerType(workerProfileId: string, workerType: WorkerType) {
   return supabase.from('worker_profiles').update({ worker_type: workerType }).eq('id', workerProfileId).select('worker_type').single();
@@ -11,6 +11,10 @@ export async function getSalaryPolicy(workerProfileId: string) {
 
 export async function saveSalaryPolicy(workerProfileId: string, input: SalaryPolicyInput) {
   return supabase.from('salary_policies').insert({ worker_profile_id: workerProfileId, ...input }).select('*').single<SalaryPolicy>();
+}
+
+export async function saveBonusPolicy(workerProfileId: string, input: { frequency: BonusFrequency; expected_month_count: number; amount_type: BonusAmountType; fixed_amount: number | null; effective_from: string }) {
+  return supabase.from('salary_bonus_policies').insert({ worker_profile_id: workerProfileId, ...input }).select('*').single();
 }
 
 export async function saveAttendance(workerProfileId: string, attendanceDate: string, status: AttendanceStatus, note?: string, source: 'manual' | 'notification' = 'manual') {
