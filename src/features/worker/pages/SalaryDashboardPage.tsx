@@ -20,8 +20,10 @@ export function SalaryDashboardPage({ profileId }: { profileId: string }) {
   const [monthOffset, setMonthOffset] = useState(0);
   const [attendanceDate, setAttendanceDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [attendance, setAttendance] = useState<AttendanceStatus>('present');
+  const [attendanceOpen, setAttendanceOpen] = useState(false);
   const [overtimeDate, setOvertimeDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [overtimeHours, setOvertimeHours] = useState('');
+  const [overtimeOpen, setOvertimeOpen] = useState(false);
   const [status, setStatus] = useState('');
   const [busy, setBusy] = useState(false);
   const month = useMemo(() => monthValue(monthOffset), [monthOffset]);
@@ -45,7 +47,7 @@ export function SalaryDashboardPage({ profileId }: { profileId: string }) {
     setStatus(''); setBusy(true);
     const { error } = await saveAttendance(workerProfile.id, attendanceDate, attendance);
     setBusy(false); setStatus(error ? error.message : 'Attendance saved successfully.');
-    if (!error) await refresh();
+    if (!error) { setAttendanceOpen(false); await refresh(); }
   };
   const saveOvertimeEntry = async () => {
     const hours = Number(overtimeHours);
@@ -53,7 +55,7 @@ export function SalaryDashboardPage({ profileId }: { profileId: string }) {
     setStatus(''); setBusy(true);
     const { data, error } = await saveOvertime(workerProfile.id, overtimeDate, hours);
     setBusy(false); setStatus(error ? error.message : `Overtime saved: ${Number(data?.amount ?? 0).toFixed(2)} ${currency} at ${Number(data?.multiplier ?? 0)}×.`);
-    if (!error) { setOvertimeHours(''); await refresh(); }
+    if (!error) { setOvertimeHours(''); setOvertimeOpen(false); await refresh(); }
   };
 
   return <main style={{ ...shell, background: 'linear-gradient(180deg,#f8fafc 0%,#f1f5f9 100%)' }}>
@@ -97,8 +99,20 @@ export function SalaryDashboardPage({ profileId }: { profileId: string }) {
     <section style={{ ...panel, marginBottom: 16, padding: 18 }}>
       <div style={{ marginBottom: 14 }}><div style={{ color: '#64748b', fontSize: 11, fontWeight: 900, letterSpacing: '.1em' }}>DAILY WORK RECORD</div><h2 style={{ margin: '5px 0 3px' }}>Attendance & Overtime</h2><p style={{ margin: 0, color: '#64748b', fontSize: 13 }}>Keep today's work record accurate. Overtime is calculated using your saved policy.</p></div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(230px,1fr))', gap: 14 }}>
-        <div style={{ padding: 15, borderRadius: 16, background: '#f8fafc' }}><h3 style={{ marginTop: 0 }}>Attendance</h3><label style={labelStyle}>Date<input type="date" value={attendanceDate} onChange={e => setAttendanceDate(e.target.value)} style={input} /></label><label style={labelStyle}>Status<select value={attendance} onChange={e => setAttendance(e.target.value as AttendanceStatus)} style={input}><option value="present">Present</option><option value="absent">Absent</option><option value="leave">Leave</option></select></label><button type="button" disabled={busy} onClick={() => void saveAttendanceEntry()} style={{ ...primaryButton, width: '100%' }}>{busy ? 'Saving…' : 'Save Attendance'}</button></div>
-        <div style={{ padding: 15, borderRadius: 16, background: '#f8fafc' }}><h3 style={{ marginTop: 0 }}>Add Overtime</h3><label style={labelStyle}>Work date<input type="date" value={overtimeDate} onChange={e => setOvertimeDate(e.target.value)} style={input} /></label><label style={labelStyle}>Overtime hours<input type="number" min="0.25" step="0.25" value={overtimeHours} onChange={e => setOvertimeHours(e.target.value)} placeholder="e.g. 2.5" style={input} /></label><button type="button" disabled={busy} onClick={() => void saveOvertimeEntry()} style={{ ...primaryButton, width: '100%' }}>{busy ? 'Saving…' : 'Add Overtime'}</button></div>
+        <div style={{ padding: 15, borderRadius: 16, background: '#f8fafc' }}>
+          <button type="button" onClick={() => setAttendanceOpen(open => !open)} style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 0, border: 0, background: 'transparent', cursor: 'pointer', textAlign: 'left', font: 'inherit' }}>
+            <span><span style={{ display: 'block', fontSize: 17, fontWeight: 900 }}>Attendance</span><span style={{ display: 'block', marginTop: 3, color: '#64748b', fontSize: 12 }}>{attendance === 'present' ? 'Present' : attendance === 'absent' ? 'Absent' : 'Leave'} · {attendanceDate}</span></span>
+            <span aria-hidden="true" style={{ fontSize: 18, color: '#64748b' }}>{attendanceOpen ? '⌃' : '⌄'}</span>
+          </button>
+          {attendanceOpen && <div style={{ marginTop: 14 }}><label style={labelStyle}>Date<input type="date" value={attendanceDate} onChange={e => setAttendanceDate(e.target.value)} style={input} /></label><label style={labelStyle}>Status<select value={attendance} onChange={e => { const value = e.target.value as AttendanceStatus; setAttendance(value); setAttendanceOpen(value !== 'present'); }} style={input}><option value="present">Present</option><option value="absent">Absent</option><option value="leave">Leave</option></select></label><button type="button" disabled={busy} onClick={() => void saveAttendanceEntry()} style={{ ...primaryButton, width: '100%' }}>{busy ? 'Saving…' : 'Save Attendance'}</button></div>}
+        </div>
+        <div style={{ padding: 15, borderRadius: 16, background: '#f8fafc' }}>
+          <button type="button" onClick={() => setOvertimeOpen(open => !open)} style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 0, border: 0, background: 'transparent', cursor: 'pointer', textAlign: 'left', font: 'inherit' }}>
+            <span><span style={{ display: 'block', fontSize: 17, fontWeight: 900 }}>Add Overtime</span><span style={{ display: 'block', marginTop: 3, color: '#64748b', fontSize: 12 }}>{overtimeHours ? `${overtimeHours} h` : 'No overtime entered'} · {overtimeDate}</span></span>
+            <span aria-hidden="true" style={{ fontSize: 18, color: '#64748b' }}>{overtimeOpen ? '⌃' : '＋'}</span>
+          </button>
+          {overtimeOpen && <div style={{ marginTop: 14 }}><label style={labelStyle}>Work date<input type="date" value={overtimeDate} onChange={e => setOvertimeDate(e.target.value)} style={input} /></label><label style={labelStyle}>Overtime hours<input type="number" min="0.25" step="0.25" value={overtimeHours} onChange={e => setOvertimeHours(e.target.value)} placeholder="e.g. 2.5" style={input} /></label><button type="button" disabled={busy} onClick={() => void saveOvertimeEntry()} style={{ ...primaryButton, width: '100%' }}>{busy ? 'Saving…' : 'Add Overtime'}</button></div>}
+        </div>
       </div>
       {status && <div role="status" style={{ marginTop: 12, padding: 11, borderRadius: 12, background: '#f1f5f9', color: '#334155', fontSize: 13 }}>{status}</div>}
     </section>
