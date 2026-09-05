@@ -5,18 +5,42 @@ import { saveBonusPolicy, saveSalaryPolicy } from '../api/salary';
 import { SalaryAllowanceSection } from '../components/SalaryAllowanceSection';
 import type { BonusAmountType, BonusFrequency, OvertimeMultiplier, SalaryPolicyInput, SalaryType } from '../types/salary';
 
-const card: React.CSSProperties = { padding: 16, border: '1px solid rgba(148,163,184,.24)', borderRadius: 18, background: 'linear-gradient(145deg,rgba(255,255,255,.98),rgba(248,250,252,.96))', boxShadow: '0 10px 26px rgba(15,23,42,.055), inset 0 1px 0 rgba(255,255,255,.95)' };
-const input: React.CSSProperties = { width: '100%', boxSizing: 'border-box', minHeight: 42, padding: '8px 11px', borderRadius: 11, border: '1px solid #d7dee8', background: 'rgba(255,255,255,.96)', font: 'inherit', outline: 'none', color: '#172033', boxShadow: 'inset 0 1px 2px rgba(15,23,42,.025)' };
+const card: React.CSSProperties = { padding: 16, border: '1px solid rgba(148,163,184,.24)', borderRadius: 18, background: 'linear-gradient(145deg,rgba(255,255,255,.99),rgba(248,250,252,.97))', boxShadow: '0 12px 30px rgba(15,23,42,.07), inset 0 1px 0 rgba(255,255,255,.96)' };
+const input: React.CSSProperties = { width: '100%', boxSizing: 'border-box', minHeight: 42, padding: '8px 11px', borderRadius: 11, border: '1px solid #d7dee8', background: '#fff', font: 'inherit', outline: 'none', color: '#172033' };
 const label: React.CSSProperties = { display: 'grid', gap: 6, color: '#334155', fontWeight: 800, fontSize: 12.5 };
 const hint: React.CSSProperties = { color: '#64748b', fontSize: 11.5, lineHeight: 1.45, fontWeight: 550 };
-const primary: React.CSSProperties = { minHeight: 48, padding: '0 18px', border: 0, borderRadius: 13, background: 'linear-gradient(145deg,#1e293b,#0f172a)', color: '#fff', fontWeight: 900, fontSize: 14, cursor: 'pointer', boxShadow: '0 4px 0 rgba(2,6,23,.22), 0 12px 24px rgba(15,23,42,.14), inset 0 1px 0 rgba(255,255,255,.14)' };
+const primary: React.CSSProperties = { minHeight: 48, padding: '0 18px', border: 0, borderRadius: 13, background: 'linear-gradient(145deg,#312e81,#0f172a)', color: '#fff', fontWeight: 900, fontSize: 14, cursor: 'pointer', boxShadow: '0 4px 0 rgba(2,6,23,.2), 0 12px 24px rgba(15,23,42,.14)' };
+
+type PickerOption = { value: string; label: string; description?: string };
+
+function PremiumPicker({ label: fieldLabel, value, options, onChange, highlighted = false }: { label: string; value: string; options: PickerOption[]; onChange: (value: string) => void; highlighted?: boolean }) {
+  const [open, setOpen] = useState(false);
+  const selected = options.find(option => option.value === value) ?? options[0];
+  return <>
+    <div style={{ ...label, padding: highlighted ? 8 : 0, margin: highlighted ? -8 : 0, borderRadius: 14, background: highlighted ? '#fffbeb' : 'transparent', boxShadow: highlighted ? '0 0 0 5px rgba(245,158,11,.12)' : undefined }}>
+      {fieldLabel}
+      <button type="button" onClick={() => setOpen(true)} aria-haspopup="dialog" aria-expanded={open} style={{ ...input, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, cursor: 'pointer', textAlign: 'left', boxShadow: '0 3px 10px rgba(15,23,42,.04)' }}>
+        <span>{selected?.label ?? value}</span><span style={{ color: '#6366f1', fontWeight: 900 }}>⌄</span>
+      </button>
+      {highlighted && <span style={{ color: '#b45309', fontSize: 11, fontWeight: 900 }}>Required step — choose your salary cycle.</span>}
+    </div>
+    {open && <div role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) setOpen(false); }} style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'grid', placeItems: 'center', padding: 18, background: 'rgba(2,6,23,.58)', backdropFilter: 'blur(10px)' }}>
+      <div role="dialog" aria-modal="true" aria-label={fieldLabel} style={{ width: '100%', maxWidth: 430, maxHeight: 'min(78vh,620px)', overflow: 'auto', borderRadius: 22, padding: 16, background: 'linear-gradient(145deg,#ffffff,#eef2ff)', border: '1px solid rgba(255,255,255,.9)', boxShadow: '0 30px 80px rgba(2,6,23,.3), inset 0 1px 0 #fff' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 12 }}><div><div style={{ color: '#6366f1', fontSize: 9.5, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase' }}>Choose setting</div><h3 style={{ margin: '4px 0 0', fontSize: 19, color: '#0f172a' }}>{fieldLabel}</h3></div><button type="button" onClick={() => setOpen(false)} aria-label="Close" style={{ width: 34, height: 34, border: 0, borderRadius: '50%', background: '#e2e8f0', color: '#334155', fontSize: 18, cursor: 'pointer' }}>×</button></div>
+        <div style={{ display: 'grid', gap: 8 }}>{options.map(option => { const active = option.value === value; return <button key={option.value} type="button" onClick={() => { onChange(option.value); setOpen(false); }} style={{ width: '100%', padding: '12px 13px', borderRadius: 15, border: active ? '1.5px solid #6366f1' : '1px solid #dbe3ee', background: active ? 'linear-gradient(145deg,#eef2ff,#e0e7ff)' : '#fff', textAlign: 'left', cursor: 'pointer', boxShadow: active ? '0 8px 18px rgba(99,102,241,.13)' : '0 3px 10px rgba(15,23,42,.04)' }}><div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}><strong style={{ color: '#172033', fontSize: 13.5 }}>{option.label}</strong><span style={{ color: active ? '#4f46e5' : '#94a3b8', fontWeight: 900 }}>{active ? '✓' : '○'}</span></div>{option.description && <div style={{ marginTop: 4, color: '#64748b', fontSize: 11.5, lineHeight: 1.4 }}>{option.description}</div>}</button>; })}</div>
+      </div>
+    </div>}
+  </>;
+}
+
+function SectionHeader({ eyebrow, title, subtitle }: { eyebrow: string; title: string; subtitle: string }) { return <div><div style={{ color: '#6366f1', fontSize: 9.5, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase' }}>{eyebrow}</div><h2 style={{ margin: '4px 0 4px', color: '#0f172a', fontSize: 18, letterSpacing: '-.02em' }}>{title}</h2><p style={{ margin: 0, color: '#64748b', fontSize: 11.5, lineHeight: 1.45 }}>{subtitle}</p></div>; }
 
 export function SalarySetupPage({ profileId }: { profileId: string }) {
   const { workerProfile, loading, error } = useWorkerProfile(profileId);
   const focus = new URLSearchParams(window.location.search).get('focus');
   const focusSalaryType = focus === 'salary-type';
   const focusAllowances = focus === 'allowances';
-  const salaryTypeRef = useRef<HTMLLabelElement>(null);
+  const salaryTypeRef = useRef<HTMLDivElement>(null);
   const [privacyAccepted, setPrivacyAccepted] = useState(focusSalaryType || focusAllowances);
   const [salaryTypeHighlighted, setSalaryTypeHighlighted] = useState(focusSalaryType);
   const [showRules, setShowRules] = useState(true);
@@ -45,29 +69,20 @@ export function SalarySetupPage({ profileId }: { profileId: string }) {
   const [bonusExpectedMonths, setBonusExpectedMonths] = useState('1');
   const [bonusFixedAmount, setBonusFixedAmount] = useState('');
 
-  const expectedMonths = useMemo(() => bonusFrequency === 'custom'
-    ? (Number(bonusExpectedMonths) || 0)
-    : ({ yearly: 1, '6_months': 2, '3_months': 4 } as Record<Exclude<BonusFrequency, 'custom'>, number>)[bonusFrequency], [bonusFrequency, bonusExpectedMonths]);
+  const expectedMonths = useMemo(() => bonusFrequency === 'custom' ? (Number(bonusExpectedMonths) || 0) : ({ yearly: 1, '6_months': 2, '3_months': 4 } as Record<Exclude<BonusFrequency, 'custom'>, number>)[bonusFrequency], [bonusFrequency, bonusExpectedMonths]);
 
   useEffect(() => {
     if ((!focusSalaryType && !focusAllowances) || !privacyAccepted || loading || error || !workerProfile) return;
-    const scrollTimer = window.setTimeout(() => {
-      if (focusSalaryType) {
-        salaryTypeRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        setSalaryTypeHighlighted(true);
-        window.setTimeout(() => setSalaryTypeHighlighted(false), 3600);
-      }
-    }, 180);
-    return () => window.clearTimeout(scrollTimer);
+    const timer = window.setTimeout(() => { if (focusSalaryType) { salaryTypeRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }); setSalaryTypeHighlighted(true); window.setTimeout(() => setSalaryTypeHighlighted(false), 3600); } }, 180);
+    return () => window.clearTimeout(timer);
   }, [focusSalaryType, focusAllowances, privacyAccepted, loading, error, workerProfile]);
 
-  if (loading) return <main style={{ padding: 24 }}>Loading Salary Setup…</main>;
-  if (error || !workerProfile) return <main style={{ padding: 24 }}><p role="alert">{error ?? 'Worker profile unavailable.'}</p></main>;
+  if (loading) return <main className="salary-setup-page" style={{ padding: 24 }}>Loading Salary Setup…</main>;
+  if (error || !workerProfile) return <main className="salary-setup-page" style={{ padding: 24 }}><p role="alert">{error ?? 'Worker profile unavailable.'}</p></main>;
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault(); setMessage(''); setSaved(false);
-    const amount = Number(salary);
-    const workingHours = hours ? Number(hours) : null;
+    const amount = Number(salary); const workingHours = hours ? Number(hours) : null;
     if (!Number.isFinite(amount) || amount <= 0) return setMessage('Please enter a valid positive salary amount.');
     if (!currency.trim() || currency.trim().length < 3) return setMessage('Please enter a valid currency code.');
     if (workingHours !== null && (!Number.isFinite(workingHours) || workingHours <= 0)) return setMessage('Working hours must be positive when selected.');
@@ -75,119 +90,32 @@ export function SalarySetupPage({ profileId }: { profileId: string }) {
     if (absentRule === 'daily_salary' && (!absenceDeduction || Number(absenceDeduction) < 0)) return setMessage('Enter the salary deduction per absent day.');
     if (showBonus && bonusAmountType === 'fixed_amount' && (!bonusFixedAmount || Number(bonusFixedAmount) <= 0)) return setMessage('Enter a valid fixed bonus amount.');
     if (showBonus && bonusFrequency === 'custom' && (!bonusExpectedMonths || Number(bonusExpectedMonths) < 1)) return setMessage('Enter the expected number of bonus months.');
-
     setSaving(true);
-    const policy: SalaryPolicyInput = {
-      salary_amount: amount,
-      currency: currency.trim().toUpperCase(),
-      salary_type: salaryType,
-      working_hours: workingHours,
-      overtime_multiplier: ot,
-      sunday_paid: sundayPaid,
-      holidays_paid: holidaysPaid,
-      attendance_notification_time: notificationTime || null,
-      pay_date: payDate ? Number(payDate) : null,
-      salary_start_date: startDate,
-      total_salary: totalSalary ? Number(totalSalary) : null,
-      basic_salary: basicSalary ? Number(basicSalary) : null,
-      attendance_allowance: null,
-      other_allowance: null,
-      absent_rule: absentRule,
-      salary_deduction_per_absent_day: absenceDeduction ? Number(absenceDeduction) : null,
-      allowance_loss_rule: null,
-      allowance_loss_after_absences: null,
-      leave_treatment: leaveTreatment,
-      custom_rule_note: note.trim() || null,
-    };
+    const policy: SalaryPolicyInput = { salary_amount: amount, currency: currency.trim().toUpperCase(), salary_type: salaryType, working_hours: workingHours, overtime_multiplier: ot, sunday_paid: sundayPaid, holidays_paid: holidaysPaid, attendance_notification_time: notificationTime || null, pay_date: payDate ? Number(payDate) : null, salary_start_date: startDate, total_salary: totalSalary ? Number(totalSalary) : null, basic_salary: basicSalary ? Number(basicSalary) : null, attendance_allowance: null, other_allowance: null, absent_rule: absentRule, salary_deduction_per_absent_day: absenceDeduction ? Number(absenceDeduction) : null, allowance_loss_rule: null, allowance_loss_after_absences: null, leave_treatment: leaveTreatment, custom_rule_note: note.trim() || null };
     const policyResult = await saveSalaryPolicy(workerProfile.id, policy);
     if (policyResult.error) { setSaving(false); return setMessage(policyResult.error.message); }
-
-    if (showBonus) {
-      const bonusResult = await saveBonusPolicy(workerProfile.id, {
-        frequency: bonusFrequency,
-        expected_month_count: expectedMonths,
-        amount_type: bonusAmountType,
-        fixed_amount: bonusAmountType === 'fixed_amount' ? Number(bonusFixedAmount) : null,
-        effective_from: startDate,
-      });
-      if (bonusResult.error) { setSaving(false); return setMessage(`Salary saved, but bonus setup could not be saved: ${bonusResult.error.message}`); }
-    }
+    if (showBonus) { const bonusResult = await saveBonusPolicy(workerProfile.id, { frequency: bonusFrequency, expected_month_count: expectedMonths, amount_type: bonusAmountType, fixed_amount: bonusAmountType === 'fixed_amount' ? Number(bonusFixedAmount) : null, effective_from: startDate }); if (bonusResult.error) { setSaving(false); return setMessage(`Salary saved, but bonus setup could not be saved: ${bonusResult.error.message}`); } }
     setSaving(false); setSaved(true);
   };
 
-  if (!privacyAccepted) return <main className="salary-setup-page" style={{ width: '100%', maxWidth: 680, margin: '0 auto', padding: '30px 14px 112px', boxSizing: 'border-box' }}>
-    <section style={{ ...card, textAlign: 'center', padding: 26 }}>
-      <div style={{ width: 52, height: 52, margin: '0 auto 14px', borderRadius: 16, display: 'grid', placeItems: 'center', background: 'linear-gradient(145deg,#eef2ff,#dbeafe)', color: '#3730a3', fontSize: 24, boxShadow: '0 4px 0 rgba(79,70,229,.12)' }}>✓</div>
-      <div style={{ color: '#4f46e5', fontSize: 10.5, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase' }}>Salary Person • Secure Setup</div>
-      <h1 style={{ margin: '7px 0 10px', fontSize: 26, letterSpacing: '-.03em' }}>Your Salary Data Is Private</h1>
-      <p style={{ color: '#475569', lineHeight: 1.6, margin: 0, fontSize: 13 }}>Your salary information is used to maintain your personal salary, attendance, overtime, bonus, allowance, and salary records in Work Social. It is not intended for public Social display or sharing.</p>
-      <div style={{ marginTop: 16, padding: 13, borderRadius: 13, background: '#f8fafc', textAlign: 'left', color: '#475569', fontSize: 12, lineHeight: 1.5 }}><strong style={{ color: '#0f172a' }}>Before you continue:</strong><br/>Review each salary rule carefully. Your selections will be used by the salary calculator for future records.</div>
-      <button type="button" onClick={() => setPrivacyAccepted(true)} style={{ ...primary, width: '100%', marginTop: 18 }}>Continue to Salary Setup</button>
-      <button type="button" onClick={() => navigate('/work/finance')} style={{ marginTop: 9, minHeight: 38, border: 0, background: 'transparent', color: '#64748b', fontWeight: 800, cursor: 'pointer' }}>Cancel</button>
-    </section>
-  </main>;
+  if (!privacyAccepted) return <main className="salary-setup-page" style={{ width: '100%', maxWidth: 680, margin: '0 auto', padding: '30px 14px 112px', boxSizing: 'border-box' }}><section style={{ ...card, textAlign: 'center', padding: 26 }}><div style={{ width: 52, height: 52, margin: '0 auto 14px', borderRadius: 16, display: 'grid', placeItems: 'center', background: 'linear-gradient(145deg,#eef2ff,#dbeafe)', color: '#3730a3', fontSize: 24 }}>✓</div><div style={{ color: '#4f46e5', fontSize: 10.5, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase' }}>Salary Person • Secure Setup</div><h1 style={{ margin: '7px 0 10px', fontSize: 26, letterSpacing: '-.03em' }}>Your Salary Data Is Private</h1><p style={{ color: '#475569', lineHeight: 1.6, margin: 0, fontSize: 13 }}>Your salary information is used to maintain your personal salary, attendance, overtime, bonus, allowance, and salary records in Work Social. It is not intended for public Social display or sharing.</p><div style={{ marginTop: 16, padding: 13, borderRadius: 13, background: '#f8fafc', textAlign: 'left', color: '#475569', fontSize: 12, lineHeight: 1.5 }}><strong style={{ color: '#0f172a' }}>Before you continue:</strong><br/>Review each salary rule carefully. Your selections will be used by the salary calculator for future records.</div><button type="button" onClick={() => setPrivacyAccepted(true)} style={{ ...primary, width: '100%', marginTop: 18 }}>Continue to Salary Setup</button><button type="button" onClick={() => navigate('/work/finance')} style={{ marginTop: 9, minHeight: 38, border: 0, background: 'transparent', color: '#64748b', fontWeight: 800, cursor: 'pointer' }}>Cancel</button></section></main>;
 
-  if (saved) return <main className="salary-setup-page" style={{ width: '100%', maxWidth: 680, margin: '0 auto', padding: '30px 14px 112px', boxSizing: 'border-box' }}><section style={{ ...card, textAlign: 'center', padding: 28 }}>
-    <div style={{ width: 60, height: 60, margin: '0 auto 14px', borderRadius: '50%', display: 'grid', placeItems: 'center', background: 'linear-gradient(145deg,#ecfdf5,#d1fae5)', color: '#047857', fontSize: 29, boxShadow: '0 4px 0 rgba(4,120,87,.12)' }}>✓</div>
-    <div style={{ color: '#047857', fontSize: 10.5, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase' }}>Setup Complete</div>
-    <h1 style={{ margin: '7px 0 10px', fontSize: 25, letterSpacing: '-.025em' }}>Salary Setup Saved Successfully</h1>
-    <p style={{ color: '#475569', lineHeight: 1.6, fontSize: 13 }}>Your salary policy{showBonus ? ' and bonus policy' : ''} has been saved. Your allowance rules are stored separately with their own conditions and history.</p>
-    <div style={{ margin: '18px 0', padding: 14, borderRadius: 13, background: '#f8fafc', textAlign: 'left', color: '#475569', lineHeight: 1.55, fontSize: 12 }}><strong style={{ color: '#0f172a' }}>For accurate records</strong><br/>• Add overtime hours whenever you actually work overtime.<br/>• Respond to daily attendance notifications when they appear.<br/>• Keep your attendance and overtime records up to date.</div>
-    <button type="button" onClick={() => navigate('/work/finance')} style={{ ...primary, width: '100%' }}>Go to Salary Dashboard</button>
-  </section></main>;
+  if (saved) return <main className="salary-setup-page" style={{ width: '100%', maxWidth: 680, margin: '0 auto', padding: '30px 14px 112px', boxSizing: 'border-box' }}><section style={{ ...card, textAlign: 'center', padding: 28 }}><div style={{ width: 60, height: 60, margin: '0 auto 14px', borderRadius: '50%', display: 'grid', placeItems: 'center', background: 'linear-gradient(145deg,#ecfdf5,#d1fae5)', color: '#047857', fontSize: 29 }}>✓</div><div style={{ color: '#047857', fontSize: 10.5, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase' }}>Setup Complete</div><h1 style={{ margin: '7px 0 10px', fontSize: 25 }}>Salary Setup Saved Successfully</h1><p style={{ color: '#475569', lineHeight: 1.6, fontSize: 13 }}>Your salary policy{showBonus ? ' and bonus policy' : ''} has been saved. Your allowance rules are stored separately with their own conditions and history.</p><div style={{ margin: '18px 0', padding: 14, borderRadius: 13, background: '#f8fafc', textAlign: 'left', color: '#475569', lineHeight: 1.55, fontSize: 12 }}><strong style={{ color: '#0f172a' }}>For accurate records</strong><br/>• Add overtime hours whenever you actually work overtime.<br/>• Respond to daily attendance notifications when they appear.<br/>• Keep your attendance and overtime records up to date.</div><button type="button" onClick={() => navigate('/work/finance')} style={{ ...primary, width: '100%' }}>Go to Salary Dashboard</button></section></main>;
 
-  return <main className="salary-setup-page" style={{ width: '100%', maxWidth: 760, margin: '0 auto', padding: '20px 12px 112px', boxSizing: 'border-box' }}>
-    <style>{`@keyframes salaryTypeAttention { 0%,100% { box-shadow: 0 0 0 0 rgba(245,158,11,0); border-color: #d7dee8; } 50% { box-shadow: 0 0 0 6px rgba(245,158,11,.18), 0 8px 24px rgba(245,158,11,.12); border-color: #f59e0b; } }
-.salary-setup-page { color:#172033; }
-.salary-setup-page form > section { position:relative; overflow:hidden; }
-.salary-setup-page form > section::before { content:''; position:absolute; inset:0 0 auto 0; height:2px; background:linear-gradient(90deg,rgba(99,102,241,.0),rgba(99,102,241,.35),rgba(20,184,166,.22),rgba(99,102,241,0)); pointer-events:none; }
-.salary-setup-page form label { transition:transform .18s ease; }
-.salary-setup-page form label:focus-within { transform:translateY(-1px); }
-.salary-setup-page form input, .salary-setup-page form select, .salary-setup-page form textarea { border-color:#d7dee8 !important; border-radius:11px !important; background:rgba(255,255,255,.98) !important; box-shadow:inset 0 1px 2px rgba(15,23,42,.025), 0 0 0 0 rgba(79,70,229,0) !important; transition:border-color .18s ease,box-shadow .18s ease,transform .18s ease !important; }
-.salary-setup-page form input:focus, .salary-setup-page form select:focus, .salary-setup-page form textarea:focus { border-color:#818cf8 !important; box-shadow:0 0 0 4px rgba(99,102,241,.10), 0 5px 14px rgba(15,23,42,.05) !important; outline:none !important; }
-.salary-setup-page form select { cursor:pointer; }
-@media (max-width:560px) { .salary-setup-page form > section { padding:14px !important; border-radius:16px !important; } .salary-setup-page form > section > div > div { grid-template-columns:1fr !important; } }
-`}</style>
-    <button type="button" onClick={() => navigate('/work/identity')} style={{ minHeight: 36, padding: '0 11px', borderRadius: 10, fontWeight: 850, border: '1px solid #dfe5ed', background: 'linear-gradient(180deg,#fff,#f5f7fa)', color: '#334155', cursor: 'pointer', boxShadow: '0 2px 0 rgba(100,116,139,.08)' }}>← Work Identity</button>
-    <header style={{ margin: '15px 2px 17px' }}><div style={{ display:'inline-flex', alignItems:'center', gap:7, padding:'5px 9px', borderRadius:999, background:'linear-gradient(145deg,#eef2ff,#e0e7ff)', color:'#4338ca', fontSize:9.5, fontWeight:900, letterSpacing:'.11em', textTransform:'uppercase' }}>Salary Person</div><h1 style={{ margin: '9px 0 5px', fontSize: 27, letterSpacing: '-.035em', lineHeight:1.1 }}>Salary Setup</h1><p style={{ margin: 0, color: '#64748b', lineHeight: 1.5, fontSize: 12.5, maxWidth:650 }}>Set your salary policy once, then define each allowance with clear questions and answers so future salary records remain explainable.</p></header>
-    <form onSubmit={submit} style={{ display: 'grid', gap: 11 }}>
-      <section style={{ ...card, display: 'grid', gap: 12 }}><SectionTitle title="Salary & Working Terms" subtitle="Core values used by salary and overtime calculations."/><div style={{ display: 'grid', gap: 10 }}>
-        <label style={{ ...label, gridColumn:'1 / -1' }}>Salary Amount<input required type="number" min="0.01" step="0.01" value={salary} onChange={e => setSalary(e.target.value)} style={{ ...input, minHeight: 46, fontSize: 16, fontWeight: 850 }} placeholder="e.g. 150000"/></label>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: 10 }}><label style={label}>Currency<input required maxLength={10} value={currency} onChange={e => setCurrency(e.target.value)} style={input} placeholder="PKR"/></label><label ref={salaryTypeRef} style={{ ...label, padding: salaryTypeHighlighted ? 9 : 0, margin: salaryTypeHighlighted ? -9 : 0, borderRadius: 13, background: salaryTypeHighlighted ? '#fffbeb' : 'transparent', animation: salaryTypeHighlighted ? 'salaryTypeAttention 1.1s ease-in-out 0s 3' : undefined }}>Salary Type<select value={salaryType} onChange={e => { setSalaryType(e.target.value as SalaryType); setSalaryTypeHighlighted(false); }} style={input}><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="15_days">15 Days</option><option value="monthly">Monthly</option></select>{salaryTypeHighlighted && <span style={{ color: '#b45309', fontSize: 11, fontWeight: 900 }}>Required step — choose your salary cycle.</span>}</label></div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}><label style={label}>Working Hours<select value={hours} onChange={e => setHours(e.target.value)} style={input}><option value="8">8 hours</option><option value="12">12 hours</option><option value="">Optional / not set</option></select></label><label style={label}>Overtime Rate<select value={ot} onChange={e => setOt(Number(e.target.value) as OvertimeMultiplier)} style={input}><option value="1">1× Standard</option><option value="1.5">1.5×</option><option value="2">2×</option></select></label></div>
-        <p style={{ ...hint, margin: 0, padding:'8px 10px', borderRadius:10, background:'#f8fafc' }}>Overtime is calculated from these saved values; the app does not ask you to enter a manual hourly rate.</p>
-      </div></section>
+  const salaryTypeOptions: PickerOption[] = [{ value:'daily', label:'Daily', description:'Salary calculated per working day.' }, { value:'weekly', label:'Weekly', description:'Salary cycle based on seven days.' }, { value:'15_days', label:'15 Days', description:'Salary cycle based on fifteen days.' }, { value:'monthly', label:'Monthly', description:'Salary cycle based on the calendar month.' }];
+  const hoursOptions: PickerOption[] = [{value:'8',label:'8 hours',description:'Standard eight-hour workday.'},{value:'12',label:'12 hours',description:'Twelve-hour workday.'},{value:'',label:'Optional / not set',description:'Leave working hours unspecified.'}];
+  const otOptions: PickerOption[] = [{value:'1',label:'1× Standard',description:'Normal hourly rate.'},{value:'1.5',label:'1.5×',description:'One and a half times the hourly rate.'},{value:'2',label:'2×',description:'Double the hourly rate.'}];
+  const yesNo = (yesLabel = 'Yes', noLabel = 'No'): PickerOption[] => [{value:'true',label:yesLabel},{value:'false',label:noLabel}];
+  const absentOptions: PickerOption[] = [{value:'none',label:'No absence deduction',description:'Absences do not deduct base salary.'},{value:'daily_salary',label:'Deduct daily salary for each absence',description:'Apply the saved deduction amount for each absent day.'}];
+  const leaveOptions: PickerOption[] = [{value:'paid',label:'Paid leave',description:'Leave days remain paid.'},{value:'unpaid',label:'Unpaid leave',description:'Leave days are treated as unpaid.'}];
+  const bonusFreqOptions: PickerOption[] = [{value:'yearly',label:'Yearly'},{value:'6_months',label:'Every 6 Months'},{value:'3_months',label:'Every 3 Months'},{value:'custom',label:'Custom'}];
+  const bonusAmountOptions: PickerOption[] = [{value:'half_salary',label:'Half Salary'},{value:'full_salary',label:'Full Salary'},{value:'fixed_amount',label:'Fixed Amount'}];
 
-      <section style={{ ...card, display: 'grid', gap: 12 }}><SectionTitle title="Work Rules & Notifications" subtitle="Weekly rest, holidays and reminder preferences."/><div style={{ display: 'grid', gap: 10 }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}><label style={label}>Sunday Paid<select value={String(sundayPaid)} onChange={e => setSundayPaid(e.target.value === 'true')} style={input}><option value="true">Yes</option><option value="false">No</option></select></label><label style={label}>Holidays Paid<select value={String(holidaysPaid)} onChange={e => setHolidaysPaid(e.target.value === 'true')} style={input}><option value="true">Yes</option><option value="false">No</option></select></label></div>
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}><label style={label}>Attendance Notification Time<input type="time" value={notificationTime} onChange={e => setNotificationTime(e.target.value)} style={input}/><span style={hint}>Leave empty to disable reminders.</span></label><label style={label}>Pay Date <span style={{ fontWeight: 550 }}>(notification only)</span><input type="number" min="1" max="31" value={payDate} onChange={e => setPayDate(e.target.value)} placeholder="Optional" style={input}/></label></div>
-        <label style={label}>Salary Start Date<input required type="date" value={startDate} onChange={e => setStartDate(e.target.value)} style={input}/></label>
-      </div></section>
-
-      <SalaryAllowanceSection profileId={profileId} effectiveFrom={startDate} focused={focusAllowances} />
-
-      <section style={{ ...card, display: 'grid', gap: 12 }}><button type="button" onClick={() => setShowRules(v => !v)} style={{ border: 0, background: 'transparent', padding: 0, textAlign: 'left', cursor: 'pointer' }}><SectionTitle title="Salary Rules & Absence" subtitle="Salary deductions and leave treatment stay separate from allowance loss rules." open={showRules}/></button>{showRules && <div style={{ display: 'grid', gap: 10 }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}><label style={label}>Total Salary<input type="number" min="0" step="0.01" value={totalSalary} onChange={e => setTotalSalary(e.target.value)} style={input} placeholder="Optional"/></label><label style={label}>Basic Salary<input type="number" min="0" step="0.01" value={basicSalary} onChange={e => setBasicSalary(e.target.value)} style={input} placeholder="Optional"/></label></div>
-        <label style={label}>Absent Rule<select value={absentRule} onChange={e => setAbsentRule(e.target.value as 'none'|'daily_salary')} style={input}><option value="none">No absence deduction</option><option value="daily_salary">Deduct daily salary for each absence</option></select></label>
-        {absentRule === 'daily_salary' && <label style={label}>Salary Deduction per Absent Day<input type="number" min="0" step="0.01" value={absenceDeduction} onChange={e => setAbsenceDeduction(e.target.value)} style={input}/></label>}
-        <label style={label}>Leave Treatment<select value={leaveTreatment} onChange={e => setLeaveTreatment(e.target.value as 'paid'|'unpaid')} style={input}><option value="paid">Paid leave</option><option value="unpaid">Unpaid leave</option></select></label>
-        <label style={label}>Custom Salary Rule / Note<textarea rows={3} value={note} onChange={e => setNote(e.target.value)} style={{ ...input, resize: 'vertical' }} placeholder="Optional note for your own salary record"/></label>
-      </div>}</section>
-
-      <section style={{ ...card, display: 'grid', gap: 12 }}><button type="button" onClick={() => setShowBonus(v => !v)} style={{ border: 0, background: 'transparent', padding: 0, textAlign: 'left', cursor: 'pointer' }}><SectionTitle title="Bonus Settings" subtitle="Optional: configure expected bonus frequency and amount." open={showBonus}/></button>{showBonus && <div style={{ display: 'grid', gap: 10 }}>
-        <label style={label}>Bonus Frequency<select value={bonusFrequency} onChange={e => { const value = e.target.value as BonusFrequency; setBonusFrequency(value); if (value !== 'custom') setBonusExpectedMonths(String({ yearly: 1, '6_months': 2, '3_months': 4 }[value as Exclude<BonusFrequency, 'custom'>])); }} style={input}><option value="yearly">Yearly</option><option value="6_months">Every 6 Months</option><option value="3_months">Every 3 Months</option><option value="custom">Custom</option></select></label>
-        <label style={label}>Expected Bonus Months<input type="number" min="1" step="1" value={expectedMonths || ''} onChange={e => setBonusExpectedMonths(e.target.value)} disabled={bonusFrequency !== 'custom'} style={{ ...input, opacity: bonusFrequency === 'custom' ? 1 : .7 }}/><span style={hint}>Yearly = 1, every 6 months = 2, every 3 months = 4. Custom lets you choose the count.</span></label>
-        <label style={label}>Bonus Amount<select value={bonusAmountType} onChange={e => setBonusAmountType(e.target.value as BonusAmountType)} style={input}><option value="half_salary">Half Salary</option><option value="full_salary">Full Salary</option><option value="fixed_amount">Fixed Amount</option></select></label>
-        {bonusAmountType === 'fixed_amount' && <label style={label}>Fixed Bonus Amount<input type="number" min="0.01" step="0.01" value={bonusFixedAmount} onChange={e => setBonusFixedAmount(e.target.value)} style={input}/></label>}
-      </div>}</section>
-
-      {message && <div role="alert" style={{ padding: 12, borderRadius: 12, background: 'linear-gradient(145deg,#fef2f2,#fff7f7)', border:'1px solid #fecaca', color: '#991b1b', fontWeight: 750, lineHeight: 1.45, fontSize:12 }}>{message}</div>}
-      <button type="submit" disabled={saving} style={{ ...primary, opacity: saving ? .7 : 1 }}>{saving ? 'Saving your salary setup…' : 'Save Salary Setup'}</button>
-      <p style={{ ...hint, textAlign: 'center', margin: 0, padding:'0 8px' }}>Your salary policy and allowance rules are stored as personal Salary Person records. Allowance conditions remain independent so one allowance can be lost without changing another.</p>
-    </form>
-  </main>;
-}
-
-function SectionTitle({ title, subtitle, open }: { title: string; subtitle: string; open?: boolean }) {
-  return <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:10 }}><div style={{ minWidth:0 }}><h2 style={{ margin:0, fontSize:15.5, color:'#172033', letterSpacing:'-.018em' }}>{title}</h2><p style={{ margin:'3px 0 0', color:'#718096', fontSize:10.8, lineHeight:1.4 }}>{subtitle}</p></div>{open !== undefined && <span style={{ flex:'0 0 auto', width:28, height:28, display:'grid', placeItems:'center', borderRadius:9, background:'#f1f5f9', color:'#475569', fontWeight:950, boxShadow:'inset 0 1px 0 #fff' }}>{open ? '−' : '+'}</span>}</div>;
+  return <main className="salary-setup-page" style={{ width: '100%', maxWidth: 760, margin: '0 auto', padding: '20px 12px 112px', boxSizing: 'border-box' }}><style>{`@keyframes salaryTypeAttention { 0%,100% { box-shadow:0 0 0 0 rgba(245,158,11,0); } 50% { box-shadow:0 0 0 6px rgba(245,158,11,.18),0 8px 24px rgba(245,158,11,.12); } } .salary-setup-page{color:#172033}.salary-setup-page form>section{position:relative;overflow:hidden}.salary-setup-page form>section:before{content:'';position:absolute;inset:0 0 auto;height:2px;background:linear-gradient(90deg,transparent,rgba(99,102,241,.38),rgba(20,184,166,.22),transparent);pointer-events:none}.salary-setup-page input,.salary-setup-page textarea{border-color:#d7dee8!important;border-radius:11px!important}.salary-setup-page input:focus,.salary-setup-page textarea:focus{border-color:#818cf8!important;box-shadow:0 0 0 4px rgba(99,102,241,.1)!important;outline:none!important}@media(max-width:560px){.salary-setup-page form>section{padding:14px!important;border-radius:16px!important}}`}</style><button type="button" onClick={() => navigate('/work/identity')} style={{ minHeight:36,padding:'0 11px',borderRadius:10,fontWeight:850,border:'1px solid #dfe5ed',background:'linear-gradient(180deg,#fff,#f5f7fa)',color:'#334155',cursor:'pointer' }}>← Work Identity</button><header style={{ margin:'15px 2px 17px' }}><div style={{display:'inline-flex',alignItems:'center',padding:'5px 9px',borderRadius:999,background:'linear-gradient(145deg,#eef2ff,#e0e7ff)',color:'#4338ca',fontSize:9.5,fontWeight:900,letterSpacing:'.11em',textTransform:'uppercase'}}>Salary Person</div><h1 style={{margin:'9px 0 5px',fontSize:27,letterSpacing:'-.035em'}}>Salary Setup</h1><p style={{margin:0,color:'#64748b',lineHeight:1.5,fontSize:12.5}}>Set your salary policy once, then define each allowance with clear questions and answers so future salary records remain explainable.</p></header><form onSubmit={submit} style={{display:'grid',gap:11}}>
+    <section style={{...card,display:'grid',gap:13}}><SectionHeader eyebrow="01 · Core policy" title="Salary & Working Terms" subtitle="Your core salary, working hours and overtime calculation settings."/><div style={{display:'grid',gap:10}}><label style={{...label,fontSize:13.5}}>Salary Amount<input required type="number" min="0.01" step="0.01" value={salary} onChange={e=>setSalary(e.target.value)} style={{...input,fontSize:18,fontWeight:900,padding:'10px 12px'}} placeholder="e.g. 150000"/></label><div style={{display:'grid',gridTemplateColumns:'1fr 1.35fr',gap:10}}><label style={label}>Currency<input required maxLength={10} value={currency} onChange={e=>setCurrency(e.target.value)} style={input} placeholder="PKR"/></label><div ref={salaryTypeRef}><PremiumPicker label="Salary Type" value={salaryType} options={salaryTypeOptions} highlighted={salaryTypeHighlighted} onChange={value=>{setSalaryType(value as SalaryType);setSalaryTypeHighlighted(false)}}/></div></div><div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}><PremiumPicker label="Working Hours" value={hours} options={hoursOptions} onChange={setHours}/><PremiumPicker label="Overtime Rate" value={String(ot)} options={otOptions} onChange={value=>setOt(Number(value) as OvertimeMultiplier)}/></div><p style={{...hint,margin:0,padding:'9px 10px',borderRadius:10,background:'#f8fafc'}}>Overtime is calculated from these saved values; no manual hourly rate is required.</p></div></section>
+    <section style={{...card,display:'grid',gap:13}}><SectionHeader eyebrow="02 · Work calendar" title="Work Rules & Notifications" subtitle="Set weekly rest, holiday and reminder behavior."/><div style={{display:'grid',gap:10}}><div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}><PremiumPicker label="Sunday Paid" value={String(sundayPaid)} options={yesNo()} onChange={value=>setSundayPaid(value==='true')}/><PremiumPicker label="Holidays Paid" value={String(holidaysPaid)} options={yesNo()} onChange={value=>setHolidaysPaid(value==='true')}/></div><div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}><label style={label}>Attendance Notification Time<input type="time" value={notificationTime} onChange={e=>setNotificationTime(e.target.value)} style={input}/><span style={hint}>Leave empty to disable attendance reminders.</span></label><label style={label}>Pay Date <span style={{fontWeight:500}}>(notification only)</span><input type="number" min="1" max="31" value={payDate} onChange={e=>setPayDate(e.target.value)} placeholder="Optional" style={input}/></label></div><label style={label}>Salary Start Date<input required type="date" value={startDate} onChange={e=>setStartDate(e.target.value)} style={input}/></label></div></section>
+    <SalaryAllowanceSection profileId={profileId} effectiveFrom={startDate} focused={focusAllowances}/>
+    <section style={{...card,display:'grid',gap:13}}><button type="button" onClick={()=>setShowRules(v=>!v)} style={{border:0,background:'transparent',padding:0,textAlign:'left',cursor:'pointer'}}><div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10}}><SectionHeader eyebrow="04 · Absence policy" title="Salary Rules & Absence" subtitle="Keep salary deductions and leave treatment separate from allowance loss conditions."/><span style={{width:30,height:30,borderRadius:'50%',display:'grid',placeItems:'center',background:'#eef2ff',color:'#4f46e5',fontWeight:900}}>{showRules?'−':'+'}</span></div></button>{showRules&&<div style={{display:'grid',gap:10}}><div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}><label style={label}>Total Salary<input type="number" min="0" step="0.01" value={totalSalary} onChange={e=>setTotalSalary(e.target.value)} style={input} placeholder="Optional"/></label><label style={label}>Basic Salary<input type="number" min="0" step="0.01" value={basicSalary} onChange={e=>setBasicSalary(e.target.value)} style={input} placeholder="Optional"/></label></div><PremiumPicker label="Absent Rule" value={absentRule} options={absentOptions} onChange={value=>setAbsentRule(value as 'none'|'daily_salary')}/>{absentRule==='daily_salary'&&<label style={label}>Salary Deduction per Absent Day<input type="number" min="0" step="0.01" value={absenceDeduction} onChange={e=>setAbsenceDeduction(e.target.value)} style={input}/></label>}<PremiumPicker label="Leave Treatment" value={leaveTreatment} options={leaveOptions} onChange={value=>setLeaveTreatment(value as 'paid'|'unpaid')}/><label style={label}>Custom Salary Rule / Note<textarea rows={3} value={note} onChange={e=>setNote(e.target.value)} style={{...input,resize:'vertical'}} placeholder="Optional note for your own salary record"/></label></div>}</section>
+    <section style={{...card,display:'grid',gap:13}}><button type="button" onClick={()=>setShowBonus(v=>!v)} style={{border:0,background:'transparent',padding:0,textAlign:'left',cursor:'pointer'}}><div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10}}><SectionHeader eyebrow="05 · Optional" title="Bonus Settings" subtitle="Configure expected bonus frequency and amount when needed."/><span style={{width:30,height:30,borderRadius:'50%',display:'grid',placeItems:'center',background:'#f1f5f9',color:'#475569',fontWeight:900}}>{showBonus?'−':'+'}</span></div></button>{showBonus&&<div style={{display:'grid',gap:10}}><PremiumPicker label="Bonus Frequency" value={bonusFrequency} options={bonusFreqOptions} onChange={value=>{const next=value as BonusFrequency;setBonusFrequency(next);if(next!=='custom')setBonusExpectedMonths(String(({yearly:1,'6_months':2,'3_months':4} as Record<Exclude<BonusFrequency,'custom'>,number>)[next]))}}/><PremiumPicker label="Bonus Amount" value={bonusAmountType} options={bonusAmountOptions} onChange={value=>setBonusAmountType(value as BonusAmountType)}/><label style={label}>Expected Bonus Months<input type="number" min="1" step="1" value={expectedMonths||''} onChange={e=>setBonusExpectedMonths(e.target.value)} disabled={bonusFrequency!=='custom'} style={{...input,opacity:bonusFrequency==='custom'?1:.7}}/><span style={hint}>Yearly = 1, every 6 months = 2, every 3 months = 4. Custom lets you choose the count.</span></label>{bonusAmountType==='fixed_amount'&&<label style={label}>Fixed Bonus Amount<input type="number" min="0.01" step="0.01" value={bonusFixedAmount} onChange={e=>setBonusFixedAmount(e.target.value)} style={input}/></label>}</div>}</section>
+    {message&&<div role="alert" style={{padding:13,borderRadius:12,background:'#fef2f2',color:'#991b1b',fontWeight:750,lineHeight:1.45}}>{message}</div>}<button type="submit" disabled={saving} style={{...primary,width:'100%',opacity:saving?.72:1}}>{saving?'Saving your salary setup…':'Save Salary Setup'}</button><p style={{...hint,textAlign:'center',margin:0}}>Your salary policy and allowance rules are stored as personal Salary Person records. Allowance conditions remain independent so one allowance can be lost without changing another.</p></form></main>;
 }
