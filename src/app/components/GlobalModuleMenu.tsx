@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import type { KeyboardEvent } from 'react';
 
 interface GlobalModuleMenuProps {
   onNavigate: (path: string) => void;
@@ -51,7 +52,7 @@ export function GlobalModuleMenu({ onNavigate }: GlobalModuleMenuProps) {
     itemRefs.current[(index + count) % count]?.focus();
   };
 
-  const handleMenuKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+  const handleMenuKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     const target = event.target as HTMLElement;
     const itemIndex = itemRefs.current.findIndex((item) => item === target);
     if (itemIndex < 0) return;
