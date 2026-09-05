@@ -30,7 +30,7 @@ function databaseError(cause: unknown): string {
   return error instanceof Error ? error.message : 'Could not save the budget.';
 }
 
-export function ExpenseBudgetsPage({ onNavigate }: ExpenseBudgetsPageProps) {
+export function ExpenseBudgetsPage({ onNavigate: _onNavigate }: ExpenseBudgetsPageProps) {
   const [userId, setUserId] = useState('');
   const [budgets, setBudgets] = useState<ExpenseBudgetRecord[]>([]);
   const [categories, setCategories] = useState<ExpenseCategoryRecord[]>([]);
@@ -196,6 +196,5 @@ export function ExpenseBudgetsPage({ onNavigate }: ExpenseBudgetsPageProps) {
       </div>
     </div></div>}
     {notice && <div className="expense-budgets__notice" role="status">✓ {notice}</div>}
-    <div className="sr-only" aria-hidden="true">{onNavigate ? '' : ''}</div>
   </section>;
 }
