@@ -2,14 +2,14 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../../../lib/supabase/client';
 import { useWorkerProfile } from '../hooks/useWorkerProfile';
 import { WorkerFinance } from '../components/WorkerFinance';
-import { SalaryDashboardPage } from './SalaryDashboardPage';
+import { SalaryFinancePage } from './SalaryFinancePage';
 import { SalarySetupPage } from './SalarySetupPage';
 
 function SalaryAwareFinance({ profileId }: { profileId: string }) {
   const { workerProfile, loading } = useWorkerProfile(profileId);
   const setup = new URLSearchParams(window.location.search).get('setup') === '1';
   if (loading) return <main style={{ padding: 24 }}>Loading Worker finance…</main>;
-  if (workerProfile?.worker_type === 'salary_person') return setup ? <SalarySetupPage profileId={profileId} /> : <SalaryDashboardPage profileId={profileId} />;
+  if (workerProfile?.worker_type === 'salary_person') return setup ? <SalarySetupPage profileId={profileId} /> : <SalaryFinancePage profileId={profileId} />;
   return <WorkerFinance />;
 }
 
