@@ -11,6 +11,7 @@ interface ExpenseOverviewRpcRow {
   net: unknown;
   account_count: unknown;
   currencies: Array<{ currency: string; balance: unknown }> | null;
+  period_currencies: Array<{ currency: string; income: unknown; expenses: unknown; transaction_count: unknown }> | null;
   accounts: Array<Record<string, unknown>> | null;
   top_categories: Array<Record<string, unknown>> | null;
   recent_transactions: Array<Record<string, unknown>> | null;
@@ -27,9 +28,7 @@ export async function loadExpenseOverview(periodStart: string, periodEnd: string
   if (error) throw error;
 
   const row = data as ExpenseOverviewRpcRow | null;
-  if (!row) {
-    throw new Error('Expense Manager overview returned no data.');
-  }
+  if (!row) throw new Error('Expense Manager overview returned no data.');
 
   return {
     period_start: row.period_start,
@@ -39,9 +38,12 @@ export async function loadExpenseOverview(periodStart: string, periodEnd: string
     transaction_count: Number(row.transaction_count) || 0,
     net: parseMoney(row.net),
     account_count: Number(row.account_count) || 0,
-    currencies: (row.currencies ?? []).map((item) => ({
+    currencies: (row.currencies ?? []).map((item) => ({ currency: item.currency, balance: parseMoney(item.balance) })),
+    period_currencies: (row.period_currencies ?? []).map((item) => ({
       currency: item.currency,
-      balance: parseMoney(item.balance),
+      income: parseMoney(item.income),
+      expenses: parseMoney(item.expenses),
+      transaction_count: Number(item.transaction_count) || 0,
     })),
     accounts: (row.accounts ?? []).map((item) => ({
       id: String(item.id),
@@ -57,6 +59,7 @@ export async function loadExpenseOverview(periodStart: string, periodEnd: string
       name: String(item.name),
       icon: item.icon == null ? null : String(item.icon),
       color: item.color == null ? null : String(item.color),
+      currency: String(item.currency),
       amount: parseMoney(item.amount),
       transaction_count: Number(item.transaction_count) || 0,
     })),
@@ -68,6 +71,7 @@ export async function loadExpenseOverview(periodStart: string, periodEnd: string
       note: item.note == null ? null : String(item.note),
       category_name: item.category_name == null ? null : String(item.category_name),
       category_icon: item.category_icon == null ? null : String(item.category_icon),
+      currency: item.currency == null ? null : String(item.currency),
       display_account: item.display_account == null ? null : String(item.display_account),
     })),
     budgets: (row.budgets ?? []).map((item) => ({
