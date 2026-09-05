@@ -1,21 +1,19 @@
 name: Expense Manager global Add cleanup
 
 on:
-  push:
-    branches:
-      - codex/expense-manager-remove-duplicate-add-actions
-      - codex/expense-manager-overview-remove-duplicate-add
-      - codex/expense-manager-global-add-cleanup
+  pull_request_target:
+    types: [opened, reopened, synchronize]
 
 jobs:
   cleanup:
+    if: github.event.pull_request.base.ref == 'main' && (github.event.pull_request.number == 44 || startsWith(github.event.pull_request.head.ref, 'codex/expense-manager-global-add-cleanup'))
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.ref_name }}
+          ref: ${{ github.event.pull_request.head.ref }}
           fetch-depth: 0
 
       - name: Remove page-level Add buttons
@@ -33,31 +31,24 @@ jobs:
               'src/features/expense-manager/components/ExpenseOverviewDashboard.tsx',
           ]
 
+          classes = {
+              'ExpenseAccountsPage.tsx': 'expense-accounts__add',
+              'ExpenseCategoriesPage.tsx': 'expense-categories__add',
+              'ExpenseBudgetsPage.tsx': 'expense-budgets__add',
+              'ExpenseTransactionsPage.tsx': 'expense-transactions__add',
+              'ExpenseOverviewDashboard.tsx': 'expense-overview__add',
+          }
+
           for name in files:
               path = Path(name)
               text = path.read_text()
               original = text
-              cls = re.escape({
-                  'ExpenseAccountsPage.tsx': 'expense-accounts__add',
-                  'ExpenseCategoriesPage.tsx': 'expense-categories__add',
-                  'ExpenseBudgetsPage.tsx': 'expense-budgets__add',
-                  'ExpenseTransactionsPage.tsx': 'expense-transactions__add',
-                  'ExpenseOverviewDashboard.tsx': 'expense-overview__add',
-              }[path.name])
-
-              # Remove every page-level Add button, including empty-state CTAs.
-              text = re.sub(
-                  rf'<button\s+type="button"\s+className="{cls}"[\s\S]*?</button>',
-                  '', text,
-              )
-
-              # Remove the now-unused Add CSS rule. Also remove the mobile rule when present.
+              cls = re.escape(classes[path.name])
+              text = re.sub(rf'<button\s+type="button"\s+className="{cls}"[\s\S]*?</button>', '', text)
               text = re.sub(rf'\.{cls}\{{[^}}]*\}}', '', text)
               text = re.sub(rf'\.{cls}::after\{{[^}}]*\}}', '', text)
-
               if text != original:
                   path.write_text(text)
-
           PY
 
       - name: Validate diff
@@ -80,4 +71,4 @@ jobs:
             exit 0
           fi
           git commit -m 'Remove redundant Expense Manager page Add buttons'
-          git push origin HEAD:${{ github.ref_name }}
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
