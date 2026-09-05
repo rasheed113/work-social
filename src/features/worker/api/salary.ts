@@ -26,3 +26,7 @@ export async function getSalaryMonthSummary(month: string) {
   const { data, error } = await supabase.rpc('get_salary_person_month_summary', { p_month: month });
   return { data: (data?.[0] ?? null) as SalaryMonthSummary | null, error };
 }
+
+export async function getFinalizedSalaryTotals(workerProfileId: string) {
+  return supabase.from('salary_periods').select('base_salary,overtime_amount,adjustments,bonus_amount,final_amount').eq('worker_profile_id', workerProfileId).eq('status', 'finalized');
+}
