@@ -11,8 +11,16 @@ export function WorkerSettingsPage({ teamJoining = false }: WorkerSettingsPagePr
 
   useEffect(() => {
     let active = true;
-    void supabase.auth.getUser().then(({ data }) => {
-      if (active) setProfileId(data.user?.id ?? null);
+    void supabase.auth.getSession().then(({ data }) => {
+      if (!active) return;
+      const sessionProfileId = data.session?.user.id ?? null;
+      if (sessionProfileId) {
+        setProfileId(sessionProfileId);
+        return;
+      }
+      void supabase.auth.getUser().then(({ data: userData }) => {
+        if (active) setProfileId(userData.user?.id ?? null);
+      });
     });
     return () => {
       active = false;
