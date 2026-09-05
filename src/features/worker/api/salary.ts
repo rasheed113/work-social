@@ -5,8 +5,10 @@ export async function setWorkerType(workerProfileId: string, workerType: WorkerT
   return supabase.from('worker_profiles').update({ worker_type: workerType }).eq('id', workerProfileId).select('worker_type').single();
 }
 
-export async function getSalaryPolicy(workerProfileId: string) {
-  return supabase.from('salary_policies').select('*').eq('worker_profile_id', workerProfileId).order('salary_start_date', { ascending: false }).limit(1).maybeSingle<SalaryPolicy>();
+export async function getSalaryPolicy(profileId: string) {
+  const { data: worker, error: workerError } = await supabase.from('worker_profiles').select('id').eq('profile_id', profileId).maybeSingle<{ id: string }>();
+  if (workerError || !worker?.id) return { data: null as SalaryPolicy | null, error: workerError ?? new Error('Worker Identity is unavailable.') };
+  return supabase.from('salary_policies').select('*').eq('worker_profile_id', worker.id).order('salary_start_date', { ascending: false }).limit(1).maybeSingle<SalaryPolicy>();
 }
 
 export async function saveSalaryPolicy(workerProfileId: string, input: SalaryPolicyInput) {
