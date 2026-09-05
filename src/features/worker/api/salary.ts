@@ -34,3 +34,29 @@ export async function getSalaryMonthSummary(month: string) {
 export async function getFinalizedSalaryTotals(workerProfileId: string) {
   return supabase.from('salary_periods').select('base_salary,overtime_amount,adjustments,bonus_amount,final_amount').eq('worker_profile_id', workerProfileId).eq('status', 'finalized');
 }
+
+export type SalaryFinanceRecordType = 'payment' | 'advance' | 'other';
+
+export interface SalaryFinanceRecord {
+  id: string;
+  worker_profile_id: string;
+  entry_type: SalaryFinanceRecordType;
+  amount: string | number;
+  received_at: string;
+  created_at: string;
+  deleted_at: string | null;
+}
+
+export async function listSalaryFinanceRecords(profileId: string) {
+  const { data: worker, error: workerError } = await supabase.from('worker_profiles').select('id').eq('profile_id', profileId).maybeSingle<{ id: string }>();
+  if (workerError || !worker?.id) return { data: [] as SalaryFinanceRecord[], error: workerError ?? new Error('Worker Identity is unavailable.') };
+  const result = await supabase.from('worker_finance_received').select('id,worker_profile_id,entry_type,amount,received_at,created_at,deleted_at').eq('worker_profile_id', worker.id).is('deleted_at', null).order('received_at', { ascending: false }).order('id', { ascending: false }).returns<SalaryFinanceRecord[]>();
+  return { data: result.data ?? [], error: result.error };
+}
+
+export async function addSalaryFinanceRecord(profileId: string, entryType: SalaryFinanceRecordType, amount: string, receivedAt: string) {
+  const { data: worker, error: workerError } = await supabase.from('worker_profiles').select('id').eq('profile_id', profileId).maybeSingle<{ id: string }>();
+  if (workerError || !worker?.id) return { data: null, error: workerError ?? new Error('Worker Identity is unavailable.') };
+  const result = await supabase.from('worker_finance_received').insert({ worker_profile_id: worker.id, entry_type: entryType, amount, received_at: receivedAt }).select('id,worker_profile_id,entry_type,amount,received_at,created_at,deleted_at').single<SalaryFinanceRecord>();
+  return { data: result.data, error: result.error };
+}
