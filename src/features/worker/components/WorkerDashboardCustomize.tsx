@@ -22,6 +22,7 @@ export function WorkerDashboardCustomize({ workerProfileId, cards, onLayoutChang
   const [status, setStatus] = useState('');
 
   useEffect(() => {
+    if (!workerProfileId) return;
     let active = true;
     void (async () => {
       const result = await getWorkerDashboardPreference(workerProfileId);
@@ -29,9 +30,10 @@ export function WorkerDashboardCustomize({ workerProfileId, cards, onLayoutChang
       const savedOrder = result.data?.card_order ?? [];
       const savedHidden = result.data?.hidden_cards ?? [];
       const normalized = [...savedOrder.filter(id => defaultOrder.includes(id)), ...defaultOrder.filter(id => !savedOrder.includes(id))];
+      const normalizedHidden = savedHidden.filter(id => defaultOrder.includes(id));
       setDraftOrder(normalized);
-      setDraftHidden(savedHidden.filter(id => defaultOrder.includes(id)));
-      onLayoutChange(normalized, savedHidden.filter(id => defaultOrder.includes(id)));
+      setDraftHidden(normalizedHidden);
+      onLayoutChange(normalized, normalizedHidden);
     })();
     return () => { active = false; };
   }, [workerProfileId, defaultOrder.join('|')]);
@@ -52,6 +54,7 @@ export function WorkerDashboardCustomize({ workerProfileId, cards, onLayoutChang
   };
 
   const save = async () => {
+    if (!workerProfileId) return;
     setSaving(true); setStatus('');
     const result = await saveWorkerDashboardPreference(workerProfileId, draftOrder, draftHidden);
     setSaving(false);
@@ -63,6 +66,7 @@ export function WorkerDashboardCustomize({ workerProfileId, cards, onLayoutChang
   };
 
   const reset = async () => {
+    if (!workerProfileId) return;
     setDraftOrder(defaultOrder);
     setDraftHidden([]);
     setSaving(true); setStatus('');
