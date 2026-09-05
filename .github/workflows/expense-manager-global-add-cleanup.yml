@@ -21,20 +21,20 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           import re
-          files = {
-            'src/features/expense-manager/pages/ExpenseAccountsPage.tsx': 'expense-accounts__add',
-            'src/features/expense-manager/pages/ExpenseCategoriesPage.tsx': 'expense-categories__add',
-            'src/features/expense-manager/pages/ExpenseBudgetsPage.tsx': 'expense-budgets__add',
-            'src/features/expense-manager/pages/ExpenseTransactionsPage.tsx': 'expense-transactions__add',
-            'src/features/expense-manager/components/ExpenseOverviewDashboard.tsx': 'expense-overview__add',
-          }
-          for name, cls in files.items():
+          files = [
+            'src/features/expense-manager/pages/ExpenseAccountsPage.tsx',
+            'src/features/expense-manager/pages/ExpenseCategoriesPage.tsx',
+            'src/features/expense-manager/pages/ExpenseBudgetsPage.tsx',
+            'src/features/expense-manager/pages/ExpenseTransactionsPage.tsx',
+            'src/features/expense-manager/components/ExpenseOverviewDashboard.tsx',
+          ]
+          for name in files:
             path = Path(name)
             text = path.read_text()
-            text = re.sub(rf'<button\s+type="button"\s+className="{re.escape(cls)}"[\s\S]*?</button>', '', text)
-            text = re.sub(rf'\.{re.escape(cls)}\{{[^}}]*\}}', '', text)
-            text = re.sub(rf'\.{re.escape(cls)}::after\{{[^}}]*\}}', '', text)
-            path.write_text(text)
+            text = re.sub(r'<button\\b(?=[^>]*className="expense-[^"]+__add")[\\s\\S]*?</button>', '', text)
+            text = re.sub(r'<button\\b[^>]*>[\\s\\S]*?\\bAdd(?: your first)?(?: account| category| budget| transaction)[\\s\\S]*?</button>', '', text)
+            text = re.sub(r'\\.expense-[a-z-]+__add(?:::after)?\\{[^{}]*\\}', '', text)
+            path.write_text(text.rstrip() + '\\n')
           PY
           git diff --check
           npm install
