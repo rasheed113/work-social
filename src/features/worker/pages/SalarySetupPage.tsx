@@ -13,9 +13,11 @@ const primary: React.CSSProperties = { minHeight: 50, padding: '0 18px', border:
 
 export function SalarySetupPage({ profileId }: { profileId: string }) {
   const { workerProfile, loading, error } = useWorkerProfile(profileId);
-  const focusSalaryType = new URLSearchParams(window.location.search).get('focus') === 'salary-type';
+  const focus = new URLSearchParams(window.location.search).get('focus');
+  const focusSalaryType = focus === 'salary-type';
+  const focusAllowances = focus === 'allowances';
   const salaryTypeRef = useRef<HTMLLabelElement>(null);
-  const [privacyAccepted, setPrivacyAccepted] = useState(!focusSalaryType);
+  const [privacyAccepted, setPrivacyAccepted] = useState(!focusSalaryType && !focusAllowances);
   const [salaryTypeHighlighted, setSalaryTypeHighlighted] = useState(focusSalaryType);
   const [showRules, setShowRules] = useState(true);
   const [showBonus, setShowBonus] = useState(false);
@@ -48,14 +50,16 @@ export function SalarySetupPage({ profileId }: { profileId: string }) {
     : ({ yearly: 1, '6_months': 2, '3_months': 4 } as Record<Exclude<BonusFrequency, 'custom'>, number>)[bonusFrequency], [bonusFrequency, bonusExpectedMonths]);
 
   useEffect(() => {
-    if (!focusSalaryType || !privacyAccepted || loading || error || !workerProfile) return;
+    if ((!focusSalaryType && !focusAllowances) || !privacyAccepted || loading || error || !workerProfile) return;
     const scrollTimer = window.setTimeout(() => {
-      salaryTypeRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      setSalaryTypeHighlighted(true);
-      window.setTimeout(() => setSalaryTypeHighlighted(false), 3600);
+      if (focusSalaryType) {
+        salaryTypeRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setSalaryTypeHighlighted(true);
+        window.setTimeout(() => setSalaryTypeHighlighted(false), 3600);
+      }
     }, 180);
     return () => window.clearTimeout(scrollTimer);
-  }, [focusSalaryType, privacyAccepted, loading, error, workerProfile]);
+  }, [focusSalaryType, focusAllowances, privacyAccepted, loading, error, workerProfile]);
 
   if (loading) return <main style={{ padding: 24 }}>Loading Salary Setup…</main>;
   if (error || !workerProfile) return <main style={{ padding: 24 }}><p role="alert">{error ?? 'Worker profile unavailable.'}</p></main>;
@@ -150,7 +154,7 @@ export function SalarySetupPage({ profileId }: { profileId: string }) {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}><label style={label}>Pay Date <span style={{ fontWeight: 500 }}> (notification only)</span><input type="number" min="1" max="31" value={payDate} onChange={e => setPayDate(e.target.value)} placeholder="Optional" style={input}/></label><label style={label}>Salary Start Date<input required type="date" value={startDate} onChange={e => setStartDate(e.target.value)} style={input}/></label></div>
       </div></section>
 
-      <SalaryAllowanceSection profileId={profileId} effectiveFrom={startDate} />
+      <SalaryAllowanceSection profileId={profileId} effectiveFrom={startDate} focused={focusAllowances} />
 
       <section style={{ ...card, display: 'grid', gap: 14 }}><button type="button" onClick={() => setShowRules(v => !v)} style={{ border: 0, background: 'transparent', padding: 0, textAlign: 'left', cursor: 'pointer' }}><SectionTitle title="Salary Rules & Absence" subtitle="Keep salary deductions and leave treatment separate from allowance loss conditions." open={showRules}/></button>{showRules && <div style={{ display: 'grid', gap: 12 }}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}><label style={label}>Total Salary<input type="number" min="0" step="0.01" value={totalSalary} onChange={e => setTotalSalary(e.target.value)} style={input} placeholder="Optional"/></label><label style={label}>Basic Salary<input type="number" min="0" step="0.01" value={basicSalary} onChange={e => setBasicSalary(e.target.value)} style={input} placeholder="Optional"/></label></div>
