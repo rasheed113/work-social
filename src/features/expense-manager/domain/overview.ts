@@ -15,6 +15,7 @@ export interface ExpenseOverviewCategory {
   name: string;
   icon: string | null;
   color: string | null;
+  currency: string;
   amount: number;
   transaction_count: number;
 }
@@ -27,6 +28,7 @@ export interface ExpenseOverviewTransaction {
   note: string | null;
   category_name: string | null;
   category_icon: string | null;
+  currency: string | null;
   display_account: string | null;
 }
 
@@ -45,6 +47,13 @@ export interface ExpenseOverviewCurrency {
   balance: number;
 }
 
+export interface ExpenseOverviewPeriodCurrency {
+  currency: string;
+  income: number;
+  expenses: number;
+  transaction_count: number;
+}
+
 export interface ExpenseOverviewData {
   period_start: string;
   period_end: string;
@@ -54,6 +63,7 @@ export interface ExpenseOverviewData {
   net: number;
   account_count: number;
   currencies: ExpenseOverviewCurrency[];
+  period_currencies: ExpenseOverviewPeriodCurrency[];
   accounts: ExpenseOverviewAccount[];
   top_categories: ExpenseOverviewCategory[];
   recent_transactions: ExpenseOverviewTransaction[];
