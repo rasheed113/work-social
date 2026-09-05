@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { navigate } from '../../../app/Router';
 import { useWorkerProfile } from '../hooks/useWorkerProfile';
 import { saveBonusPolicy, saveSalaryPolicy } from '../api/salary';
@@ -12,7 +12,10 @@ const primary: React.CSSProperties = { minHeight: 50, padding: '0 18px', border:
 
 export function SalarySetupPage({ profileId }: { profileId: string }) {
   const { workerProfile, loading, error } = useWorkerProfile(profileId);
-  const [privacyAccepted, setPrivacyAccepted] = useState(false);
+  const focusSalaryType = new URLSearchParams(window.location.search).get('focus') === 'salary-type';
+  const salaryTypeRef = useRef<HTMLLabelElement>(null);
+  const [privacyAccepted, setPrivacyAccepted] = useState(!focusSalaryType);
+  const [salaryTypeHighlighted, setSalaryTypeHighlighted] = useState(focusSalaryType);
   const [showRules, setShowRules] = useState(false);
   const [showBonus, setShowBonus] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -46,6 +49,16 @@ export function SalarySetupPage({ profileId }: { profileId: string }) {
   const expectedMonths = useMemo(() => bonusFrequency === 'custom'
     ? (Number(bonusExpectedMonths) || 0)
     : ({ yearly: 1, '6_months': 2, '3_months': 4 } as Record<Exclude<BonusFrequency, 'custom'>, number>)[bonusFrequency], [bonusFrequency, bonusExpectedMonths]);
+
+  useEffect(() => {
+    if (!focusSalaryType || !privacyAccepted || loading || error || !workerProfile) return;
+    const scrollTimer = window.setTimeout(() => {
+      salaryTypeRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setSalaryTypeHighlighted(true);
+      window.setTimeout(() => setSalaryTypeHighlighted(false), 3600);
+    }, 180);
+    return () => window.clearTimeout(scrollTimer);
+  }, [focusSalaryType, privacyAccepted, loading, error, workerProfile]);
 
   if (loading) return <main style={{ padding: 24 }}>Loading Salary Setup…</main>;
   if (error || !workerProfile) return <main style={{ padding: 24 }}><p role="alert">{error ?? 'Worker profile unavailable.'}</p></main>;
@@ -111,12 +124,13 @@ export function SalarySetupPage({ profileId }: { profileId: string }) {
   </section></main>;
 
   return <main style={{ width: '100%', maxWidth: 760, margin: '0 auto', padding: '24px 14px 112px', boxSizing: 'border-box' }}>
+    <style>{`@keyframes salaryTypeAttention { 0%,100% { box-shadow: 0 0 0 0 rgba(245,158,11,0); border-color: #cbd5e1; } 50% { box-shadow: 0 0 0 7px rgba(245,158,11,.18), 0 10px 28px rgba(245,158,11,.12); border-color: #f59e0b; } }`}</style>
     <button type="button" onClick={() => navigate('/work/identity')} style={{ minHeight: 38, padding: '0 11px', borderRadius: 10, fontWeight: 800, border: '1px solid #e2e8f0', background: '#fff', cursor: 'pointer' }}>← Work Identity</button>
     <header style={{ margin: '18px 0 20px' }}><div style={{ color: '#4f46e5', fontSize: 12, fontWeight: 900, letterSpacing: '.1em', textTransform: 'uppercase' }}>Salary Person</div><h1 style={{ margin: '6px 0 7px', fontSize: 30 }}>Salary Setup</h1><p style={{ margin: 0, color: '#64748b', lineHeight: 1.55 }}>Set your salary policy once. Optional rules can stay empty if they do not apply to you.</p></header>
     <form onSubmit={submit} style={{ display: 'grid', gap: 14 }}>
       <section style={{ ...card, display: 'grid', gap: 14 }}><SectionTitle title="Salary & Working Terms" subtitle="The core values used by your salary and overtime calculator."/><div style={{ display: 'grid', gap: 12 }}>
         <label style={label}>Salary Amount<input required type="number" min="0.01" step="0.01" value={salary} onChange={e => setSalary(e.target.value)} style={input} placeholder="e.g. 150000"/></label>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}><label style={label}>Currency<input required maxLength={10} value={currency} onChange={e => setCurrency(e.target.value)} style={input} placeholder="PKR"/></label><label style={label}>Salary Type<select value={salaryType} onChange={e => setSalaryType(e.target.value as SalaryType)} style={input}><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="15_days">15 Days</option><option value="monthly">Monthly</option></select></label></div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}><label style={label}>Currency<input required maxLength={10} value={currency} onChange={e => setCurrency(e.target.value)} style={input} placeholder="PKR"/></label><label ref={salaryTypeRef} style={{ ...label, padding: salaryTypeHighlighted ? 10 : 0, margin: salaryTypeHighlighted ? -10 : 0, borderRadius: 14, background: salaryTypeHighlighted ? '#fffbeb' : 'transparent', animation: salaryTypeHighlighted ? 'salaryTypeAttention 1.1s ease-in-out 0s 3' : undefined }}>Salary Type<select value={salaryType} onChange={e => { setSalaryType(e.target.value as SalaryType); setSalaryTypeHighlighted(false); }} style={input}><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="15_days">15 Days</option><option value="monthly">Monthly</option></select>{salaryTypeHighlighted && <span style={{ color: '#b45309', fontSize: 12, fontWeight: 900 }}>Required step — choose your salary cycle.</span>}</label></div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}><label style={label}>Working Hours<select value={hours} onChange={e => setHours(e.target.value)} style={input}><option value="8">8 hours</option><option value="12">12 hours</option><option value="">Optional / not set</option></select></label><label style={label}>Overtime Rate<select value={ot} onChange={e => setOt(Number(e.target.value) as OvertimeMultiplier)} style={input}><option value="1">1× Standard</option><option value="1.5">1.5×</option><option value="2">2×</option></select></label></div>
         <p style={{ ...hint, margin: 0 }}>Overtime is calculated from these saved values; the app does not ask you to enter a manual hourly rate.</p>
       </div></section>
