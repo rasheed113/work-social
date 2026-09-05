@@ -15,7 +15,7 @@ const modules: Array<{ id: ModuleId; label: string; path: string }> = [
 ];
 
 function activeModule(pathname: string): ModuleId {
-  if (pathname === '/expense-manager') return 'expense';
+  if (pathname === '/expense-manager' || pathname.startsWith('/expense-manager/')) return 'expense';
   if (pathname === '/work/diary') return 'diary';
   if (pathname === '/work' || pathname.startsWith('/work/')) return 'work';
   return 'social';
@@ -116,48 +116,14 @@ export function GlobalModuleMenu({ onNavigate }: GlobalModuleMenuProps) {
         @media (max-width:430px){.ws-main-header__menu{min-width:36px;min-height:36px;width:36px;flex-basis:36px;border-radius:11px}.ws-main-header__menu-icon{width:18px;height:18px}.ws-main-header__menu-panel{top:calc(100% + 7px);width:min(280px,calc(100vw - 16px));right:-1px}}
         @media (max-width:340px){.ws-main-header__menu{min-width:34px;min-height:34px;width:34px;flex-basis:34px;border-radius:10px}.ws-main-header__menu-panel{width:calc(100vw - 14px);right:-1px}}
       `}</style>
-      <button
-        ref={menuButtonRef}
-        type="button"
-        className="ws-main-header__menu"
-        aria-label="Open Work Social menu"
-        aria-expanded={open}
-        aria-haspopup="menu"
-        aria-controls="work-social-global-module-menu"
-        onClick={() => setOpen((value) => !value)}
-      >
-        <svg className="ws-main-header__menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-          <path d="M4 7h16" />
-          <path d="M4 12h16" />
-          <path d="M4 17h16" />
-        </svg>
+      <button ref={menuButtonRef} type="button" className="ws-main-header__menu" aria-label="Open Work Social menu" aria-expanded={open} aria-haspopup="menu" aria-controls="work-social-global-module-menu" onClick={() => setOpen((value) => !value)}>
+        <svg className="ws-main-header__menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M4 7h16" /><path d="M4 12h16" /><path d="M4 17h16" /></svg>
       </button>
       {open && (
         <div id="work-social-global-module-menu" className="ws-main-header__menu-panel" role="menu" aria-label="Work Social modules" onKeyDown={handleMenuKeyDown}>
-          <div className="ws-main-header__menu-heading">
-            <span className="ws-main-header__menu-title">Work Social</span>
-            <span className="ws-main-header__menu-subtitle">Switch workspace</span>
-          </div>
+          <div className="ws-main-header__menu-heading"><span className="ws-main-header__menu-title">Work Social</span><span className="ws-main-header__menu-subtitle">Switch workspace</span></div>
           <div className="ws-main-header__menu-divider" />
-          {modules.map((module, index) => {
-            const active = module.id === currentModule;
-            return (
-              <button
-                key={module.id}
-                ref={(element) => { itemRefs.current[index] = element; }}
-                type="button"
-                role="menuitem"
-                className="ws-main-header__menu-item"
-                data-active={active}
-                aria-current={active ? 'page' : undefined}
-                onClick={() => selectModule(module.path)}
-              >
-                <span className="ws-main-header__menu-dot" aria-hidden="true" />
-                <span className="ws-main-header__menu-label">{module.label}</span>
-                {active && <span className="ws-main-header__menu-check" aria-hidden="true">✓</span>}
-              </button>
-            );
-          })}
+          {modules.map((module, index) => { const active = module.id === currentModule; return <button key={module.id} ref={(element) => { itemRefs.current[index] = element; }} type="button" role="menuitem" className="ws-main-header__menu-item" data-active={active} aria-current={active ? 'page' : undefined} onClick={() => selectModule(module.path)}><span className="ws-main-header__menu-dot" aria-hidden="true" /><span className="ws-main-header__menu-label">{module.label}</span>{active && <span className="ws-main-header__menu-check" aria-hidden="true">✓</span>}</button>; })}
         </div>
       )}
     </div>
