@@ -1,49 +1,63 @@
 # Work Social — Salary Person End-to-End Blueprint
 
-**Status:** Design / formula discussion — NOT implementation-ready until open decisions are explicitly frozen.
+**Status:** End-to-End Blueprint Completed / Product Design Frozen
 
-**Scope:** Salary Person mode only. Existing Work per Job / Contract behavior must remain unchanged. Offline/Online AI is completely out of scope.
+**Scope:** Salary Person mode only. Existing Work per Job / Contract behavior remains unchanged. Offline/Online AI is completely out of scope.
 
-## 1. Existing Entry Point — Work Identity / Worker Settings
-
-The Salary Person journey starts from the existing Work Identity / Worker Settings page.
+## 1. Authoritative End-to-End Journey
 
 ```text
-Worker Settings
-    ↓
-Work Identity
-    ↓
-Existing Worker Identity form
-    ↓
+Existing Worker Settings
+        ↓
+Existing Work Identity
+        ↓
 Worker Type
-       /       \
-Salary Person   Work per Job / Contract
+   ┌────┴──────────────────────┐
+Salary Person        Work per Job / Contract
+   ↓                            ↓
+Salary Data Caution      Existing Contract Flow
+   ↓                            ↓
+Salary Setup                  UNCHANGED
+   ↓
+Optional Additional Salary Rules
+   ↓
+Saved Salary Policy
+   ↓
+Salary Person Work House
+   ↓
+Daily Attendance + Overtime
+   ↓
+Bonus Records / Policy
+   ↓
+Salary Calculation
+   ↓
+Salary Period / Salary Slip
+   ↓
+Salary Person Dashboard
+   ↓
+Current Month + Grand Salary + Attendance + OT + Bonus + History
 ```
 
-Add a clear Worker Type selector/switch to the existing Work Identity form:
+This document is the authoritative product/design blueprint for the Salary Person feature.
+
+## 2. Worker Type
+
+The existing Work Identity / Worker Settings flow gains a Worker Type selector:
 
 - Salary Person
 - Work per Job / Contract
 
-Selecting Work per Job / Contract keeps the existing contract/piece-work system unchanged. Selecting Salary Person starts the Salary Person activation flow. Switching modes must not delete or silently rewrite historical records.
+Selecting Contract preserves the existing contract/piece-work system. Selecting Salary Person starts the salary flow.
 
-## 2. Product Goal
+Changing Worker Type is non-destructive. Historical Salary and Contract records remain intact and are never silently rewritten.
 
-Salary Person adds a salary-based work model beside the existing contract/piece-work model.
+## 3. Salary Data Caution
 
-**Configure once, calculate automatically thereafter.**
-
-The saved Salary Policy drives attendance, overtime, salary-period calculation, salary slips, and salary-related notifications.
-
-## 3. Pre-Form Salary Data Caution / Privacy Notice
-
-Before Salary Setup opens, show an informational salary-data caution. It must not promise security/privacy guarantees beyond the actual implementation; database authorization and RLS remain mandatory.
-
-Suggested copy:
+Before Salary Setup:
 
 > ### Your Salary Data Is Private
 >
-> Your salary information is used only to maintain your personal salary, attendance, and overtime records in Work Social.
+> Your salary information is used only to maintain your personal salary, attendance, overtime, bonus, and salary records in Work Social.
 >
 > We do not use your salary data for public display or social sharing. It helps Work Social provide you with a clear, organized, and accurate record of your work and salary information.
 >
@@ -51,7 +65,9 @@ Suggested copy:
 
 Action: **Continue to Salary Setup**.
 
-## 4. One-Time Salary Setup Form
+The UI wording must not promise privacy/security guarantees beyond the actual database authorization and RLS implementation.
+
+## 4. One-Time Salary Setup
 
 ### 4.1 Salary
 
@@ -65,15 +81,13 @@ Action: **Continue to Salary Setup**.
 - 15 Days
 - Monthly
 
-The exact mathematical conversion between salary types must be frozen before implementation.
-
 ### 4.3 Working Hours
 
 - 8 hours
 - 12 hours
 - Optional / not set
 
-If omitted, the system must not invent an hourly basis for overtime.
+If working hours are not configured, the system must not invent an hourly overtime basis.
 
 ### 4.4 Overtime Type
 
@@ -81,116 +95,104 @@ If omitted, the system must not invent an hourly basis for overtime.
 - 1.5×
 - 2.0×
 
-### 4.5 Sunday Paid?
+### 4.5 Sunday Paid
 
 - Yes
 - No
 
-A normal Sunday off may be paid according to the saved policy. If the worker actually works Sunday, Sunday itself does not automatically create overtime; actual overtime is entered manually.
+A normal Sunday off follows the saved policy. Working Sunday does not automatically create overtime; actual overtime is entered manually.
 
-### 4.6 Holidays Paid?
+### 4.6 Holidays Paid
 
 - Yes
 - No
 
-Holiday calendar/source and holiday-work treatment remain open until explicitly frozen.
+Holiday calendar, timezone, and holiday-work treatment must follow the finalized runtime policy rather than an invented calendar.
 
-### 4.7 Attendance Notification Time
+### 4.7 Attendance Notification
 
-**When do you want to get attendance notification?**
-
-- Time picker: 00:00 through 23:59
+- Configurable time from 00:00–23:59
 - No attendance notification
 
-The selected time is the worker's requested daily attendance-notification trigger time and must use the worker's applicable/local timezone rather than a universal hard-coded 9:00 AM.
+The configured time uses the applicable worker/local timezone. There is no hard-coded universal 9:00 AM trigger.
 
-If disabled, no attendance reminder cycle is generated. Manual attendance, overtime, salary calculation, and Pay Date notifications remain available.
+### 4.8 Pay Date
 
-### 4.8 Pay Date — Notification Only
+Optional and **notification-only**.
 
-Optional Pay Date:
+Example:
 
-> Select your expected salary payment date. Purpose: only to notify you about your payment day.
+> Today is your scheduled salary payment day.
 
-If configured, the Notification Generator may create a payment-day notification. This is **not** payment confirmation, payroll processing, bank integration, or proof that money was received.
-
-The exact Pay Date representation for Daily/Weekly/15-Day/Monthly salary frequencies remains open.
+It never confirms payment, processes payment, integrates with a bank, or proves receipt.
 
 ### 4.9 Salary Start Date
 
-Recommended for salary-period boundaries and historical accuracy. Exact semantics remain open until explicitly finalized.
+Used for salary-period boundaries and historical accuracy.
 
 ### 4.10 Additional Salary Rules — Optional / Expandable
 
-The Salary Setup form must contain an **optional expandable section** for detailed salary-structure and employer-specific rules.
-
-Collapsed state:
+Inside Salary Setup, provide:
 
 **＋ Additional Salary Rules (Optional)**
 
-Clicking it opens structured fields. The user may fill only what applies and may skip the entire section.
+The user may skip the entire section or fill only applicable fields.
 
-The section should support, at minimum:
+Supported fields:
 
-- **Total Salary**
-- **Basic Salary**
-- **Attendance Allowance**
-- **Other Allowance** — optional
-- **Absent Rule**
-- **Salary deduction per absent day**
-- **Allowance-loss rule**
-- **Allowance loss after how many absences**
-- **Leave treatment**
-- **Other salary rule / note**
+- Total Salary
+- Basic Salary
+- Attendance Allowance
+- Other Allowance — optional
+- Absent Rule
+- Salary deduction per absent day
+- Allowance-loss rule
+- Allowance loss after X absences
+- Leave treatment
+- Custom salary rule/note
 
-Example record:
+Absence deduction and attendance-allowance loss are separate policy components.
+
+Example:
 
 ```text
-Total Salary:              Rs. 150,000
-Basic Salary:              Rs. 145,000
-Attendance Allowance:      Rs.   5,000
-Allowance loss threshold:  3 absences
-Absence deduction:         1 day's salary per absence
+Total Salary:             Rs. 150,000
+Basic Salary:             Rs. 145,000
+Attendance Allowance:     Rs.   5,000
+Allowance loss threshold: 3 absences
+Absence deduction:        1 day's salary per absence
 ```
 
-This is intentionally configurable rather than hard-coded. Some salary arrangements include an attendance allowance inside the stated total salary; others have separate basic and allowance components. The system must record these components separately so the resulting salary calculation remains explainable.
-
-**Important distinction:** absence salary deduction and attendance-allowance loss are separate policy components. For example, one absence may cause a one-day salary deduction while the attendance allowance may remain eligible until a configured absence threshold is reached. Approved Leave must not automatically be treated as Absent unless the finalized leave policy explicitly says so.
-
-The optional section is for both record-keeping and calculation policy. Blank fields mean the corresponding special rule is not configured; the system must not invent a rule.
+Blank optional fields mean that the corresponding special rule is not configured; the calculation engine must not invent one.
 
 ## 5. Saved Salary Policy
 
-After successful setup, the form values become a structured Salary Policy:
+The setup becomes a structured, versionable Salary Policy containing:
 
-```text
-Salary Policy
- ├─ total/base salary amount
- ├─ currency
- ├─ salary type
- ├─ working hours
- ├─ overtime multiplier
- ├─ Sunday paid
- ├─ holidays paid
- ├─ attendance notification time / disabled
- ├─ pay date / payment notification preference
- ├─ effective/start date
- └─ optional additional salary rules
-      ├─ basic salary
-      ├─ attendance allowance
-      ├─ other allowance
-      ├─ absence rule
-      ├─ absence deduction
-      ├─ allowance-loss rule/threshold
-      ├─ leave treatment
-      └─ custom rule/note
-```
+- salary amount / total salary
+- currency
+- salary type
+- working hours
+- overtime multiplier
+- Sunday paid
+- holidays paid
+- attendance notification preference
+- Pay Date preference
+- effective/start date
+- optional basic salary
+- attendance allowance
+- other allowance
+- absence rule/deduction
+- allowance-loss rule/threshold
+- leave treatment
+- custom rule/note
+- bonus policy where configured
 
-Policy changes must not silently rewrite closed historical salary periods. Historical calculations must retain enough policy information/snapshot/version information to remain explainable.
+Closed historical salary periods retain the policy/version/snapshot information needed to explain their calculations.
 
 ## 6. Post-Save Confirmation
 
-After successful setup, show:
+After successful setup:
 
 > ### Salary Setup Saved Successfully
 >
@@ -206,20 +208,18 @@ After successful setup, show:
 
 Action: **Got It**.
 
-## 7. Salary Person Work House Mode / Daily Entry
+## 7. Salary Person Work House / Daily Entry
 
-Daily Salary Person entry is salary-oriented rather than piece-work-oriented:
+Salary Person daily entry is salary-oriented:
 
 - Date
 - Attendance: Present / Absent / Leave
 - Overtime hours
 - Optional note
 
-Piece/size/quantity/rate are not required as the primary earning input.
+Piece/size/quantity/rate are not required as primary earning inputs.
 
-Sunday and holiday policy comes from the saved Salary Policy. Attendance reminders are separate from manual attendance and overtime entry.
-
-## 8. Attendance Model
+## 8. Attendance
 
 Supported states:
 
@@ -227,266 +227,322 @@ Supported states:
 - Absent
 - Leave
 
-Attendance should be date-based and idempotent: one effective attendance result per worker/date unless a future revision rule is explicitly approved.
+Attendance is date-based and idempotent: one effective result per worker/date unless an explicit revision mechanism is later required.
 
-### Absence and allowance policy
+### Saturday → Sunday
 
-The optional Additional Salary Rules section may define:
+- Saturday Present → Sunday Present automatically.
+- Saturday Leave → confirmation:
+  - Yes → Sunday Leave
+  - No → Sunday Present
+- Saturday Absent follows the finalized attendance policy.
 
-- whether absence causes a daily salary deduction;
-- the applicable daily deduction basis;
-- whether attendance allowance is affected by absence;
-- whether allowance is lost after any absence or after a configured number of absences;
-- whether allowance loss is full or partial;
-- how Leave affects salary/allowance.
+### Sunday
 
-These rules are **not hard-coded** until the exact policy is frozen. Attendance-allowance loss and daily absence deduction must remain separate calculations.
+Sunday paid-off status and Sunday overtime are separate:
 
-## 9. Saturday → Sunday Rule
+- Sunday Paid = Yes → normal Sunday off may be paid.
+- Sunday work does not automatically mean overtime.
+- Actual overtime is entered manually.
+- Saved overtime multiplier is applied.
 
-### Saturday Present
+### Holiday
 
-Saturday Present → Sunday Present automatically.
+Holiday paid/unpaid behavior follows the configured policy and approved calendar/source. Holiday work must be represented separately from normal Sunday/off-day treatment.
 
-### Saturday Leave
+## 9. Overtime
 
-If Saturday is Leave, show:
-
-> Saturday was marked as leave. Should Sunday also be counted as leave?
-
-- Yes → Sunday Leave
-- No → Sunday Present
-
-### Saturday Absent
-
-Behavior remains open and must be frozen before implementation.
-
-## 10. Sunday Paid + Sunday Worked
-
-If Sunday Paid = Yes, a normal Sunday off is paid according to the policy.
-
-If the worker actually works Sunday:
-
-- Sunday paid-off status and overtime remain separate.
-- Sunday alone does not automatically create overtime.
-- Actual overtime hours are entered manually.
-- The saved OT multiplier is applied.
-
-## 11. Holiday Rule
-
-The setup contains Holidays Paid = Yes/No.
-
-Before implementation, freeze:
-
-- holiday calendar/source;
-- country/region;
-- timezone;
-- automatic holiday recognition;
-- holiday-work treatment;
-- whether holiday work receives overtime/premium treatment.
-
-## 12. Overtime Calculation
-
-Conceptually:
+Conceptual formula:
 
 `Overtime Amount = Hourly Rate × Overtime Multiplier × Overtime Hours`
 
 `Hourly Rate = Daily Rate ÷ Working Hours Per Day`
 
-Daily Rate must be derived from the selected salary type using finalized salary-period rules.
+Daily Rate is derived from the selected salary type according to the finalized salary-period policy.
 
-The exact Daily/Weekly/15-Day/Monthly conversion is not yet frozen. Monthly denominator and working-day/calendar basis must not be guessed.
+Financial arithmetic must be deterministic; persisted monetary calculations must not depend on JavaScript floating-point accumulation.
 
-Use deterministic numeric/Decimal handling rather than JavaScript floating-point arithmetic for persisted financial totals.
+Overtime accumulates into the applicable salary period.
 
-Daily overtime accumulates into the active salary period.
+## 10. Bonus System — Frozen
 
-## 13. Salary Period and Salary Slip
+Bonus is a separate earning component from normal salary.
 
-Minimum explainable components:
+### Bonus Frequency
 
-- Salary period
-- Base salary
-- Basic salary, where configured
-- Attendance allowance, where configured
-- Other allowance, where configured
-- Attendance summary
-- Paid/applicable days
-- Leave/absence information
-- Absence deductions, where applicable
-- Allowance adjustments, where applicable
-- Overtime hours
-- Overtime amount
-- Sunday treatment
-- Holiday treatment
-- Final calculated amount
+- Yearly → **1 expected bonus month**
+- Every 6 Months → **2 expected bonus months**
+- Every 3 Months → **4 expected bonus months**
+- Custom → **user-defined number of expected bonus months**
 
-Historical salary slips must remain explainable after later policy changes.
+The system must enforce the configured expected-month count for Custom rather than assuming a hard-coded schedule.
 
-## 14. Central Notification Generator
+### Bonus Amount
 
-Existing Friend Request, Comment, and Reaction notifications are already working and remain unchanged.
+- Half Salary
+- Full Salary
+- Fixed Amount
 
-A new dedicated Notification Generator handles automatic/system-generated Salary Person notifications:
+If Fixed Amount is selected, the user supplies the Fixed Bonus Amount.
 
-```text
-Existing Notification System
-├── Friend Request  → unchanged
-├── Comment         → unchanged
-├── Reaction        → unchanged
-└── Notification Generator
-    ├── Attendance notifications
-    └── Payment-day notifications
-```
+### Bonus rules
 
-The generator decides when an automatic notification is due and creates it through the existing notification infrastructure. It must not contain salary formulas, replace existing social notification logic, or become the attendance data store.
+- Bonus is stored separately from base salary.
+- Expected bonus months are policy-driven.
+- Actual received bonus records are stored separately from expected/scheduled bonus occurrences.
+- Historical bonus records retain the policy information needed to explain the amount.
+- Bonus must not be silently added to ordinary salary until the applicable bonus event is recorded/recognized according to the finalized policy.
 
-### 14.1 Attendance trigger
-
-Worker-configured time:
-
-```text
-00:00–23:59 selected time
-        OR
-No attendance notification
-```
-
-At the selected local/applicable time, check whether required attendance is already recorded. If yes, do not generate a reminder. If missing, generate the attendance notification.
-
-### 14.2 Attendance notification actions
-
-The notification appears through the existing notification UI and may also appear as a flash notice where supported.
-
-Actions:
-
-- Present
-- Absent
-- Leave
-
-Reading/opening is not an action. The authoritative attendance operation is responsible for recording the selected state.
-
-### 14.3 Fifteen-calendar-day action window
-
-The agreed model is a **15-calendar-day action window**, not a maximum of 15 notifications.
-
-The active attendance notification cycle remains actionable for up to 15 calendar days. Daily reminders may occur at the configured time during the active window, subject to idempotency and duplicate prevention.
-
-Once the user chooses Present/Absent/Leave, the relevant attendance obligation is completed and further reminders for that obligation stop.
-
-### 14.4 Cycle end
-
-If no attendance action is taken during the complete 15-day window, the cycle closes automatically and exactly one dedicated cycle-end notification is generated.
-
-It explains that the action window expired, previous notifications remain in history, the cycle is closed/paused, and the user can reset attendance notifications.
-
-Action:
-
-**Reset Attendance Notifications**
-
-The cycle-end notification must not itself mark Present, Absent, or Leave.
-
-### 14.5 Reset
-
-Previous notification records remain in history. Reset is explicit and user-initiated.
-
-```text
-15-day window expires
-        ↓
-Cycle-end notification
-        ↓
-Cycle paused/closed
-        ↓
-User selects Reset Attendance Notifications
-        ↓
-Previous cycle retained as history
-        ↓
-New cycle activated
-```
-
-Reset must not delete notification history, rewrite historical attendance, or fabricate an attendance result.
-
-### 14.6 No attendance notification mode
-
-If disabled:
-
-- no daily attendance reminder;
-- no 15-day attendance cycle;
-- no cycle-end notification for that disabled preference;
-- manual attendance remains available;
-- manual overtime remains available;
-- salary calculation remains available;
-- Pay Date notifications remain independently controlled.
-
-### 14.7 Pay Date notification
-
-If Pay Date is configured, generate a payment-day notification on the applicable date.
-
-Example:
-
-```text
-Pay Date configured
-      ↓
-Payment date arrives
-      ↓
-"Today is your scheduled salary payment day."
-```
-
-Notification only. It is not payment confirmation, payment processing, bank integration, or proof of receipt.
-
-### 14.8 Generator boundaries
-
-Must:
-
-- be authoritative for automatic notification generation;
-- be idempotent;
-- use applicable worker timezone;
-- preserve notification history;
-- distinguish notification state from attendance state;
-- distinguish attendance reminders from payment-day reminders.
-
-Must not:
-
-- calculate salary;
-- mark attendance without an explicit attendance action or separately approved automatic rule;
-- alter Friend Request/Comment/Reaction behavior;
-- delete notification history;
-- expose salary amounts through public/social notification surfaces.
-
-### 14.9 Scheduler
-
-Backend-authoritative scheduling is required/recommended; frontend-only scheduling is not reliable. Exact backend scheduler, retry, locking, idempotency, and timezone implementation must be frozen against the actual repository/Supabase runtime before implementation.
-
-## 15. Salary Calculation Architecture
+## 11. Salary Calculation
 
 ```text
 Salary Policy
    ↓
-Attendance + Overtime Events
+Attendance + Overtime
    ↓
-Sunday/Holiday Rules
+Sunday / Holiday Rules
    ↓
 Absence + Allowance Rules
    ↓
-Calculation Engine
+Bonus Rules / Recorded Bonuses
+   ↓
+Deterministic Calculation Engine
    ↓
 Salary Period Ledger
    ↓
 Salary Slip
 ```
 
-The calculation engine must be deterministic and independently testable. UI components must not contain authoritative salary formulas.
+The calculation engine is authoritative. UI components must not contain authoritative salary formulas.
 
-## 16. Worker Type Changes and Historical Integrity
+Salary calculations must remain explainable through their source attendance, overtime, adjustment, allowance, and bonus records.
 
-Worker Type is a business-state transition, not a destructive reset.
+## 12. Salary Period / Salary Slip
 
-- Existing Contract records remain intact.
-- Existing Salary records remain intact.
-- Historical records retain their original work model.
-- New salary policies do not retroactively rewrite finalized salary periods.
-- Historical salary periods retain enough policy information to explain their results.
+Minimum components:
 
-## 17. Data Model Direction
+- Salary period
+- Base salary
+- Basic salary where configured
+- Attendance allowance where configured
+- Other allowance where configured
+- Attendance summary
+- Present/Absent/Leave information
+- Paid/applicable days
+- Absence deductions where applicable
+- Allowance adjustments where applicable
+- Overtime hours
+- Overtime amount
+- Bonus amount and applicable bonus records
+- Sunday treatment
+- Holiday treatment
+- Final calculated amount
+
+Historical salary slips remain explainable after later policy changes.
+
+## 13. Central Notification Generator
+
+Existing notification producers remain unchanged:
+
+```text
+Friend Request  → unchanged
+Comment         → unchanged
+Reaction        → unchanged
+```
+
+A dedicated Salary Person Notification Generator is additive and handles:
+
+- Attendance notifications
+- Attendance action lifecycle
+- Attendance 15-calendar-day cycles
+- Payment-day notifications
+
+It does not calculate salary and does not replace the existing notification infrastructure.
+
+### Attendance notification lifecycle
+
+At the configured local time:
+
+1. Identify eligible Salary Person users.
+2. Check whether the relevant attendance obligation is already completed.
+3. If completed, generate nothing.
+4. If missing, generate the attendance notification.
+5. Present/Absent/Leave actions call the authoritative attendance operation.
+6. Reading/opening the notification is not completion.
+
+### 15-calendar-day action window
+
+The attendance cycle is a **15-calendar-day action window**, not a maximum of 15 notifications.
+
+Daily reminders may occur during the active window subject to idempotency and duplicate prevention.
+
+Once an attendance action is completed, further reminders for that obligation stop.
+
+### Cycle expiry
+
+If no action occurs during the full 15-calendar-day window:
+
+- close/pause the cycle;
+- retain all previous notifications;
+- generate exactly one cycle-end notification;
+- do not fabricate an attendance result.
+
+The cycle-end notification provides:
+
+**Reset Attendance Notifications**
+
+### Reset
+
+Reset is explicit and user initiated:
+
+```text
+Cycle expires
+   ↓
+Cycle-end notification
+   ↓
+Cycle closed/paused
+   ↓
+User chooses Reset
+   ↓
+Previous history retained
+   ↓
+New cycle activated
+```
+
+Reset never deletes notification history, rewrites historical attendance, or fabricates attendance.
+
+### Disabled attendance notifications
+
+If the user selects No attendance notification:
+
+- no attendance reminder cycle;
+- no cycle-end notification;
+- manual attendance remains available;
+- manual overtime remains available;
+- salary calculation remains available;
+- Pay Date notifications remain independent.
+
+### Pay Date
+
+Pay Date notifications are informational only and never claim payment confirmation.
+
+### Scheduler requirements
+
+The generator must be backend-authoritative, idempotent, timezone-aware, retry-safe, and protected against duplicate generation. The exact scheduler implementation is an engineering decision against the actual repository/runtime and must preserve the frozen product behavior above.
+
+## 14. Dashboard — Salary Person Summary
+
+The Salary Person Dashboard is now functionally frozen as a summary-first dashboard.
+
+### 14.1 Current Month Salary Card
+
+Default view: **This Month**.
+
+Show:
+
+- Month
+- Base Salary
+- Overtime
+- Adjustments
+- Bonus
+- Final Salary
+
+Tap/click opens the detailed monthly salary view.
+
+### 14.2 Grand Salary Card
+
+Shows accumulated salary across **completed/finalized salary months only**:
+
+- Total completed salary months
+- Total Base Salary
+- Total Overtime
+- Total Bonuses
+- Total Adjustments
+- **Grand Total Salary**
+
+Future or unfinished salary months are not counted as earned/finalized salary.
+
+### 14.3 Attendance Card
+
+Show:
+
+- Present Days
+- Absent Days
+- Leave Days
+- Paid Days
+- Attendance Percentage
+
+### 14.4 Overtime Card
+
+Show:
+
+- Total Overtime Hours
+- Total Overtime Amount
+
+### 14.5 Bonus Card
+
+Show:
+
+- Bonuses received
+- Total bonus amount
+- Expected/next bonus information according to the saved bonus policy
+- Bonus frequency/type where useful
+
+The card must distinguish expected/scheduled bonus information from bonuses actually received.
+
+### 14.6 Salary History
+
+Show month-by-month history, for example:
+
+```text
+September 2026
+Final Salary: Rs. xxx,xxx
+Present: 24 | Absent: 1 | Leave: 2
+OT: 6h
+Bonus: —
+
+August 2026
+Final Salary: Rs. xxx,xxx
+Present: 23 | Absent: 2 | Leave: 1
+OT: 4h
+Bonus: Rs. xx,xxx
+```
+
+### 14.7 Monthly Detail Navigation
+
+The Current Month Salary Card opens monthly detail.
+
+Default: current calendar month.
+
+**Previous** moves backward exactly one calendar month:
+
+```text
+September 2026
+   ↓ Previous
+August 2026
+   ↓ Previous
+July 2026
+   ↓ Previous
+June 2026
+```
+
+Monthly detail includes at minimum:
+
+- Month / salary period
+- Attendance days
+- Present days
+- Absent days
+- Leave days
+- Overtime hours
+- Overtime amount
+- Base salary
+- Applicable adjustments
+- Bonus
+- Final calculated salary
+
+Full visual styling, charts, colors, and card aesthetics are implementation/UI details and do not change this functional contract.
+
+## 15. Data Model Direction
 
 Conceptual model:
 
@@ -494,10 +550,13 @@ Conceptual model:
 worker_profiles
       ↓
 salary_policies
+      ├── bonus_policy
       ↓
 attendance_records
       ↓
 overtime_records
+      ↓
+bonus_records
       ↓
 salary_periods / salary_slips
 
@@ -506,79 +565,33 @@ notification_generator
 existing notifications infrastructure
 ```
 
-Potential Salary Policy fields:
+Salary Policy should support version/effective-date history.
 
-- worker_profile_id
-- salary_amount / total salary
-- currency
-- salary_type
-- working_hours_per_day nullable
-- overtime_multiplier
-- sunday_paid
-- holidays_paid
-- attendance_notification_time nullable
-- attendance_notifications_enabled
-- pay_date / payment notification preference
-- effective_from
-- optional basic_salary
-- optional attendance_allowance
-- optional other_allowance
-- optional absence_rule
-- optional absence_deduction_rule
-- optional allowance_loss_rule/threshold
-- optional leave_rule
-- optional custom salary-rule note
-- created_at
-- updated_at
+Attendance records include worker, date, status, source/action metadata, and timestamps.
 
-Potential attendance fields:
+Overtime records include worker, work date, hours, applicable multiplier/policy reference, calculated amount, note, and timestamps.
 
-- worker_profile_id
-- attendance_date
-- status
-- source/action metadata
-- created_at
-- updated_at
+Bonus records include worker, bonus occurrence/date, frequency/policy reference or snapshot, amount basis, actual amount, and timestamps as required by the implementation.
 
-Potential overtime fields:
+Automatic notification lifecycle records must support recipient, notification category, related attendance obligation, cycle identifier, cycle dates/deadline, action state, generated/completed/expired state, and reset metadata as required by the existing notification schema.
 
-- worker_profile_id
-- work_date
-- hours
-- multiplier/policy reference or snapshot
-- calculated_amount
-- note
-- created_at
-- updated_at
+Final schema must follow the repository's actual Supabase conventions.
 
-Automatic notification lifecycle fields, subject to the existing schema:
+## 16. Security / RLS
 
-- notification type/category
-- recipient
-- related attendance date/obligation identifier
-- cycle identifier
-- cycle start/deadline
-- action state
-- reminder date/sequence where required
-- generated_at
-- completed_at/expired_at
-- reset/cycle metadata
+Salary, attendance, overtime, and bonus data are sensitive personal financial/work data.
 
-Final schema must be designed against the actual repository and Supabase/RLS conventions before migrations.
-
-## 18. Security / RLS
-
-Salary information is sensitive personal financial data.
-
-- Worker can access only their own salary data unless a future authorized employer/team model grants access.
-- RLS enforces ownership at the database layer.
+- A worker can access only their own records unless an explicitly authorized employer/team model is introduced later.
+- RLS is authoritative at the database layer.
 - Client-supplied worker IDs are not trusted for authorization.
-- Salary amounts are not exposed through public Social profile APIs.
-- Salary data does not enter public/social activity surfaces unless separately designed and authorized.
-- Notification-generator records obey the same ownership/privacy boundary.
-- Payment-day notifications do not expose salary amounts unless separately approved.
+- Salary data is not exposed through public Social profiles.
+- Salary data does not enter public/social activity surfaces without separate authorization.
+- Notification-generator records obey the same ownership boundary.
+- Payment-day notifications do not expose salary amounts unless explicitly approved.
 
-## 19. Recommended Code Separation
+## 17. Code Separation
+
+Recommended boundaries:
 
 ```text
 worker/
@@ -589,6 +602,7 @@ worker/
     overtimeCalculations.ts
     attendanceRules.ts
     weekendHolidayRules.ts
+    bonusRules.ts
     salarySlip.ts
     salaryNotifications.ts
   pages/
@@ -603,357 +617,227 @@ worker/
     SalaryOvertimeEntry.tsx
 ```
 
-These are architectural targets, not permission to create files before the design is frozen.
+These are architectural boundaries; implementation must first inspect existing repository structure and reuse existing conventions where appropriate.
 
-## 20. Dashboard Functional Requirement
-
-The full visual design remains separate/deferred, but the following functional behavior is now specified:
-
-- User gets a **Salary Card** on Dashboard.
-- Default view is **This Month**.
-- Clicking/tapping the Salary Card opens the detailed monthly salary/attendance view.
-- The detail view includes at minimum:
-  - Month / salary period
-  - Attendance days
-  - Present days
-  - Absent days
-  - Leave days
-  - Overtime hours
-  - Overtime amount
-  - Base salary
-  - Applicable adjustments
-  - Final calculated salary
-- A **Previous** button moves backward exactly one calendar month at a time.
-
-Example:
-
-```text
-September 2026
-      ↓ Previous
-August 2026
-      ↓ Previous
-July 2026
-      ↓ Previous
-June 2026
-      ↓ ...
-```
-
-This freezes the functional navigation behavior, not the visual layout, charts, colors, card styling, or complete Dashboard UX.
-
-## 21. Validation Requirements
+## 18. Validation
 
 Salary Setup:
 
-- salary amount positive when required;
-- currency valid;
-- salary type one of Daily/Weekly/15 Days/Monthly;
-- working hours valid when supplied;
-- overtime multiplier 1.0/1.5/2.0;
-- Sunday/Holiday settings explicit;
-- attendance notification either disabled or valid 00:00–23:59;
-- Pay Date valid for selected frequency when configured;
-- optional additional salary fields validated when supplied;
-- basic + allowance components must be internally explainable against total salary when the user provides all of them;
-- absence/allowance thresholds must be non-negative and semantically valid;
-- start/effective date valid when required.
+- positive required salary amount;
+- valid currency;
+- valid salary type;
+- valid working hours when supplied;
+- overtime multiplier limited to 1×/1.5×/2×;
+- explicit Sunday/Holiday settings;
+- attendance notification disabled or valid 00:00–23:59;
+- valid Pay Date for the selected frequency;
+- optional salary-rule fields validated when supplied;
+- supplied salary components must remain internally explainable;
+- thresholds must be semantically valid;
+- valid effective/start date.
+
+Bonus:
+
+- frequency must be Yearly, 6 Months, 3 Months, or Custom;
+- expected month count is 1/2/4 respectively or user-defined for Custom;
+- bonus amount basis must be Half Salary, Full Salary, or Fixed Amount;
+- Fixed Amount requires a valid fixed bonus amount;
+- expected and received bonuses remain distinguishable.
 
 Daily entry:
 
 - valid attendance date;
 - Present/Absent/Leave only;
 - overtime non-negative;
-- overtime precision defined before implementation.
+- financial precision deterministic.
 
-Notification generator:
+Notifications:
 
-- repeated scheduler runs cannot create duplicates;
-- only eligible Salary Person users receive Salary Person attendance notifications;
-- disabled attendance reminders create no attendance cycle;
+- repeated scheduler execution cannot create uncontrolled duplicates;
+- only eligible Salary Person users receive Salary Person reminders;
+- disabled reminders create no attendance cycle;
 - read does not complete;
-- Present/Absent/Leave action completes the relevant obligation;
-- action window is exactly 15 calendar days after final start/deadline semantics are frozen;
+- actions complete the relevant obligation;
+- action window is exactly 15 calendar days;
 - exactly one cycle-end notification at expiry;
-- notification history retained;
-- reset explicit and starts a new cycle;
-- Pay Date reminders only when configured;
-- payment reminders never claim payment confirmation;
-- existing Friend Request/Comment/Reaction notifications remain unchanged.
+- reset is explicit;
+- history is retained;
+- Pay Date remains notification-only;
+- existing Friend Request/Comment/Reaction behavior remains unchanged.
 
-## 22. Edge Cases / Open Decisions
-
-Do not silently decide these before coding:
-
-1. Exact Daily-rate denominator for Monthly salary.
-2. Weekly-to-daily conversion.
-3. 15-Day salary calculation basis.
-4. Working-day/calendar basis for each salary type.
-5. Exact absence deduction calculation.
-6. Paid/unpaid Leave policy.
-7. Exact attendance-allowance loss behavior and threshold semantics.
-8. Partial versus full allowance loss when a rule is configured.
-9. Whether allowance is included inside Total Salary or represented as an additive component when both are entered.
-10. Saturday Absent → Sunday behavior.
-11. Holiday calendar/source/timezone.
-12. Holiday work treatment.
-13. Sunday/holiday work representation.
-14. Overtime precision and maximum daily hours.
-15. Salary-policy editing/versioning.
-16. Salary-period closing/finalization.
-17. Currency rounding precision and rounding stage.
-18. Currency conversion, otherwise out of scope.
-19. Exact Pay Date representation for each salary frequency.
-20. Exact attendance-cycle start/deadline semantics.
-21. Exact backend scheduler mechanism and retry/locking strategy.
-22. Exact worker timezone source and timezone-change behavior.
-23. Exact notification-state mapping onto existing notification schema.
-24. Exact Worker Type switching UX.
-
-The following direction is agreed: optional expandable Additional Salary Rules inside Salary Setup; configurable salary components; absence and allowance rules captured separately; configurable attendance notification time or disabled; 15-calendar-day attendance action window; cycle-end notification; history retention; explicit reset; Pay Date notification-only behavior; protected existing social notifications.
-
-## 23. Implementation Sequence
-
-### Phase A — Worker Type
-
-1. Inspect existing Worker Settings → Work Identity.
-2. Add Worker Type.
-3. Persist Salary Person vs Work per Job / Contract without breaking Contract behavior.
-4. Preserve historical records on switching.
-
-### Phase B — Salary Setup UX
-
-5. Add Salary Person activation flow.
-6. Add salary-data caution.
-7. Add one-time Salary Setup.
-8. Add Attendance Notification Time / No attendance notification.
-9. Add optional Pay Date.
-10. Add optional expandable Additional Salary Rules.
-11. Persist Salary Policy securely.
-12. Add save confirmation.
-
-### Phase C — Formula / Policy Freeze
-
-13. Freeze salary-type formulas.
-14. Freeze working-day/calendar basis.
-15. Freeze absence and allowance rules.
-16. Freeze leave policy.
-17. Freeze Sunday/holiday behavior.
-18. Freeze overtime formula, precision, and rounding.
-
-### Phase D — Data / Calculation Foundation
-
-19. Design salary-policy schema.
-20. Design attendance schema.
-21. Design overtime schema.
-22. Design salary-period/slip representation.
-23. Add RLS/ownership policies.
-24. Implement deterministic calculation logic and tests.
-
-### Phase E — Daily Salary Person Workflow
-
-25. Add daily Salary Person entry.
-26. Add attendance handling.
-27. Add manual overtime.
-28. Add Saturday/Sunday behavior after rules are frozen.
-29. Add holiday behavior after rules are frozen.
-30. Implement absence/allowance adjustments only after policy freeze.
-
-### Phase F — Notification Generator
-
-31. Inspect existing notification infrastructure.
-32. Preserve Friend Request, Comment, Reaction producers unchanged.
-33. Implement backend-authoritative configurable attendance trigger.
-34. Implement No attendance notification mode.
-35. Implement Present/Absent/Leave actions.
-36. Implement 15-calendar-day action window.
-37. Implement one cycle-end notification.
-38. Retain notification history.
-39. Implement explicit Reset Attendance Notifications/new-cycle activation.
-40. Implement Pay Date notification-only generation.
-41. Add idempotency, timezone, retry, and scheduler safeguards.
-
-### Phase G — Salary Slip
-
-42. Aggregate salary-period records.
-43. Build explainable salary slips.
-44. Verify overtime accumulation.
-45. Verify historical policy integrity.
-
-### Phase H — Dashboard
-
-46. Implement the approved functional Salary Card flow: This Month default → monthly detail → Previous month navigation.
-47. Keep visual Dashboard design independently scoped until explicitly approved.
-
-## 24. Testing Matrix
+## 19. Testing Matrix
 
 ### Worker Type
 
 - Salary Person selection works from Work Identity.
 - Contract selection preserves existing flow.
-- Contract workers remain functional.
 - Switching does not delete historical records.
 
 ### Salary Setup
 
-- Salary amount/currency validation.
+- Salary amount/currency.
 - Daily/Weekly/15 Days/Monthly.
-- 8h/12h/unset working hours.
+- 8h/12h/unset.
 - 1×/1.5×/2× overtime.
 - Sunday/Holiday settings.
-- Attendance notification time and disabled mode.
+- Attendance notification time/disabled mode.
 - Pay Date notification-only semantics.
-- Expand/collapse Additional Salary Rules.
-- Optional Basic/Total/Allowance fields.
-- Optional absence rule and allowance-loss threshold.
-- Optional leave/custom rules.
-- Internal consistency of supplied salary components.
+- Additional Salary Rules expand/collapse and optional fields.
 
-### Daily Salary Person
+### Attendance
 
 - Present/Absent/Leave.
-- Overtime entry.
-- Optional note.
-- Saved policy reused automatically.
-- Contract quantity/rate fields not required.
-
-### Sunday
-
-- Sunday paid-off behavior.
-- Sunday worked does not automatically create overtime.
-- Manual Sunday overtime uses saved multiplier.
 - Saturday Present → Sunday Present.
-- Saturday Leave → confirmation → Sunday Leave/Present.
+- Saturday Leave confirmation.
+- Saturday Absent policy.
+- Sunday paid-off behavior.
+- Sunday worked with manual overtime.
+- Holiday rules.
+
+### Overtime
+
+- Correct hourly basis for each finalized salary type.
+- Correct multiplier.
+- Missing working-hours behavior.
+- Accumulation and deterministic rounding.
+
+### Bonus
+
+- Yearly → one expected month.
+- 6 Months → two expected months.
+- 3 Months → four expected months.
+- Custom → exact user-defined month count.
+- Half Salary.
+- Full Salary.
+- Fixed Amount.
+- Bonus remains separate from normal salary.
+- Historical bonus records remain explainable.
 
 ### Notifications
 
-- Configured time triggers at applicable local time.
-- Disabled mode produces no attendance notification.
-- Missing attendance can produce reminder.
-- Existing Friend Request/Comment/Reaction notifications remain unchanged.
-- Flash/notification-box presentation works through existing infrastructure where supported.
-- Read alone does not complete.
-- Present/Absent/Leave records attendance and completes the obligation.
-- Action works within 15-calendar-day window.
+- Configured local trigger.
+- Disabled mode.
+- Missing attendance reminder.
+- Present/Absent/Leave actions.
+- Read does not complete.
+- 15-calendar-day action window.
 - Reminders stop after action.
-- Exactly one cycle-end notification at expiry.
-- History retained.
-- Reset starts a new cycle without fabricating attendance or deleting history.
-- Pay Date reminder generated only when configured.
-- Payment reminder does not claim payment confirmation.
-- Repeated scheduler execution produces no duplicates.
-- Timezone and retry/locking boundaries tested.
-
-### Salary Calculation
-
-- All salary types.
-- Overtime 1×/1.5×/2×.
-- Missing working-hours behavior.
-- Overtime accumulation.
-- Absence deduction policy.
-- Attendance allowance thresholds.
-- Basic/allowance/total salary component handling.
-- Leave treatment.
-- Historical policy integrity.
-- Deterministic currency arithmetic.
+- Exactly one cycle-end notification.
+- History retention.
+- Explicit reset/new cycle.
+- Pay Date notification-only behavior.
+- Idempotency/timezone/retry safeguards.
+- Existing social notification producers unchanged.
 
 ### Dashboard
 
 - Salary Card exists for Salary Person.
 - This Month is default.
 - Card opens monthly detail.
-- Attendance and salary details are shown.
 - Previous moves exactly one calendar month backward.
-- Repeated Previous navigation reaches older months correctly.
+- Grand Salary counts only completed/finalized salary months.
+- Attendance Card shows present/absent/leave/paid days and percentage.
+- Overtime Card shows hours and amount.
+- Bonus Card distinguishes received from expected.
+- Salary History renders monthly records correctly.
 
-### Security
+### Security / Regression
 
-- User A cannot read User B's salary policy, attendance, overtime, or salary slip.
+- User A cannot read User B's salary/attendance/overtime/bonus/slip data.
 - Public Social profile does not expose salary data.
-- Notification-generator records obey ownership/privacy boundaries.
+- Contract flow remains unchanged.
+- Existing Friend Request/Comment/Reaction notifications remain unchanged.
+- Worker provisioning remains unchanged.
+- Offline AI remains unchanged.
+- Online AI remains unchanged.
 
-### Regression
+## 20. Implementation Sequence
 
-- Existing Contract work entry/finance unchanged.
-- Existing Worker identity/provisioning unchanged.
-- Friend Request notifications unchanged.
-- Comment notifications unchanged.
-- Reaction notifications unchanged.
-- Offline AI unchanged.
-- Online AI unchanged.
+The product/design sequence is complete. Engineering implementation follows this order:
 
-## 25. Non-Goals
+1. Inspect existing Worker Settings / Work Identity and notification/database conventions.
+2. Add Worker Type without breaking Contract mode.
+3. Implement Salary Person caution and Salary Setup.
+4. Implement optional Additional Salary Rules.
+5. Persist versioned Salary Policy securely.
+6. Implement attendance and overtime records.
+7. Implement finalized salary formulas and deterministic calculation engine.
+8. Implement bonus policy/records and calculation integration.
+9. Implement salary periods and explainable salary slips.
+10. Implement backend-authoritative Salary Person Notification Generator.
+11. Implement attendance action window, expiry, history, and reset.
+12. Implement Pay Date notification-only behavior.
+13. Implement Salary Person Dashboard cards and monthly navigation.
+14. Apply RLS/security and full regression testing.
 
-This feature does not define or implement:
+Implementation must not invent product rules that are already frozen here and must not modify protected Contract, social-notification, or AI behavior.
 
-- employer payroll administration;
-- tax calculation;
-- government deductions;
-- benefits administration;
-- bank payment execution;
-- currency conversion;
-- employer-side access unless separately designed;
-- team payroll;
-- advanced HR management;
-- changes to Contract Worker calculations;
-- changes to existing Friend Request/Comment/Reaction notifications;
-- Offline AI or Online AI changes.
+## 21. Definition of Done
 
-## 26. Definition of Done
-
-Salary Person is end-to-end only when the approved flow works:
+The Salary Person feature is considered end-to-end complete when the following chain is functional:
 
 ```text
-Existing Worker Settings
-        ↓
-Existing Work Identity
-        ↓
+Work Identity
+   ↓
 Worker Type = Salary Person
-        ↓
+   ↓
 Salary Data Caution
-        ↓
-Salary Setup
-        ↓
-Optional Additional Salary Rules
-        ↓
+   ↓
+One-Time Salary Setup
+   ↓
+Optional Salary Rules
+   ↓
+Bonus Policy (when configured)
+   ↓
 Saved Salary Policy
-        ↓
+   ↓
 Salary Person Work House
-        ↓
+   ↓
 Daily Attendance
-        ↓
+   ↓
 Manual Overtime
-        ↓
-Salary Period Calculation
-        ↓
+   ↓
+Bonus Records
+   ↓
+Salary Calculation
+   ↓
+Salary Period
+   ↓
 Explainable Salary Slip
-        ↓
-Dashboard Salary Card
-        ↓
-This Month → Monthly Detail → Previous Month
+   ↓
+Salary Person Dashboard
+   ├── Current Month Salary
+   ├── Grand Salary
+   ├── Attendance
+   ├── Overtime
+   ├── Bonus
+   └── Salary History
 ```
 
-Notification journey:
+Notification chain:
 
 ```text
-Configured Attendance Notification Time
+Configured Attendance Time
         ↓
-Attendance trigger
+Missing Attendance Check
         ↓
-Attendance missing?
-   ┌────┴────┐
-  NO        YES
-  ↓          ↓
-Nothing    Attendance notification
-           + Present/Absent/Leave
-              ↓
-        Attendance recorded
+Attendance Notification
+        ↓
+Present / Absent / Leave
+        ↓
+Attendance Recorded
+```
 
+Or:
+
+```text
 No action for 15 calendar days
-              ↓
-       Cycle-end notification
-              ↓
-       User explicitly resets
-              ↓
-       New notification cycle
+        ↓
+Exactly one cycle-end notification
+        ↓
+Explicit Reset
+        ↓
+New cycle
 ```
 
 Payment reminder:
@@ -963,12 +847,12 @@ Pay Date configured
         ↓
 Payment date arrives
         ↓
-Payment-day notification
+Informational payment-day notification
         ↓
-Notification only
+No payment confirmation
 ```
 
-At the same time:
+Protected Contract boundary:
 
 ```text
 Worker Type = Work per Job / Contract
@@ -978,66 +862,66 @@ Existing Contract Flow
 UNCHANGED
 ```
 
-## 27. Current Design Freeze
+## 22. Final Design Freeze
 
-### Frozen / Agreed Direction
+The following are now frozen as product behavior:
 
-- Salary Person starts from existing Work Identity / Worker Settings.
-- Worker Type choices are Salary Person and Work per Job / Contract.
-- Contract behavior remains unchanged.
-- Salary Person uses one-time Salary Setup.
-- Saved policy drives future calculations.
-- Additional Salary Rules is an optional expandable section inside Salary Setup.
-- The optional section can capture Total Salary, Basic Salary, Attendance Allowance, Other Allowance, Absent Rule, salary deduction, allowance-loss rule/threshold, Leave treatment, and custom notes.
-- Users may skip the optional section or fill only applicable fields.
-- Basic salary, allowance, absence deduction, and allowance-loss rules are separate policy components.
-- Attendance allowance loss may be threshold-based; the threshold is configurable rather than hard-coded.
-- Daily attendance entry is Present/Absent/Leave plus overtime.
-- Sunday paid-off status and manually entered Sunday overtime are separate.
+- Salary Person begins from existing Work Identity / Worker Settings.
+- Worker Type is Salary Person or Work per Job / Contract.
+- Contract behavior is protected and unchanged.
+- Salary Setup is one-time and policy-driven.
+- Additional Salary Rules are optional and expandable.
+- Total/Basic/Attendance Allowance/Other Allowance and absence/allowance rules are separate policy components.
+- Attendance is Present/Absent/Leave.
 - Saturday Present → Sunday Present.
-- Saturday Leave → Sunday confirmation.
-- Attendance notification time is configurable 00:00–23:59 or disabled.
-- Attendance notification is a reminder/action mechanism, not an attendance result.
-- Actions are Present/Absent/Leave.
-- Reading alone does not complete the obligation.
-- Action window is 15 calendar days.
-- Expiry produces one cycle-end notification.
-- Previous notifications remain in history.
-- Reset is explicit and starts a new cycle without deleting history or fabricating attendance.
+- Saturday Leave requires confirmation for Sunday.
+- Sunday paid-off status is separate from manually entered overtime.
+- Attendance notification time is configurable or disabled.
+- Attendance notifications are action mechanisms, not attendance results.
+- The attendance action window is 15 calendar days.
+- Expiry produces exactly one cycle-end notification.
+- Notification history is retained.
+- Reset is explicit and non-destructive.
 - Pay Date is notification-only.
-- Existing Friend Request, Comment, and Reaction notifications remain unchanged.
-- Notification Generator is additive and backend-authoritative.
-- Dashboard functional Salary Card behavior is frozen: This Month default, tap for monthly detail, Previous moves one month backward. Full visual Dashboard design remains separately deferred.
-- AI remains out of scope.
+- Existing Friend Request/Comment/Reaction notifications remain unchanged.
+- Bonus frequency is Yearly = 1, 6 Months = 2, 3 Months = 4, Custom = user-defined expected months.
+- Bonus amount basis is Half Salary, Full Salary, or Fixed Amount.
+- Bonus is a separate earning component.
+- Grand Salary counts completed/finalized salary months only.
+- Dashboard contains Current Month Salary, Grand Salary, Attendance, Overtime, Bonus, and Salary History cards.
+- Current Month defaults to the current month.
+- Monthly detail supports Previous-month navigation one calendar month at a time.
+- Historical salary/bonus calculations remain explainable through policy/version snapshots.
+- Salary data is protected by database authorization/RLS.
+- AI is out of scope.
 
-### Open / Must Be Frozen Before Relevant Implementation
+## 23. Engineering Guardrails
 
-- Exact salary-type conversion formulas.
-- Working-day/calendar basis.
-- Absence/allowance/leave calculation semantics.
-- Saturday Absent behavior.
-- Holiday calendar and holiday-work behavior.
-- Overtime precision/rounding.
-- Salary Start Date semantics.
-- Historical policy version/snapshot strategy.
-- Exact Pay Date representation for each salary frequency.
-- Exact attendance-cycle start/deadline semantics.
-- Exact backend scheduler mechanism.
-- Retry/locking/idempotency implementation against the actual runtime.
-- Worker timezone source and timezone-change behavior.
-- Mapping of generator state onto the existing notification schema.
-- Exact Worker Type switching UX.
+The blueprint is product-complete, but implementation must still validate repository-specific engineering details such as:
 
-## 28. Golden Rule
+- existing Supabase schema and RLS conventions;
+- exact salary-period arithmetic implementation;
+- exact holiday source available to the application;
+- scheduler/runtime mechanism;
+- timezone source;
+- existing notification schema;
+- migration and rollback strategy;
+- repository-specific file/component conventions.
 
-**Do not code from assumptions.**
+These are implementation mechanics, not permission to change the frozen Salary Person product behavior.
 
-The authoritative journey is:
+## 24. Golden Rule
 
-> **Existing Work Identity → Worker Type → Salary Person → Salary Setup → Optional Salary Rules → Daily Work → Notification/Attendance → Calculation → Salary Slip → Dashboard Monthly View**
+**Do not code from assumptions. Implement the frozen product contract above against the actual repository architecture.**
 
-The existing **Work per Job / Contract** path is the protected regression boundary.
+The authoritative Salary Person journey is:
 
-The existing **Friend Request / Comment / Reaction notification system** is also a protected regression boundary.
+> **Existing Work Identity → Worker Type → Salary Person → Salary Setup → Optional Salary Rules → Bonus Policy → Daily Work → Notification/Attendance → Overtime → Calculation → Salary Slip → Salary Person Dashboard → Monthly History**
 
-The new Notification Generator is an automatic notification layer, not a replacement for the existing notification system and not a salary-calculation engine.
+The authoritative regression boundaries are:
+
+> **Existing Work per Job / Contract behavior — unchanged**
+>
+> **Existing Friend Request / Comment / Reaction notifications — unchanged**
+>
+> **Offline AI / Online AI — unchanged and out of scope**
