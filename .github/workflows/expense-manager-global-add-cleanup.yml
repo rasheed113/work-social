@@ -31,10 +31,10 @@ jobs:
           for name in files:
             path = Path(name)
             text = path.read_text()
-            text = re.sub(r'<button\\b(?=[^>]*className="expense-[^"]+__add")[\\s\\S]*?</button>', '', text)
-            text = re.sub(r'<button\\b[^>]*>[\\s\\S]*?\\bAdd(?: your first)?(?: account| category| budget| transaction)[\\s\\S]*?</button>', '', text)
-            text = re.sub(r'\\.expense-[a-z-]+__add(?:::after)?\\{[^{}]*\\}', '', text)
-            path.write_text(text.rstrip() + '\\n')
+            text = re.sub(r'<button\b(?=[^>]*className="expense-[^"]+__add")[\s\S]*?</button>', '', text)
+            text = re.sub(r'<button\b[^>]*>[\s\S]*?\bAdd(?: your first)?(?: account| category| budget| transaction)[\s\S]*?</button>', '', text)
+            text = re.sub(r'\.expense-[a-z-]+__add(?::after)?\{[^{}]*\}', '', text)
+            path.write_text(text.rstrip() + '\n')
           PY
           git diff --check
           npm install
