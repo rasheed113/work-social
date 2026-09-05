@@ -3,6 +3,7 @@ export interface WorkerProfile {
   profile_id: string;
   work_id: string;
   work_role: 'worker';
+  worker_type: 'salary_person' | 'contract';
   work_description: string | null;
   skills: string[];
   created_at: string;
