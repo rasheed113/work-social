@@ -1,37 +1,32 @@
+import { useState } from 'react';
 import { navigate } from '../../../app/Router';
 import { WorkerIdentityForm } from '../components/WorkerIdentityForm';
 import { useWorkerProfile } from '../hooks/useWorkerProfile';
+import { setWorkerType } from '../api/salary';
 import '../work-identity-premium.css';
 
-interface WorkerIdentityPageProps {
-  profileId: string;
-}
+interface WorkerIdentityPageProps { profileId: string; }
 
 export function WorkerIdentityPage({ profileId }: WorkerIdentityPageProps) {
-  const { workerProfile, profile, loading, saving, error, save } = useWorkerProfile(profileId);
+  const { workerProfile, profile, loading, saving, error, save, reload } = useWorkerProfile(profileId);
+  const [switching, setSwitching] = useState(false);
+  const [switchError, setSwitchError] = useState('');
+  if (loading) return <main style={{ padding: 24 }}>Loading Work Identity…</main>;
 
-  if (loading) {
-    return <main style={{ padding: 24 }}><p>Loading Work Identity…</p></main>;
-  }
+  const changeWorkerType = async (value: 'salary_person' | 'contract') => {
+    if (!workerProfile || value === workerProfile.worker_type) return;
+    setSwitchError(''); setSwitching(true);
+    const { error: updateError } = await setWorkerType(workerProfile.id, value);
+    setSwitching(false);
+    if (updateError) { setSwitchError(updateError.message); return; }
+    await reload();
+    if (value === 'salary_person') navigate('/work/salary/setup');
+  };
 
-  return (
-    <main className="worker-identity-page" style={{ width: '100%', maxWidth: 760, margin: '0 auto', padding: '24px 14px 112px', boxSizing: 'border-box' }}>
-      <div className="worker-identity-page__header" style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
-        <button className="worker-identity-page__back" type="button" onClick={() => navigate('/work')} aria-label="Back to Work House">←</button>
-        <div>
-          <h1 className="worker-identity-page__title" style={{ margin: 0 }}>Work Identity</h1>
-          <p className="worker-identity-page__subtitle" style={{ margin: '4px 0 0', color: '#64748b', fontSize: 13 }}>Tell Work House what you do.</p>
-        </div>
-      </div>
-
-      {error && <p role="alert" style={{ margin: '0 0 14px' }}>{error}</p>}
-
-      <WorkerIdentityForm
-        workerProfile={workerProfile}
-        profile={profile}
-        saving={saving}
-        onSave={save}
-      />
-    </main>
-  );
+  return <main className="worker-identity-page" style={{ width: '100%', maxWidth: 760, margin: '0 auto', padding: '24px 14px 112px', boxSizing: 'border-box' }}>
+    <div className="worker-identity-page__header" style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}><button className="worker-identity-page__back" type="button" onClick={() => navigate('/work')} aria-label="Back to Work House">←</button><div><h1 className="worker-identity-page__title" style={{ margin: 0 }}>Work Identity</h1><p className="worker-identity-page__subtitle" style={{ margin: '4px 0 0', color: '#64748b', fontSize: 13 }}>Tell Work House what you do.</p></div></div>
+    {error && <p role="alert" style={{ margin: '0 0 14px' }}>{error}</p>}
+    {workerProfile && <section className="foundation-card" style={{ marginBottom: 14 }}><h2 style={{ marginTop: 0 }}>Worker Type</h2><p style={{ color: '#64748b', lineHeight: 1.5 }}>Choose how your Work House records your earnings. Switching is non-destructive; historical records are retained.</p><select value={workerProfile.worker_type} disabled={switching} onChange={e => void changeWorkerType(e.target.value as 'salary_person' | 'contract')} style={{ width: '100%', minHeight: 44, boxSizing: 'border-box' }}><option value="salary_person">Salary Person</option><option value="contract">Work per Job / Contract</option></select>{switchError && <p role="alert" style={{ color: '#b91c1c' }}>{switchError}</p>}</section>}
+    <WorkerIdentityForm workerProfile={workerProfile} profile={profile} saving={saving} onSave={save} />
+  </main>;
 }
