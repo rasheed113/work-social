@@ -91,9 +91,9 @@ export function SalarySetupPage({ profileId }: { profileId: string }) {
       setStartDate(policy.salary_start_date ?? new Date().toISOString().slice(0, 10));
       setTotalSalary(policy.total_salary == null ? '' : String(policy.total_salary));
       setBasicSalary(policy.basic_salary == null ? '' : String(policy.basic_salary));
-      setAbsentRule(policy.absent_rule);
+      setAbsentRule(policy.absent_rule ?? 'none');
       setAbsenceDeduction(policy.salary_deduction_per_absent_day == null ? '' : String(policy.salary_deduction_per_absent_day));
-      setLeaveTreatment(policy.leave_treatment);
+      setLeaveTreatment(policy.leave_treatment ?? 'paid');
       setNote(policy.custom_rule_note ?? '');
     });
     return () => { cancelled = true; };
