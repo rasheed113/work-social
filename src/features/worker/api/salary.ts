@@ -17,8 +17,9 @@ export async function saveAttendance(workerProfileId: string, attendanceDate: st
   return supabase.from('salary_attendance_records').upsert({ worker_profile_id: workerProfileId, attendance_date: attendanceDate, status, note: note ?? null, source }, { onConflict: 'worker_profile_id,attendance_date' }).select('*').single();
 }
 
-export async function saveOvertime(workerProfileId: string, workDate: string, hours: number, multiplier: 1 | 1.5 | 2, hourlyRate: number, amount: number, note?: string) {
-  return supabase.from('salary_overtime_records').insert({ worker_profile_id: workerProfileId, work_date: workDate, hours, multiplier, hourly_rate: hourlyRate, amount, note: note ?? null }).select('*').single();
+export async function saveOvertime(workerProfileId: string, workDate: string, hours: number, note?: string) {
+  const { data, error } = await supabase.rpc('record_salary_overtime', { p_work_date: workDate, p_hours: hours, p_note: note ?? null });
+  return { data: data?.[0] ?? null, error };
 }
 
 export async function getSalaryMonthSummary(month: string) {
