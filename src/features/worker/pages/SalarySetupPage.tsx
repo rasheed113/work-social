@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { navigate } from '../../../app/Router';
 import { useWorkerProfile } from '../hooks/useWorkerProfile';
-import { saveBonusPolicy, saveSalaryPolicy } from '../api/salary';
+import { getSalaryPolicy, saveBonusPolicy, saveSalaryPolicy, updateSalaryPolicy } from '../api/salary';
 import { SalaryAllowanceSection } from '../components/SalaryAllowanceSection';
 import type { BonusAmountType, BonusFrequency, OvertimeMultiplier, SalaryPolicyInput, SalaryType } from '../types/salary';
 
@@ -48,6 +48,7 @@ export function SalarySetupPage({ profileId }: { profileId: string }) {
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
+  const [policyId, setPolicyId] = useState<string | null>(null);
   const [salary, setSalary] = useState('');
   const [currency, setCurrency] = useState('PKR');
   const [salaryType, setSalaryType] = useState<SalaryType>('monthly');
@@ -72,6 +73,33 @@ export function SalarySetupPage({ profileId }: { profileId: string }) {
   const expectedMonths = useMemo(() => bonusFrequency === 'custom' ? (Number(bonusExpectedMonths) || 0) : ({ yearly: 1, '6_months': 2, '3_months': 4 } as Record<Exclude<BonusFrequency, 'custom'>, number>)[bonusFrequency], [bonusFrequency, bonusExpectedMonths]);
 
   useEffect(() => {
+    if (loading || error || !workerProfile) return;
+    let cancelled = false;
+    void getSalaryPolicy(profileId).then(result => {
+      if (cancelled || result.error || !result.data) return;
+      const policy = result.data;
+      setPolicyId(policy.id);
+      setSalary(String(policy.salary_amount ?? ''));
+      setCurrency(policy.currency ?? 'PKR');
+      setSalaryType(policy.salary_type);
+      setHours(policy.working_hours == null ? '' : String(policy.working_hours));
+      setOt(policy.overtime_multiplier);
+      setSundayPaid(Boolean(policy.sunday_paid));
+      setHolidaysPaid(Boolean(policy.holidays_paid));
+      setNotificationTime(policy.attendance_notification_time ? String(policy.attendance_notification_time).slice(0, 5) : '');
+      setPayDate(policy.pay_date == null ? '' : String(policy.pay_date));
+      setStartDate(policy.salary_start_date ?? new Date().toISOString().slice(0, 10));
+      setTotalSalary(policy.total_salary == null ? '' : String(policy.total_salary));
+      setBasicSalary(policy.basic_salary == null ? '' : String(policy.basic_salary));
+      setAbsentRule(policy.absent_rule);
+      setAbsenceDeduction(policy.salary_deduction_per_absent_day == null ? '' : String(policy.salary_deduction_per_absent_day));
+      setLeaveTreatment(policy.leave_treatment);
+      setNote(policy.custom_rule_note ?? '');
+    });
+    return () => { cancelled = true; };
+  }, [profileId, loading, error, workerProfile]);
+
+  useEffect(() => {
     if ((!focusSalaryType && !focusAllowances) || !privacyAccepted || loading || error || !workerProfile) return;
     const timer = window.setTimeout(() => { if (focusSalaryType) { salaryTypeRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }); setSalaryTypeHighlighted(true); window.setTimeout(() => setSalaryTypeHighlighted(false), 3600); } }, 180);
     return () => window.clearTimeout(timer);
@@ -92,8 +120,9 @@ export function SalarySetupPage({ profileId }: { profileId: string }) {
     if (showBonus && bonusFrequency === 'custom' && (!bonusExpectedMonths || Number(bonusExpectedMonths) < 1)) return setMessage('Enter the expected number of bonus months.');
     setSaving(true);
     const policy: SalaryPolicyInput = { salary_amount: amount, currency: currency.trim().toUpperCase(), salary_type: salaryType, working_hours: workingHours, overtime_multiplier: ot, sunday_paid: sundayPaid, holidays_paid: holidaysPaid, attendance_notification_time: notificationTime || null, pay_date: payDate ? Number(payDate) : null, salary_start_date: startDate, total_salary: totalSalary ? Number(totalSalary) : null, basic_salary: basicSalary ? Number(basicSalary) : null, attendance_allowance: null, other_allowance: null, absent_rule: absentRule, salary_deduction_per_absent_day: absenceDeduction ? Number(absenceDeduction) : null, allowance_loss_rule: null, allowance_loss_after_absences: null, leave_treatment: leaveTreatment, custom_rule_note: note.trim() || null };
-    const policyResult = await saveSalaryPolicy(workerProfile.id, policy);
+    const policyResult = policyId ? await updateSalaryPolicy(workerProfile.id, policyId, policy) : await saveSalaryPolicy(workerProfile.id, policy);
     if (policyResult.error) { setSaving(false); return setMessage(policyResult.error.message); }
+    if (policyResult.data?.id) setPolicyId(policyResult.data.id);
     if (showBonus) { const bonusResult = await saveBonusPolicy(workerProfile.id, { frequency: bonusFrequency, expected_month_count: expectedMonths, amount_type: bonusAmountType, fixed_amount: bonusAmountType === 'fixed_amount' ? Number(bonusFixedAmount) : null, effective_from: startDate }); if (bonusResult.error) { setSaving(false); return setMessage(`Salary saved, but bonus setup could not be saved: ${bonusResult.error.message}`); } }
     setSaving(false); setSaved(true);
   };
