@@ -5,7 +5,7 @@ import { useWorkerProfile } from '../hooks/useWorkerProfile';
 
 export function WorkerWorkHousePage() {
   const session = useCurrentWorkerProfileId();
-  const profile = useWorkerProfile(session.profileId);
+  const profile = useWorkerProfile(session.profileId ?? '');
 
   if (session.loading || profile.loading) {
     return <main style={{ width: '100%', maxWidth: 900, margin: '0 auto', padding: '24px 14px 112px', boxSizing: 'border-box' }}><p style={{ color: '#64748b' }}>Loading Worker workspace…</p></main>;
