@@ -161,7 +161,7 @@ export function ExpenseBudgetsPage({ onNavigate: _onNavigate }: ExpenseBudgetsPa
 
     <div className="expense-budgets__toolbar">
       <div><p className="expense-budgets__subtitle">Set a monthly limit for an expense category and see real spending move against it as transactions change.</p></div>
-      <button type="button" className="expense-budgets__add" onClick={openAdd} disabled={!categories.length}>+ Add Budget</button>
+      {budgets.length > 0 && (<button type="button" className="expense-budgets__add" onClick={openAdd} disabled={!categories.length}>+ Add Budget</button>)}
     </div>
 
     {loading ? <div className="expense-budgets__state"><h3>Loading budgets</h3><p>Reading your persisted budgets and current transaction totals.</p></div> : error ? <div className="expense-budgets__state"><h3>Budgets could not load</h3><p>{error}</p><button type="button" onClick={() => void load()}>Retry</button></div> : budgets.length === 0 ? <div className="expense-budgets__empty"><div className="expense-budgets__empty-icon" aria-hidden="true">◎</div><h3>No budgets yet</h3><p>Create your first monthly category budget. Spending will be calculated from real Expense Manager transactions.</p><button type="button" onClick={openAdd} disabled={!categories.length}>{categories.length ? 'Add Budget' : 'Create an expense category first'}</button></div> : <>
