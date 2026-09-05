@@ -17,7 +17,7 @@ function isActive(pathname: string, path: string) {
 export function WorkerNavigation() {
   const pathname = window.location.pathname;
   const session = useCurrentWorkerProfileId();
-  const { workerProfile } = useWorkerProfile(session.profileId);
+  const { workerProfile } = useWorkerProfile(session.profileId ?? '');
   const isSalaryPerson = workerProfile?.worker_type === 'salary_person';
 
   return (
