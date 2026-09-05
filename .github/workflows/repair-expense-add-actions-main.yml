@@ -1,0 +1,59 @@
+name: Repair Expense Manager Duplicate Add Actions
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    branches:
+      - main
+
+jobs:
+  repair:
+    if: github.actor != 'github-actions[bot]' && github.event.pull_request.head.ref == 'codex/expense-manager-remove-duplicate-add-actions'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: codex/expense-manager-remove-duplicate-add-actions
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - run: npm install
+
+      - name: Remove duplicate empty-state Add actions
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const repairs = [
+            ['src/features/expense-manager/pages/ExpenseAccountsPage.tsx', 'accounts', 'expense-accounts__add'],
+            ['src/features/expense-manager/pages/ExpenseCategoriesPage.tsx', 'categories', 'expense-categories__add'],
+            ['src/features/expense-manager/pages/ExpenseBudgetsPage.tsx', 'budgets', 'expense-budgets__add'],
+            ['src/features/expense-manager/pages/ExpenseTransactionsPage.tsx', 'transactions', 'expense-transactions__add'],
+          ];
+          for (const [path, collection, className] of repairs) {
+            const original = fs.readFileSync(path, 'utf8');
+            const pattern = new RegExp(`(<button\\b[^>]*className=\\"${className}\\"[^>]*>[\\s\\S]*?<\\/button>)`);
+            const match = original.match(pattern);
+            if (!match) throw new Error(`Could not find toolbar Add button in ${path}`);
+            if (original.includes(`{${collection}.length > 0 && (${match[1]})}`)) continue;
+            const repaired = original.replace(pattern, `{${collection}.length > 0 && (${match[1]})}`);
+            if (repaired === original) throw new Error(`No change made to ${path}`);
+            fs.writeFileSync(path, repaired);
+          }
+          NODE
+
+      - run: npm run build
+
+      - name: Commit repair and remove branch workflow
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/features/expense-manager/pages/ExpenseAccountsPage.tsx src/features/expense-manager/pages/ExpenseCategoriesPage.tsx src/features/expense-manager/pages/ExpenseBudgetsPage.tsx src/features/expense-manager/pages/ExpenseTransactionsPage.tsx
+          git rm .github/workflows/repair-expense-add-actions.yml
+          git commit -m "fix: remove duplicate Expense Manager add actions"
+          git push origin HEAD:codex/expense-manager-remove-duplicate-add-actions
