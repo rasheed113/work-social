@@ -9,6 +9,7 @@ import './app/worker-header-alignment.css';
 import './features/worker/finance-premium.css';
 import './features/worker/settings-premium.css';
 import './app/social-navigation-compact.css';
+import './features/expense-manager/reports-premium.css';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
