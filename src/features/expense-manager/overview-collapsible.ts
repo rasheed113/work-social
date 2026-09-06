@@ -40,6 +40,7 @@ function enhanceCard(card: HTMLElement) {
 }
 
 function enhance(root: ParentNode = document) {
+  if (root instanceof HTMLElement && root.matches(CARD_SELECTOR)) enhanceCard(root);
   root.querySelectorAll<HTMLElement>(CARD_SELECTOR).forEach(enhanceCard);
 }
 
