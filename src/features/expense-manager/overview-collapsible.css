@@ -3,8 +3,8 @@
   min-height: 78px;
   max-height: 122px;
   overflow: hidden;
-  padding-bottom: 42px;
-  transition: max-height 260ms ease, box-shadow 180ms ease, transform 180ms ease;
+  padding-bottom: 38px;
+  transition: max-height 220ms ease, box-shadow 180ms ease;
 }
 
 .expense-overview__grid > .expense-overview__card[data-overview-collapsible-ready="true"]::after {
@@ -13,13 +13,9 @@
   left: 0;
   right: 0;
   bottom: 0;
-  height: 46px;
+  height: 40px;
   pointer-events: none;
-  background: linear-gradient(to bottom, rgba(248,250,252,0), rgba(248,250,252,.98) 62%);
-}
-
-.expense-overview__grid > .expense-overview__card.expense-overview__balance[data-overview-collapsible-ready="true"]::after {
-  background: linear-gradient(to bottom, rgba(30,41,59,0), rgba(30,41,59,.98) 70%);
+  background: linear-gradient(to bottom, rgba(248,250,252,0), rgba(248,250,252,.98) 72%);
 }
 
 .expense-overview__grid > .expense-overview__card[data-overview-collapsible-ready="true"].is-expanded {
@@ -35,24 +31,21 @@
 .expense-overview__collapse-toggle {
   position: absolute;
   z-index: 3;
-  right: 10px;
-  bottom: 8px;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  min-height: 26px;
-  padding: 5px 8px;
-  border: 1px solid rgba(37,99,235,.13);
-  border-radius: 999px;
-  background: rgba(255,255,255,.9);
-  color: #2563eb;
-  box-shadow: 0 5px 14px rgba(15,23,42,.08), inset 0 1px 0 rgba(255,255,255,.95);
+  right: 12px;
+  bottom: 9px;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid rgba(148,163,184,.2);
+  border-radius: 50%;
+  background: rgba(255,255,255,.82);
+  color: #475569;
+  box-shadow: 0 5px 14px rgba(15,23,42,.08), inset 0 1px 0 rgba(255,255,255,.96);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   font: inherit;
-  font-size: 9px;
-  font-weight: 900;
-  line-height: 1;
   cursor: pointer;
   transition: transform 150ms ease, box-shadow 150ms ease, background 150ms ease;
 }
@@ -73,47 +66,27 @@
 }
 
 .expense-overview__collapse-icon {
-  display: inline-grid;
-  place-items: center;
-  width: 12px;
-  height: 12px;
-  font-size: 12px;
-  font-weight: 950;
+  display: block;
+  font-size: 17px;
+  line-height: 1;
+  font-weight: 800;
+  transform: translateY(1px);
   transition: transform 180ms ease;
 }
 
 .expense-overview__card.is-expanded .expense-overview__collapse-icon {
-  transform: rotate(180deg);
+  transform: rotate(180deg) translateY(1px);
 }
 
-.expense-overview__card:not(.is-expanded) .expense-overview__spending {
-  align-items: center;
-  gap: 10px;
-}
-
-.expense-overview__card:not(.is-expanded) .expense-overview__donut {
-  width: 58px;
-  height: 58px;
-  flex-basis: 58px;
-}
-
-.expense-overview__card:not(.is-expanded) .expense-overview__donut::after {
-  inset: 13px;
-}
-
-.expense-overview__card:not(.is-expanded) .expense-overview__legend {
-  gap: 4px;
-}
-
-.expense-overview__card:not(.is-expanded) .expense-overview__list > :nth-child(n + 2) {
+.expense-overview__card[data-overview-collapsible-ready="true"]:not(.is-expanded) .expense-overview__list > :nth-child(n + 2) {
   display: none;
 }
 
-.expense-overview__card:not(.is-expanded) .expense-overview__row {
+.expense-overview__card[data-overview-collapsible-ready="true"]:not(.is-expanded) .expense-overview__row {
   padding: 4px 0;
 }
 
-.expense-overview__card:not(.is-expanded) .expense-overview__row-icon {
+.expense-overview__card[data-overview-collapsible-ready="true"]:not(.is-expanded) .expense-overview__row-icon {
   width: 28px;
   height: 28px;
   flex-basis: 28px;
@@ -125,7 +98,7 @@
   .expense-overview__grid > .expense-overview__card[data-overview-collapsible-ready="true"] {
     max-height: 112px;
     border-radius: 18px;
-    padding: 13px 13px 40px;
+    padding: 13px 13px 38px;
   }
 
   .expense-overview__grid > .expense-overview__card[data-overview-collapsible-ready="true"].is-expanded {
@@ -133,8 +106,10 @@
   }
 
   .expense-overview__collapse-toggle {
-    right: 8px;
+    right: 9px;
     bottom: 7px;
+    width: 27px;
+    height: 27px;
   }
 }
 
