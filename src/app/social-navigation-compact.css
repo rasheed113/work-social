@@ -85,3 +85,32 @@ nav[aria-label="Main navigation"] > button > b {
     font-size: 7px !important;
   }
 }
+
+/* Expense Manager mobile footer: sit flush with the viewport bottom.
+   The previous wrapper added an unnecessary bottom gutter, which made the
+   navigation look like it was floating above the screen edge. */
+@media (max-width: 767px) {
+  .expense-manager-navigation {
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    padding: 0 !important;
+  }
+
+  .expense-manager-navigation__shell {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    border-radius: 18px 18px 0 0 !important;
+    border-bottom: 0 !important;
+    box-shadow: 0 -8px 24px rgba(15,23,42,.16), inset 0 1px 0 rgba(255,255,255,.98) !important;
+  }
+
+  .expense-manager-navigation__mobile-grid {
+    padding-bottom: max(4px, env(safe-area-inset-bottom)) !important;
+  }
+
+  .expense-manager-page {
+    padding-bottom: max(60px, calc(env(safe-area-inset-bottom) + 56px)) !important;
+  }
+}
