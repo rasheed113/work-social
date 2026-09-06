@@ -79,6 +79,18 @@ export function ExpenseManagerNavigation({ pathname, onNavigate }: ExpenseManage
         .expense-transactions .add:hover{filter:saturate(1.08) brightness(1.03);transform:translateY(-1px);box-shadow:inset 0 1px 1px rgba(255,255,255,.4),inset 0 -2px 4px rgba(15,23,42,.2),0 10px 23px rgba(37,99,235,.3)}
         .expense-transactions .add:active{transform:translateY(1px);box-shadow:inset 0 2px 4px rgba(15,23,42,.2),0 4px 10px rgba(37,99,235,.2)}
         .expense-transactions .add:focus-visible{outline:2px solid rgba(37,99,235,.55);outline-offset:3px}
+        .expense-categories .actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+        .expense-categories .actions .toggle{min-height:46px;padding:0 13px;border:1px solid rgba(148,163,184,.2);border-radius:14px;background:rgba(255,255,255,.86);color:#475569;font-size:10px;font-weight:850;box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 5px 14px rgba(15,23,42,.05);cursor:pointer;transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease,background .16s ease}
+        .expense-categories .actions .toggle:hover{transform:translateY(-1px);border-color:rgba(37,99,235,.18);background:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.98),0 9px 20px rgba(15,23,42,.08)}
+        .expense-categories .actions .toggle:focus-within{outline:2px solid rgba(37,99,235,.32);outline-offset:3px}
+        .expense-categories .actions .toggle input{accent-color:#2563eb}
+        .expense-categories .actions .btn{position:relative;isolation:isolate;display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:46px;padding:0 16px;border:1px solid rgba(148,163,184,.2);border-radius:14px;background:linear-gradient(180deg,#fff,#f8fafc);color:#334155;font-size:10px;font-weight:950;letter-spacing:.005em;box-shadow:inset 0 1px 0 rgba(255,255,255,.98),inset 0 -2px 4px rgba(15,23,42,.045),0 7px 17px rgba(15,23,42,.07);text-shadow:0 1px 0 rgba(255,255,255,.9);cursor:pointer;transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease,filter .16s ease}
+        .expense-categories .actions .btn:hover{transform:translateY(-1px);border-color:rgba(37,99,235,.2);filter:brightness(1.015);box-shadow:inset 0 1px 0 rgba(255,255,255,1),inset 0 -2px 4px rgba(15,23,42,.05),0 11px 23px rgba(15,23,42,.1)}
+        .expense-categories .actions .btn:active{transform:translateY(1px);box-shadow:inset 0 2px 4px rgba(15,23,42,.1),0 4px 10px rgba(15,23,42,.07)}
+        .expense-categories .actions .btn:focus-visible{outline:2px solid rgba(37,99,235,.5);outline-offset:3px}
+        .expense-categories .actions .btn.primary{border-color:rgba(255,255,255,.7);background:linear-gradient(145deg,#2563eb 0%,#4f46e5 58%,#3730a3 100%);color:#fff;box-shadow:inset 0 1px 1px rgba(255,255,255,.4),inset 0 -3px 5px rgba(15,23,42,.22),0 8px 20px rgba(37,99,235,.28);text-shadow:0 1px 1px rgba(15,23,42,.2)}
+        .expense-categories .actions .btn.primary:hover{filter:saturate(1.08) brightness(1.03);box-shadow:inset 0 1px 1px rgba(255,255,255,.48),inset 0 -3px 5px rgba(15,23,42,.22),0 12px 26px rgba(37,99,235,.34)}
+        .expense-categories .actions .btn.primary:active{box-shadow:inset 0 2px 5px rgba(15,23,42,.24),0 5px 12px rgba(37,99,235,.22)}
         @media(max-width:767px){
           .expense-manager-navigation{position:fixed;left:0;right:0;bottom:0;top:auto;z-index:1000;padding:5px 7px max(5px,env(safe-area-inset-bottom));background:transparent;pointer-events:none}
           .expense-manager-navigation__shell{max-width:520px;margin:0 auto;pointer-events:auto;border:1px solid rgba(148,163,184,.24);border-radius:18px;background:linear-gradient(180deg,rgba(255,255,255,.98),rgba(241,245,249,.97));box-shadow:0 10px 28px rgba(15,23,42,.16),0 2px 6px rgba(15,23,42,.08),inset 0 1px 0 rgba(255,255,255,.98);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
@@ -92,6 +104,13 @@ export function ExpenseManagerNavigation({ pathname, onNavigate }: ExpenseManage
           .expense-manager-navigation__quick-add{width:40px;min-width:40px;height:40px;min-height:40px;align-self:center;border:1px solid rgba(255,255,255,.65);background:linear-gradient(145deg,#2563eb 0%,#4338ca 55%,#312e81 100%);font-size:19px;line-height:1;box-shadow:inset 0 1px 1px rgba(255,255,255,.42),inset 0 -2px 3px rgba(15,23,42,.22),0 4px 9px rgba(37,99,235,.28);text-shadow:0 2px 1px rgba(15,23,42,.25)}
           .expense-manager-navigation__quick-add:active,.expense-manager-navigation__item:active,.expense-manager-navigation__more-button:active{transform:translateY(1px)}
           .expense-transactions .add{min-height:44px;padding:0 15px;border-radius:13px}
+          .expense-categories .actions{width:100%;gap:7px}
+          .expense-categories .actions .toggle,.expense-categories .actions .btn{min-height:44px;border-radius:13px}
+          .expense-categories .actions .toggle{flex:1 1 100%}
+          .expense-categories .actions .btn{flex:1 1 calc(50% - 4px);min-width:0;padding:0 11px}
+        }
+        @media(max-width:400px){
+          .expense-categories .actions .btn{font-size:9px;padding:0 9px}
         }
         @media(max-width:340px){
           .expense-manager-navigation{padding-left:4px;padding-right:4px}
@@ -101,6 +120,7 @@ export function ExpenseManagerNavigation({ pathname, onNavigate }: ExpenseManage
           .expense-manager-navigation__icon{font-size:13px}
           .expense-manager-navigation__quick-add{width:38px;min-width:38px;height:38px;min-height:38px;font-size:18px}
           .expense-transactions .add{min-height:42px;padding:0 13px;font-size:10px}
+          .expense-categories .actions .toggle,.expense-categories .actions .btn{min-height:42px}
         }
         @media(min-width:768px){.expense-manager-navigation__mobile-grid{display:none}}
       `}</style>
