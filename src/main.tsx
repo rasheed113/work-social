@@ -11,6 +11,8 @@ import './features/worker/settings-premium.css';
 import './app/social-navigation-compact.css';
 import './features/expense-manager/reports-premium.css';
 import './features/expense-manager/transactions-filter-premium.css';
+import './features/expense-manager/transactions-filter-popover.css';
+import './features/expense-manager/transactions-filter-popover';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
