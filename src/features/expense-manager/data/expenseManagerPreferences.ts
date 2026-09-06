@@ -162,22 +162,22 @@ function injectStyles() {
   style.id = 'expense-manager-preference-styles';
   style.textContent = `
     .expense-overview__card[hidden]{display:none!important}
-    .expense-overview__activity-card{width:min(1120px,100%);margin:0 auto 16px;padding:20px 20px 14px;box-sizing:border-box;border:1px solid rgba(148,163,184,.17);border-radius:20px;background:linear-gradient(145deg,rgba(255,255,255,.97),rgba(248,250,252,.91));box-shadow:0 14px 32px rgba(15,23,42,.07),inset 0 1px 0 rgba(255,255,255,.95)}
-    .expense-overview__activity-head{padding:1px 2px 13px}
+    .expense-overview__activity-card{grid-column:1 / -1;min-width:0;width:100%;margin:0 0 18px;padding:24px 22px 16px;box-sizing:border-box;border:1px solid rgba(148,163,184,.18);border-radius:22px;background:linear-gradient(145deg,rgba(255,255,255,.97),rgba(248,250,252,.92));box-shadow:0 16px 36px rgba(15,23,42,.09),inset 0 1px 0 rgba(255,255,255,.96);overflow:hidden}
+    .expense-overview__activity-head{padding:1px 2px 15px}
     .expense-overview__activity-eyebrow{margin:0 0 5px;color:#64748b;font-size:9px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}
-    .expense-overview__activity-title{margin:0;color:#172033;font-size:18px;font-weight:950;letter-spacing:-.035em}
-    .expense-overview__activity-copy{margin:4px 0 0;color:#94a3b8;font-size:10px;font-weight:650}
-    .expense-overview__activity-list{display:grid;gap:5px}
-    .expense-overview__activity-row{min-height:43px;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 2px 0 11px;border:1px solid rgba(148,163,184,.11);border-radius:12px;background:rgba(255,255,255,.68);box-sizing:border-box}
-    .expense-overview__activity-row>span{min-width:0;color:#334155;font-size:11px;font-weight:800}
-    .expense-overview__activity-row button{min-width:78px;height:30px;padding:0 12px;border:1px solid rgba(37,99,235,.14);border-radius:9px;background:#eff6ff;color:#1d4ed8;font:inherit;font-size:9px;font-weight:900;cursor:pointer;box-shadow:0 4px 10px rgba(37,99,235,.06);transition:transform .14s ease,background .14s ease,border-color .14s ease}
+    .expense-overview__activity-title{margin:0;color:#172033;font-size:20px;font-weight:950;letter-spacing:-.035em;line-height:1.15;white-space:nowrap}
+    .expense-overview__activity-copy{margin:5px 0 0;color:#94a3b8;font-size:10px;font-weight:650;line-height:1.4}
+    .expense-overview__activity-list{display:grid;gap:7px;min-width:0}
+    .expense-overview__activity-row{min-height:46px;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 4px 0 13px;border:1px solid rgba(148,163,184,.12);border-radius:13px;background:rgba(255,255,255,.72);box-sizing:border-box;min-width:0}
+    .expense-overview__activity-row>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#334155;font-size:11px;font-weight:800}
+    .expense-overview__activity-row button{flex:0 0 auto;min-width:82px;height:31px;padding:0 13px;border:1px solid rgba(37,99,235,.14);border-radius:9px;background:#eff6ff;color:#1d4ed8;font:inherit;font-size:9px;font-weight:900;cursor:pointer;box-shadow:0 4px 10px rgba(37,99,235,.06);transition:transform .14s ease,background .14s ease,border-color .14s ease}
     .expense-overview__activity-row button:hover{transform:translateY(-1px);background:#dbeafe;border-color:rgba(37,99,235,.25)}
-    .expense-overview__activity-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:10px;padding:10px 3px 0;border-top:1px solid rgba(148,163,184,.12);color:#64748b;font-size:10px;font-weight:900}
-    .expense-overview__activity-footer button{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:31px;padding:0 12px;border:1px solid rgba(148,163,184,.16);border-radius:9px;background:#172033;color:#fff;font:inherit;font-size:9px;font-weight:900;cursor:pointer;box-shadow:0 5px 12px rgba(15,23,42,.12);transition:transform .14s ease,background .14s ease}
+    .expense-overview__activity-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:12px;padding:11px 3px 0;border-top:1px solid rgba(148,163,184,.12);color:#64748b;font-size:10px;font-weight:900}
+    .expense-overview__activity-footer button{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:32px;padding:0 13px;border:1px solid rgba(148,163,184,.16);border-radius:9px;background:#172033;color:#fff;font:inherit;font-size:9px;font-weight:900;cursor:pointer;box-shadow:0 5px 12px rgba(15,23,42,.12);transition:transform .14s ease,background .14s ease}
     .expense-overview__activity-footer button:hover{transform:translateY(-1px);background:#0f172a}
     .expense-overview__activity-footer button span{font-size:12px;line-height:1}
     .sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
-    @media(max-width:700px){.expense-overview__activity-card{padding:18px 12px 12px;border-radius:18px}.expense-overview__activity-title{font-size:17px}.expense-overview__activity-row{min-height:45px;padding-left:10px}.expense-overview__activity-row button{min-width:76px}.expense-overview__activity-footer{padding-top:9px}}
+    @media(max-width:700px){.expense-overview__activity-card{padding:20px 13px 13px;border-radius:19px}.expense-overview__activity-title{font-size:18px}.expense-overview__activity-row{min-height:46px;padding-left:11px}.expense-overview__activity-row button{min-width:78px}}
   `;
   document.head.appendChild(style);
 }
