@@ -1,3 +1,4 @@
+import './workFinanceSourceUx';
 import {supabase} from '../../../lib/supabase/client';
 import type {ExpenseAccountOption,ExpenseCategoryOption,ExpenseTransactionInput,ExpenseTransactionRecord} from '../domain/transactions';
 import {toMoney} from '../domain/transactions';
