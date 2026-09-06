@@ -3,6 +3,7 @@ import { loadExpenseOverview } from '../data/expenseManagerOverview';
 import type { ExpenseOverviewData, ExpenseOverviewPeriodCurrency } from '../domain/overview';
 import { getExpensePeriodBounds } from '../domain/overview';
 import { DeterministicIntelligenceCard, FinancialInsightCard } from './ExpenseFinancialIntelligenceCards';
+import '../overview-navigation.css';
 
 interface ExpenseOverviewDashboardProps {
   onNavigate: (path: string) => void;
@@ -161,94 +162,20 @@ export function ExpenseOverviewDashboard({ onNavigate }: ExpenseOverviewDashboar
       </div>
 
       <div className="expense-overview__grid">
-        {loading && (
-          <div className="expense-overview__loading" aria-label="Loading financial overview">
-            <div className="expense-overview__skeleton" />
-            <div className="expense-overview__skeleton" />
-          </div>
-        )}
-
+        {loading && (<div className="expense-overview__loading" aria-label="Loading financial overview"><div className="expense-overview__skeleton" /><div className="expense-overview__skeleton" /></div>)}
         {!loading && error && <div className="expense-overview__error">{error}</div>}
-
-        {!loading && !error && data && !data.has_financial_records && (
-          <div className="expense-overview__card expense-overview__empty">
-            <div className="expense-overview__empty-icon" aria-hidden="true">＋</div>
-            <h2 className="expense-overview__empty-title">No financial records yet</h2>
-            <p className="expense-overview__empty-copy">Start tracking your money by adding your first expense or income. Your overview will populate from persisted Expense Manager data.</p>
-          </div>
-        )}
-
+        {!loading && !error && data && !data.has_financial_records && (<div className="expense-overview__card expense-overview__empty"><div className="expense-overview__empty-icon" aria-hidden="true">＋</div><h2 className="expense-overview__empty-title">No financial records yet</h2><p className="expense-overview__empty-copy">Start tracking your money by adding your first expense or income. Your overview will populate from persisted Expense Manager data.</p></div>)}
         {!loading && !error && data && data.has_financial_records && (
           <>
-            <article className="expense-overview__card expense-overview__balance">
-              <div className="expense-overview__balance-top">
-                <div>
-                  <p className="expense-overview__eyebrow">Total balance</p>
-                  {data.currencies.length === 1 ? (
-                    <h2 className="expense-overview__balance-value">{formatCurrency(data.currencies[0].balance, data.currencies[0].currency)}</h2>
-                  ) : (
-                    <h2 className="expense-overview__balance-value">{data.currencies.length ? 'Multiple currencies' : '—'}</h2>
-                  )}
-                  <p className="expense-overview__balance-meta">Derived from account opening balances, income, expenses, and transfers.</p>
-                </div>
-                {data.currencies.length > 1 && <div className="expense-overview__balance-currencies">{data.currencies.map((item) => <span className="expense-overview__currency-pill" key={item.currency}>{formatCurrency(item.balance, item.currency)}</span>)}</div>}
-              </div>
-            </article>
-
-            <article className="expense-overview__card expense-overview__metric">
-              <p className="expense-overview__metric-label">Income</p>
-              <p className="expense-overview__metric-value expense-overview__metric-value--income">{singlePeriod ? formatCurrency(singlePeriod.income, singlePeriod.currency) : periodCurrencyLabel(periods)}</p>
-              <p className="expense-overview__metric-note">{singlePeriod ? `${singlePeriod.transaction_count} period transactions` : 'Reported separately when currencies differ'}</p>
-            </article>
-            <article className="expense-overview__card expense-overview__metric">
-              <p className="expense-overview__metric-label">Expenses</p>
-              <p className="expense-overview__metric-value expense-overview__metric-value--expense">{singlePeriod ? formatCurrency(singlePeriod.expenses, singlePeriod.currency) : periodCurrencyLabel(periods)}</p>
-              <p className="expense-overview__metric-note">This selected month only</p>
-            </article>
-            <article className="expense-overview__card expense-overview__metric">
-              <p className="expense-overview__metric-label">Net</p>
-              <p className="expense-overview__metric-value">{singlePeriod ? formatCurrency(singlePeriod.income - singlePeriod.expenses, singlePeriod.currency) : periodCurrencyLabel(periods)}</p>
-              <p className="expense-overview__metric-note">Income minus expenses</p>
-            </article>
-
-            <article className="expense-overview__card expense-overview__wide">
-              <div className="expense-overview__card-head"><h2 className="expense-overview__card-title">Spending</h2><span className="expense-overview__metric-note">{singlePeriod ? formatCurrency(spendingTotal, singlePeriod.currency) : 'Multiple currencies'}</span></div>
-              {data.top_categories.length ? (
-                singlePeriod && chartCategories.length ? (
-                  <div className="expense-overview__spending">
-                    <div className="expense-overview__donut" style={{ background: chartGradient }} aria-label="Spending distribution chart" />
-                    <div className="expense-overview__legend">
-                      {chartCategories.map((item, index) => {
-                        const percent = categoryTotal > 0 ? Math.round((item.amount / categoryTotal) * 100) : 0;
-                        const hue = (index * 53 + 205) % 360;
-                        return <div className="expense-overview__legend-row" key={`${item.id}-${item.currency}`}><span className="expense-overview__dot" style={{ ['--hue' as string]: hue }} /><span className="expense-overview__legend-name">{item.name} · {item.currency}</span><span className="expense-overview__legend-value">{percent}%</span></div>;
-                      })}
-                    </div>
-                  </div>
-                ) : <div className="expense-overview__empty-mini">Distribution is shown separately by currency. No exchange rate is applied.</div>
-              ) : <div className="expense-overview__empty-mini">No expenses recorded for this period.</div>}
-            </article>
-
-            <article className="expense-overview__card expense-overview__half">
-              <div className="expense-overview__card-head"><h2 className="expense-overview__card-title">Top spending</h2><button type="button" className="expense-overview__card-action" onClick={() => onNavigate('/expense-manager/categories')}>Categories</button></div>
-              {data.top_categories.length ? <div className="expense-overview__list">{data.top_categories.slice(0, 5).map((item) => <div className="expense-overview__row" key={`${item.id}-${item.currency}`}><span className="expense-overview__row-icon" aria-hidden="true">{item.icon || '◈'}</span><div className="expense-overview__row-main"><div className="expense-overview__row-title">{item.name}</div><div className="expense-overview__row-sub">{item.transaction_count} {item.transaction_count === 1 ? 'transaction' : 'transactions'}</div></div><strong className="expense-overview__row-amount" data-type="expense">{formatCurrency(item.amount, item.currency)}</strong></div>)}</div> : <div className="expense-overview__empty-mini">Category spending will appear here after you record expenses.</div>}
-            </article>
-
-            <article className="expense-overview__card expense-overview__half">
-              <div className="expense-overview__card-head"><h2 className="expense-overview__card-title">Account snapshot</h2><button type="button" className="expense-overview__card-action" onClick={() => onNavigate('/expense-manager/accounts')}>Accounts</button></div>
-              {data.accounts.length ? <div className="expense-overview__list">{data.accounts.map((item) => <div className="expense-overview__row" key={item.id}><span className="expense-overview__row-icon" aria-hidden="true">{item.icon || '◫'}</span><div className="expense-overview__row-main"><div className="expense-overview__row-title">{item.name}</div><div className="expense-overview__row-sub">{item.type.replace('_', ' ')} · {item.currency}</div></div><strong className="expense-overview__row-amount">{formatCurrency(item.balance, item.currency)}</strong></div>)}</div> : <div className="expense-overview__empty-mini">No accounts have been created yet.</div>}
-            </article>
-
-            <article className="expense-overview__card expense-overview__half">
-              <div className="expense-overview__card-head"><h2 className="expense-overview__card-title">Recent transactions</h2><button type="button" className="expense-overview__card-action" onClick={() => onNavigate('/expense-manager/transactions')}>View all</button></div>
-              {data.recent_transactions.length ? <div className="expense-overview__list">{data.recent_transactions.map((item) => { const sign = item.type === 'income' ? '+' : item.type === 'expense' ? '−' : '↔'; return <div className="expense-overview__row" key={item.id}><span className="expense-overview__row-icon" aria-hidden="true">{item.category_icon || (item.type === 'transfer' ? '↔' : '•')}</span><div className="expense-overview__row-main"><div className="expense-overview__row-title">{item.category_name || (item.type === 'transfer' ? 'Transfer' : 'Uncategorised')}</div><div className="expense-overview__row-sub">{formatDate(item.date)} · {item.display_account || 'Account'}{item.note ? ` · ${item.note}` : ''}</div></div><strong className="expense-overview__row-amount" data-type={item.type}>{sign} {formatCurrency(item.amount, item.currency || primaryCurrency || 'PKR')}</strong></div>; })}</div> : <div className="expense-overview__empty-mini">No transactions in this period.</div>}
-            </article>
-
-            <article className="expense-overview__card expense-overview__half">
-              <div className="expense-overview__card-head"><h2 className="expense-overview__card-title">Budgets</h2><button type="button" className="expense-overview__card-action" onClick={() => onNavigate('/expense-manager/budgets')}>Budgets</button></div>
-              {data.budgets.length ? data.budgets.map((budget) => { const ratio = budget.budget_amount > 0 ? Math.min(1.2, budget.spent / budget.budget_amount) : 0; return <div className="expense-overview__budget" key={budget.id}><div className="expense-overview__budget-head"><span>{budget.category_name}</span><span>{numberFormatter.format(Math.round(ratio * 100))}%</span></div><div className="expense-overview__progress"><span style={{ width: `${Math.min(100, ratio * 100)}%` }} /></div><div className="expense-overview__budget-meta"><span>{numberFormatter.format(budget.spent)} spent</span><span>{numberFormatter.format(budget.budget_amount)} limit</span></div></div>; }) : <div className="expense-overview__empty-mini">No budgets are configured for this period.</div>}
-            </article>
-
+            <article className="expense-overview__card expense-overview__balance"><div className="expense-overview__balance-top"><div><p className="expense-overview__eyebrow">Total balance</p>{data.currencies.length === 1 ? <h2 className="expense-overview__balance-value">{formatCurrency(data.currencies[0].balance, data.currencies[0].currency)}</h2> : <h2 className="expense-overview__balance-value">{data.currencies.length ? 'Multiple currencies' : '—'}</h2>}<p className="expense-overview__balance-meta">Derived from account opening balances, income, expenses, and transfers.</p></div>{data.currencies.length > 1 && <div className="expense-overview__balance-currencies">{data.currencies.map((item) => <span className="expense-overview__currency-pill" key={item.currency}>{formatCurrency(item.balance, item.currency)}</span>)}</div>}</div></article>
+            <article className="expense-overview__card expense-overview__metric"><p className="expense-overview__metric-label">Income</p><p className="expense-overview__metric-value expense-overview__metric-value--income">{singlePeriod ? formatCurrency(singlePeriod.income, singlePeriod.currency) : periodCurrencyLabel(periods)}</p><p className="expense-overview__metric-note">{singlePeriod ? `${singlePeriod.transaction_count} period transactions` : 'Reported separately when currencies differ'}</p></article>
+            <article className="expense-overview__card expense-overview__metric"><p className="expense-overview__metric-label">Expenses</p><p className="expense-overview__metric-value expense-overview__metric-value--expense">{singlePeriod ? formatCurrency(singlePeriod.expenses, singlePeriod.currency) : periodCurrencyLabel(periods)}</p><p className="expense-overview__metric-note">This selected month only</p></article>
+            <article className="expense-overview__card expense-overview__metric"><p className="expense-overview__metric-label">Net</p><p className="expense-overview__metric-value">{singlePeriod ? formatCurrency(singlePeriod.income - singlePeriod.expenses, singlePeriod.currency) : periodCurrencyLabel(periods)}</p><p className="expense-overview__metric-note">Income minus expenses</p></article>
+            <article className="expense-overview__card expense-overview__wide"><div className="expense-overview__card-head"><h2 className="expense-overview__card-title">Spending</h2><span className="expense-overview__metric-note">{singlePeriod ? formatCurrency(spendingTotal, singlePeriod.currency) : 'Multiple currencies'}</span></div>{data.top_categories.length ? (singlePeriod && chartCategories.length ? <div className="expense-overview__spending"><div className="expense-overview__donut" style={{ background: chartGradient }} aria-label="Spending distribution chart" /><div className="expense-overview__legend">{chartCategories.map((item, index) => { const percent = categoryTotal > 0 ? Math.round((item.amount / categoryTotal) * 100) : 0; const hue = (index * 53 + 205) % 360; return <div className="expense-overview__legend-row" key={`${item.id}-${item.currency}`}><span className="expense-overview__dot" style={{ ['--hue' as string]: hue }} /><span className="expense-overview__legend-name">{item.name} · {item.currency}</span><span className="expense-overview__legend-value">{percent}%</span></div>; })}</div></div> : <div className="expense-overview__empty-mini">Distribution is shown separately by currency. No exchange rate is applied.</div>) : <div className="expense-overview__empty-mini">No expenses recorded for this period.</div>}</article>
+            <article className="expense-overview__card expense-overview__half"><div className="expense-overview__card-head"><h2 className="expense-overview__card-title">Top spending</h2><button type="button" className="expense-overview__card-action" onClick={() => onNavigate('/expense-manager/categories')}>Categories</button></div>{data.top_categories.length ? <div className="expense-overview__list">{data.top_categories.slice(0, 5).map((item) => <div className="expense-overview__row" key={`${item.id}-${item.currency}`}><span className="expense-overview__row-icon" aria-hidden="true">{item.icon || '◈'}</span><div className="expense-overview__row-main"><div className="expense-overview__row-title">{item.name}</div><div className="expense-overview__row-sub">{item.transaction_count} {item.transaction_count === 1 ? 'transaction' : 'transactions'}</div></div><strong className="expense-overview__row-amount" data-type="expense">{formatCurrency(item.amount, item.currency)}</strong></div>)}</div> : <div className="expense-overview__empty-mini">Category spending will appear here after you record expenses.</div>}</article>
+            <article className="expense-overview__card expense-overview__half"><div className="expense-overview__card-head"><h2 className="expense-overview__card-title">Account snapshot</h2><button type="button" className="expense-overview__card-action" onClick={() => onNavigate('/expense-manager/accounts')}>Accounts</button></div>{data.accounts.length ? <div className="expense-overview__list">{data.accounts.map((item) => <div className="expense-overview__row" key={item.id}><span className="expense-overview__row-icon" aria-hidden="true">{item.icon || '◫'}</span><div className="expense-overview__row-main"><div className="expense-overview__row-title">{item.name}</div><div className="expense-overview__row-sub">{item.type.replace('_', ' ')} · {item.currency}</div></div><strong className="expense-overview__row-amount">{formatCurrency(item.balance, item.currency)}</strong></div>)}</div> : <div className="expense-overview__empty-mini">No accounts have been created yet.</div>}</article>
+            <article className="expense-overview__card expense-overview__half"><div className="expense-overview__card-head"><h2 className="expense-overview__card-title">Recent transactions</h2><button type="button" className="expense-overview__card-action" onClick={() => onNavigate('/expense-manager/transactions')}>View all</button></div>{data.recent_transactions.length ? <div className="expense-overview__list">{data.recent_transactions.map((item) => { const sign = item.type === 'income' ? '+' : item.type === 'expense' ? '−' : '↔'; return <div className="expense-overview__row" key={item.id}><span className="expense-overview__row-icon" aria-hidden="true">{item.category_icon || (item.type === 'transfer' ? '↔' : '•')}</span><div className="expense-overview__row-main"><div className="expense-overview__row-title">{item.category_name || (item.type === 'transfer' ? 'Transfer' : 'Uncategorised')}</div><div className="expense-overview__row-sub">{formatDate(item.date)} · {item.display_account || 'Account'}{item.note ? ` · ${item.note}` : ''}</div></div><strong className="expense-overview__row-amount" data-type={item.type}>{sign} {formatCurrency(item.amount, item.currency || primaryCurrency || 'PKR')}</strong></div>; })}</div> : <div className="expense-overview__empty-mini">No transactions in this period.</div>}</article>
+            <article className="expense-overview__card expense-overview__half expense-overview__budgets-card"><div className="expense-overview__card-head"><h2 className="expense-overview__card-title">Budgets</h2><button type="button" className="expense-overview__card-action" onClick={() => onNavigate('/expense-manager/budgets')}>Budgets</button></div>{data.budgets.length ? data.budgets.map((budget) => { const ratio = budget.budget_amount > 0 ? Math.min(1.2, budget.spent / budget.budget_amount) : 0; return <div className="expense-overview__budget" key={budget.id}><div className="expense-overview__budget-head"><span>{budget.category_name}</span><span>{numberFormatter.format(Math.round(ratio * 100))}%</span></div><div className="expense-overview__progress"><span style={{ width: `${Math.min(100, ratio * 100)}%` }} /></div><div className="expense-overview__budget-meta"><span>{numberFormatter.format(budget.spent)} spent</span><span>{numberFormatter.format(budget.budget_amount)} limit</span></div></div>; }) : <div className="expense-overview__empty-mini">No budgets are configured for this period.</div>}</article>
             <FinancialInsightCard data={data} periodLabel={monthLabel(anchor)} />
             <DeterministicIntelligenceCard data={data} periodLabel={monthLabel(anchor)} />
           </>
