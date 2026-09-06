@@ -57,6 +57,19 @@ export function ExpenseManagerPage({ pathname, onNavigate }: ExpenseManagerPageP
       .expense-manager-page__title{margin:7px 0 4px;font-size:clamp(23px,6vw,42px);line-height:1.06;letter-spacing:-.045em;font-weight:950;color:#0f172a}
       .expense-manager-page__description{max-width:680px;margin:0;color:#64748b;font-size:12px;line-height:1.45;font-weight:600}
       .expense-manager-page--settings .expense-manager-page__hero{position:relative;width:min(1120px,100%);margin-bottom:4px;padding:14px 16px 15px;border:1px solid rgba(148,163,184,.18);border-radius:20px;background:linear-gradient(145deg,rgba(255,255,255,.97),rgba(241,245,249,.88));box-shadow:0 15px 34px rgba(15,23,42,.08),inset 0 1px 0 rgba(255,255,255,.96);overflow:hidden}.expense-manager-page--settings .expense-manager-page__hero::after{content:'';position:absolute;right:-55px;top:-75px;width:190px;height:190px;border-radius:50%;background:radial-gradient(circle,rgba(37,99,235,.13),transparent 68%);pointer-events:none}.expense-manager-page--settings .expense-manager-page__eyebrow,.expense-manager-page--settings .expense-manager-page__title,.expense-manager-page--settings .expense-manager-page__description{position:relative;z-index:1}.expense-manager-page--settings .expense-manager-page__title{text-shadow:0 2px 0 rgba(255,255,255,.9),0 8px 18px rgba(15,23,42,.08)}
+      .expense-manager-page .expense-account-card{padding:11px 12px;border-radius:15px;box-shadow:0 8px 20px rgba(15,23,42,.05),inset 0 1px 0 rgba(255,255,255,.95);transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease}
+      .expense-manager-page .expense-account-card:hover{transform:translateY(-1px);border-color:rgba(37,99,235,.16);box-shadow:0 12px 24px rgba(15,23,42,.07),inset 0 1px 0 rgba(255,255,255,.96)}
+      .expense-manager-page .expense-account-card__top{gap:8px}
+      .expense-manager-page .expense-account-card__identity{gap:8px}
+      .expense-manager-page .expense-account-card__icon{width:36px;height:36px;flex-basis:36px;border-radius:11px;font-size:18px}
+      .expense-manager-page .expense-account-card__name{font-size:12px;letter-spacing:-.01em}
+      .expense-manager-page .expense-account-card__type{margin-top:2px;font-size:8px;letter-spacing:.075em}
+      .expense-manager-page .expense-account-card__balance-label{margin-top:11px;font-size:8px;letter-spacing:.09em}
+      .expense-manager-page .expense-account-card__balance{margin-top:3px;font-size:clamp(20px,3vw,25px);letter-spacing:-.04em}
+      .expense-manager-page .expense-account-card__meta{margin-top:9px;padding-top:8px;font-size:9px}
+      .expense-manager-page .expense-accounts__grid{gap:9px}
+      @media(min-width:980px){.expense-manager-page .expense-accounts__grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+      @media(max-width:767px){.expense-manager-page .expense-account-card{padding:11px 12px}.expense-manager-page .expense-account-card__balance{font-size:21px}}
       @media(min-width:768px){.expense-manager-page{padding-left:18px;padding-right:18px}.expense-manager-page__hero{padding-top:18px;padding-bottom:16px}}
       @media(max-width:767px){.expense-manager-page{padding-left:8px;padding-right:8px;padding-bottom:max(84px,calc(env(safe-area-inset-bottom) + 76px))}.expense-manager-page__hero{padding:8px 4px 7px}.expense-manager-page__eyebrow{display:none}.expense-manager-page__title{margin:0;font-size:21px;line-height:1.15;letter-spacing:-.03em}.expense-manager-page__description{display:none}.expense-manager-page--settings .expense-manager-page__hero{margin-bottom:2px;padding:11px 13px 12px;border-radius:17px}.expense-manager-page--settings .expense-manager-page__title{font-size:23px;text-shadow:0 2px 0 rgba(255,255,255,.9),0 6px 14px rgba(15,23,42,.08)}}
       @media(max-width:380px){.expense-manager-page{padding-left:6px;padding-right:6px}.expense-manager-page__hero{padding-top:6px;padding-bottom:6px}.expense-manager-page__title{font-size:20px}}
