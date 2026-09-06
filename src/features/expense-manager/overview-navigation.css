@@ -31,3 +31,61 @@
   .expense-overview__card:has(.expense-overview__budget) .expense-overview__card-head { gap: 8px; }
   .expense-overview__card:has(.expense-overview__budget) .expense-overview__card-action { min-height: 28px; padding: 0 9px; font-size: 9px; }
 }
+
+/* Overview financial summary: compact presentation only. Data, calculations and period semantics remain in ExpenseOverviewDashboard. */
+.expense-overview .expense-overview__grid > .expense-overview__card.expense-overview__balance {
+  padding: 13px 14px;
+  border-radius: 16px;
+  box-shadow: 0 12px 28px rgba(15,23,42,.16), inset 0 1px 0 rgba(255,255,255,.12);
+}
+
+.expense-overview .expense-overview__grid > .expense-overview__card.expense-overview__balance .expense-overview__balance-top {
+  gap: 12px;
+}
+
+.expense-overview .expense-overview__grid > .expense-overview__card.expense-overview__balance .expense-overview__eyebrow {
+  margin-bottom: 5px;
+}
+
+.expense-overview .expense-overview__grid > .expense-overview__card.expense-overview__balance .expense-overview__balance-value {
+  font-size: clamp(26px, 5.5vw, 32px);
+  line-height: 1.04;
+  letter-spacing: -.045em;
+}
+
+.expense-overview .expense-overview__grid > .expense-overview__card.expense-overview__balance .expense-overview__balance-meta {
+  margin-top: 6px;
+  line-height: 1.35;
+}
+
+.expense-overview .expense-overview__grid > .expense-overview__card.expense-overview__metric {
+  padding: 12px 14px;
+  border-radius: 16px;
+  box-shadow: 0 9px 22px rgba(15,23,42,.055), inset 0 1px 0 rgba(255,255,255,.95);
+}
+
+.expense-overview .expense-overview__grid > .expense-overview__card.expense-overview__metric .expense-overview__metric-value {
+  margin-top: 5px;
+  font-size: clamp(19px, 3vw, 24px);
+  line-height: 1.08;
+  letter-spacing: -.035em;
+}
+
+.expense-overview .expense-overview__grid > .expense-overview__card.expense-overview__metric .expense-overview__metric-note {
+  margin-top: 5px;
+  line-height: 1.35;
+}
+
+@media (max-width: 699px) {
+  .expense-overview .expense-overview__grid > .expense-overview__card.expense-overview__balance {
+    padding: 12px 13px;
+  }
+
+  .expense-overview .expense-overview__grid > .expense-overview__card.expense-overview__metric {
+    padding: 11px 13px;
+  }
+
+  .expense-overview .expense-overview__grid > .expense-overview__card.expense-overview__metric .expense-overview__metric-value {
+    font-size: clamp(18px, 5.2vw, 21px);
+  }
+}
