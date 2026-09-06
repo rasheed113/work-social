@@ -78,20 +78,40 @@ function navigate(path: string) {
 
 function enhanceOverviewToolbar() {
   const toolbar = document.querySelector<HTMLElement>('.expense-overview__toolbar');
-  if (!toolbar || toolbar.dataset.activityReady === 'true') return;
+  const balanceCard = document.querySelector<HTMLElement>('.expense-overview__grid > .expense-overview__balance');
+  if (!toolbar || !balanceCard || toolbar.dataset.activityReady === 'true') return;
   toolbar.dataset.activityReady = 'true';
-  const wrapper = document.createElement('div');
-  wrapper.className = 'expense-overview__activity-links';
-  wrapper.setAttribute('aria-label', 'Activity periods');
+
+  const wrapper = document.createElement('section');
+  wrapper.className = 'expense-overview__activity-card';
+  wrapper.setAttribute('aria-label', 'Activity');
   wrapper.innerHTML = `
-    <span class="expense-overview__activity-label">Activity</span>
-    ${['today:Today’s activity', 'week:This week', 'month:This month', 'ytd:Year to date', 'up-to-date:Up to date', 'end-of-month:End of month'].map((item) => {
-      const [id, label] = item.split(':');
-      return `<button type="button" data-activity-period="${id}">${label}<span aria-hidden="true">→</span></button>`;
-    }).join('')}
-    <button type="button" class="expense-overview__settings-link" data-overview-settings>More <span aria-hidden="true">→</span> <span aria-hidden="true">⚙</span><span class="sr-only">Settings</span></button>
+    <div class="expense-overview__activity-head">
+      <div>
+        <p class="expense-overview__activity-eyebrow">Activity</p>
+        <h2 class="expense-overview__activity-title">Financial activity</h2>
+        <p class="expense-overview__activity-copy">Open a focused view for each reporting period.</p>
+      </div>
+    </div>
+    <div class="expense-overview__activity-list">
+      ${[
+        'today:Today’s activity',
+        'week:This week',
+        'month:This month',
+        'ytd:Year to date',
+        'up-to-date:Up to date',
+        'end-of-month:End of month',
+      ].map((item) => {
+        const [id, label] = item.split(':');
+        return `<div class="expense-overview__activity-row"><span>${label}</span><button type="button" data-activity-period="${id}">Activity</button></div>`;
+      }).join('')}
+    </div>
+    <div class="expense-overview__activity-footer">
+      <span>More</span>
+      <button type="button" data-overview-settings aria-label="Open Settings"><span aria-hidden="true">⚙</span> Settings</button>
+    </div>
   `;
-  toolbar.insertAdjacentElement('afterend', wrapper);
+  balanceCard.insertAdjacentElement('afterend', wrapper);
   wrapper.addEventListener('click', (event) => {
     const target = event.target as HTMLElement;
     const activity = target.closest<HTMLButtonElement>('[data-activity-period]');
@@ -142,15 +162,22 @@ function injectStyles() {
   style.id = 'expense-manager-preference-styles';
   style.textContent = `
     .expense-overview__card[hidden]{display:none!important}
-    .expense-overview__activity-links{width:min(1120px,100%);margin:-4px auto 14px;padding:9px 10px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;border:1px solid rgba(148,163,184,.14);border-radius:14px;background:rgba(255,255,255,.7);box-shadow:0 5px 15px rgba(15,23,42,.035)}
-    .expense-overview__activity-label{margin-right:2px;color:#64748b;font-size:9px;font-weight:900;letter-spacing:.09em;text-transform:uppercase}
-    .expense-overview__activity-links button{display:inline-flex;align-items:center;gap:5px;min-height:30px;padding:0 8px;border:1px solid rgba(148,163,184,.13);border-radius:9px;background:#fff;color:#475569;font:inherit;font-size:9px;font-weight:800;cursor:pointer;transition:background .14s ease,border-color .14s ease,transform .14s ease}
-    .expense-overview__activity-links button:hover{background:#eff6ff;border-color:rgba(37,99,235,.18);color:#1d4ed8;transform:translateY(-1px)}
-    .expense-overview__activity-links button span{color:#2563eb;font-size:11px}
-    .expense-overview__activity-links .expense-overview__settings-link{margin-left:auto;background:#172033;color:#fff;border-color:#172033}
-    .expense-overview__activity-links .expense-overview__settings-link span{color:inherit}
+    .expense-overview__activity-card{width:min(1120px,100%);margin:0 auto 16px;padding:20px 20px 14px;box-sizing:border-box;border:1px solid rgba(148,163,184,.17);border-radius:20px;background:linear-gradient(145deg,rgba(255,255,255,.97),rgba(248,250,252,.91));box-shadow:0 14px 32px rgba(15,23,42,.07),inset 0 1px 0 rgba(255,255,255,.95)}
+    .expense-overview__activity-head{padding:1px 2px 13px}
+    .expense-overview__activity-eyebrow{margin:0 0 5px;color:#64748b;font-size:9px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}
+    .expense-overview__activity-title{margin:0;color:#172033;font-size:18px;font-weight:950;letter-spacing:-.035em}
+    .expense-overview__activity-copy{margin:4px 0 0;color:#94a3b8;font-size:10px;font-weight:650}
+    .expense-overview__activity-list{display:grid;gap:5px}
+    .expense-overview__activity-row{min-height:43px;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 2px 0 11px;border:1px solid rgba(148,163,184,.11);border-radius:12px;background:rgba(255,255,255,.68);box-sizing:border-box}
+    .expense-overview__activity-row>span{min-width:0;color:#334155;font-size:11px;font-weight:800}
+    .expense-overview__activity-row button{min-width:78px;height:30px;padding:0 12px;border:1px solid rgba(37,99,235,.14);border-radius:9px;background:#eff6ff;color:#1d4ed8;font:inherit;font-size:9px;font-weight:900;cursor:pointer;box-shadow:0 4px 10px rgba(37,99,235,.06);transition:transform .14s ease,background .14s ease,border-color .14s ease}
+    .expense-overview__activity-row button:hover{transform:translateY(-1px);background:#dbeafe;border-color:rgba(37,99,235,.25)}
+    .expense-overview__activity-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:10px;padding:10px 3px 0;border-top:1px solid rgba(148,163,184,.12);color:#64748b;font-size:10px;font-weight:900}
+    .expense-overview__activity-footer button{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:31px;padding:0 12px;border:1px solid rgba(148,163,184,.16);border-radius:9px;background:#172033;color:#fff;font:inherit;font-size:9px;font-weight:900;cursor:pointer;box-shadow:0 5px 12px rgba(15,23,42,.12);transition:transform .14s ease,background .14s ease}
+    .expense-overview__activity-footer button:hover{transform:translateY(-1px);background:#0f172a}
+    .expense-overview__activity-footer button span{font-size:12px;line-height:1}
     .sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
-    @media(max-width:700px){.expense-overview__activity-links{align-items:stretch;padding:8px;gap:5px}.expense-overview__activity-label{width:100%;margin-bottom:1px}.expense-overview__activity-links button{flex:1 1 calc(50% - 5px);justify-content:space-between}.expense-overview__activity-links .expense-overview__settings-link{flex:1 1 100%;margin-left:0}}
+    @media(max-width:700px){.expense-overview__activity-card{padding:18px 12px 12px;border-radius:18px}.expense-overview__activity-title{font-size:17px}.expense-overview__activity-row{min-height:45px;padding-left:10px}.expense-overview__activity-row button{min-width:76px}.expense-overview__activity-footer{padding-top:9px}}
   `;
   document.head.appendChild(style);
 }
