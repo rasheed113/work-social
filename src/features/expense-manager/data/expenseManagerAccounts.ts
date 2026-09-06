@@ -55,3 +55,8 @@ export async function updateExpenseAccountRecord(userId: string, id: string, inp
   if (error) throw error;
   return data.id as string;
 }
+
+export async function deleteExpenseAccountRecord(userId: string, id: string) {
+  const { error } = await supabase.from('expense_accounts').delete().eq('id', id).eq('user_id', userId);
+  if (error) throw error;
+}
