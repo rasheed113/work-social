@@ -100,7 +100,7 @@ export function ExpenseOverviewDashboard({ onNavigate }: ExpenseOverviewDashboar
         .expense-overview__period-button{width:38px;height:38px;display:grid;place-items:center;border:1px solid rgba(148,163,184,.2);border-radius:12px;background:rgba(255,255,255,.82);color:#334155;font-size:18px;font-weight:900;cursor:pointer;box-shadow:0 5px 14px rgba(15,23,42,.05)}
         .expense-overview__period-button:disabled{opacity:.4;cursor:not-allowed}
         .expense-overview__period-label{min-width:145px;text-align:center;color:#0f172a;font-size:14px;font-weight:900;letter-spacing:-.02em}
-        .expense-overview__add{min-height:40px;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:0 14px;border:1px solid rgba(37,99,235,.2);border-radius:13px;background:linear-gradient(135deg,#2563eb,#4f46e5);color:#fff;font:inherit;font-size:12px;font-weight:900;box-shadow:0 8px 18px rgba(37,99,235,.18);cursor:pointer;white-space:nowrap}
+
         .expense-overview__grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:12px}
         .expense-overview__card{min-width:0;border:1px solid rgba(148,163,184,.17);border-radius:20px;background:linear-gradient(145deg,rgba(255,255,255,.96),rgba(248,250,252,.88));box-shadow:0 12px 28px rgba(15,23,42,.06),inset 0 1px 0 rgba(255,255,255,.95);padding:16px;box-sizing:border-box}
         .expense-overview__balance{grid-column:span 12;background:linear-gradient(145deg,#111827,#1e293b 58%,#312e81);color:#fff;border-color:rgba(255,255,255,.12);box-shadow:0 18px 38px rgba(15,23,42,.2),inset 0 1px 0 rgba(255,255,255,.12)}
@@ -150,7 +150,7 @@ export function ExpenseOverviewDashboard({ onNavigate }: ExpenseOverviewDashboar
         .expense-overview__error{grid-column:span 12;padding:16px;border-radius:18px;border:1px solid rgba(190,24,93,.14);background:rgba(190,24,93,.04);color:#9f1239;font-size:11px;font-weight:750}
         @keyframes expense-shimmer{to{background-position:-200% 0}}
         @media (min-width:700px){.expense-overview__metric{grid-column:span 4}.expense-overview__half{grid-column:span 6}.expense-overview__wide{grid-column:span 12}.expense-overview__balance{grid-column:span 12}}
-        @media (max-width:460px){.expense-overview__toolbar{align-items:stretch}.expense-overview__add{padding:0 10px}.expense-overview__period-label{min-width:112px;font-size:12px}.expense-overview__spending{gap:12px}.expense-overview__donut{width:108px;height:108px;flex-basis:108px}.expense-overview__donut::after{inset:24px}}
+        @media (max-width:460px){.expense-overview__toolbar{align-items:stretch}.expense-overview__period-label{min-width:112px;font-size:12px}.expense-overview__spending{gap:12px}.expense-overview__donut{width:108px;height:108px;flex-basis:108px}.expense-overview__donut::after{inset:24px}}
       `}</style>
 
       <div className="expense-overview__toolbar">
@@ -159,9 +159,7 @@ export function ExpenseOverviewDashboard({ onNavigate }: ExpenseOverviewDashboar
           <strong className="expense-overview__period-label">{monthLabel(anchor)}</strong>
           <button type="button" className="expense-overview__period-button" onClick={() => shiftMonth(1)} disabled={currentMonth} aria-label="Next month">›</button>
         </div>
-        <button type="button" className="expense-overview__add" onClick={() => onNavigate('/expense-manager/transactions?intent=add')}>
-          <span aria-hidden="true">＋</span> Add transaction
-        </button>
+
       </div>
 
       <div className="expense-overview__grid">
@@ -179,7 +177,7 @@ export function ExpenseOverviewDashboard({ onNavigate }: ExpenseOverviewDashboar
             <div className="expense-overview__empty-icon" aria-hidden="true">＋</div>
             <h2 className="expense-overview__empty-title">No financial records yet</h2>
             <p className="expense-overview__empty-copy">Start tracking your money by adding your first expense or income. Your overview will populate from persisted Expense Manager data.</p>
-            <button type="button" className="expense-overview__add" onClick={() => onNavigate('/expense-manager/transactions?intent=add')}>＋ Add transaction</button>
+
           </div>
         )}
 
