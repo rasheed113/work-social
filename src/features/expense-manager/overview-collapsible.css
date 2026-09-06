@@ -32,7 +32,11 @@
   z-index: 2;
   min-height: 30px;
   margin-bottom: 12px;
-  padding-right: 40px;
+  padding-right: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto 30px;
+  align-items: center;
+  gap: 9px;
 }
 
 .expense-overview__card-head--collapsible .expense-overview__card-title {
@@ -44,12 +48,46 @@
 .expense-overview__card-head--collapsible .expense-overview__card-action {
   position: relative;
   z-index: 2;
+  justify-self: end;
+  min-height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0 10px;
+  border: 1px solid rgba(37,99,235,.13);
+  border-radius: 10px;
+  background: linear-gradient(145deg, rgba(239,246,255,.96), rgba(248,250,252,.94));
+  color: #2563eb;
+  font-size: 10px;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -.01em;
+  box-shadow: 0 5px 12px rgba(37,99,235,.07), inset 0 1px 0 rgba(255,255,255,.98);
+  white-space: nowrap;
+  transition: transform 150ms ease, box-shadow 150ms ease, border-color 150ms ease, background 150ms ease;
+}
+
+.expense-overview__card-head--collapsible .expense-overview__card-action:hover {
+  border-color: rgba(37,99,235,.24);
+  background: linear-gradient(145deg, #fff, #eef2ff);
+  box-shadow: 0 7px 15px rgba(37,99,235,.11), inset 0 1px 0 #fff;
+  transform: translateY(-1px);
+}
+
+.expense-overview__card-head--collapsible .expense-overview__card-action:active {
+  transform: translateY(1px) scale(.98);
+}
+
+.expense-overview__card-head--collapsible .expense-overview__card-action:focus-visible {
+  outline: 3px solid rgba(37,99,235,.16);
+  outline-offset: 2px;
 }
 
 .expense-overview__collapse-toggle {
-  position: absolute;
-  top: 50%;
-  right: 0;
+  position: relative;
+  top: auto;
+  right: auto;
   z-index: 4;
   width: 30px;
   height: 30px;
@@ -65,7 +103,7 @@
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   cursor: pointer;
-  transform: translateY(-50%);
+  transform: none;
   transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease, background 160ms ease;
 }
 
@@ -73,11 +111,11 @@
   border-color: rgba(37,99,235,.3);
   background: linear-gradient(145deg, #fff, #eef2ff);
   box-shadow: 0 9px 19px rgba(37,99,235,.13), inset 0 1px 0 #fff;
-  transform: translateY(calc(-50% - 1px));
+  transform: translateY(-1px);
 }
 
 .expense-overview__collapse-toggle:active {
-  transform: translateY(calc(-50% + 1px)) scale(.96);
+  transform: translateY(1px) scale(.96);
 }
 
 .expense-overview__collapse-toggle:focus-visible {
@@ -90,12 +128,12 @@
   font-size: 16px;
   line-height: 1;
   font-weight: 900;
-  transform: translateY(1px);
+  transform: translateY(-1px);
   transition: transform 180ms ease;
 }
 
 .expense-overview__card.is-expanded .expense-overview__collapse-icon {
-  transform: rotate(180deg) translateY(1px);
+  transform: rotate(180deg) translateY(-1px);
 }
 
 .expense-overview__grid > .expense-overview__card[data-overview-collapsible-ready="true"]:not(.is-expanded) .expense-overview__list > :nth-child(n + 2) { display: none; }
@@ -110,10 +148,11 @@
   }
 
   .expense-overview__grid > .expense-overview__card[data-overview-collapsible-ready="true"].is-expanded { max-height: 1600px; }
-  .expense-overview__card-head--collapsible { padding-right: 38px; }
+  .expense-overview__card-head--collapsible { grid-template-columns: minmax(0, 1fr) auto 28px; gap: 7px; }
+  .expense-overview__card-head--collapsible .expense-overview__card-action { min-height: 28px; padding: 0 8px; font-size: 9px; }
   .expense-overview__collapse-toggle { width: 28px; height: 28px; border-radius: 9px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .expense-overview__grid > .expense-overview__card[data-overview-collapsible-ready="true"], .expense-overview__collapse-toggle, .expense-overview__collapse-icon { transition: none; }
+  .expense-overview__grid > .expense-overview__card[data-overview-collapsible-ready="true"], .expense-overview__collapse-toggle, .expense-overview__collapse-icon, .expense-overview__card-head--collapsible .expense-overview__card-action { transition: none; }
 }
