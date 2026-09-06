@@ -1,7 +1,6 @@
 import type { ExpenseManagerSection } from '../components/ExpenseManagerNavigation';
 import { ExpenseManagerNavigation } from '../components/ExpenseManagerNavigation';
 import { ExpenseOverviewDashboard } from '../components/ExpenseOverviewDashboard';
-import { ExpenseIntelligencePanel } from '../components/ExpenseIntelligencePanel';
 import { ExpenseTransactionsPage } from './ExpenseTransactionsPage';
 import { ExpenseAccountsPage } from './ExpenseAccountsPage';
 import { ExpenseCategoriesPage } from './ExpenseCategoriesPage';
@@ -53,6 +52,6 @@ export function ExpenseManagerPage({ pathname, onNavigate }: ExpenseManagerPageP
     `}</style>
     <ExpenseManagerNavigation pathname={pathname} onNavigate={onNavigate} />
     <section className="expense-manager-page__hero" aria-labelledby="expense-manager-title"><span className="expense-manager-page__eyebrow">Expense Manager</span><h1 id="expense-manager-title" className="expense-manager-page__title">{copy.title}</h1><p className="expense-manager-page__description">{copy.description}</p></section>
-    {section === 'overview' ? <><ExpenseOverviewDashboard onNavigate={onNavigate} /><ExpenseIntelligencePanel /></> : section === 'transactions' ? <ExpenseTransactionsPage onNavigate={onNavigate} /> : section === 'accounts' ? <ExpenseAccountsPage onNavigate={onNavigate} /> : section === 'categories' ? <ExpenseCategoriesPage onNavigate={onNavigate} /> : section === 'budgets' ? <ExpenseBudgetsPage onNavigate={onNavigate} /> : <ExpenseReportsPage onNavigate={onNavigate} />}
+    {section === 'overview' ? <ExpenseOverviewDashboard onNavigate={onNavigate} /> : section === 'transactions' ? <ExpenseTransactionsPage onNavigate={onNavigate} /> : section === 'accounts' ? <ExpenseAccountsPage onNavigate={onNavigate} /> : section === 'categories' ? <ExpenseCategoriesPage onNavigate={onNavigate} /> : section === 'budgets' ? <ExpenseBudgetsPage onNavigate={onNavigate} /> : <ExpenseReportsPage onNavigate={onNavigate} />}
   </main>;
 }

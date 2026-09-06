@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { loadExpenseOverview } from '../data/expenseManagerOverview';
 import type { ExpenseOverviewData, ExpenseOverviewPeriodCurrency } from '../domain/overview';
 import { getExpensePeriodBounds } from '../domain/overview';
+import { DeterministicIntelligenceCard, FinancialInsightCard } from './ExpenseFinancialIntelligenceCards';
 
 interface ExpenseOverviewDashboardProps {
   onNavigate: (path: string) => void;
@@ -100,7 +101,6 @@ export function ExpenseOverviewDashboard({ onNavigate }: ExpenseOverviewDashboar
         .expense-overview__period-button{width:38px;height:38px;display:grid;place-items:center;border:1px solid rgba(148,163,184,.2);border-radius:12px;background:rgba(255,255,255,.82);color:#334155;font-size:18px;font-weight:900;cursor:pointer;box-shadow:0 5px 14px rgba(15,23,42,.05)}
         .expense-overview__period-button:disabled{opacity:.4;cursor:not-allowed}
         .expense-overview__period-label{min-width:145px;text-align:center;color:#0f172a;font-size:14px;font-weight:900;letter-spacing:-.02em}
-
         .expense-overview__grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:12px}
         .expense-overview__card{min-width:0;border:1px solid rgba(148,163,184,.17);border-radius:20px;background:linear-gradient(145deg,rgba(255,255,255,.96),rgba(248,250,252,.88));box-shadow:0 12px 28px rgba(15,23,42,.06),inset 0 1px 0 rgba(255,255,255,.95);padding:16px;box-sizing:border-box}
         .expense-overview__balance{grid-column:span 12;background:linear-gradient(145deg,#111827,#1e293b 58%,#312e81);color:#fff;border-color:rgba(255,255,255,.12);box-shadow:0 18px 38px rgba(15,23,42,.2),inset 0 1px 0 rgba(255,255,255,.12)}
@@ -142,7 +142,6 @@ export function ExpenseOverviewDashboard({ onNavigate }: ExpenseOverviewDashboar
         .expense-overview__budget-head{display:flex;justify-content:space-between;gap:8px;color:#334155;font-size:10px;font-weight:850}
         .expense-overview__progress{height:8px;overflow:hidden;border-radius:999px;background:#e2e8f0}.expense-overview__progress>span{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#2563eb,#14b8a6)}
         .expense-overview__budget-meta{display:flex;justify-content:space-between;gap:8px;color:#94a3b8;font-size:9px;font-weight:650}
-        .expense-overview__insight{padding:12px;border-radius:14px;background:rgba(37,99,235,.055);border:1px solid rgba(37,99,235,.1);color:#334155;font-size:11px;line-height:1.55;font-weight:700}
         .expense-overview__empty{grid-column:span 12;padding:28px 20px;text-align:center}
         .expense-overview__empty-icon{width:52px;height:52px;margin:0 auto 12px;display:grid;place-items:center;border-radius:17px;background:linear-gradient(145deg,#dbeafe,#ede9fe);color:#4338ca;font-size:24px;font-weight:900}
         .expense-overview__empty-title{margin:0;color:#0f172a;font-size:17px;font-weight:950;letter-spacing:-.03em}.expense-overview__empty-copy{max-width:430px;margin:7px auto 16px;color:#64748b;font-size:11px;line-height:1.55;font-weight:650}
@@ -159,7 +158,6 @@ export function ExpenseOverviewDashboard({ onNavigate }: ExpenseOverviewDashboar
           <strong className="expense-overview__period-label">{monthLabel(anchor)}</strong>
           <button type="button" className="expense-overview__period-button" onClick={() => shiftMonth(1)} disabled={currentMonth} aria-label="Next month">›</button>
         </div>
-
       </div>
 
       <div className="expense-overview__grid">
@@ -177,7 +175,6 @@ export function ExpenseOverviewDashboard({ onNavigate }: ExpenseOverviewDashboar
             <div className="expense-overview__empty-icon" aria-hidden="true">＋</div>
             <h2 className="expense-overview__empty-title">No financial records yet</h2>
             <p className="expense-overview__empty-copy">Start tracking your money by adding your first expense or income. Your overview will populate from persisted Expense Manager data.</p>
-
           </div>
         )}
 
@@ -252,16 +249,8 @@ export function ExpenseOverviewDashboard({ onNavigate }: ExpenseOverviewDashboar
               {data.budgets.length ? data.budgets.map((budget) => { const ratio = budget.budget_amount > 0 ? Math.min(1.2, budget.spent / budget.budget_amount) : 0; return <div className="expense-overview__budget" key={budget.id}><div className="expense-overview__budget-head"><span>{budget.category_name}</span><span>{numberFormatter.format(Math.round(ratio * 100))}%</span></div><div className="expense-overview__progress"><span style={{ width: `${Math.min(100, ratio * 100)}%` }} /></div><div className="expense-overview__budget-meta"><span>{numberFormatter.format(budget.spent)} spent</span><span>{numberFormatter.format(budget.budget_amount)} limit</span></div></div>; }) : <div className="expense-overview__empty-mini">No budgets are configured for this period.</div>}
             </article>
 
-            <article className="expense-overview__card expense-overview__wide">
-              <div className="expense-overview__card-head"><h2 className="expense-overview__card-title">Financial insight</h2></div>
-              <div className="expense-overview__insight">
-                {singlePeriod && singlePeriod.income > 0
-                  ? `You spent ${Math.round((singlePeriod.expenses / singlePeriod.income) * 100)}% of recorded ${singlePeriod.currency} income during ${monthLabel(anchor)}.`
-                  : periods.length > 1
-                    ? 'Your selected period contains multiple currencies. Expense Manager keeps those figures separate instead of applying an invented exchange rate.'
-                    : 'No income has been recorded for this period yet, so a spending-to-income comparison is not available.'}
-              </div>
-            </article>
+            <FinancialInsightCard data={data} periodLabel={monthLabel(anchor)} />
+            <DeterministicIntelligenceCard data={data} periodLabel={monthLabel(anchor)} />
           </>
         )}
       </div>
