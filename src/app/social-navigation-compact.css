@@ -86,9 +86,7 @@ nav[aria-label="Main navigation"] > button > b {
   }
 }
 
-/* Expense Manager mobile footer: sit flush with the viewport bottom.
-   The previous wrapper added an unnecessary bottom gutter, which made the
-   navigation look like it was floating above the screen edge. */
+/* Expense Manager mobile footer: sit flush with the viewport bottom. */
 @media (max-width: 767px) {
   .expense-manager-navigation {
     left: 0 !important;
