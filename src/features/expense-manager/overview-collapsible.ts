@@ -23,7 +23,7 @@ function enhanceCard(card: HTMLElement) {
   toggle.className = 'expense-overview__collapse-toggle';
   toggle.setAttribute('aria-expanded', 'false');
   toggle.setAttribute('aria-label', `Expand ${title}`);
-  toggle.innerHTML = '<span class="expense-overview__collapse-icon" aria-hidden="true">⌃</span>';
+  toggle.innerHTML = '<span class="expense-overview__collapse-icon" aria-hidden="true">⌄</span>';
   toggle.addEventListener('click', () => {
     const expanded = card.classList.toggle('is-expanded');
     toggle.setAttribute('aria-expanded', String(expanded));
