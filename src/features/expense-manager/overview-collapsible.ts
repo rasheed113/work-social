@@ -1,3 +1,5 @@
+export {};
+
 const ROOT_SELECTOR = '.expense-overview';
 const CARD_SELECTOR = '.expense-overview__grid > .expense-overview__card';
 const READY_ATTR = 'data-overview-collapsible-ready';
