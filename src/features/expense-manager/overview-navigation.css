@@ -1,4 +1,4 @@
-.expense-overview__budgets-card .expense-overview__card-action {
+.expense-overview__card:has(.expense-overview__budget) .expense-overview__card-action {
   min-height: 30px;
   display: inline-flex;
   align-items: center;
@@ -17,17 +17,17 @@
   transition: transform 150ms ease, box-shadow 150ms ease, border-color 150ms ease, background 150ms ease;
 }
 
-.expense-overview__budgets-card .expense-overview__card-action:hover {
+.expense-overview__card:has(.expense-overview__budget) .expense-overview__card-action:hover {
   border-color: rgba(37,99,235,.24);
   background: linear-gradient(145deg, #fff, #eef2ff);
   box-shadow: 0 7px 15px rgba(37,99,235,.11), inset 0 1px 0 #fff;
   transform: translateY(-1px);
 }
 
-.expense-overview__budgets-card .expense-overview__card-action:active { transform: translateY(1px) scale(.98); }
-.expense-overview__budgets-card .expense-overview__card-action:focus-visible { outline: 3px solid rgba(37,99,235,.16); outline-offset: 2px; }
+.expense-overview__card:has(.expense-overview__budget) .expense-overview__card-action:active { transform: translateY(1px) scale(.98); }
+.expense-overview__card:has(.expense-overview__budget) .expense-overview__card-action:focus-visible { outline: 3px solid rgba(37,99,235,.16); outline-offset: 2px; }
 
 @media (max-width: 460px) {
-  .expense-overview__budgets-card .expense-overview__card-head { gap: 8px; }
-  .expense-overview__budgets-card .expense-overview__card-action { min-height: 28px; padding: 0 9px; font-size: 9px; }
+  .expense-overview__card:has(.expense-overview__budget) .expense-overview__card-head { gap: 8px; }
+  .expense-overview__card:has(.expense-overview__budget) .expense-overview__card-action { min-height: 28px; padding: 0 9px; font-size: 9px; }
 }
