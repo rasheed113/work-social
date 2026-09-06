@@ -1,68 +1,28 @@
 import { supabase } from '../../../lib/supabase/client';
-import type { ExpenseCategoryRecord, ExpenseCategoryType } from '../domain/categories';
-import { DEFAULT_EXPENSE_CATEGORIES } from '../domain/categories';
+import type { ExpenseCategoryRecord, ExpenseCategoryType, ExpenseSubcategoryRecord } from '../domain/categories';
+import { DEFAULT_CATEGORY_TAXONOMY } from '../domain/categories';
+const CATEGORY_SELECT='id,user_id,name,type,icon,color,is_default,is_archived,default_key,created_at,updated_at';
+const SUBCATEGORY_SELECT='id,user_id,category_id,name,icon,color,is_default,is_archived,default_key,created_at,updated_at';
 
-const CATEGORY_SELECT = 'id,user_id,name,type,icon,color,is_default,is_archived,created_at,updated_at';
-
-export async function ensureDefaultExpenseCategories(userId: string): Promise<void> {
-  if (!userId) return;
-  const { error } = await supabase.from('expense_categories').upsert(
-    DEFAULT_EXPENSE_CATEGORIES.map((category) => ({
-      user_id: userId,
-      name: category.name,
-      type: category.type,
-      icon: category.icon,
-      color: category.color,
-      is_default: true,
-      is_archived: false,
-    })),
-    { onConflict: 'user_id,type,name', ignoreDuplicates: true },
-  );
-  if (error) throw error;
+export async function restoreDefaultExpenseTaxonomy(userId:string){
+ if(!userId) throw new Error('User session is required.');
+ const {data:cats,error:catError}=await supabase.from('expense_categories').select(CATEGORY_SELECT).eq('user_id',userId); if(catError)throw catError;
+ const categoryMap=new Map((cats??[]).map(c=>[`${c.type}:${c.default_key}`,c as ExpenseCategoryRecord]));
+ for(const d of DEFAULT_CATEGORY_TAXONOMY){const existing=categoryMap.get(`${d.type}:${d.key}`); let categoryId:string;
+  if(existing){categoryId=existing.id; if(existing.is_archived){const {error}=await supabase.from('expense_categories').update({is_archived:false,is_default:true}).eq('id',existing.id).eq('user_id',userId);if(error)throw error;}}
+  else {const {data,error}=await supabase.from('expense_categories').insert({user_id:userId,name:d.name,type:d.type,icon:d.icon,color:d.color,is_default:true,is_archived:false,default_key:d.key}).select(CATEGORY_SELECT).single();if(error)throw error;categoryId=data.id;}
+  const {data:subs,error:subError}=await supabase.from('expense_subcategories').select(SUBCATEGORY_SELECT).eq('user_id',userId).eq('category_id',categoryId);if(subError)throw subError; const subMap=new Map((subs??[]).map(s=>[s.default_key,s as ExpenseSubcategoryRecord]));
+  for(const name of d.subcategories){const key=name.toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_|_$/g,'');const s=subMap.get(key);if(s){if(s.is_archived){const {error}=await supabase.from('expense_subcategories').update({is_archived:false,is_default:true}).eq('id',s.id).eq('user_id',userId);if(error)throw error;}}else{const {error}=await supabase.from('expense_subcategories').insert({user_id:userId,category_id:categoryId,name,icon:null,color:null,is_default:true,is_archived:false,default_key:key});if(error)throw error;}}
+ }
 }
-
-export async function loadExpenseCategories(userId: string, includeArchived = false): Promise<ExpenseCategoryRecord[]> {
-  await ensureDefaultExpenseCategories(userId);
-  let query = supabase.from('expense_categories').select(CATEGORY_SELECT).eq('user_id', userId).order('type', { ascending: true }).order('is_default', { ascending: false }).order('name', { ascending: true });
-  if (!includeArchived) query = query.eq('is_archived', false);
-  const { data, error } = await query;
-  if (error) throw error;
-  return (data ?? []) as ExpenseCategoryRecord[];
-}
-
-export async function loadExpenseCategoryUsage(userId: string): Promise<Record<string, { transactionCount: number; totalAmount: number }>> {
-  const { data, error } = await supabase.from('expense_transactions').select('category_id,amount').eq('user_id', userId).not('category_id', 'is', null);
-  if (error) throw error;
-  return (data ?? []).reduce<Record<string, { transactionCount: number; totalAmount: number }>>((result, row) => {
-    const categoryId = row.category_id as string;
-    const current = result[categoryId] ?? { transactionCount: 0, totalAmount: 0 };
-    current.transactionCount += 1;
-    current.totalAmount += Number(row.amount) || 0;
-    result[categoryId] = current;
-    return result;
-  }, {});
-}
-
-export async function getExpenseCategoryUsage(userId: string, id: string): Promise<number> {
-  const { count, error } = await supabase.from('expense_transactions').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('category_id', id);
-  if (error) throw error;
-  return count ?? 0;
-}
-
-export async function createExpenseCategoryRecord(userId: string, input: { name: string; type: ExpenseCategoryType; icon: string; color: string }) {
-  const { data, error } = await supabase.from('expense_categories').insert({ user_id: userId, name: input.name.trim(), type: input.type, icon: input.icon || null, color: input.color || null }).select(CATEGORY_SELECT).single();
-  if (error) throw error;
-  return data as ExpenseCategoryRecord;
-}
-
-export async function updateExpenseCategoryRecord(userId: string, id: string, input: { name: string; type: ExpenseCategoryType; icon: string; color: string }) {
-  const { data, error } = await supabase.from('expense_categories').update({ name: input.name.trim(), type: input.type, icon: input.icon || null, color: input.color || null }).eq('id', id).eq('user_id', userId).select(CATEGORY_SELECT).single();
-  if (error) throw error;
-  return data as ExpenseCategoryRecord;
-}
-
-export async function archiveExpenseCategory(userId: string, id: string) {
-  const { data, error } = await supabase.from('expense_categories').update({ is_archived: true }).eq('id', id).eq('user_id', userId).select('id,is_archived').single();
-  if (error) throw error;
-  return data as { id: string; is_archived: boolean };
-}
+export async function loadExpenseCategories(userId:string,includeArchived=false):Promise<ExpenseCategoryRecord[]>{await restoreDefaultExpenseTaxonomy(userId);let q=supabase.from('expense_categories').select(CATEGORY_SELECT).eq('user_id',userId).order('type').order('is_default',{ascending:false}).order('name');if(!includeArchived)q=q.eq('is_archived',false);const {data,error}=await q;if(error)throw error;return (data??[]) as ExpenseCategoryRecord[];}
+export async function loadExpenseSubcategories(userId:string,categoryId?:string,includeArchived=false):Promise<ExpenseSubcategoryRecord[]>{let q=supabase.from('expense_subcategories').select(SUBCATEGORY_SELECT).eq('user_id',userId).order('name');if(categoryId)q=q.eq('category_id',categoryId);if(!includeArchived)q=q.eq('is_archived',false);const {data,error}=await q;if(error)throw error;return (data??[]) as ExpenseSubcategoryRecord[];}
+export async function createExpenseCategoryRecord(userId:string,input:{name:string;type:ExpenseCategoryType;icon:string;color:string}){const {data,error}=await supabase.from('expense_categories').insert({user_id:userId,name:input.name.trim(),type:input.type,icon:input.icon||null,color:input.color||null,is_default:false,is_archived:false}).select(CATEGORY_SELECT).single();if(error)throw error;return data as ExpenseCategoryRecord;}
+export async function updateExpenseCategoryRecord(userId:string,id:string,input:{name:string;type:ExpenseCategoryType;icon:string;color:string}){const {data,error}=await supabase.from('expense_categories').update({name:input.name.trim(),type:input.type,icon:input.icon||null,color:input.color||null}).eq('id',id).eq('user_id',userId).select(CATEGORY_SELECT).single();if(error)throw error;return data as ExpenseCategoryRecord;}
+export async function archiveExpenseCategory(userId:string,id:string){const {error}=await supabase.from('expense_categories').update({is_archived:true}).eq('id',id).eq('user_id',userId);if(error)throw error;}
+export async function createExpenseSubcategory(userId:string,input:{categoryId:string;name:string;icon?:string;color?:string}){const {data,error}=await supabase.from('expense_subcategories').insert({user_id:userId,category_id:input.categoryId,name:input.name.trim(),icon:input.icon||null,color:input.color||null,is_default:false,is_archived:false}).select(SUBCATEGORY_SELECT).single();if(error)throw error;return data as ExpenseSubcategoryRecord;}
+export async function updateExpenseSubcategory(userId:string,id:string,input:{name:string;icon?:string;color?:string}){const {data,error}=await supabase.from('expense_subcategories').update({name:input.name.trim(),icon:input.icon||null,color:input.color||null}).eq('id',id).eq('user_id',userId).select(SUBCATEGORY_SELECT).single();if(error)throw error;return data as ExpenseSubcategoryRecord;}
+export async function archiveExpenseSubcategory(userId:string,id:string){const {error}=await supabase.from('expense_subcategories').update({is_archived:true}).eq('id',id).eq('user_id',userId);if(error)throw error;}
+export async function restoreExpenseSubcategory(userId:string,id:string){const {data,error}=await supabase.from('expense_subcategories').update({is_archived:false}).eq('id',id).eq('user_id',userId).select(SUBCATEGORY_SELECT).single();if(error)throw error;return data as ExpenseSubcategoryRecord;}
+export async function loadExpenseCategoryUsage(userId:string){const {data,error}=await supabase.from('expense_transactions').select('category_id,amount').eq('user_id',userId).not('category_id','is',null);if(error)throw error;return (data??[]).reduce<Record<string,{transactionCount:number;totalAmount:number}>>((r,row)=>{const id=String(row.category_id);const x=r[id]??{transactionCount:0,totalAmount:0};x.transactionCount++;x.totalAmount+=Number(row.amount)||0;r[id]=x;return r;},{});}
+export async function getExpenseCategoryUsage(userId:string,id:string){const {count,error}=await supabase.from('expense_transactions').select('id',{count:'exact',head:true}).eq('user_id',userId).eq('category_id',id);if(error)throw error;return count??0;}
