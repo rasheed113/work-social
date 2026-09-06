@@ -31,8 +31,7 @@ declare
   v_note text;
   v_date date;
 begin
-  select wp.profile_id
-    into v_user_id
+  select wp.profile_id into v_user_id
     from public.worker_profiles wp
    where wp.id = new.worker_profile_id;
 
@@ -40,7 +39,6 @@ begin
     raise exception 'Cannot sync Work received amount: owner profile is unavailable';
   end if;
 
-  -- A deleted Work received record must not remain as Finance income.
   if new.deleted_at is not null then
     delete from public.expense_transactions
      where source_type = 'work_finance_received'
@@ -49,10 +47,7 @@ begin
     return new;
   end if;
 
-  -- Finance Manager needs an account and an income category. Reuse the user's
-  -- first existing account so no new account/currency is invented by the bridge.
-  select ea.id
-    into v_account_id
+  select ea.id into v_account_id
     from public.expense_accounts ea
    where ea.user_id = v_user_id
    order by ea.created_at asc, ea.id asc
@@ -62,8 +57,7 @@ begin
     raise exception 'Add a Finance Manager account before receiving Work payments or advances';
   end if;
 
-  select ec.id
-    into v_category_id
+  select ec.id into v_category_id
     from public.expense_categories ec
    where ec.user_id = v_user_id
      and ec.type = 'income'
@@ -106,30 +100,12 @@ begin
        and user_id = v_user_id;
   else
     insert into public.expense_transactions (
-      user_id,
-      type,
-      amount,
-      account_id,
-      category_id,
-      from_account_id,
-      to_account_id,
-      date,
-      note,
-      source_type,
-      source_id
+      user_id, type, amount, account_id, category_id,
+      from_account_id, to_account_id, date, note, source_type, source_id
     )
     values (
-      v_user_id,
-      'income',
-      new.amount,
-      v_account_id,
-      v_category_id,
-      null,
-      null,
-      v_date,
-      v_note,
-      'work_finance_received',
-      new.id
+      v_user_id, 'income', new.amount, v_account_id, v_category_id,
+      null, null, v_date, v_note, 'work_finance_received', new.id
     );
   end if;
 
@@ -147,7 +123,8 @@ for each row
 execute function private.sync_worker_finance_received_to_expense_income();
 
 -- Backfill active historical Work received records once. The source unique index
--- makes this safe to rerun and prevents duplicate Finance income entries.
+-- prevents duplicate Finance income entries. Use explicit existence handling because
+-- the source uniqueness is a partial index and cannot be targeted by bare ON CONFLICT.
 do $$
 declare
   r record;
@@ -195,26 +172,38 @@ begin
       returning id into v_category_id;
     end if;
 
-    insert into public.expense_transactions (
-      user_id, type, amount, account_id, category_id, date, note, source_type, source_id
-    )
-    values (
-      v_user_id,
-      'income',
-      r.amount,
-      v_account_id,
-      v_category_id,
-      (r.received_at at time zone 'UTC')::date,
-      case r.entry_type when 'payment' then 'Work • Payment Received' else 'Work • Advance Received' end,
-      'work_finance_received',
-      r.id
-    )
-    on conflict (source_type, source_id) do update
-      set amount = excluded.amount,
-          account_id = excluded.account_id,
-          category_id = excluded.category_id,
-          date = excluded.date,
-          note = excluded.note;
+    if exists (
+      select 1 from public.expense_transactions et
+       where et.source_type = 'work_finance_received'
+         and et.source_id = r.id
+    ) then
+      update public.expense_transactions
+         set amount = r.amount,
+             account_id = v_account_id,
+             category_id = v_category_id,
+             date = (r.received_at at time zone 'UTC')::date,
+             note = case r.entry_type
+               when 'payment' then 'Work • Payment Received'
+               else 'Work • Advance Received'
+             end
+       where source_type = 'work_finance_received'
+         and source_id = r.id;
+    else
+      insert into public.expense_transactions (
+        user_id, type, amount, account_id, category_id, date, note, source_type, source_id
+      )
+      values (
+        v_user_id,
+        'income',
+        r.amount,
+        v_account_id,
+        v_category_id,
+        (r.received_at at time zone 'UTC')::date,
+        case r.entry_type when 'payment' then 'Work • Payment Received' else 'Work • Advance Received' end,
+        'work_finance_received',
+        r.id
+      );
+    end if;
   end loop;
 end;
 $$;
