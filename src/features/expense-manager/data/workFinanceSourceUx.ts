@@ -14,7 +14,6 @@ function enhanceRows(root: ParentNode) {
     const label = sourceLabel(name);
     if (!label) return;
     row.dataset.workFinanceEnhanced = '1';
-    row.dataset.workSource = '1';
     row.classList.add('work-finance-row');
     const main = row.querySelector<HTMLElement>('.main');
     if (!main) return;
@@ -29,16 +28,27 @@ function enhanceRows(root: ParentNode) {
 function enhanceDetail(root: ParentNode) {
   const detail = root.querySelector<HTMLElement>('.expense-transactions .detail');
   if (!detail || detail.dataset.workFinanceDetailEnhanced === '1') return;
-  const note = [...detail.querySelectorAll<HTMLElement>('.detail-cell')].find((cell) => cell.querySelector('span')?.textContent?.trim() === 'Note')?.querySelector('strong')?.textContent?.trim() ?? '';
+  const note = [...detail.querySelectorAll<HTMLElement>('.detail-cell')]
+    .find((cell) => cell.querySelector('span')?.textContent?.trim() === 'Note')
+    ?.querySelector('strong')?.textContent?.trim() ?? '';
   const label = sourceLabel(note);
   if (!label) return;
   detail.dataset.workFinanceDetailEnhanced = '1';
-  detail.classList.add('work-finance-detail');
   const top = detail.querySelector<HTMLElement>('.detail-top');
   if (!top) return;
   const source = document.createElement('div');
   source.className = 'work-finance-detail-source';
-  source.innerHTML = `<span class="work-finance-detail-source__icon" aria-hidden="true">↗</span><span><strong>From Work</strong><small>${label} automatically recorded as Finance Income</small></span>`;
+  const icon = document.createElement('span');
+  icon.className = 'work-finance-detail-source__icon';
+  icon.setAttribute('aria-hidden', 'true');
+  icon.textContent = '↗';
+  const copy = document.createElement('span');
+  const strong = document.createElement('strong');
+  strong.textContent = 'From Work';
+  const small = document.createElement('small');
+  small.textContent = `${label} automatically recorded as Finance Income`;
+  copy.append(strong, small);
+  source.append(icon, copy);
   top.insertAdjacentElement('afterend', source);
 }
 
