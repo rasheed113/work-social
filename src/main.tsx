@@ -10,6 +10,7 @@ import './features/worker/finance-premium.css';
 import './features/worker/settings-premium.css';
 import './app/social-navigation-compact.css';
 import './features/expense-manager/reports-premium.css';
+import './features/expense-manager/transactions-filter-premium.css';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
