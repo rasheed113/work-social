@@ -22,7 +22,7 @@ export const OVERVIEW_CARD_DEFINITIONS = [
 ] as const;
 
 export const DEFAULT_EXPENSE_MANAGER_PREFERENCES: ExpenseManagerPreferences = {
-  backgroundColor: '#f8fafc',
+  backgroundColor: '#ffffff',
   actionBarColor: '#ffffff',
   actionBarImage: '',
   visibleCards: Object.fromEntries(OVERVIEW_CARD_DEFINITIONS.map(([key]) => [key, true])),
