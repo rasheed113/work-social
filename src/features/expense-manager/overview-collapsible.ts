@@ -29,7 +29,14 @@ function enhanceCard(card: HTMLElement) {
     toggle.setAttribute('aria-expanded', String(expanded));
     toggle.setAttribute('aria-label', `${expanded ? 'Collapse' : 'Expand'} ${title}`);
   });
-  card.appendChild(toggle);
+
+  const head = card.querySelector<HTMLElement>('.expense-overview__card-head');
+  if (head) {
+    head.appendChild(toggle);
+    head.classList.add('expense-overview__card-head--collapsible');
+  } else {
+    card.appendChild(toggle);
+  }
   card.setAttribute(READY_ATTR, 'true');
 }
 
