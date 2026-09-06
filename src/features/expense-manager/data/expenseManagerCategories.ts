@@ -1,10 +1,29 @@
 import { supabase } from '../../../lib/supabase/client';
 import type { ExpenseCategoryRecord, ExpenseCategoryType } from '../domain/categories';
+import { DEFAULT_EXPENSE_CATEGORIES } from '../domain/categories';
 
 const CATEGORY_SELECT = 'id,user_id,name,type,icon,color,is_default,is_archived,created_at,updated_at';
 
+export async function ensureDefaultExpenseCategories(userId: string): Promise<void> {
+  if (!userId) return;
+  const { error } = await supabase.from('expense_categories').upsert(
+    DEFAULT_EXPENSE_CATEGORIES.map((category) => ({
+      user_id: userId,
+      name: category.name,
+      type: category.type,
+      icon: category.icon,
+      color: category.color,
+      is_default: true,
+      is_archived: false,
+    })),
+    { onConflict: 'user_id,type,name', ignoreDuplicates: true },
+  );
+  if (error) throw error;
+}
+
 export async function loadExpenseCategories(userId: string, includeArchived = false): Promise<ExpenseCategoryRecord[]> {
-  let query = supabase.from('expense_categories').select(CATEGORY_SELECT).eq('user_id', userId).order('type', { ascending: true }).order('name', { ascending: true });
+  await ensureDefaultExpenseCategories(userId);
+  let query = supabase.from('expense_categories').select(CATEGORY_SELECT).eq('user_id', userId).order('type', { ascending: true }).order('is_default', { ascending: false }).order('name', { ascending: true });
   if (!includeArchived) query = query.eq('is_archived', false);
   const { data, error } = await query;
   if (error) throw error;
