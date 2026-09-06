@@ -1,1 +1,0 @@
-Overview collapsible behavior is intentionally limited to Top spending, Account snapshot, and Recent transactions.
