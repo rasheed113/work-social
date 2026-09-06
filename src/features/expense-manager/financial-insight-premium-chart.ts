@@ -5,23 +5,42 @@ const SVG = '.expense-candle__svg';
 const READY = 'data-premium-trend-ready';
 
 function moneyFromTitle(title: string): number | null {
-  const match = title.match(/·\s*(?:[A-Z]{3}\s+)?([\d,]+(?:\.\d+)?)\s+total/i);
+  const match = title.match(/(?:·|•)\s*(?:[A-Z]{3}\s+)?([\d,]+(?:\.\d+)?)\s+total/i);
   if (!match) return null;
   const value = Number(match[1].replace(/,/g, ''));
   return Number.isFinite(value) ? value : null;
 }
 
+function moneyFromText(text: string): number | null {
+  const match = text.replace(/,/g, '').match(/(?:[A-Z]{3}\s*)?(\d+(?:\.\d+)?)/);
+  if (!match) return null;
+  const value = Number(match[1]);
+  return Number.isFinite(value) ? value : null;
+}
+
 function enhance(card: HTMLElement) {
-  if (card.getAttribute(READY) === 'true') return;
   const svg = card.querySelector<SVGSVGElement>(SVG);
   if (!svg) return;
+  if (card.getAttribute(READY) === 'true' && svg.querySelector('.expense-trend__line')) return;
+
   const groups = [...svg.querySelectorAll<SVGGElement>('.expense-candle__bar')];
   const points = groups.map((group) => {
     const title = group.querySelector('title')?.textContent ?? '';
-    const date = title.match(/^(\d{4}-\d{2}-\d{2})/)?.[1] ?? '';
+    const date = title.match(/(\d{4}-\d{2}-\d{2})/)?.[1] ?? '';
     const value = moneyFromTitle(title);
     return date && value !== null ? { date, value } : null;
   }).filter((point): point is { date: string; value: number } => Boolean(point));
+
+  if (!points.length) {
+    const date = card.querySelector('.expense-candle__selected-date')?.textContent?.trim() ?? '';
+    const valueText = card.querySelector('.expense-candle__selected strong')?.textContent ?? '';
+    const value = moneyFromText(valueText);
+    const dateMatch = date.match(/(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun),?\s+([A-Za-z]{3})\s+(\d{1,2})/);
+    const year = new Date().getFullYear();
+    const fallbackDate = dateMatch ? `${year}-${String(new Date(`${dateMatch[1]} ${dateMatch[2]}, ${year}`).getMonth() + 1).padStart(2, '0')}-${String(Number(dateMatch[2])).padStart(2, '0')}` : '';
+    if (value !== null && fallbackDate) points.push({ date: fallbackDate, value });
+  }
+
   if (!points.length) return;
 
   const width = 920;
@@ -56,9 +75,24 @@ function enhance(card: HTMLElement) {
 function scan(root: ParentNode = document) {
   if (root instanceof HTMLElement && root.matches(ROOT)) enhance(root);
   root.querySelectorAll<HTMLElement>(ROOT).forEach(enhance);
+  const nestedCard = root instanceof HTMLElement ? root.closest<HTMLElement>(ROOT) : null;
+  if (nestedCard) enhance(nestedCard);
 }
 
-scan();
-new MutationObserver((mutations) => mutations.forEach((mutation) => mutation.addedNodes.forEach((node) => {
-  if (node instanceof HTMLElement) scan(node);
-}))).observe(document.body, { childList: true, subtree: true });
+function start() {
+  scan();
+  let attempts = 0;
+  const retry = () => {
+    scan();
+    attempts += 1;
+    if (attempts < 20) window.setTimeout(retry, 100);
+  };
+  window.setTimeout(retry, 0);
+
+  new MutationObserver((mutations) => mutations.forEach((mutation) => mutation.addedNodes.forEach((node) => {
+    if (node instanceof HTMLElement) scan(node);
+  }))).observe(document.body, { childList: true, subtree: true });
+}
+
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true });
+else start();
