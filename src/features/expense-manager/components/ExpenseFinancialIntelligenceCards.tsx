@@ -1,178 +1,24 @@
-import type { ExpenseOverviewData, ExpenseOverviewPeriodCurrency } from '../domain/overview';
+import {useEffect,useMemo,useState} from 'react';
+import {supabase} from '../../../lib/supabase/client';
+import type {ExpenseOverviewData,ExpenseOverviewPeriodCurrency} from '../domain/overview';
 
-interface ExpenseFinancialIntelligenceCardsProps {
-  data: ExpenseOverviewData;
-  periodLabel: string;
+interface ExpenseFinancialIntelligenceCardsProps{data:ExpenseOverviewData;periodLabel:string}
+const numberFormatter=new Intl.NumberFormat(undefined,{maximumFractionDigits:2});
+function formatCurrency(amount:number,currency:string){try{return new Intl.NumberFormat(undefined,{style:'currency',currency,maximumFractionDigits:2}).format(amount)}catch{return`${currency} ${numberFormatter.format(amount)}`}}
+function periodRows(data:ExpenseOverviewData){return data.period_currencies}
+function singlePeriod(data:ExpenseOverviewData){const rows=periodRows(data);return rows.length===1?rows[0]:null}
+
+type ExpenseCandle={date:string;open:number;high:number;low:number;close:number;total:number;count:number}
+function ExpenseCandlestickChart({data,currency}:{data:ExpenseOverviewData;currency:string}){
+ const[candles,setCandles]=useState<ExpenseCandle[]>([]);const[selected,setSelected]=useState(0);const[loading,setLoading]=useState(true);const[error,setError]=useState<string|null>(null);
+ useEffect(()=>{let active=true;setLoading(true);setError(null);supabase.auth.getUser().then(async({data:auth,error:authError})=>{if(authError||!auth.user)throw authError??new Error('Your signed-in session could not be resolved.');const{data:rows,error:qError}=await supabase.from('expense_transactions').select('amount,date,account_id,created_at').eq('user_id',auth.user.id).eq('type','expense').gte('date',data.period_start).lte('date',data.period_end).order('date',{ascending:true}).order('created_at',{ascending:true});if(qError)throw qError;const accountIds=[...new Set((rows??[]).map((row:{account_id:string|null})=>row.account_id).filter(Boolean))] as string[];let currencies=new Map<string,string>();if(accountIds.length){const{data:accounts,error:aError}=await supabase.from('expense_accounts').select('id,currency').eq('user_id',auth.user.id).in('id',accountIds);if(aError)throw aError;currencies=new Map((accounts??[]).map((a:{id:string;currency:string})=>[a.id,a.currency]));}
+ const grouped=new Map<string,number[]>();for(const row of rows??[]){const typed=row as {account_id:string|null;amount:number|string;date:string};if((currencies.get(typed.account_id??'')??currency)!==currency)continue;const amount=Number(typed.amount)||0;if(amount<=0)continue;(grouped.get(typed.date)??(grouped.set(typed.date,[]),grouped.get(typed.date)!)).push(amount)}
+ const next=[...grouped.entries()].sort(([a],[b])=>a.localeCompare(b)).map(([date,values])=>({date,open:values[0],high:Math.max(...values),low:Math.min(...values),close:values[values.length-1],total:values.reduce((s,v)=>s+v,0),count:values.length}));if(active){setCandles(next);setSelected(Math.max(0,next.length-1));}}).catch((reason:unknown)=>{if(active)setError(reason instanceof Error?reason.message:'Unable to load expense chart data.')}).finally(()=>{if(active)setLoading(false)});return()=>{active=false}},[currency,data.period_end,data.period_start]);
+ const chart=useMemo(()=>{if(!candles.length)return null;const width=920,height=300,left=44,right=18,top=18,bottom=46;const plotW=width-left-right,plotH=height-top-bottom;const max=Math.max(...candles.map(c=>c.high),1);const min=Math.min(...candles.map(c=>c.low),0);const range=Math.max(max-min,1);const y=(v:number)=>top+(max-v)/range*plotH;const step=plotW/candles.length;const bodyW=Math.max(5,Math.min(18,step*.46));return{width,height,left,right,top,bottom,plotW,plotH,max,min,range,y,step,bodyW}},[candles]);
+ if(loading)return <div className="expense-candle__state">Loading persisted expense activity…</div>;if(error)return <div className="expense-candle__state expense-candle__state--error">{error}</div>;if(!candles.length)return <div className="expense-candle__state">No persisted expense transactions in {data.period_start.slice(0,7)}. The chart will appear when expenses are recorded.</div>;const active=candles[selected]??candles[candles.length-1];
+ return <div className="expense-candle"><div className="expense-candle__top"><div><span className="expense-candle__eyebrow">Overall expense activity</span><h3 className="expense-candle__title">Trading-style expense candles</h3></div><span className="expense-candle__currency">{currency}</span></div><div className="expense-candle__chart-wrap"><svg className="expense-candle__svg" viewBox={`0 0 ${chart!.width} ${chart!.height}`} role="img" aria-label={`Expense activity candlestick chart for ${currency}`}><line x1={chart!.left} x2={chart!.width-chart!.right} y1={chart!.top+chart!.plotH} y2={chart!.top+chart!.plotH} className="expense-candle__axis"/><line x1={chart!.left} x2={chart!.left} y1={chart!.top} y2={chart!.top+chart!.plotH} className="expense-candle__axis"/>{candles.map((c,i)=>{const x=chart!.left+i*chart!.step+chart!.step/2;const yo=chart!.y(c.open),yc=chart!.y(c.close),yh=chart!.y(c.high),yl=chart!.y(c.low);const up=c.close>=c.open;const bodyY=Math.min(yo,yc);const bodyH=Math.max(3,Math.abs(yc-yo));return <g key={c.date} className={`expense-candle__bar${i===selected?' expense-candle__bar--selected':''}`} tabIndex={0} role="button" aria-label={`${c.date}: ${formatCurrency(c.total,currency)} across ${c.count} expense transactions`} onClick={()=>setSelected(i)} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();setSelected(i)}}}><line x1={x} x2={x} y1={yh} y2={yl} className="expense-candle__wick"/><rect x={x-chart!.bodyW/2} y={bodyY} width={chart!.bodyW} height={bodyH} rx="2" className={`expense-candle__body${up?' expense-candle__body--up':' expense-candle__body--down'}`}/>{i%Math.max(1,Math.ceil(candles.length/7))===0&&<text x={x} y={chart!.height-20} textAnchor="middle" className="expense-candle__label">{new Intl.DateTimeFormat(undefined,{month:'short',day:'numeric'}).format(new Date(`${c.date}T12:00:00`))}</text>}<title>{`${c.date} · ${formatCurrency(c.total,currency)} total · ${c.count} transaction${c.count===1?'':'s'} · high ${formatCurrency(c.high,currency)} · low ${formatCurrency(c.low,currency)}`}</title></g>})}</svg></div><div className="expense-candle__selected"><div><span className="expense-candle__selected-date">{new Intl.DateTimeFormat(undefined,{weekday:'short',month:'short',day:'numeric'}).format(new Date(`${active.date}T12:00:00`))}</span><strong>{formatCurrency(active.total,currency)}</strong><small>{active.count} expense transaction{active.count===1?'':'s'}</small></div><div className="expense-candle__ohlc"><span>O <b>{formatCurrency(active.open,currency)}</b></span><span>H <b>{formatCurrency(active.high,currency)}</b></span><span>L <b>{formatCurrency(active.low,currency)}</b></span><span>C <b>{formatCurrency(active.close,currency)}</b></span></div></div><p className="expense-candle__hint">Tap a candle to inspect that day's real persisted expense activity. Each candle groups that day's expense transactions; no synthetic market data is used.</p></div>
 }
 
-const numberFormatter = new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 });
+export function FinancialInsightCard({data,periodLabel}:ExpenseFinancialIntelligenceCardsProps){const rows=periodRows(data);const period=singlePeriod(data);return <article className="expense-financial-intelligence__card expense-financial-intelligence__card--insight" aria-labelledby="expense-financial-insight-title"><style>{`.expense-financial-intelligence{display:contents}.expense-financial-intelligence__card{min-width:0;border:1px solid rgba(148,163,184,.17);border-radius:20px;background:linear-gradient(145deg,rgba(255,255,255,.98),rgba(248,250,252,.92));box-shadow:0 12px 28px rgba(15,23,42,.06),inset 0 1px 0 rgba(255,255,255,.95);padding:16px;box-sizing:border-box}.expense-financial-intelligence__card--insight{grid-column:span 12}.expense-financial-intelligence__card--deterministic{grid-column:span 12;background:linear-gradient(145deg,rgba(248,250,252,.98),rgba(255,255,255,.96))}.expense-financial-intelligence__head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin:0 0 14px}.expense-financial-intelligence__eyebrow{margin:0 0 4px;color:#2563eb;font-size:9px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}.expense-financial-intelligence__title{margin:0;color:#172033;font-size:15px;font-weight:950;letter-spacing:-.025em}.expense-financial-intelligence__period{flex:0 0 auto;padding:5px 8px;border:1px solid rgba(148,163,184,.16);border-radius:999px;color:#64748b;background:#fff;font-size:9px;font-weight:850}.expense-financial-intelligence__body{display:grid;grid-template-columns:150px minmax(0,1fr);align-items:center;gap:18px;min-width:0}.expense-financial-intelligence__copy{min-width:0}.expense-financial-intelligence__status{margin:0;color:#0f172a;font-size:16px;line-height:1.15;font-weight:950;letter-spacing:-.025em}.expense-financial-intelligence__sub{margin:7px 0 0;color:#64748b;font-size:10px;line-height:1.5;font-weight:650}.expense-financial-intelligence__metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:13px}.expense-financial-intelligence__metric{padding:9px 10px;border:1px solid rgba(148,163,184,.13);border-radius:12px;background:rgba(255,255,255,.78);min-width:0}.expense-financial-intelligence__metric-label{display:block;color:#94a3b8;font-size:8px;font-weight:850;text-transform:uppercase;letter-spacing:.08em}.expense-financial-intelligence__metric-value{display:block;margin-top:4px;color:#172033;font-size:11px;font-weight:900;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.expense-financial-intelligence__metric-value--income{color:#047857}.expense-financial-intelligence__metric-value--expense{color:#be123c}.expense-financial-intelligence__multi{display:grid;gap:8px;margin-top:13px}.expense-financial-intelligence__currency-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 10px;border:1px solid rgba(148,163,184,.13);border-radius:12px;background:rgba(255,255,255,.78)}.expense-financial-intelligence__currency-name{color:#334155;font-size:9px;font-weight:900}.expense-financial-intelligence__currency-value{color:#0f172a;font-size:10px;font-weight:900;white-space:nowrap}.expense-financial-intelligence__neutral{display:grid;gap:4px;color:#64748b;font-size:10px;line-height:1.5;font-weight:650}.expense-financial-ring{position:relative;width:132px;height:132px;flex:0 0 132px;border-radius:50%;border:10px solid #e2e8f0;display:grid;place-items:center;background:#fff;box-shadow:inset 0 0 0 1px rgba(15,23,42,.04)}.expense-financial-ring--positive{border-color:#a7f3d0}.expense-financial-ring--negative{border-color:#fecdd3}.expense-financial-ring--neutral{border-color:#cbd5e1}.expense-financial-ring__center{display:grid;place-items:center;width:100%;height:100%;text-align:center}.expense-financial-ring__center strong{color:#0f172a;font-size:28px;line-height:1;font-weight:950}.expense-candle{min-width:0}.expense-candle__top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px}.expense-candle__eyebrow{display:block;color:#64748b;font-size:8px;font-weight:850;letter-spacing:.1em;text-transform:uppercase}.expense-candle__title{margin:3px 0 0;color:#0f172a;font-size:14px;font-weight:950;letter-spacing:-.02em}.expense-candle__currency{padding:5px 8px;border:1px solid rgba(148,163,184,.16);border-radius:999px;background:#fff;color:#334155;font-size:9px;font-weight:900}.expense-candle__chart-wrap{width:100%;overflow:hidden;border:1px solid rgba(148,163,184,.13);border-radius:16px;background:linear-gradient(180deg,#0b1220,#111827);padding:7px}.expense-candle__svg{display:block;width:100%;height:auto;min-height:190px}.expense-candle__axis{stroke:rgba(148,163,184,.28);stroke-width:1}.expense-candle__wick{stroke:#cbd5e1;stroke-width:2}.expense-candle__body{stroke-width:1}.expense-candle__body--up{fill:#22c55e;stroke:#86efac}.expense-candle__body--down{fill:#ef4444;stroke:#fca5a5}.expense-candle__bar{outline:none;cursor:pointer}.expense-candle__bar--selected .expense-candle__wick{stroke:#f8fafc;stroke-width:3}.expense-candle__bar--selected .expense-candle__body{stroke:#fff;stroke-width:2}.expense-candle__label{fill:#94a3b8;font-size:10px;font-weight:700}.expense-candle__selected{display:flex;justify-content:space-between;gap:14px;margin-top:10px;padding:10px 12px;border:1px solid rgba(148,163,184,.13);border-radius:13px;background:rgba(248,250,252,.82)}.expense-candle__selected-date{display:block;color:#64748b;font-size:9px;font-weight:800}.expense-candle__selected strong{display:block;margin-top:3px;color:#0f172a;font-size:16px;font-weight:950}.expense-candle__selected small{display:block;margin-top:2px;color:#94a3b8;font-size:9px;font-weight:650}.expense-candle__ohlc{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px 12px;align-content:center;color:#64748b;font-size:9px}.expense-candle__ohlc b{color:#0f172a}.expense-candle__hint{margin:8px 0 0;color:#94a3b8;font-size:9px;line-height:1.45;font-weight:650}.expense-candle__state{padding:24px 4px;color:#64748b;font-size:10px;line-height:1.5;font-weight:650}.expense-candle__state--error{color:#9f1239}.expense-financial-intelligence__ring-wrap{display:none}@media(max-width:520px){.expense-financial-intelligence__body{grid-template-columns:1fr}.expense-candle__selected{align-items:flex-start;flex-direction:column}.expense-candle__ohlc{width:100%}.expense-financial-intelligence__metrics{grid-template-columns:1fr 1fr}}`}</style><div className="expense-financial-intelligence__head"><div><p className="expense-financial-intelligence__eyebrow">Financial insight</p><h2 id="expense-financial-insight-title" className="expense-financial-intelligence__title">Overall spending</h2></div><span className="expense-financial-intelligence__period">{periodLabel}</span></div>{period?<><ExpenseCandlestickChart data={data} currency={period.currency}/><div className="expense-financial-intelligence__metrics"><div className="expense-financial-intelligence__metric"><span className="expense-financial-intelligence__metric-label">Income</span><strong className="expense-financial-intelligence__metric-value expense-financial-intelligence__metric-value--income">{formatCurrency(period.income,period.currency)}</strong></div><div className="expense-financial-intelligence__metric"><span className="expense-financial-intelligence__metric-label">Total spending</span><strong className="expense-financial-intelligence__metric-value expense-financial-intelligence__metric-value--expense">{formatCurrency(period.expenses,period.currency)}</strong></div></div></>:rows.length>1?<div className="expense-financial-intelligence__multi"><div className="expense-financial-intelligence__neutral"><strong>Multiple currencies</strong><span>The overall chart stays separated by currency because combining amounts without an exchange rate would be misleading.</span></div>{rows.map(row=><div className="expense-financial-intelligence__currency-row" key={row.currency}><span className="expense-financial-intelligence__currency-name">{row.currency}</span><span className="expense-financial-intelligence__currency-value">{formatCurrency(row.expenses,row.currency)} spent / {formatCurrency(row.income,row.currency)} income</span></div>)}</div>:<div className="expense-financial-intelligence__neutral"><strong>No income or expense activity</strong><span>No persisted financial activity exists for {periodLabel}.</span></div>}</article>}
 
-function formatCurrency(amount: number, currency: string) {
-  try {
-    return new Intl.NumberFormat(undefined, {
-      style: 'currency',
-      currency,
-      maximumFractionDigits: 2,
-    }).format(amount);
-  } catch {
-    return `${currency} ${numberFormatter.format(amount)}`;
-  }
-}
-
-function periodRows(data: ExpenseOverviewData) {
-  return data.period_currencies;
-}
-
-function singlePeriod(data: ExpenseOverviewData) {
-  const rows = periodRows(data);
-  return rows.length === 1 ? rows[0] : null;
-}
-
-function Ring({ value, label, tone, empty = false }: { value: number; label: string; tone: 'positive' | 'negative' | 'neutral'; empty?: boolean }) {
-  const size = 132;
-  const stroke = 10;
-  const radius = (size - stroke) / 2;
-  const circumference = 2 * Math.PI * radius;
-  const visiblePercent = empty ? 0 : Math.min(Math.max(value, 0), 100);
-  const dash = (visiblePercent / 100) * circumference;
-
-  return (
-    <div className={`expense-financial-ring expense-financial-ring--${tone}${empty ? ' expense-financial-ring--empty' : ''}`}>
-      <svg viewBox={`0 0 ${size} ${size}`} role="img" aria-label={label} className="expense-financial-ring__svg">
-        <circle className="expense-financial-ring__track" cx={size / 2} cy={size / 2} r={radius} />
-        {!empty && <circle className="expense-financial-ring__value" cx={size / 2} cy={size / 2} r={radius} strokeDasharray={`${dash} ${circumference - dash}`} />}
-      </svg>
-      <div className="expense-financial-ring__center">
-        <strong>{label}</strong>
-      </div>
-    </div>
-  );
-}
-
-function currencyRows(data: ExpenseOverviewData): ExpenseOverviewPeriodCurrency[] {
-  return periodRows(data);
-}
-
-export function FinancialInsightCard({ data, periodLabel }: ExpenseFinancialIntelligenceCardsProps) {
-  const rows = currencyRows(data);
-  const period = singlePeriod(data);
-
-  return (
-    <article className="expense-financial-intelligence__card expense-financial-intelligence__card--insight" aria-labelledby="expense-financial-insight-title">
-      <style>{`
-        .expense-financial-intelligence{display:contents}
-        .expense-financial-intelligence__card{min-width:0;border:1px solid rgba(148,163,184,.17);border-radius:20px;background:linear-gradient(145deg,rgba(255,255,255,.98),rgba(248,250,252,.92));box-shadow:0 12px 28px rgba(15,23,42,.06),inset 0 1px 0 rgba(255,255,255,.95);padding:16px;box-sizing:border-box}
-        .expense-financial-intelligence__card--insight{grid-column:span 12}
-        .expense-financial-intelligence__card--deterministic{grid-column:span 12;background:linear-gradient(145deg,rgba(248,250,252,.98),rgba(255,255,255,.96))}
-        .expense-financial-intelligence__head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin:0 0 14px}
-        .expense-financial-intelligence__eyebrow{margin:0 0 4px;color:#2563eb;font-size:9px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}
-        .expense-financial-intelligence__title{margin:0;color:#172033;font-size:15px;font-weight:950;letter-spacing:-.025em}
-        .expense-financial-intelligence__period{flex:0 0 auto;padding:5px 8px;border:1px solid rgba(148,163,184,.16);border-radius:999px;color:#64748b;background:#fff;font-size:9px;font-weight:850}
-        .expense-financial-intelligence__body{display:grid;grid-template-columns:150px minmax(0,1fr);align-items:center;gap:18px;min-width:0}
-        .expense-financial-intelligence__ring-wrap{display:grid;place-items:center}
-        .expense-financial-ring{position:relative;width:132px;height:132px}
-        .expense-financial-ring__svg{display:block;width:100%;height:100%;transform:rotate(-90deg)}
-        .expense-financial-ring__track,.expense-financial-ring__value{fill:none;stroke-width:10}
-        .expense-financial-ring__track{stroke:#e2e8f0}
-        .expense-financial-ring__value{stroke:#2563eb;stroke-linecap:round;transition:stroke-dasharray .25s ease}
-        .expense-financial-ring--negative .expense-financial-ring__value{stroke:#e11d48}
-        .expense-financial-ring--positive .expense-financial-ring__value{stroke:#059669}
-        .expense-financial-ring--neutral .expense-financial-ring__value{stroke:#64748b}
-        .expense-financial-ring--empty .expense-financial-ring__track{stroke:#e2e8f0}
-        .expense-financial-ring__center{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:25px}
-        .expense-financial-ring__center strong{color:#0f172a;font-size:18px;line-height:1.05;font-weight:950;letter-spacing:-.04em}
-        .expense-financial-intelligence__copy{min-width:0}
-        .expense-financial-intelligence__status{margin:0;color:#0f172a;font-size:16px;line-height:1.15;font-weight:950;letter-spacing:-.025em}
-        .expense-financial-intelligence__sub{margin:7px 0 0;color:#64748b;font-size:10px;line-height:1.5;font-weight:650}
-        .expense-financial-intelligence__metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:13px}
-        .expense-financial-intelligence__metric{padding:9px 10px;border:1px solid rgba(148,163,184,.13);border-radius:12px;background:rgba(255,255,255,.78);min-width:0}
-        .expense-financial-intelligence__metric-label{display:block;color:#94a3b8;font-size:8px;font-weight:850;text-transform:uppercase;letter-spacing:.08em}
-        .expense-financial-intelligence__metric-value{display:block;margin-top:4px;color:#172033;font-size:11px;font-weight:900;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-        .expense-financial-intelligence__metric-value--income{color:#047857}.expense-financial-intelligence__metric-value--expense{color:#be123c}
-        .expense-financial-intelligence__multi{display:grid;gap:8px;margin-top:13px}
-        .expense-financial-intelligence__currency-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 10px;border:1px solid rgba(148,163,184,.13);border-radius:12px;background:rgba(255,255,255,.78)}
-        .expense-financial-intelligence__currency-name{color:#334155;font-size:9px;font-weight:900}.expense-financial-intelligence__currency-value{color:#0f172a;font-size:10px;font-weight:900;white-space:nowrap}
-        .expense-financial-intelligence__neutral{display:grid;gap:4px;color:#64748b;font-size:10px;line-height:1.5;font-weight:650}
-        @media(min-width:700px){.expense-financial-intelligence__card--deterministic{grid-column:span 12}}
-        @media(max-width:520px){.expense-financial-intelligence__body{grid-template-columns:1fr;gap:12px}.expense-financial-intelligence__ring-wrap{justify-content:start}.expense-financial-intelligence__period{font-size:8px}.expense-financial-intelligence__metrics{grid-template-columns:1fr 1fr}}
-        @media(prefers-reduced-motion:reduce){.expense-financial-ring__value{transition:none}}
-      `}</style>
-      <div className="expense-financial-intelligence__head">
-        <div><p className="expense-financial-intelligence__eyebrow">Financial insight</p><h2 id="expense-financial-insight-title" className="expense-financial-intelligence__title">Spending / income</h2></div>
-        <span className="expense-financial-intelligence__period">{periodLabel}</span>
-      </div>
-
-      {period ? (
-        <div className="expense-financial-intelligence__body">
-          <div className="expense-financial-intelligence__ring-wrap">
-            <Ring
-              value={period.income > 0 ? (period.expenses / period.income) * 100 : 0}
-              label={period.income > 0 ? `${Math.round((period.expenses / period.income) * 100)}%` : 'No data'}
-              tone={period.income > 0 && period.expenses > period.income ? 'negative' : 'positive'}
-              empty={period.income <= 0}
-            />
-          </div>
-          <div className="expense-financial-intelligence__copy">
-            <p className="expense-financial-intelligence__status">{period.income > 0 ? period.expenses > period.income ? 'Spending exceeded recorded income' : 'Spending within recorded income' : 'No income recorded'}</p>
-            <p className="expense-financial-intelligence__sub">{period.income > 0 ? `${Math.round((period.expenses / period.income) * 100)}% of recorded ${period.currency} income was spent during ${periodLabel}.` : `There is no income transaction to compare with spending during ${periodLabel}.`}</p>
-            <div className="expense-financial-intelligence__metrics">
-              <div className="expense-financial-intelligence__metric"><span className="expense-financial-intelligence__metric-label">Income</span><strong className="expense-financial-intelligence__metric-value expense-financial-intelligence__metric-value--income">{formatCurrency(period.income, period.currency)}</strong></div>
-              <div className="expense-financial-intelligence__metric"><span className="expense-financial-intelligence__metric-label">Spending</span><strong className="expense-financial-intelligence__metric-value expense-financial-intelligence__metric-value--expense">{formatCurrency(period.expenses, period.currency)}</strong></div>
-            </div>
-          </div>
-        </div>
-      ) : rows.length > 1 ? (
-        <div className="expense-financial-intelligence__multi">
-          <div className="expense-financial-intelligence__neutral"><strong>Multiple currencies</strong><span>A single spending-to-income percentage would be misleading, so each currency remains separate.</span></div>
-          {rows.map((row) => <div className="expense-financial-intelligence__currency-row" key={row.currency}><span className="expense-financial-intelligence__currency-name">{row.currency}</span><span className="expense-financial-intelligence__currency-value">{formatCurrency(row.expenses, row.currency)} spent / {formatCurrency(row.income, row.currency)} income</span></div>)}
-        </div>
-      ) : (
-        <div className="expense-financial-intelligence__body">
-          <div className="expense-financial-intelligence__ring-wrap"><Ring value={0} label="No data" tone="neutral" empty /></div>
-          <div className="expense-financial-intelligence__neutral"><strong>No income recorded</strong><span>No persisted income transaction exists for this period, so no percentage is calculated.</span></div>
-        </div>
-      )}
-    </article>
-  );
-}
-
-export function DeterministicIntelligenceCard({ data, periodLabel }: ExpenseFinancialIntelligenceCardsProps) {
-  const rows = currencyRows(data);
-  const period = singlePeriod(data);
-  const cashFlow = period ? period.income - period.expenses : null;
-  const status = cashFlow === null ? 'Multiple currencies' : cashFlow > 0 ? 'Cash-flow positive' : cashFlow < 0 ? 'Cash-flow negative' : 'Cash-flow neutral';
-  const tone = cashFlow === null ? 'neutral' : cashFlow > 0 ? 'positive' : cashFlow < 0 ? 'negative' : 'neutral';
-  const icon = cashFlow === null ? '↔' : cashFlow > 0 ? '✓' : cashFlow < 0 ? '!' : '—';
-
-  return (
-    <article className="expense-financial-intelligence__card expense-financial-intelligence__card--deterministic" aria-labelledby="expense-deterministic-title">
-      <div className="expense-financial-intelligence__head">
-        <div><p className="expense-financial-intelligence__eyebrow">Deterministic intelligence</p><h2 id="expense-deterministic-title" className="expense-financial-intelligence__title">Financial health</h2></div>
-        <span className="expense-financial-intelligence__period">{periodLabel}</span>
-      </div>
-      <div className="expense-financial-intelligence__body">
-        <div className="expense-financial-intelligence__ring-wrap">
-          <div className={`expense-financial-ring expense-financial-ring--${tone}`} role="img" aria-label={status}>
-            <div className="expense-financial-ring__center"><strong aria-hidden="true">{icon}</strong></div>
-          </div>
-        </div>
-        <div className="expense-financial-intelligence__copy">
-          <p className="expense-financial-intelligence__status">{status}</p>
-          {period ? (
-            <>
-              <p className="expense-financial-intelligence__sub">{cashFlow! > 0 ? 'Income is greater than spending for the selected period.' : cashFlow! < 0 ? 'Spending is greater than income for the selected period.' : 'Income and spending are exactly balanced for the selected period.'}</p>
-              <div className="expense-financial-intelligence__metrics">
-                <div className="expense-financial-intelligence__metric"><span className="expense-financial-intelligence__metric-label">Cash flow</span><strong className="expense-financial-intelligence__metric-value">{cashFlow! > 0 ? '+' : ''}{formatCurrency(cashFlow!, period.currency)}</strong></div>
-                <div className="expense-financial-intelligence__metric"><span className="expense-financial-intelligence__metric-label">Currency</span><strong className="expense-financial-intelligence__metric-value">{period.currency}</strong></div>
-              </div>
-            </>
-          ) : rows.length > 1 ? (
-            <div className="expense-financial-intelligence__neutral"><strong>Cash flow is kept separate by currency.</strong><span>A combined cash-flow amount would require an exchange rate, so no invented conversion is applied.</span></div>
-          ) : (
-            <div className="expense-financial-intelligence__neutral"><strong>No financial activity to compare.</strong><span>Cash flow is neutral until persisted income or expense transactions are recorded for this period.</span></div>
-          )}
-        </div>
-      </div>
-    </article>
-  );
-}
+export function DeterministicIntelligenceCard({data,periodLabel}:ExpenseFinancialIntelligenceCardsProps){const rows=periodRows(data);const period=singlePeriod(data);const cashFlow=period?period.income-period.expenses:null;const status=cashFlow===null?'Multiple currencies':cashFlow>0?'Cash-flow positive':cashFlow<0?'Cash-flow negative':'Cash-flow neutral';const tone=cashFlow===null?'neutral':cashFlow>0?'positive':cashFlow<0?'negative':'neutral';const icon=cashFlow===null?'↔':cashFlow>0?'✓':cashFlow<0?'!':'—';return <article className="expense-financial-intelligence__card expense-financial-intelligence__card--deterministic" aria-labelledby="expense-deterministic-title"><div className="expense-financial-intelligence__head"><div><p className="expense-financial-intelligence__eyebrow">Deterministic intelligence</p><h2 id="expense-deterministic-title" className="expense-financial-intelligence__title">Financial health</h2></div><span className="expense-financial-intelligence__period">{periodLabel}</span></div><div className="expense-financial-intelligence__body"><div className={`expense-financial-ring expense-financial-ring--${tone}`} role="img" aria-label={status}><div className="expense-financial-ring__center"><strong aria-hidden="true">{icon}</strong></div></div><div className="expense-financial-intelligence__copy"><p className="expense-financial-intelligence__status">{status}</p>{period?<><p className="expense-financial-intelligence__sub">{cashFlow!>0?'Income is greater than spending for the selected period.':cashFlow!<0?'Spending is greater than income for the selected period.':'Income and spending are exactly balanced for the selected period.'}</p><div className="expense-financial-intelligence__metrics"><div className="expense-financial-intelligence__metric"><span className="expense-financial-intelligence__metric-label">Cash flow</span><strong className="expense-financial-intelligence__metric-value">{cashFlow!>0?'+':''}{formatCurrency(cashFlow!,period.currency)}</strong></div><div className="expense-financial-intelligence__metric"><span className="expense-financial-intelligence__metric-label">Currency</span><strong className="expense-financial-intelligence__metric-value">{period.currency}</strong></div></div></>:rows.length>1?<div className="expense-financial-intelligence__neutral"><strong>Cash flow is kept separate by currency.</strong><span>A combined cash-flow amount would require an exchange rate, so no invented conversion is applied.</span></div>:<div className="expense-financial-intelligence__neutral"><strong>No financial activity to compare.</strong><span>Cash flow is neutral until persisted income or expense transactions are recorded for this period.</span></div>}</div></div></article>}
