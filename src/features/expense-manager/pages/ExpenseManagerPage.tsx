@@ -1,6 +1,9 @@
 import type { ExpenseManagerSection } from '../components/ExpenseManagerNavigation';
 import { ExpenseManagerNavigation } from '../components/ExpenseManagerNavigation';
 import { ExpenseOverviewDashboard } from '../components/ExpenseOverviewDashboard';
+import '../data/expenseManagerPreferences';
+import { ExpenseActivityPage } from './ExpenseActivityPage';
+import { ExpenseManagerSettingsPage } from './ExpenseManagerSettingsPage';
 import { ExpenseTransactionsPage } from './ExpenseTransactionsPage';
 import { ExpenseAccountsPage } from './ExpenseAccountsPage';
 import { ExpenseCategoriesPage } from './ExpenseCategoriesPage';
@@ -29,7 +32,15 @@ function sectionFromPath(pathname: string): ExpenseManagerSection {
 interface ExpenseManagerPageProps { pathname: string; onNavigate: (path: string) => void; }
 
 export function ExpenseManagerPage({ pathname, onNavigate }: ExpenseManagerPageProps) {
-  const section = sectionFromPath(pathname); const copy = sectionCopy[section];
+  const isActivity = pathname === '/expense-manager/activity';
+  const isSettings = pathname === '/expense-manager/settings';
+  const section = sectionFromPath(pathname);
+  const copy = isActivity
+    ? { title: 'Activity', description: 'Review real persisted financial activity across flexible periods.' }
+    : isSettings
+      ? { title: 'Overview Settings', description: 'Personalize your Expense Manager dashboard.' }
+      : sectionCopy[section];
+
   return <main className="expense-manager-page">
     <style>{`
       .expense-manager-page{min-height:100%;width:100%;max-width:100%;min-width:0;box-sizing:border-box;overflow-x:hidden;padding:0 10px max(82px,env(safe-area-inset-bottom));background:radial-gradient(circle at 12% 4%,rgba(59,130,246,.07),transparent 28%),radial-gradient(circle at 92% 18%,rgba(20,184,166,.055),transparent 24%),linear-gradient(180deg,#f8fafc 0%,#f1f5f9 100%);color:#172033}
@@ -52,6 +63,6 @@ export function ExpenseManagerPage({ pathname, onNavigate }: ExpenseManagerPageP
     `}</style>
     <ExpenseManagerNavigation pathname={pathname} onNavigate={onNavigate} />
     <section className="expense-manager-page__hero" aria-labelledby="expense-manager-title"><span className="expense-manager-page__eyebrow">Expense Manager</span><h1 id="expense-manager-title" className="expense-manager-page__title">{copy.title}</h1><p className="expense-manager-page__description">{copy.description}</p></section>
-    {section === 'overview' ? <ExpenseOverviewDashboard onNavigate={onNavigate} /> : section === 'transactions' ? <ExpenseTransactionsPage onNavigate={onNavigate} /> : section === 'accounts' ? <ExpenseAccountsPage onNavigate={onNavigate} /> : section === 'categories' ? <ExpenseCategoriesPage onNavigate={onNavigate} /> : section === 'budgets' ? <ExpenseBudgetsPage onNavigate={onNavigate} /> : <ExpenseReportsPage onNavigate={onNavigate} />}
+    {isActivity ? <ExpenseActivityPage onNavigate={onNavigate} /> : isSettings ? <ExpenseManagerSettingsPage onNavigate={onNavigate} /> : section === 'overview' ? <ExpenseOverviewDashboard onNavigate={onNavigate} /> : section === 'transactions' ? <ExpenseTransactionsPage onNavigate={onNavigate} /> : section === 'accounts' ? <ExpenseAccountsPage onNavigate={onNavigate} /> : section === 'categories' ? <ExpenseCategoriesPage onNavigate={onNavigate} /> : section === 'budgets' ? <ExpenseBudgetsPage onNavigate={onNavigate} /> : <ExpenseReportsPage onNavigate={onNavigate} />}
   </main>;
 }
