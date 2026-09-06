@@ -18,7 +18,6 @@ const PERIODS: Array<{ id: ActivityPeriod; label: string }> = [
 function dateKey(value: Date) { return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, '0')}-${String(value.getDate()).padStart(2, '0')}`; }
 function boundsFor(period: ActivityPeriod) {
   const now = new Date();
-  const today = dateKey(now);
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
   let start = monthStart;
@@ -28,7 +27,7 @@ function boundsFor(period: ActivityPeriod) {
   if (period === 'ytd' || period === 'up-to-date') start = new Date(now.getFullYear(), 0, 1);
   if (period === 'up-to-date') end = now;
   if (period === 'end-of-month') { start = monthStart; end = monthEnd; }
-  return { start: dateKey(start), end: dateKey(end), today };
+  return { start: dateKey(start), end: dateKey(end) };
 }
 function money(amount: number, currency: string) { try { return new Intl.NumberFormat(undefined, { style: 'currency', currency, maximumFractionDigits: 2 }).format(amount); } catch { return `${currency} ${amount.toLocaleString()}`; } }
 
@@ -43,7 +42,8 @@ export function ExpenseActivityPage({ onNavigate }: ExpenseActivityPageProps) {
   useEffect(() => { let active = true; setLoading(true); setError(''); void supabase.auth.getUser().then(async ({ data, error: authError }) => { if (authError || !data.user) throw authError ?? new Error('Your signed-in session could not be resolved.'); const result = await loadExpenseTransactionData(data.user.id); if (!active) return; setRows(result.transactions.filter((row) => row.date >= bounds.start && row.date <= bounds.end)); }).catch((cause: unknown) => { if (active) setError(cause instanceof Error ? cause.message : 'Could not load activity.'); }).finally(() => { if (active) setLoading(false); }); return () => { active = false; }; }, [bounds.end, bounds.start]);
 
   const totals = useMemo(() => rows.reduce((acc, row) => { const value = Number(row.amount) || 0; const bucket = row.type === 'income' ? 'income' : row.type === 'expense' ? 'expense' : 'transfer'; acc[bucket] += value; return acc; }, { income: 0, expense: 0, transfer: 0 }), [rows]);
-
+  const incomeCurrency = rows.find((row) => row.type === 'income')?.account_currency || 'PKR';
+  const expenseCurrency = rows.find((row) => row.type === 'expense')?.account_currency || 'PKR';
   const selectPeriod = (next: ActivityPeriod) => { setPeriod(next); window.history.replaceState({}, '', `/expense-manager/activity?period=${next}`); };
 
   return <section className="expense-activity" aria-labelledby="expense-activity-title"><style>{`
@@ -52,10 +52,10 @@ export function ExpenseActivityPage({ onNavigate }: ExpenseActivityPageProps) {
     <button type="button" className="expense-activity__back" onClick={() => onNavigate('/expense-manager')}>‹ Overview</button>
     <header className="expense-activity__hero"><span className="expense-activity__eyebrow">Financial activity</span><h1 id="expense-activity-title">Activity</h1><p className="expense-activity__copy">Real persisted Expense Manager transactions for the selected period.</p></header>
     <div className="expense-activity__periods">{PERIODS.map((item) => <button type="button" className="expense-activity__period" data-active={period === item.id} key={item.id} onClick={() => selectPeriod(item.id)}><span>{item.label}</span><span>→</span></button>)}</div>
-    <div className="expense-activity__summary"><div className="expense-activity__metric" data-type="income"><span>Income</span><strong>{rows.length ? money(totals.income, rows.find((row) => row.type === 'income')?.currency || 'PKR') : '—'}</strong></div><div className="expense-activity__metric" data-type="expense"><span>Expenses</span><strong>{rows.length ? money(totals.expense, rows.find((row) => row.type === 'expense')?.currency || 'PKR') : '—'}</strong></div><div className="expense-activity__metric"><span>Transactions</span><strong>{rows.length}</strong></div></div>
+    <div className="expense-activity__summary"><div className="expense-activity__metric" data-type="income"><span>Income</span><strong>{rows.length ? money(totals.income, incomeCurrency) : '—'}</strong></div><div className="expense-activity__metric" data-type="expense"><span>Expenses</span><strong>{rows.length ? money(totals.expense, expenseCurrency) : '—'}</strong></div><div className="expense-activity__metric"><span>Transactions</span><strong>{rows.length}</strong></div></div>
     {loading && <div className="expense-activity__empty">Loading persisted activity…</div>}
     {!loading && error && <div className="expense-activity__error" role="alert">{error}</div>}
     {!loading && !error && !rows.length && <div className="expense-activity__empty">No persisted transactions in this period.</div>}
-    {!loading && !error && rows.length > 0 && <div className="expense-activity__list">{rows.map((row) => { const sign = row.type === 'income' ? '+' : row.type === 'expense' ? '−' : '↔'; return <div className="expense-activity__row" key={row.id}><span className="expense-activity__icon" aria-hidden="true">{row.category_name ? row.category_name.slice(0, 1).toUpperCase() : row.type === 'transfer' ? '↔' : '•'}</span><div className="expense-activity__main"><div className="expense-activity__name">{row.category_name || (row.type === 'transfer' ? 'Transfer' : 'Uncategorised')}</div><div className="expense-activity__meta">{row.date} · {row.account_name || 'Account'}{row.note ? ` · ${row.note}` : ''}</div></div><strong className="expense-activity__amount" data-type={row.type}>{sign} {money(row.amount, row.currency || 'PKR')}</strong></div>; })}</div>}
+    {!loading && !error && rows.length > 0 && <div className="expense-activity__list">{rows.map((row) => { const sign = row.type === 'income' ? '+' : row.type === 'expense' ? '−' : '↔'; return <div className="expense-activity__row" key={row.id}><span className="expense-activity__icon" aria-hidden="true">{row.category_name ? row.category_name.slice(0, 1).toUpperCase() : row.type === 'transfer' ? '↔' : '•'}</span><div className="expense-activity__main"><div className="expense-activity__name">{row.category_name || (row.type === 'transfer' ? 'Transfer' : 'Uncategorised')}</div><div className="expense-activity__meta">{row.date} · {row.account_name || 'Account'}{row.note ? ` · ${row.note}` : ''}</div></div><strong className="expense-activity__amount" data-type={row.type}>{sign} {money(row.amount, row.account_currency || 'PKR')}</strong></div>; })}</div>}
   </section>;
 }
