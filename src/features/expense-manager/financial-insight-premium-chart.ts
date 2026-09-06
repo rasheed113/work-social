@@ -1,3 +1,5 @@
+export {};
+
 const ROOT = '.expense-financial-intelligence__card--insight';
 const SVG = '.expense-candle__svg';
 const READY = 'data-premium-trend-ready';
