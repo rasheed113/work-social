@@ -1,28 +1,8 @@
 export type UniversalEyesModule = 'social' | 'work' | 'work_finance' | 'diary' | 'finance';
 
-export interface UniversalEyesResult {
-  module: UniversalEyesModule;
-  record_id: string;
-  title: string;
-  snippet: string;
-  occurred_at: string | null;
-  metadata: Record<string, unknown>;
-}
-
-export interface UniversalEyesSearchOptions {
-  modules?: UniversalEyesModule[];
-  from?: string | null;
-  to?: string | null;
-  limit?: number;
-}
-
-export interface UniversalEyesRepository {
-  searchSocial(userId: string, query: string, options: UniversalEyesSearchOptions): Promise<UniversalEyesResult[]>;
-  searchWork(userId: string, query: string, options: UniversalEyesSearchOptions): Promise<UniversalEyesResult[]>;
-  searchWorkFinance(userId: string, query: string, options: UniversalEyesSearchOptions): Promise<UniversalEyesResult[]>;
-  searchDiary(userId: string, query: string, options: UniversalEyesSearchOptions): Promise<UniversalEyesResult[]>;
-  searchFinance(userId: string, query: string, options: UniversalEyesSearchOptions): Promise<UniversalEyesResult[]>;
-}
+export interface UniversalEyesResult { module: UniversalEyesModule; record_id: string; title: string; snippet: string; occurred_at: string | null; metadata: Record<string, unknown>; }
+export interface UniversalEyesSearchOptions { modules?: UniversalEyesModule[]; from?: string | null; to?: string | null; limit?: number; }
+export interface UniversalEyesRepository { searchSocial(userId: string, query: string, options: UniversalEyesSearchOptions): Promise<UniversalEyesResult[]>; searchWork(userId: string, query: string, options: UniversalEyesSearchOptions): Promise<UniversalEyesResult[]>; searchWorkFinance(userId: string, query: string, options: UniversalEyesSearchOptions): Promise<UniversalEyesResult[]>; searchDiary(userId: string, query: string, options: UniversalEyesSearchOptions): Promise<UniversalEyesResult[]>; searchFinance(userId: string, query: string, options: UniversalEyesSearchOptions): Promise<UniversalEyesResult[]>; }
 
 const MODULES: UniversalEyesModule[] = ['social', 'work', 'work_finance', 'diary', 'finance'];
 const SECRET_PATTERNS = [
@@ -32,188 +12,24 @@ const SECRET_PATTERNS = [
   /\b(?:token|credential)\s*[:=]\s*\S+/gi,
 ];
 
-export class UniversalEyesSecurityError extends Error {
-  constructor(message = 'Search text appears to contain a credential or secret.') {
-    super(message);
-    this.name = 'UniversalEyesSecurityError';
-  }
-}
-
-export function assertSafeUniversalEyesQuery(query: string): string {
-  const normalized = query.trim();
-  if (!normalized) return '';
-  if (normalized.length > 500) throw new UniversalEyesSecurityError('Search text is too long.');
-  if (SECRET_PATTERNS.some((pattern) => { pattern.lastIndex = 0; return pattern.test(normalized); })) throw new UniversalEyesSecurityError();
-  return normalized;
-}
-
-function redactSensitiveContent(value: unknown): string {
-  let text = String(value ?? '');
-  for (const pattern of SECRET_PATTERNS) {
-    pattern.lastIndex = 0;
-    text = text.replace(pattern, (match) => {
-      const separator = match.search(/[:=]/);
-      if (separator >= 0) return `${match.slice(0, separator + 1)} [redacted]`;
-      return '[redacted]';
-    });
-  }
-  return text;
-}
-
-function moduleScore(query: string, module: UniversalEyesModule): number {
-  const q = query.toLocaleLowerCase();
-  const terms: Record<UniversalEyesModule, string[]> = {
-    social: ['post', 'posts', 'profile', 'friend', 'friends', 'message', 'chat', 'notification', 'video', 'social'],
-    work: ['work', 'job', 'item', 'piece', 'pieces', 'quantity', 'rate', 'entry', 'entries', 'production'],
-    work_finance: ['advance', 'payment', 'payments', 'received', 'earning', 'earnings', 'work finance'],
-    diary: ['diary', 'journal', 'todo', 'task', 'idea', 'note', 'notes', 'event', 'reminder'],
-    finance: ['expense', 'expenses', 'income', 'account', 'accounts', 'budget', 'transaction', 'transactions', 'transfer', 'balance', 'money'],
-  };
-  return terms[module].reduce((score, term) => score + (q.includes(term) ? 1 : 0), 0);
-}
-
-export function selectUniversalEyesModules(query: string): UniversalEyesModule[] {
-  const safe = assertSafeUniversalEyesQuery(query);
-  if (!safe) return MODULES;
-  const scored = MODULES.map((module) => ({ module, score: moduleScore(safe, module) })).filter((item) => item.score > 0);
-  if (!scored.length) return MODULES;
-  return scored.map((item) => item.module);
-}
-
-function normalizeOptions(options: UniversalEyesSearchOptions): Required<Pick<UniversalEyesSearchOptions, 'limit'>> & UniversalEyesSearchOptions {
-  return { ...options, limit: Math.min(Math.max(options.limit ?? 20, 1), 50) };
-}
-
-export async function searchUniversalEyes(
-  repository: UniversalEyesRepository,
-  userId: string,
-  query: string,
-  options: UniversalEyesSearchOptions = {},
-): Promise<{ modules: UniversalEyesModule[]; results: UniversalEyesResult[]; ambiguous: boolean }> {
-  if (!userId.trim()) throw new Error('Authenticated user id is required.');
-  const safeQuery = assertSafeUniversalEyesQuery(query);
-  const normalizedOptions = normalizeOptions(options);
-  const requested = options.modules?.length ? options.modules : selectUniversalEyesModules(safeQuery);
-  const modules = MODULES.filter((module) => requested.includes(module));
-  const searches: Record<UniversalEyesModule, () => Promise<UniversalEyesResult[]>> = {
-    social: () => repository.searchSocial(userId, safeQuery, normalizedOptions),
-    work: () => repository.searchWork(userId, safeQuery, normalizedOptions),
-    work_finance: () => repository.searchWorkFinance(userId, safeQuery, normalizedOptions),
-    diary: () => repository.searchDiary(userId, safeQuery, normalizedOptions),
-    finance: () => repository.searchFinance(userId, safeQuery, normalizedOptions),
-  };
-  const batches = await Promise.all(modules.map((module) => searches[module]()));
-  const results = batches.flat().sort((a, b) => (b.occurred_at ?? '').localeCompare(a.occurred_at ?? '')).slice(0, normalizedOptions.limit);
-  return { modules, results, ambiguous: modules.length > 1 && !options.modules?.length };
-}
+export class UniversalEyesSecurityError extends Error { constructor(message = 'Search text appears to contain a credential or secret.') { super(message); this.name = 'UniversalEyesSecurityError'; } }
+export function assertSafeUniversalEyesQuery(query: string): string { const normalized = query.trim(); if (!normalized) return ''; if (normalized.length > 500) throw new UniversalEyesSecurityError('Search text is too long.'); if (SECRET_PATTERNS.some((pattern) => { pattern.lastIndex = 0; return pattern.test(normalized); })) throw new UniversalEyesSecurityError(); return normalized; }
+function redactSensitiveContent(value: unknown): string { let text = String(value ?? ''); for (const pattern of SECRET_PATTERNS) { pattern.lastIndex = 0; text = text.replace(pattern, (match) => { const separator = match.search(/[:=]/); return separator >= 0 ? `${match.slice(0, separator + 1)} [redacted]` : '[redacted]'; }); } return text; }
+function moduleScore(query: string, module: UniversalEyesModule): number { const q = query.toLocaleLowerCase(); const terms: Record<UniversalEyesModule, string[]> = { social: ['post','posts','profile','friend','friends','message','chat','notification','video','social'], work: ['work','job','item','piece','pieces','quantity','rate','entry','entries','production'], work_finance: ['advance','payment','payments','received','earning','earnings','work finance'], diary: ['diary','journal','todo','task','idea','note','notes','event','reminder'], finance: ['expense','expenses','income','account','accounts','budget','transaction','transactions','transfer','balance','money'] }; return terms[module].reduce((score, term) => score + (q.includes(term) ? 1 : 0), 0); }
+export function selectUniversalEyesModules(query: string): UniversalEyesModule[] { const safe = assertSafeUniversalEyesQuery(query); if (!safe) return MODULES; const scored = MODULES.map((module) => ({ module, score: moduleScore(safe, module) })).filter((item) => item.score > 0); return scored.length ? scored.map((item) => item.module) : MODULES; }
+function normalizeOptions(options: UniversalEyesSearchOptions) { return { ...options, limit: Math.min(Math.max(options.limit ?? 20, 1), 50) }; }
+export async function searchUniversalEyes(repository: UniversalEyesRepository, userId: string, query: string, options: UniversalEyesSearchOptions = {}) { if (!userId.trim()) throw new Error('Authenticated user id is required.'); const safeQuery = assertSafeUniversalEyesQuery(query); const normalizedOptions = normalizeOptions(options); const requested = options.modules?.length ? options.modules : selectUniversalEyesModules(safeQuery); const modules = MODULES.filter((module) => requested.includes(module)); const searches: Record<UniversalEyesModule, () => Promise<UniversalEyesResult[]>> = { social: () => repository.searchSocial(userId, safeQuery, normalizedOptions), work: () => repository.searchWork(userId, safeQuery, normalizedOptions), work_finance: () => repository.searchWorkFinance(userId, safeQuery, normalizedOptions), diary: () => repository.searchDiary(userId, safeQuery, normalizedOptions), finance: () => repository.searchFinance(userId, safeQuery, normalizedOptions) }; const batches = await Promise.all(modules.map((module) => searches[module]())); const results = batches.flat().sort((a,b) => (b.occurred_at ?? '').localeCompare(a.occurred_at ?? '')).slice(0, normalizedOptions.limit); return { modules, results, ambiguous: modules.length > 1 && !options.modules?.length }; }
 
 export function createSupabaseUniversalEyesRepository(client: any): UniversalEyesRepository {
-  const workProfileId = async (userId: string): Promise<string> => {
-    const { data, error } = await client.from('worker_profiles').select('id').eq('profile_id', userId).maybeSingle();
-    if (error) throw error;
-    if (!data?.id) return '';
-    return data.id;
-  };
-  const dateRange = (builder: any, column: string, options: UniversalEyesSearchOptions) => {
-    let next = builder;
-    if (options.from) next = next.gte(column, options.from);
-    if (options.to) next = next.lt(column, options.to);
-    return next;
-  };
+  const workProfileId = async (userId: string): Promise<string> => { const { data, error } = await client.from('worker_profiles').select('id').eq('profile_id', userId).maybeSingle(); if (error) throw error; return data?.id ?? ''; };
+  const dateRange = (builder: any, column: string, options: UniversalEyesSearchOptions) => { let next = builder; if (options.from) next = next.gte(column, options.from); if (options.to) next = next.lt(column, options.to); return next; };
   const safeLimit = (options: UniversalEyesSearchOptions) => Math.min(Math.max(options.limit ?? 20, 1), 50);
   const escaped = (query: string) => query.replace(/[\\%_]/g, '\\$&');
-
   return {
-    async searchSocial(userId, query, options) {
-      const term = escaped(query);
-      let builder = client.from('posts').select('id,content,privacy,created_at,location_name').eq('profile_id', userId).order('created_at', { ascending: false }).limit(safeLimit(options));
-      if (term) builder = builder.ilike('content', `%${term}%`);
-      builder = dateRange(builder, 'created_at', options);
-      const { data, error } = await builder;
-      if (error) throw error;
-      return (data ?? []).map((row: any) => ({ module: 'social', record_id: row.id, title: 'Post', snippet: redactSensitiveContent(row.content), occurred_at: row.created_at ?? null, metadata: { privacy: row.privacy, location_name: redactSensitiveContent(row.location_name) } }));
-    },
-    async searchWork(userId, query, options) {
-      const workerId = await workProfileId(userId);
-      if (!workerId) return [];
-      const term = escaped(query);
-      let builder = client.from('work_entries').select('id,item_name,size,quantity,rate,total,special_note,occurred_at').eq('worker_profile_id', workerId).eq('work_context', 'my_work').eq('lifecycle_state', 'active').order('occurred_at', { ascending: false }).limit(safeLimit(options));
-      if (term) builder = builder.or(`item_name.ilike.%${term}%,size.ilike.%${term}%,special_note.ilike.%${term}%`);
-      builder = dateRange(builder, 'occurred_at', options);
-      const { data, error } = await builder;
-      if (error) throw error;
-      return (data ?? []).map((row: any) => ({ module: 'work', record_id: row.id, title: redactSensitiveContent(row.item_name ?? 'Work Entry'), snippet: redactSensitiveContent(`${row.quantity ?? 0} × ${row.rate ?? 0}${row.size ? ` · size ${Array.isArray(row.size) ? row.size.join(', ') : row.size}` : ''}${row.special_note ? ` · ${row.special_note}` : ''}`), occurred_at: row.occurred_at ?? null, metadata: { size: row.size, quantity: row.quantity, rate: row.rate, total: row.total } }));
-    },
-    async searchWorkFinance(userId, query, options) {
-      const workerId = await workProfileId(userId);
-      if (!workerId) return [];
-      let builder = client.from('worker_finance_received').select('id,entry_type,amount,received_at,created_at').eq('worker_profile_id', workerId).is('deleted_at', null).order('received_at', { ascending: false }).limit(safeLimit(options));
-      builder = dateRange(builder, 'received_at', options);
-      const term = escaped(query);
-      if (term) builder = builder.ilike('entry_type', `%${term}%`);
-      const { data, error } = await builder;
-      if (error) throw error;
-      return (data ?? []).map((row: any) => ({ module: 'work_finance', record_id: row.id, title: row.entry_type === 'advance' ? 'Advance received' : 'Payment received', snippet: redactSensitiveContent(`${row.amount ?? 0}`), occurred_at: row.received_at ?? row.created_at ?? null, metadata: { entry_type: row.entry_type, amount: row.amount } }));
-    },
-    async searchDiary(userId, query, options) {
-      const workerId = await workProfileId(userId);
-      if (!workerId) return [];
-      const term = escaped(query);
-      const limit = safeLimit(options);
-      const makeQuery = (eventOnly: boolean) => {
-        let builder = client.from('worker_diary_entries').select('id,entry_type,title,content,completed,created_at,updated_at,event_start_at,event_end_at,event_timezone').eq('worker_profile_id', workerId).eq('entry_type', eventOnly ? 'event' : 'note').order(eventOnly ? 'event_start_at' : 'updated_at', { ascending: false }).limit(limit);
-        if (term) builder = builder.or(`title.ilike.%${term}%,content.ilike.%${term}%`);
-        if (eventOnly) builder = dateRange(builder, 'event_start_at', options);
-        else builder = dateRange(builder, 'created_at', options);
-        return builder;
-      };
-      const [events, regular] = await Promise.all([makeQuery(true), makeQuery(false)]);
-      const eventResult = await events;
-      const regularResult = await regular;
-      if (eventResult.error) throw eventResult.error;
-      if (regularResult.error) throw regularResult.error;
-      return [...(eventResult.data ?? []), ...(regularResult.data ?? [])].sort((a: any, b: any) => String(b.event_start_at ?? b.updated_at ?? b.created_at ?? '').localeCompare(String(a.event_start_at ?? a.updated_at ?? a.created_at ?? ''))).slice(0, limit).map((row: any) => ({ module: 'diary', record_id: row.id, title: redactSensitiveContent(row.title ?? row.entry_type ?? 'Diary entry'), snippet: redactSensitiveContent(row.content), occurred_at: row.event_start_at ?? row.updated_at ?? row.created_at ?? null, metadata: { entry_type: row.entry_type, completed: row.completed, event_end_at: row.event_end_at, event_timezone: row.event_timezone } }));
-    },
-    async searchFinance(userId, query, options) {
-      const term = escaped(query);
-      const limit = safeLimit(options);
-      const [accountsResult, categoriesResult, subcategoriesResult] = await Promise.all([
-        client.from('expense_accounts').select('id,name,type,currency').eq('user_id', userId).order('name'),
-        client.from('expense_categories').select('id,name,type,is_archived').eq('user_id', userId).eq('is_archived', false).order('name'),
-        client.from('expense_subcategories').select('id,name,category_id,is_archived').eq('user_id', userId).eq('is_archived', false).order('name'),
-      ]);
-      if (accountsResult.error) throw accountsResult.error;
-      if (categoriesResult.error) throw categoriesResult.error;
-      if (subcategoriesResult.error) throw subcategoriesResult.error;
-      const accounts = accountsResult.data ?? [];
-      const categories = categoriesResult.data ?? [];
-      const subcategories = subcategoriesResult.data ?? [];
-      const accountById = new Map(accounts.map((row: any) => [row.id, row]));
-      const categoryById = new Map(categories.map((row: any) => [row.id, row]));
-      const subcategoryById = new Map(subcategories.map((row: any) => [row.id, row]));
-      const normalizedTerm = query.trim().toLocaleLowerCase();
-      const matchingAccountIds = new Set(accounts.filter((row: any) => String(row.name ?? '').toLocaleLowerCase().includes(normalizedTerm)).map((row: any) => row.id));
-      const matchingCategoryIds = new Set(categories.filter((row: any) => String(row.name ?? '').toLocaleLowerCase().includes(normalizedTerm)).map((row: any) => row.id));
-      const matchingSubcategoryIds = new Set(subcategories.filter((row: any) => String(row.name ?? '').toLocaleLowerCase().includes(normalizedTerm)).map((row: any) => row.id));
-      let builder = client.from('expense_transactions').select('id,type,amount,account_id,category_id,subcategory_id,from_account_id,to_account_id,date,note').eq('user_id', userId).order('date', { ascending: false }).limit(Math.max(100, limit * 10));
-      builder = dateRange(builder, 'date', options);
-      if (term && !matchingAccountIds.size && !matchingCategoryIds.size && !matchingSubcategoryIds.size) builder = builder.ilike('note', `%${term}%`);
-      const { data, error } = await builder;
-      if (error) throw error;
-      const rows = (data ?? []).filter((row: any) => {
-        if (!normalizedTerm) return true;
-        const accountNames = [accountById.get(row.account_id)?.name, accountById.get(row.from_account_id)?.name, accountById.get(row.to_account_id)?.name].filter(Boolean).join(' ');
-        const categoryName = categoryById.get(row.category_id)?.name ?? '';
-        const subcategoryName = subcategoryById.get(row.subcategory_id)?.name ?? '';
-        const searchable = `${accountNames} ${categoryName} ${subcategoryName} ${row.note ?? ''}`.toLocaleLowerCase();
-        return searchable.includes(normalizedTerm) || matchingAccountIds.has(row.account_id) || matchingAccountIds.has(row.from_account_id) || matchingAccountIds.has(row.to_account_id) || matchingCategoryIds.has(row.category_id) || matchingSubcategoryIds.has(row.subcategory_id);
-      }).slice(0, limit);
-      return rows.map((row: any) => {
-        const accountName = row.type === 'transfer' ? `${accountById.get(row.from_account_id)?.name ?? 'Unknown'} → ${accountById.get(row.to_account_id)?.name ?? 'Unknown'}` : accountById.get(row.account_id)?.name ?? 'Unknown account';
-        const categoryName = categoryById.get(row.category_id)?.name ?? (row.type === 'transfer' ? 'Transfer' : 'Uncategorized');
-        const subcategoryName = subcategoryById.get(row.subcategory_id)?.name;
-        return { module: 'finance', record_id: row.id, title: redactSensitiveContent(row.type ?? 'Transaction'), snippet: redactSensitiveContent(`${row.amount ?? 0} · ${accountName} · ${categoryName}${subcategoryName ? ` · ${subcategoryName}` : ''}${row.note ? ` · ${row.note}` : ''}`), occurred_at: row.date ?? null, metadata: { type: row.type, amount: row.amount, account_name: redactSensitiveContent(accountName), category_name: redactSensitiveContent(categoryName), subcategory_name: redactSensitiveContent(subcategoryName), account_id: row.account_id, category_id: row.category_id, subcategory_id: row.subcategory_id, from_account_id: row.from_account_id, to_account_id: row.to_account_id } };
-      });
-    },
+    async searchSocial(userId, query, options) { const term=escaped(query); let builder=client.from('posts').select('id,content,privacy,created_at,location_name').eq('profile_id',userId).order('created_at',{ascending:false}).limit(safeLimit(options)); if(term) builder=builder.ilike('content',`%${term}%`); builder=dateRange(builder,'created_at',options); const {data,error}=await builder; if(error) throw error; return (data??[]).map((row:any)=>({module:'social',record_id:row.id,title:'Post',snippet:redactSensitiveContent(row.content),occurred_at:row.created_at??null,metadata:{privacy:row.privacy,location_name:redactSensitiveContent(row.location_name)}})); },
+    async searchWork(userId, query, options) { const workerId=await workProfileId(userId); if(!workerId)return[]; const term=escaped(query); let builder=client.from('work_entries').select('id,item_name,size,quantity,rate,total,special_note,occurred_at').eq('worker_profile_id',workerId).eq('work_context','my_work').eq('lifecycle_state','active').order('occurred_at',{ascending:false}).limit(safeLimit(options)); if(term)builder=builder.or(`item_name.ilike.%${term}%,special_note.ilike.%${term}%`); builder=dateRange(builder,'occurred_at',options); const {data,error}=await builder; if(error)throw error; return(data??[]).map((row:any)=>({module:'work',record_id:row.id,title:redactSensitiveContent(row.item_name??'Work Entry'),snippet:redactSensitiveContent(`${row.quantity??0} × ${row.rate??0}${row.size?` · size ${Array.isArray(row.size)?row.size.join(', '):row.size}`:''}${row.special_note?` · ${row.special_note}`:''}`),occurred_at:row.occurred_at??null,metadata:{size:row.size,quantity:row.quantity,rate:row.rate,total:row.total}})); },
+    async searchWorkFinance(userId, query, options) { const workerId=await workProfileId(userId); if(!workerId)return[]; let builder=client.from('worker_finance_received').select('id,entry_type,amount,received_at,created_at').eq('worker_profile_id',workerId).is('deleted_at',null).order('received_at',{ascending:false}).limit(safeLimit(options)); builder=dateRange(builder,'received_at',options); const term=escaped(query); if(term)builder=builder.ilike('entry_type',`%${term}%`); const {data,error}=await builder; if(error)throw error; return(data??[]).map((row:any)=>({module:'work_finance',record_id:row.id,title:row.entry_type==='advance'?'Advance received':'Payment received',snippet:redactSensitiveContent(`${row.amount??0}`),occurred_at:row.received_at??row.created_at??null,metadata:{entry_type:row.entry_type,amount:row.amount}})); },
+    async searchDiary(userId, query, options) { const workerId=await workProfileId(userId); if(!workerId)return[]; const term=escaped(query); const limit=safeLimit(options); const makeQuery=(eventOnly:boolean)=>{ let builder=client.from('worker_diary_entries').select('id,entry_type,title,content,completed,created_at,updated_at,event_start_at,event_end_at,event_timezone').eq('worker_profile_id',workerId).order(eventOnly?'event_start_at':'updated_at',{ascending:false}).limit(limit); if(term)builder=builder.or(`title.ilike.%${term}%,content.ilike.%${term}%`); if(eventOnly){builder=builder.eq('entry_type','event'); builder=dateRange(builder,'event_start_at',options);}else{builder=builder.neq('entry_type','event'); builder=dateRange(builder,'created_at',options);} return builder; }; const [events,regular]=await Promise.all([makeQuery(true),makeQuery(false)]); const eventResult=await events; const regularResult=await regular; if(eventResult.error)throw eventResult.error; if(regularResult.error)throw regularResult.error; return[...(eventResult.data??[]),...(regularResult.data??[])].sort((a:any,b:any)=>String(b.event_start_at??b.updated_at??b.created_at??'').localeCompare(String(a.event_start_at??a.updated_at??a.created_at??''))).slice(0,limit).map((row:any)=>({module:'diary',record_id:row.id,title:redactSensitiveContent(row.title??row.entry_type??'Diary entry'),snippet:redactSensitiveContent(row.content),occurred_at:row.event_start_at??row.updated_at??row.created_at??null,metadata:{entry_type:row.entry_type,completed:row.completed,event_end_at:row.event_end_at,event_timezone:row.event_timezone}})); },
+    async searchFinance(userId, query, options) { const term=escaped(query); const limit=safeLimit(options); const [accountsResult,categoriesResult,subcategoriesResult]=await Promise.all([client.from('expense_accounts').select('id,name,type,currency').eq('user_id',userId).order('name'),client.from('expense_categories').select('id,name,type,is_archived').eq('user_id',userId).eq('is_archived',false).order('name'),client.from('expense_subcategories').select('id,name,category_id,is_archived').eq('user_id',userId).eq('is_archived',false).order('name')]); if(accountsResult.error)throw accountsResult.error; if(categoriesResult.error)throw categoriesResult.error; if(subcategoriesResult.error)throw subcategoriesResult.error; const accounts=accountsResult.data??[],categories=categoriesResult.data??[],subcategories=subcategoriesResult.data??[]; const accountById=new Map(accounts.map((row:any)=>[row.id,row])),categoryById=new Map(categories.map((row:any)=>[row.id,row])),subcategoryById=new Map(subcategories.map((row:any)=>[row.id,row])); const normalizedTerm=query.trim().toLocaleLowerCase(); let builder=client.from('expense_transactions').select('id,type,amount,account_id,category_id,subcategory_id,from_account_id,to_account_id,date,note').eq('user_id',userId).order('date',{ascending:false}).limit(Math.max(100,limit*10)); builder=dateRange(builder,'date',options); if(term)builder=builder.ilike('note',`%${term}%`); const {data,error}=await builder; if(error)throw error; const rows=(data??[]).filter((row:any)=>{if(!normalizedTerm)return true; const accountNames=[accountById.get(row.account_id)?.name,accountById.get(row.from_account_id)?.name,accountById.get(row.to_account_id)?.name].filter(Boolean).join(' '); const categoryName=categoryById.get(row.category_id)?.name??''; const subcategoryName=subcategoryById.get(row.subcategory_id)?.name??''; return`${accountNames} ${categoryName} ${subcategoryName} ${row.note??''}`.toLocaleLowerCase().includes(normalizedTerm);}).slice(0,limit); return rows.map((row:any)=>{const accountName=row.type==='transfer'?`${accountById.get(row.from_account_id)?.name??'Unknown'} → ${accountById.get(row.to_account_id)?.name??'Unknown'}`:accountById.get(row.account_id)?.name??'Unknown account'; const categoryName=categoryById.get(row.category_id)?.name??(row.type==='transfer'?'Transfer':'Uncategorized'); const subcategoryName=subcategoryById.get(row.subcategory_id)?.name; return{module:'finance',record_id:row.id,title:redactSensitiveContent(row.type??'Transaction'),snippet:redactSensitiveContent(`${row.amount??0} · ${accountName} · ${categoryName}${subcategoryName?` · ${subcategoryName}`:''}${row.note?` · ${row.note}`:''}`),occurred_at:row.date??null,metadata:{type:row.type,amount:row.amount,account_name:redactSensitiveContent(accountName),category_name:redactSensitiveContent(categoryName),subcategory_name:redactSensitiveContent(subcategoryName),account_id:row.account_id,category_id:row.category_id,subcategory_id:row.subcategory_id,from_account_id:row.from_account_id,to_account_id:row.to_account_id}};}); },
   };
 }
