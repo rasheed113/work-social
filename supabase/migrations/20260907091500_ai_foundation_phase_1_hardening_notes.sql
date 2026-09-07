@@ -1,0 +1,2 @@
+-- Phase 1 hardening marker migration. Runtime claim hash and exact-field guards are defined in the preceding hardening migrations.
+-- Kept intentionally schema-only so replaying the migration chain remains deterministic.
