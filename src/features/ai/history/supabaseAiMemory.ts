@@ -121,7 +121,7 @@ export function parseExplicitMemoryRequest(message: string): { key: string; valu
     const target = normalize(alias[2]);
     if (subject.length <= 80 && target.length <= 300) return { key: `alias:${subject.toLowerCase().replace(/\s+/g, '_')}`, value: target, memoryType: 'alias' };
   }
-  const defaultAccount = body.match(/^(?:my\s+)?default\s+(?:expense|finance)\s+account\s+(?:is|=|:)?\s*(.+)$/i);
+  const defaultAccount = body.match(/^(?:(?:my|meri)\s+)?default\s+(?:expense|finance)\s+account\s+(?:is|=|:)?\s*(.+?)(?:\s+rakhna)?[.]?$/i);
   if (defaultAccount) return { key: 'default_expense_account', value: normalize(defaultAccount[1]), memoryType: 'workflow' };
   const preference = body.match(/^(?:my\s+)?(?:preference|workflow|instruction)\s+(?:is|=|:)?\s*(.+)$/i);
   if (preference) return { key: 'general_preference', value: normalize(preference[1]), memoryType: 'preference' };
