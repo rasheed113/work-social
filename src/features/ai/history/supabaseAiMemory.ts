@@ -21,7 +21,14 @@ function validateMemoryInput(key: string, value: string): void {
   }
 }
 
+async function authenticatedUserId(): Promise<string> {
+  const { data, error } = await supabase.auth.getSession();
+  if (error || !data.session?.user) throw new Error('Your Work Social session has expired. Please sign in again.');
+  return data.session.user.id;
+}
+
 export async function listServerAiMemories(): Promise<ServerAiMemory[]> {
+  await authenticatedUserId();
   const { data, error } = await supabase
     .from('ai_memories')
     .select('id,memory_key,memory_value,memory_type,source,confidence,created_at,updated_at,expires_at')
@@ -51,9 +58,11 @@ export async function upsertServerAiMemory(input: {
   validateMemoryInput(input.key, input.value);
   const confidence = input.confidence ?? 1;
   if (!Number.isFinite(confidence) || confidence < 0 || confidence > 1) throw new Error('Memory confidence is invalid.');
+  const userId = await authenticatedUserId();
   const { data, error } = await supabase
     .from('ai_memories')
     .upsert({
+      user_id: userId,
       memory_key: input.key.trim(),
       memory_value: input.value.trim(),
       memory_type: input.memoryType ?? 'preference',
@@ -78,6 +87,7 @@ export async function upsertServerAiMemory(input: {
 
 export async function deleteServerAiMemoryByKey(key: string): Promise<boolean> {
   if (!key.trim()) return false;
+  await authenticatedUserId();
   const { data, error } = await supabase.from('ai_memories').delete().eq('memory_key', key.trim()).select('id');
   if (error) throw new Error(error.message || 'Could not delete persistent AI memory.');
   return Boolean(data?.length);
@@ -124,8 +134,7 @@ export function parseForgetMemoryRequest(message: string): string | null {
   const text = normalize(message);
   const body = text.match(/^(?:forget|bhool jao|ye preference bhool jao|is preference ko bhool jao)\s+(?:that\s+)?(.+)$/i)?.[1] ?? '';
   if (!body) return null;
-  const alias = body.match(/^(.+?)(?:\s+preference)?$/i)?.[1];
-  const normalized = normalize(alias ?? body);
+  const normalized = normalize(body.replace(/\s+preference$/i, ''));
   if (/^default\s+(?:expense|finance)\s+account$/i.test(normalized)) return 'default_expense_account';
   if (/^.+\s+means\s+.+$/i.test(normalized)) {
     const subject = normalize(normalized.split(/\s+means\s+/i)[0]);
