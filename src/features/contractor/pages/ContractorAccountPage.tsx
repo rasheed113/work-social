@@ -1,34 +1,75 @@
+import { useEffect, useState } from 'react';
 import { navigate } from '../../../app/Router';
+import { supabase } from '../../../lib/supabase/client';
 
-const pageStyle = {
-  background: 'radial-gradient(circle at 8% 0%, rgba(16,185,129,.14), transparent 30%), radial-gradient(circle at 92% 12%, rgba(14,165,233,.12), transparent 28%)',
-};
-
-const cardStyle = {
-  padding: 16,
-  border: '1px solid rgba(255,255,255,.78)',
-  borderRadius: 18,
-  background: 'linear-gradient(145deg, rgba(255,255,255,.97), rgba(248,250,252,.9))',
-  boxShadow: '0 18px 42px rgba(15,23,42,.10), inset 0 1px 0 rgba(255,255,255,.95)',
-  backdropFilter: 'blur(14px)',
-  WebkitBackdropFilter: 'blur(14px)',
-};
+type Profile = { id: string; display_name: string | null; username: string | null; avatar_url: string | null };
+type ContractorAccount = { profile_id: string; is_commission_based: boolean; work_types: string[]; works_with: string[]; business_name: string | null };
+const WORK_TYPES = ['Manufacturing / Production', 'Stitching / Garments', 'Packaging', 'Construction', 'Services', 'Other'] as const;
+const WORKS_WITH = ['Workers', 'Teams'] as const;
+const shellStyle = { width: '100%', maxWidth: 760, minHeight: '100%', margin: '0 auto', padding: '18px 12px 104px', boxSizing: 'border-box' as const, background: 'radial-gradient(circle at 8% 0%, rgba(16,185,129,.14), transparent 30%), radial-gradient(circle at 92% 12%, rgba(14,165,233,.12), transparent 28%)' };
+const cardStyle = { padding: 16, border: '1px solid rgba(255,255,255,.78)', borderRadius: 18, background: 'linear-gradient(145deg, rgba(255,255,255,.97), rgba(248,250,252,.9))', boxShadow: '0 18px 42px rgba(15,23,42,.10), inset 0 1px 0 rgba(255,255,255,.95)', backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)' };
+const inputStyle = { width: '100%', minHeight: 44, padding: '0 12px', boxSizing: 'border-box' as const, border: '1px solid rgba(100,116,139,.2)', borderRadius: 12, background: 'rgba(255,255,255,.9)', color: '#172033', font: 'inherit', outline: 'none' };
+function initials(name: string) { const value = name.trim(); if (!value) return 'C'; return value.split(/\s+/).slice(0, 2).map((part) => part.charAt(0)).join('').toUpperCase(); }
 
 export function ContractorAccountPage() {
-  return (
-    <main style={{ ...pageStyle, width: '100%', maxWidth: 760, minHeight: '100%', margin: '0 auto', padding: '18px 12px 104px', boxSizing: 'border-box' }}>
-      <header style={{ marginBottom: 14, padding: '2px' }}>
-        <div style={{ color: '#059669', fontSize: 10, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase' }}>Contractor Account</div>
-        <h1 style={{ margin: '4px 0 0', fontSize: 'clamp(28px, 7vw, 38px)', letterSpacing: '-.045em', lineHeight: 1.05, color: '#111827' }}>Contractor</h1>
-        <p style={{ margin: '6px 0 0', color: '#64748b', fontSize: 12, lineHeight: 1.45 }}>Your Contractor Personal Dashboard starts here.</p>
-      </header>
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [account, setAccount] = useState<ContractorAccount | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const [saved, setSaved] = useState(false);
+  const [commissionBased, setCommissionBased] = useState<boolean | null>(null);
+  const [workTypes, setWorkTypes] = useState<string[]>([]);
+  const [worksWith, setWorksWith] = useState<string[]>([]);
+  const [businessName, setBusinessName] = useState('');
+  const view = new URLSearchParams(window.location.search).get('view');
+  const showSetup = !account || view === 'setup';
+  const showFinance = !showSetup && view === 'finance';
+  const showSettings = !showSetup && view === 'settings';
 
-      <section style={{ ...cardStyle, display: 'grid', gap: 8 }}>
-        <span style={{ color: '#059669', fontSize: 10, fontWeight: 900, letterSpacing: '.1em', textTransform: 'uppercase' }}>CONTRACTOR MODE</span>
-        <h2 style={{ margin: 0, fontSize: 20, letterSpacing: '-.03em', color: '#172033' }}>Account foundation ready</h2>
-        <p style={{ margin: 0, color: '#64748b', fontSize: 12, lineHeight: 1.5 }}>Contractor features will be built here without changing the existing Worker Contract flow.</p>
-        <button type="button" onClick={() => navigate('/work/settings')} style={{ marginTop: 5, minHeight: 40, padding: '0 13px', borderRadius: 11, border: '1px solid rgba(5,150,105,.18)', background: 'linear-gradient(145deg,rgba(236,253,245,.98),rgba(240,253,250,.9))', color: '#047857', fontWeight: 850, cursor: 'pointer' }}>← Worker Settings</button>
-      </section>
-    </main>
-  );
+  const load = async () => {
+    setLoading(true); setError('');
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    if (userError || !userData.user) { setError(userError?.message ?? 'Authenticated Work Social identity is unavailable.'); setLoading(false); return; }
+    const profileResult = await supabase.from('profiles').select('id,display_name,username,avatar_url').eq('id', userData.user.id).maybeSingle<Profile>();
+    if (profileResult.error || !profileResult.data) { setError(profileResult.error?.message ?? 'Your Work Social profile could not be loaded.'); setLoading(false); return; }
+    setProfile(profileResult.data);
+    const accountResult = await supabase.from('contractor_accounts').select('profile_id,is_commission_based,work_types,works_with,business_name').eq('profile_id', userData.user.id).maybeSingle<ContractorAccount>();
+    if (accountResult.error) { setError(accountResult.error.message); setLoading(false); return; }
+    if (accountResult.data) { setAccount(accountResult.data); setCommissionBased(accountResult.data.is_commission_based); setWorkTypes(accountResult.data.work_types ?? []); setWorksWith(accountResult.data.works_with ?? []); setBusinessName(accountResult.data.business_name ?? ''); }
+    setLoading(false);
+  };
+
+  useEffect(() => { void load(); }, []);
+  const toggle = (values: string[], value: string, setter: (next: string[]) => void) => setter(values.includes(value) ? values.filter((item) => item !== value) : [...values, value]);
+  const save = async () => {
+    setError('');
+    if (commissionBased === null) { setError('Please choose whether you are a commission-based contractor.'); return; }
+    if (!workTypes.length) { setError('Please select at least one contracting work type.'); return; }
+    if (!worksWith.length) { setError('Please select whether you work with workers, teams, or both.'); return; }
+    if (!profile) { setError('Your Work Social profile is unavailable. Please retry.'); return; }
+    setSaving(true);
+    const { data, error: saveError } = await supabase.from('contractor_accounts').upsert({ profile_id: profile.id, is_commission_based: commissionBased, work_types: workTypes, works_with: worksWith, business_name: businessName.trim() || null }, { onConflict: 'profile_id' }).select('profile_id,is_commission_based,work_types,works_with,business_name').single<ContractorAccount>();
+    setSaving(false);
+    if (saveError || !data) { setError(saveError?.message ?? 'Contractor profile could not be saved.'); return; }
+    setAccount(data); setSaved(true); window.setTimeout(() => navigate('/work/contractor?view=dashboard'), 700);
+  };
+  const profileCard = profile && <section style={{ ...cardStyle, display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }} aria-label="Work Social identity">
+    {profile.avatar_url ? <img src={profile.avatar_url} alt="Profile picture" width={62} height={62} style={{ width: 62, height: 62, flex: '0 0 62px', objectFit: 'cover', borderRadius: 18, border: '2px solid rgba(255,255,255,.9)', boxShadow: '0 12px 26px rgba(15,23,42,.14)' }} /> : <div aria-hidden="true" style={{ width: 62, height: 62, flex: '0 0 62px', display: 'grid', placeItems: 'center', borderRadius: 18, background: 'linear-gradient(145deg,#d1fae5,#dbeafe)', color: '#047857', fontSize: 21, fontWeight: 950 }}>{initials(profile.display_name ?? '')}</div>}
+    <div style={{ minWidth: 0 }}><div style={{ color: '#059669', fontSize: 9, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase' }}>Work Social Identity</div><h2 style={{ margin: '3px 0 0', color: '#172033', fontSize: 20, letterSpacing: '-.03em', overflowWrap: 'anywhere' }}>{profile.display_name || 'Your profile'}</h2>{profile.username && <div style={{ marginTop: 2, color: '#64748b', fontSize: 12 }}>@{profile.username}</div>}<div style={{ marginTop: 5, color: '#94a3b8', fontSize: 10 }}>Authenticated identity reused for Contractor Account</div></div>
+  </section>;
+  if (loading) return <main style={shellStyle}><section style={{ ...cardStyle, marginTop: 18 }} aria-live="polite"><strong style={{ color: '#172033' }}>Loading Contractor Account…</strong><p style={{ margin: '6px 0 0', color: '#64748b', fontSize: 12 }}>Loading your real Work Social profile and Contractor setup.</p></section></main>;
+  if (error && !profile) return <main style={shellStyle}><section role="alert" style={{ ...cardStyle, marginTop: 18, borderColor: 'rgba(220,38,38,.22)' }}><strong style={{ color: '#991b1b' }}>Unable to load Contractor Account</strong><p style={{ margin: '6px 0 10px', color: '#64748b', fontSize: 12 }}>{error}</p><button type="button" onClick={() => void load()} style={{ minHeight: 40, padding: '0 13px', borderRadius: 11, fontWeight: 850, cursor: 'pointer' }}>Retry</button></section></main>;
+  if (showFinance) return <main style={shellStyle}><header style={{ marginBottom: 14 }}><div style={{ color: '#059669', fontSize: 10, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase' }}>Contractor Finance</div><h1 style={{ margin: '4px 0 0', color: '#111827', fontSize: 'clamp(28px, 7vw, 38px)', letterSpacing: '-.045em' }}>Finance</h1><p style={{ margin: '6px 0 0', color: '#64748b', fontSize: 12 }}>Empty foundation — no payments, commissions, or financial events are active.</p></header><section style={{ ...cardStyle, textAlign: 'center' }}><div style={{ fontSize: 34, marginBottom: 8 }}>¤</div><h2 style={{ margin: 0, color: '#172033', fontSize: 20 }}>Finance foundation</h2><p style={{ margin: '7px 0 0', color: '#64748b', fontSize: 12, lineHeight: 1.5 }}>Contractor financial functionality will be added in later phases. No fake totals are shown.</p></section></main>;
+  if (showSettings) return <main style={shellStyle}><header style={{ marginBottom: 14 }}><div style={{ color: '#059669', fontSize: 10, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase' }}>Contractor Account</div><h1 style={{ margin: '4px 0 0', color: '#111827', fontSize: 'clamp(28px, 7vw, 38px)', letterSpacing: '-.045em' }}>Settings</h1><p style={{ margin: '6px 0 0', color: '#64748b', fontSize: 12 }}>Your saved Contractor setup information.</p></header>{profileCard}<section style={{ ...cardStyle, display: 'grid', gap: 10 }}><Row label="Commission-based contractor" value={account?.is_commission_based ? 'Yes' : 'No'} /><Row label="Contracting work" value={account?.work_types.join(', ') || 'Not set'} /><Row label="Works with" value={account?.works_with.join(' + ') || 'Not set'} /><Row label="Company / Business Name" value={account?.business_name || 'Not provided'} /></section></main>;
+  if (showSetup) return <main style={shellStyle}><header style={{ marginBottom: 14 }}><div style={{ color: '#059669', fontSize: 10, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase' }}>Contractor Account Setup</div><h1 style={{ margin: '4px 0 0', color: '#111827', fontSize: 'clamp(28px, 7vw, 38px)', letterSpacing: '-.045em', lineHeight: 1.05 }}>Set up your Contractor Account</h1><p style={{ margin: '6px 0 0', color: '#64748b', fontSize: 12, lineHeight: 1.5 }}>A lightweight profile foundation. This does not create contracts, teams, payments, or commission calculations.</p></header>{profileCard}{error && <p role="alert" style={{ margin: '0 0 12px', color: '#b91c1c', fontSize: 12 }}>{error}</p>}<section style={{ ...cardStyle, display: 'grid', gap: 18 }}>
+    <fieldset style={{ margin: 0, padding: 0, border: 0 }}><legend style={{ marginBottom: 9, color: '#172033', fontSize: 14, fontWeight: 900 }}>Are you a commission-based contractor?</legend><div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,minmax(0,1fr))', gap: 8 }}>{[true, false].map((value) => <Choice key={String(value)} selected={commissionBased === value} onClick={() => setCommissionBased(value)}>{value ? 'Yes' : 'No'}</Choice>)}</div></fieldset>
+    <fieldset style={{ margin: 0, padding: 0, border: 0 }}><legend style={{ marginBottom: 9, color: '#172033', fontSize: 14, fontWeight: 900 }}>What type of contracting work do you do?</legend><div style={{ display: 'grid', gap: 7 }}>{WORK_TYPES.map((value) => <Choice key={value} selected={workTypes.includes(value)} onClick={() => toggle(workTypes, value, setWorkTypes)}>{value}</Choice>)}</div></fieldset>
+    <fieldset style={{ margin: 0, padding: 0, border: 0 }}><legend style={{ marginBottom: 9, color: '#172033', fontSize: 14, fontWeight: 900 }}>Do you work with workers or teams?</legend><div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,minmax(0,1fr))', gap: 8 }}>{WORKS_WITH.map((value) => <Choice key={value} selected={worksWith.includes(value)} onClick={() => toggle(worksWith, value, setWorksWith)}>{value}</Choice>)}</div>{worksWith.length === 2 && <div style={{ marginTop: 8, color: '#047857', fontSize: 11, fontWeight: 800 }}>Workers + Teams</div>}</fieldset>
+    <label style={{ display: 'grid', gap: 7, color: '#172033', fontSize: 14, fontWeight: 900 }}>Company / Business Name <span style={{ color: '#94a3b8', fontSize: 10, fontWeight: 700 }}>Optional</span><input value={businessName} onChange={(event) => setBusinessName(event.target.value)} maxLength={160} placeholder="Optional business name" style={inputStyle} /></label>
+    <button type="button" disabled={saving} onClick={() => void save()} style={{ minHeight: 48, border: '1px solid rgba(5,150,105,.32)', borderRadius: 13, background: 'linear-gradient(145deg,#059669,#047857)', color: '#fff', fontWeight: 900, cursor: saving ? 'wait' : 'pointer', boxShadow: '0 5px 0 rgba(4,120,87,.2), 0 12px 22px rgba(5,150,105,.16)' }}>{saving ? 'Saving…' : 'Save Contractor Profile'}</button>{saved && <div role="status" aria-live="polite" style={{ padding: 12, borderRadius: 12, border: '1px solid rgba(16,185,129,.24)', background: 'rgba(236,253,245,.92)', color: '#047857', fontWeight: 900 }}>Saved Successfully ✓</div>}
+  </section></main>;
+  return <main style={shellStyle}><header style={{ marginBottom: 14 }}><div style={{ color: '#059669', fontSize: 10, fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase' }}>Contractor Personal Dashboard</div><h1 style={{ margin: '4px 0 0', color: '#111827', fontSize: 'clamp(28px, 7vw, 38px)', letterSpacing: '-.045em' }}>Contractor</h1><p style={{ margin: '6px 0 0', color: '#64748b', fontSize: 12 }}>Your Contractor dashboard foundation is ready.</p></header>{profileCard}<section style={{ ...cardStyle, textAlign: 'center' }}><div style={{ fontSize: 34, marginBottom: 8 }}>◇</div><h2 style={{ margin: 0, color: '#172033', fontSize: 20 }}>Empty foundation</h2><p style={{ margin: '7px 0 0', color: '#64748b', fontSize: 12, lineHeight: 1.5 }}>No contracts, teams, worker counts, commission, earnings, or financial totals exist in this first setup slice.</p><div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,minmax(0,1fr))', gap: 8, marginTop: 14 }}><button type="button" onClick={() => navigate('/work/contractor?view=settings')} style={{ minHeight: 42, borderRadius: 11, border: '1px solid rgba(5,150,105,.18)', background: 'rgba(236,253,245,.9)', color: '#047857', fontWeight: 850, cursor: 'pointer' }}>Contractor Settings</button><button type="button" onClick={() => navigate('/work/contractor?view=finance')} style={{ minHeight: 42, borderRadius: 11, border: '1px solid rgba(14,165,233,.18)', background: 'rgba(240,249,255,.9)', color: '#0369a1', fontWeight: 850, cursor: 'pointer' }}>Finance Foundation</button></div></section></main>;
 }
+function Choice({ selected, onClick, children }: { selected: boolean; onClick: () => void; children: React.ReactNode }) { return <button type="button" aria-pressed={selected} onClick={onClick} style={{ minHeight: 46, padding: '9px 11px', borderRadius: 12, border: selected ? '1px solid rgba(5,150,105,.42)' : '1px solid rgba(100,116,139,.2)', background: selected ? 'linear-gradient(145deg,rgba(236,253,245,.98),rgba(209,250,229,.9))' : 'linear-gradient(145deg,rgba(255,255,255,.94),rgba(248,250,252,.88))', color: selected ? '#047857' : '#334155', fontWeight: 850, textAlign: 'left', cursor: 'pointer', boxShadow: selected ? '0 4px 0 rgba(5,150,105,.12), inset 0 1px 0 #fff' : '0 3px 0 rgba(100,116,139,.08), inset 0 1px 0 #fff' }}><span style={{ marginRight: 7 }}>{selected ? '✓' : '○'}</span>{children}</button>; }
+function Row({ label, value }: { label: string; value: string }) { return <div style={{ display: 'grid', gap: 3, padding: '10px 0', borderBottom: '1px solid rgba(148,163,184,.14)' }}><span style={{ color: '#64748b', fontSize: 10, fontWeight: 800, letterSpacing: '.08em', textTransform: 'uppercase' }}>{label}</span><strong style={{ color: '#172033', fontSize: 13, lineHeight: 1.4 }}>{value}</strong></div>; }

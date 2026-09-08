@@ -3,26 +3,39 @@ import '../worker-compact.css';
 import { useCurrentWorkerProfileId } from '../hooks/useCurrentWorkerProfileId';
 import { useWorkerProfile } from '../hooks/useWorkerProfile';
 
-const destinations = [
+const workerDestinations = [
   { path: '/work', label: 'Home', icon: '⌂' },
   { path: '/work/finance', label: 'Finance', salaryLabel: 'Salary', icon: '¤' },
   { path: '/work/settings', label: 'Settings', icon: '⚙' },
 ];
 
-function isActive(pathname: string, path: string) {
-  if (path === '/work') return pathname === '/work';
-  return pathname === path || pathname.startsWith(`${path}/`);
+const contractorDestinations = [
+  { path: '/work/contractor?view=dashboard', label: 'Home', icon: '⌂' },
+  { path: '/work/contractor?view=finance', label: 'Finance', icon: '¤' },
+  { path: '/work/contractor?view=settings', label: 'Settings', icon: '⚙' },
+];
+
+function isActive(pathname: string, search: string, path: string) {
+  const [targetPath, targetQuery] = path.split('?');
+  if (targetPath === '/work') return pathname === '/work';
+  if (targetPath !== '/work/contractor') return pathname === targetPath || pathname.startsWith(`${targetPath}/`);
+  const currentView = new URLSearchParams(search).get('view') ?? 'dashboard';
+  const targetView = new URLSearchParams(targetQuery ?? '').get('view') ?? 'dashboard';
+  return pathname === '/work/contractor' && currentView === targetView;
 }
 
 export function WorkerNavigation() {
   const pathname = window.location.pathname;
+  const search = window.location.search;
   const session = useCurrentWorkerProfileId();
   const { workerProfile } = useWorkerProfile(session.profileId ?? '');
+  const isContractor = pathname === '/work/contractor';
   const isSalaryPerson = workerProfile?.worker_type === 'salary_person';
+  const destinations = isContractor ? contractorDestinations : workerDestinations;
 
   return (
     <nav
-      aria-label="Worker navigation"
+      aria-label={isContractor ? 'Contractor navigation' : 'Worker navigation'}
       style={{
         position: 'fixed',
         left: 10,
@@ -41,8 +54,8 @@ export function WorkerNavigation() {
       }}
     >
       {destinations.map((destination) => {
-        const active = isActive(pathname, destination.path);
-        const label = isSalaryPerson && destination.salaryLabel ? destination.salaryLabel : destination.label;
+        const active = isActive(pathname, search, destination.path);
+        const label = !isContractor && isSalaryPerson && 'salaryLabel' in destination && destination.salaryLabel ? destination.salaryLabel : destination.label;
         return (
           <button
             key={destination.path}
