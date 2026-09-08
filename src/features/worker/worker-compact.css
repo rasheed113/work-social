@@ -301,3 +301,13 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* Contractor card-detail sheets: keep every detail window clear of the fixed footer. */
+.work-social-router-shell:has(nav[aria-label="Worker navigation"]) .contractor-dashboard .cd-detail-overlay {
+  padding-bottom: calc(72px + env(safe-area-inset-bottom)) !important;
+}
+
+.work-social-router-shell:has(nav[aria-label="Worker navigation"]) .contractor-dashboard .cd-detail {
+  max-height: calc(100dvh - 84px - env(safe-area-inset-bottom)) !important;
+  overflow-y: auto !important;
+}
