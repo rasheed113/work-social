@@ -21,10 +21,10 @@ const cardStyle = {
 };
 
 const modes: Array<{ value: AccountMode; title: string; description: string; badge: string }> = [
-  ['salary_person', 'Salary Person', 'Fixed salary cycle with salary, attendance, overtime and allowance records.', 'SALARY'],
-  ['contract', 'Work per Job / Contract', 'Existing contract-based Work House and earnings flow.', 'CONTRACT'],
-  ['contractor', 'Contractor', 'Contractor account setup and future contractor workspace.', 'CONTRACTOR'],
-].map(([value, title, description, badge]) => ({ value, title, description, badge }));
+  { value: 'salary_person', title: 'Salary Person', description: 'Fixed salary cycle with salary, attendance, overtime and allowance records.', badge: 'SALARY' },
+  { value: 'contract', title: 'Work per Job / Contract', description: 'Existing contract-based Work House and earnings flow.', badge: 'CONTRACT' },
+  { value: 'contractor', title: 'Contractor', description: 'Contractor account setup and future contractor workspace.', badge: 'CONTRACTOR' },
+];
 
 export function AccountModeSwitchCard({ currentMode, profileId, onWorkerModeChanged }: AccountModeSwitchCardProps) {
   const [open, setOpen] = useState(false);
