@@ -1,7 +1,7 @@
 name: build
 on:
   push:
-    branches: [main]
+    branches: [main, feat/ai-universal-eyes-phase-2]
   pull_request:
     branches: [main, feat/worker-work-entry-phase-3c]
 jobs:

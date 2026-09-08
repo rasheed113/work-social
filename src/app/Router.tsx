@@ -20,6 +20,7 @@ import { WorkerWorkHistoryPage } from '../features/worker/pages/WorkerWorkHistor
 import { WorkerFinancePage } from '../features/worker/pages/WorkerFinancePage';
 import { WorkerSettingsPage } from '../features/worker/pages/WorkerSettingsPage';
 import { WorkerNavigation } from '../features/worker/components/WorkerNavigation';
+import { ContractorAccountPage } from '../features/contractor/pages/ContractorAccountPage';
 import { ExpenseManagerPage } from '../features/expense-manager/pages/ExpenseManagerPage';
 
 type Route = 'home' | 'friends' | 'notifications' | 'profile' | 'settings' | 'inbox' | 'blockedUsers' | 'publicProfile' | 'work' | 'expenseManager';
@@ -72,9 +73,11 @@ export function Router({ profileId }: RouterProps) {
         ?<WorkerSettingsPage teamJoining/>
         :pathname==='/work/settings'
           ?<WorkerSettingsPage/>
-          :pathname==='/work/history'
-            ?<WorkerWorkHistoryPage/>
-            :<WorkerWorkHousePage/>;
+          :pathname==='/work/contractor'
+            ?<ContractorAccountPage/>
+            :pathname==='/work/history'
+              ?<WorkerWorkHistoryPage/>
+              :<WorkerWorkHousePage/>;
   const pages:Record<Route,ReactNode>={
     home:<HomePage profileId={profileId}/>,
     friends:<FriendsPage/>,
