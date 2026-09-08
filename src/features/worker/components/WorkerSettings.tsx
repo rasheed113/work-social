@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { navigate } from '../../../app/Router';
-import { setWorkerType } from '../api/salary';
+import { AccountModeSwitchCard } from '../../account/components/AccountModeSwitchCard';
 import { useWorkerProfile } from '../hooks/useWorkerProfile';
 
 interface WorkerSettingsProps {
@@ -32,9 +32,6 @@ function publicWebsiteLabel(website: string) { return website.replace(/^https?:\
 
 export function WorkerSettings({ profileId, teamJoining = false }: WorkerSettingsProps) {
   const [copied, setCopied] = useState(false);
-  const [switching, setSwitching] = useState(false);
-  const [switchError, setSwitchError] = useState('');
-  const [workerTypeOpen, setWorkerTypeOpen] = useState(false);
   const { workerProfile, profile, loading, error, reload } = useWorkerProfile(profileId ?? '');
 
   useEffect(() => {
@@ -55,20 +52,11 @@ export function WorkerSettings({ profileId, teamJoining = false }: WorkerSetting
   const workerId = workerProfile.work_id;
   const selectedSkills = workerProfile.skills ?? [];
   const isSalaryPerson = workerProfile.worker_type === 'salary_person';
-  const copyWorkerId = async () => { if (!navigator.clipboard) return; try { await navigator.clipboard.writeText(workerId); setCopied(true); } catch { setCopied(false); } };
-  const changeWorkerType = async (value: 'salary_person' | 'contract') => {
-    if (value === workerProfile.worker_type) { setWorkerTypeOpen(false); return; }
-    setSwitchError(''); setSwitching(true);
-    const { error: updateError } = await setWorkerType(workerProfile.id, value);
-    setSwitching(false);
-    if (updateError) { setSwitchError(updateError.message); return; }
-    setWorkerTypeOpen(false);
-    await reload();
-  };
   const identityAction = () => navigate(isSalaryPerson ? '/work/finance?setup=1' : '/work/identity');
   const identityTitle = isSalaryPerson ? 'Salary Slip' : 'Work Identity';
   const identityDescription = isSalaryPerson ? 'View and edit your Salary Person salary setup and salary records.' : 'Manage the existing Work Identity information and skills.';
   const identityActionLabel = isSalaryPerson ? 'View & Edit Salary →' : 'View & Edit Work Identity →';
+  const copyWorkerId = async () => { if (!navigator.clipboard) return; try { await navigator.clipboard.writeText(workerId); setCopied(true); } catch { setCopied(false); } };
 
   return shell(<>
     <p style={{ margin: '-3px 0 12px', color: '#475569', lineHeight: 1.45, fontSize: 12 }}>A premium control center for your Worker profile.</p>
@@ -86,37 +74,9 @@ export function WorkerSettings({ profileId, teamJoining = false }: WorkerSetting
 
     <section aria-labelledby="worker-settings-section-title" style={{ display: 'grid', gap: 8 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 2px' }}><h2 id="worker-settings-section-title" style={{ margin: 0, fontSize: 10, letterSpacing: '.13em', textTransform: 'uppercase', color: '#64748b', fontWeight: 950 }}>Worker Controls</h2><span style={{ fontSize: 9, color: '#94a3b8', fontWeight: 800 }}>SECURE SETTINGS</span></div>
-
-      <section style={{ ...cardStyle, padding: 10, borderRadius: 13, background: 'linear-gradient(145deg,rgba(255,255,255,.97),rgba(238,242,255,.86))' }} aria-labelledby="worker-type-title">
-        <button type="button" onClick={() => { setSwitchError(''); setWorkerTypeOpen(true); }} disabled={switching} aria-haspopup="dialog" aria-expanded={workerTypeOpen} style={{ width: '100%', border: 0, padding: 0, background: 'transparent', textAlign: 'left', cursor: switching ? 'wait' : 'pointer', font: 'inherit' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}><div><h2 id="worker-type-title" style={{ margin: 0, fontSize: 14, color: '#172033', letterSpacing: '-.015em' }}>Worker Type</h2><p style={{ margin: '2px 0 0', color: '#64748b', fontSize: 10.5, lineHeight: 1.35 }}>Tap to choose how your Work House tracks earnings.</p></div><span style={{ flex: '0 0 auto', padding: '4px 7px', borderRadius: 999, fontSize: 8.5, fontWeight: 950, letterSpacing: '.07em', color: isSalaryPerson ? '#4338ca' : '#475569', background: isSalaryPerson ? 'rgba(99,102,241,.10)' : 'rgba(100,116,139,.09)', border: '1px solid rgba(99,102,241,.10)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,.9)' }}>{isSalaryPerson ? 'SALARY' : 'CONTRACT'}</span></div>
-          <div style={{ marginTop: 8, minHeight: 38, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '0 11px', borderRadius: 10, border: '1px solid rgba(99,102,241,.18)', background: 'linear-gradient(145deg,rgba(255,255,255,.95),rgba(238,242,255,.72))', boxShadow: 'inset 0 1px 0 rgba(255,255,255,.95), 0 7px 16px rgba(79,70,229,.07)' }}><span style={{ color: '#172033', fontSize: 12, fontWeight: 800 }}>{isSalaryPerson ? 'Salary Person' : 'Work per Job / Contract'}</span><span aria-hidden="true" style={{ color: '#6366f1', fontSize: 16, fontWeight: 900 }}>⌄</span></div>
-        </button>
-        {switchError && <p role="alert" style={{ margin: '6px 0 0', color: '#b91c1c', fontSize: 10.5 }}>{switchError}</p>}
-      </section>
-
+      <AccountModeSwitchCard currentMode={isSalaryPerson ? 'salary_person' : 'contract'} profileId={workerProfile.id} onWorkerModeChanged={reload} />
       <button type="button" onClick={identityAction} style={{ ...actionButtonStyle, padding: 12, background: 'linear-gradient(145deg,rgba(255,255,255,.98),rgba(239,246,255,.9))' }}><div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}><strong style={{ display: 'block', fontSize: 14, color: '#172033', letterSpacing: '-.015em' }}>{identityTitle}</strong><span aria-hidden="true" style={{ width: 28, height: 28, borderRadius: 9, display: 'grid', placeItems: 'center', background: 'linear-gradient(145deg,#eef2ff,#dbeafe)', color: '#4338ca', fontWeight: 950, boxShadow: '0 7px 15px rgba(79,70,229,.14), inset 0 1px 0 #fff' }}>→</span></div><span style={{ display: 'block', marginTop: 4, color: '#64748b', fontSize: 11, lineHeight: 1.4 }}>{identityDescription}</span><span aria-hidden="true" style={{ display: 'block', marginTop: 8, color: '#4f46e5', fontWeight: 900, fontSize: 10.5, letterSpacing: '.01em' }}>{identityActionLabel}</span></button>
-
       <button type="button" onClick={() => navigate('/work/settings/team-joining')} style={{ ...actionButtonStyle, padding: 12, background: 'linear-gradient(145deg,rgba(255,255,255,.98),rgba(248,250,252,.9))' }}><div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}><strong style={{ display: 'block', fontSize: 14, color: '#172033', letterSpacing: '-.015em' }}>Team Joining</strong><span aria-hidden="true" style={{ width: 28, height: 28, borderRadius: 9, display: 'grid', placeItems: 'center', background: 'linear-gradient(145deg,#f8fafc,#e2e8f0)', color: '#475569', fontWeight: 950, boxShadow: '0 7px 15px rgba(15,23,42,.08), inset 0 1px 0 #fff' }}>→</span></div><span style={{ display: 'block', marginTop: 4, color: '#64748b', fontSize: 11, lineHeight: 1.4 }}>Team joining is reserved as the existing entry point.</span><span aria-hidden="true" style={{ display: 'block', marginTop: 8, color: '#475569', fontWeight: 900, fontSize: 10.5 }}>Open team joining →</span></button>
     </section>
-
-    {workerTypeOpen && <div role="presentation" onMouseDown={(event) => { if (event.currentTarget === event.target) setWorkerTypeOpen(false); }} style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'grid', placeItems: 'center', padding: 16, background: 'rgba(15,23,42,.48)', backdropFilter: 'blur(9px)', WebkitBackdropFilter: 'blur(9px)' }}>
-      <section role="dialog" aria-modal="true" aria-labelledby="worker-type-dialog-title" style={{ width: 'min(100%, 430px)', padding: 16, borderRadius: 22, border: '1px solid rgba(255,255,255,.72)', background: 'linear-gradient(145deg,rgba(255,255,255,.98),rgba(239,246,255,.94))', boxShadow: '0 30px 80px rgba(15,23,42,.28), inset 0 1px 0 rgba(255,255,255,.95)', position: 'relative', overflow: 'hidden' }}>
-        <div aria-hidden="true" style={{ position: 'absolute', width: 180, height: 180, borderRadius: '50%', right: -95, top: -105, background: 'rgba(99,102,241,.14)', filter: 'blur(4px)' }} />
-        <div style={{ position: 'relative' }}><div style={eyebrowStyle}>WORKER MODE</div><h2 id="worker-type-dialog-title" style={{ margin: '4px 0 0', fontSize: 22, letterSpacing: '-.035em', color: '#111827' }}>Choose your work type</h2><p style={{ margin: '5px 0 14px', ...mutedTextStyle, fontSize: 11.5 }}>Select the mode that matches how you earn. Your existing records stay preserved when you switch.</p>
-          <div style={{ display: 'grid', gap: 9 }}>
-            {([
-              ['salary_person', 'Salary Person', 'Fixed salary cycle with salary, attendance, overtime and allowance records.', 'SALARY'],
-              ['contract', 'Work per Job / Contract', 'Existing contract-based Work House and earnings flow.', 'CONTRACT'],
-            ] as const).map(([value, title, description, badge]) => {
-              const selected = workerProfile.worker_type === value;
-              return <button key={value} type="button" disabled={switching} onClick={() => void changeWorkerType(value)} style={{ width: '100%', padding: 12, borderRadius: 15, border: selected ? '1.5px solid rgba(79,70,229,.48)' : '1px solid rgba(148,163,184,.22)', background: selected ? 'linear-gradient(145deg,rgba(238,242,255,.98),rgba(219,234,254,.78))' : 'rgba(255,255,255,.82)', boxShadow: selected ? '0 12px 26px rgba(79,70,229,.13), inset 0 1px 0 #fff' : '0 7px 18px rgba(15,23,42,.06), inset 0 1px 0 #fff', textAlign: 'left', cursor: switching ? 'wait' : 'pointer', font: 'inherit', transition: 'transform .15s ease, box-shadow .15s ease' }}><div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}><strong style={{ fontSize: 14, color: '#172033' }}>{title}</strong><span style={{ padding: '4px 7px', borderRadius: 999, fontSize: 8, fontWeight: 950, letterSpacing: '.08em', color: selected ? '#4338ca' : '#64748b', background: selected ? 'rgba(99,102,241,.12)' : 'rgba(148,163,184,.10)' }}>{selected ? 'CURRENT' : badge}</span></div><span style={{ display: 'block', marginTop: 5, color: '#64748b', fontSize: 11, lineHeight: 1.45 }}>{description}</span><span style={{ display: 'block', marginTop: 8, color: selected ? '#4f46e5' : '#475569', fontSize: 10.5, fontWeight: 900 }}>{selected ? 'Selected ✓' : 'Choose this mode →'}</span></button>;
-            })}
-            <button type="button" onClick={() => { setWorkerTypeOpen(false); navigate('/work/contractor'); }} style={{ width: '100%', padding: 12, borderRadius: 15, border: '1px solid rgba(148,163,184,.22)', background: 'rgba(255,255,255,.82)', boxShadow: '0 7px 18px rgba(15,23,42,.06), inset 0 1px 0 #fff', textAlign: 'left', cursor: 'pointer', font: 'inherit', transition: 'transform .15s ease, box-shadow .15s ease' }}><div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}><strong style={{ fontSize: 14, color: '#172033' }}>Contractor</strong><span style={{ padding: '4px 7px', borderRadius: 999, fontSize: 8, fontWeight: 950, letterSpacing: '.08em', color: '#047857', background: 'rgba(16,185,129,.10)' }}>CONTRACTOR</span></div><span style={{ display: 'block', marginTop: 5, color: '#64748b', fontSize: 11, lineHeight: 1.45 }}>Manage contracts, teams, workers, commission and contractor earnings.</span><span style={{ display: 'block', marginTop: 8, color: '#047857', fontSize: 10.5, fontWeight: 900 }}>Choose this mode →</span></button>
-          </div>
-          <button type="button" onClick={() => setWorkerTypeOpen(false)} disabled={switching} style={{ width: '100%', marginTop: 11, minHeight: 38, borderRadius: 11, border: '1px solid rgba(148,163,184,.22)', background: 'rgba(255,255,255,.78)', color: '#475569', fontWeight: 850, cursor: switching ? 'wait' : 'pointer' }}>Cancel</button>
-        </div>
-      </section>
-    </div>}
   </>);
 }
