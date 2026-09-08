@@ -38,7 +38,7 @@ export function WorkerNavigation() {
   return (
     <nav
       aria-label={isContractor ? 'Contractor navigation' : 'Worker navigation'}
-      style={{ position: 'fixed', left: 8, right: 8, bottom: 'calc(7px + env(safe-area-inset-bottom))', zIndex: 1000, display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 5, padding: 6, boxSizing: 'border-box', background: 'linear-gradient(145deg,rgba(15,23,42,.97),rgba(30,41,59,.96),rgba(49,46,129,.96))', border: '1px solid rgba(255,255,255,.14)', borderRadius: 17, boxShadow: '0 10px 24px rgba(15,23,42,.28)' }}
+      style={{ position: 'fixed', left: 8, right: 8, bottom: 0, zIndex: 1000, display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 5, padding: 6, boxSizing: 'border-box', background: 'linear-gradient(145deg,rgba(15,23,42,.97),rgba(30,41,59,.96),rgba(49,46,129,.96))', border: '1px solid rgba(255,255,255,.14)', borderRadius: 17, boxShadow: '0 10px 24px rgba(15,23,42,.28)' }}
     >
       {destinations.map((destination) => {
         const active = isActive(pathname, search, destination.path);
