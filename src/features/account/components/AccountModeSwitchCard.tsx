@@ -6,7 +6,7 @@ export type AccountMode = 'salary_person' | 'contract' | 'contractor';
 
 interface AccountModeSwitchCardProps {
   currentMode: AccountMode;
-  profileId: string;
+  profileId?: string;
   onWorkerModeChanged?: () => Promise<void> | void;
 }
 
@@ -46,6 +46,12 @@ export function AccountModeSwitchCard({ currentMode, profileId, onWorkerModeChan
       setSwitching(false);
       setOpen(false);
       navigate('/work/contractor?view=settings');
+      return;
+    }
+
+    if (!profileId) {
+      setSwitching(false);
+      setError('Your Work Social profile is unavailable. Please retry.');
       return;
     }
 
