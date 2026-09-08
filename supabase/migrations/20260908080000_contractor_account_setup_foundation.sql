@@ -10,8 +10,7 @@ create table if not exists public.contractor_accounts (
   business_name text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
-  constraint contractor_accounts_work_types_nonempty check (cardinality(work_types) > 0),
-  constraint contractor_accounts_work_types_valid check (
+  constraint contractor_accounts_work_types_allowed check (
     work_types <@ ARRAY[
       'Manufacturing / Production'::text,
       'Stitching / Garments'::text,
@@ -20,13 +19,14 @@ create table if not exists public.contractor_accounts (
       'Services'::text,
       'Other'::text
     ]
+    and cardinality(work_types) > 0
   ),
-  constraint contractor_accounts_works_with_nonempty check (cardinality(works_with) > 0),
-  constraint contractor_accounts_works_with_valid check (
+  constraint contractor_accounts_works_with_allowed check (
     works_with <@ ARRAY['Workers'::text, 'Teams'::text]
+    and cardinality(works_with) > 0
   ),
   constraint contractor_accounts_business_name_length check (
-    business_name is null or char_length(business_name) <= 160
+    business_name is null or char_length(btrim(business_name)) between 1 and 160
   )
 );
 
