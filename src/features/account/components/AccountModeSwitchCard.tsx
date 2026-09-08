@@ -45,7 +45,7 @@ export function AccountModeSwitchCard({ currentMode, profileId, onWorkerModeChan
     if (value === 'contractor') {
       setSwitching(false);
       setOpen(false);
-      navigate('/work/contractor');
+      navigate('/work/contractor?view=settings');
       return;
     }
 
