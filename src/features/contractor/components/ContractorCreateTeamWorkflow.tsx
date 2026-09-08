@@ -151,9 +151,9 @@ export function ContractorCreateTeamWorkflow({ profileId }: Props) {
             <div className="ctw-success-icon">✓</div>
             <div className="ctw-eyebrow">Team Created</div>
             <h2>Team created successfully ✓</h2>
-            <p>Your unique Team ID has been generated. You are the Team Leader.</p>
+            <p>You are the Team Leader. Your unique numeric Team ID is ready.</p>
             <div className="ctw-id-label">Team ID</div>
-            <div className="ctw-id">{createdId}</div>
+            <div className="ctw-id" aria-label={`Team ID ${createdId}`}>{createdId}</div>
             <button className="ctw-copy" type="button" onClick={copyTeamId}>
               Copy Team ID
             </button>
