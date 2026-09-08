@@ -1,9 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { supabase } from '../../../lib/supabaseClient';
 
-interface Props {
-  profileId: string;
-}
+interface Props { profileId: string; }
 
 export function ContractorCreateTeamWorkflow({ profileId }: Props) {
   const [open, setOpen] = useState(false);
@@ -47,18 +45,9 @@ export function ContractorCreateTeamWorkflow({ profileId }: Props) {
   const createTeam = async () => {
     const trimmedName = name.trim();
     const trimmedPurpose = purpose.trim();
-    if (!trimmedName || !trimmedPurpose) {
-      setError('Team Name and Team Purpose are required.');
-      return;
-    }
-    if (trimmedName.length > 160) {
-      setError('Team Name must be 160 characters or fewer.');
-      return;
-    }
-    if (trimmedPurpose.length > 1000) {
-      setError('Team Purpose must be 1000 characters or fewer.');
-      return;
-    }
+    if (!trimmedName || !trimmedPurpose) return setError('Team Name and Team Purpose are required.');
+    if (trimmedName.length > 160) return setError('Team Name must be 160 characters or fewer.');
+    if (trimmedPurpose.length > 1000) return setError('Team Purpose must be 1000 characters or fewer.');
 
     setCreating(true);
     setError('');
@@ -68,11 +57,7 @@ export function ContractorCreateTeamWorkflow({ profileId }: Props) {
       .select('team_number')
       .single();
     setCreating(false);
-
-    if (insertError) {
-      setError(insertError.message || 'Unable to create team.');
-      return;
-    }
+    if (insertError) return setError(insertError.message || 'Unable to create team.');
     setCreatedId(data.team_number);
   };
 
@@ -88,37 +73,25 @@ export function ContractorCreateTeamWorkflow({ profileId }: Props) {
       <div className="ctw-modal">
         <div className="ctw-orb" aria-hidden="true"><span>＋</span></div>
         <button className="ctw-close" type="button" onClick={close} aria-label="Close">×</button>
-
-        {createdId === null ? (
-          <>
-            <div className="ctw-eyebrow">Contractor Team</div>
-            <h2 id="ctw-title">Create a Team</h2>
-            <p className="ctw-subtitle">Keep the purpose in your own words. This becomes searchable team context for future Work Social automation.</p>
-            <div className="ctw-field">
-              <label htmlFor="ctw-name">Team Name</label>
-              <input id="ctw-name" value={name} onChange={(event) => setName(event.target.value)} placeholder="e.g. Stitching Machine Operators" maxLength={160} autoFocus />
-            </div>
-            <div className="ctw-field">
-              <label htmlFor="ctw-purpose">Team Purpose</label>
-              <textarea id="ctw-purpose" value={purpose} onChange={(event) => setPurpose(event.target.value)} placeholder="Describe what this team is responsible for..." maxLength={1000} rows={4} />
-            </div>
-            {error && <div className="ctw-error">{error}</div>}
-            <button className="ctw-create" type="button" onClick={createTeam} disabled={creating}>{creating ? 'Creating Team…' : 'Create Team'}</button>
-          </>
-        ) : (
-          <div className="ctw-success">
-            <div className="ctw-success-icon">✓</div>
-            <div className="ctw-eyebrow">Team Created</div>
-            <h2>Team created successfully ✓</h2>
-            <p>You are the Team Leader. Your unique numeric Team ID is ready.</p>
-            <div className="ctw-id-label">Team ID</div>
-            <div className="ctw-id" aria-label={`Team ID ${createdId}`}>{createdId}</div>
-            <button className="ctw-copy" type="button" onClick={copyTeamId}>Copy Team ID</button>
-            <button className="ctw-done" type="button" onClick={close}>Done</button>
-          </div>
-        )}
+        {createdId === null ? <>
+          <div className="ctw-eyebrow">Contractor Team</div>
+          <h2 id="ctw-title">Create a Team</h2>
+          <p className="ctw-subtitle">Keep the purpose in your own words. This becomes searchable team context for future Work Social automation.</p>
+          <div className="ctw-field"><label htmlFor="ctw-name">Team Name</label><input id="ctw-name" value={name} onChange={(event) => setName(event.target.value)} placeholder="e.g. Stitching Machine Operators" maxLength={160} autoFocus /></div>
+          <div className="ctw-field"><label htmlFor="ctw-purpose">Team Purpose</label><textarea id="ctw-purpose" value={purpose} onChange={(event) => setPurpose(event.target.value)} placeholder="Describe what this team is responsible for..." maxLength={1000} rows={4} /></div>
+          {error && <div className="ctw-error">{error}</div>}
+          <button className="ctw-create" type="button" onClick={createTeam} disabled={creating}>{creating ? 'Creating Team…' : 'Create Team'}</button>
+        </> : <div className="ctw-success">
+          <div className="ctw-success-icon">✓</div>
+          <div className="ctw-eyebrow">Team Created</div>
+          <h2>Team created successfully ✓</h2>
+          <p>You are the Team Leader. Your unique numeric Team ID is ready.</p>
+          <div className="ctw-id-label">Team ID</div>
+          <div className="ctw-id" aria-label={`Team ID ${createdId}`}>{createdId}</div>
+          <button className="ctw-copy" type="button" onClick={copyTeamId}>Copy Team ID</button>
+          <button className="ctw-done" type="button" onClick={close}>Done</button>
+        </div>}
       </div>
-
       <style>{`
         .ctw-overlay{position:fixed;inset:0;z-index:10000;display:grid;place-items:center;padding:20px;background:rgba(8,15,25,.58);backdrop-filter:blur(16px);animation:ctwFade .18s ease-out}
         .ctw-modal{position:relative;width:min(100%,520px);overflow:hidden;border:1px solid rgba(255,255,255,.38);border-radius:30px;padding:34px 26px 26px;background:linear-gradient(145deg,rgba(255,255,255,.98),rgba(235,247,244,.96));box-shadow:0 35px 90px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.9);animation:ctwPop .24s cubic-bezier(.2,.8,.2,1)}
