@@ -34,8 +34,9 @@ export function calculateWorkEntryTotal(quantity: WorkDecimal, rate: WorkDecimal
   return fractionPart ? `${integerPart}.${fractionPart}` : integerPart.toString();
 }
 
-export function formatWorkDecimal(value: WorkDecimal) {
-  const [integerPart, fractionPart] = canonicalizeWorkDecimal(value).split('.');
+export function formatWorkDecimal(value: WorkDecimal | string | number) {
+  const normalized = String(value ?? '0');
+  const [integerPart, fractionPart] = canonicalizeWorkDecimal(normalized).split('.');
   const grouped = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   return fractionPart ? `${grouped}.${fractionPart}` : grouped;
 }
