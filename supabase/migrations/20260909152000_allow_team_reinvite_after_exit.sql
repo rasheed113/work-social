@@ -1,7 +1,8 @@
 -- Team invitations are historical records. A worker may leave a team and later be invited again.
 -- Only one ACTIVE (pending) invitation may exist for a team/worker pair.
 
-drop index if exists public.contractor_team_invitations_team_id_worker_profile_id_key;
+alter table public.contractor_team_invitations
+drop constraint if exists contractor_team_invitations_team_id_worker_profile_id_key;
 
 create unique index if not exists contractor_team_invitations_pending_unique
 on public.contractor_team_invitations(team_id, worker_profile_id)
@@ -16,30 +17,16 @@ declare
   v_inv uuid;
   v_status text;
 begin
-  select t.id into v_team_id
-  from public.contractor_teams t
-  where t.team_number=p_team_number
-    and t.leader_profile_id=(select auth.uid());
-
+  select t.id into v_team_id from public.contractor_teams t where t.team_number=p_team_number and t.leader_profile_id=(select auth.uid());
   if v_team_id is null then raise exception 'Team not found or access denied'; end if;
   if p_worker_profile_id=(select auth.uid()) then raise exception 'Contractor cannot invite their own profile'; end if;
   if not exists(select 1 from public.worker_profiles w where w.profile_id=p_worker_profile_id) then raise exception 'Worker profile not found'; end if;
-
-  if exists(
-    select 1
-    from public.contractor_team_members m
-    where m.team_id=v_team_id and m.profile_id=p_worker_profile_id
-  ) then
-    raise exception 'Worker is already a team member';
-  end if;
+  if exists(select 1 from public.contractor_team_members m where m.team_id=v_team_id and m.profile_id=p_worker_profile_id) then raise exception 'Worker is already a team member'; end if;
 
   select i.id,i.status into v_inv,v_status
   from public.contractor_team_invitations i
-  where i.team_id=v_team_id
-    and i.worker_profile_id=p_worker_profile_id
-    and i.status='pending'
-  order by i.created_at desc
-  limit 1;
+  where i.team_id=v_team_id and i.worker_profile_id=p_worker_profile_id and i.status='pending'
+  order by i.created_at desc limit 1;
 
   if v_inv is not null then
     return query select v_inv,p_worker_profile_id,v_status;
@@ -47,44 +34,22 @@ begin
   end if;
 
   begin
-    insert into public.contractor_team_invitations(
-      team_id,contractor_profile_id,worker_profile_id
-    )
-    values(
-      v_team_id,(select auth.uid()),p_worker_profile_id
-    )
+    insert into public.contractor_team_invitations(team_id,contractor_profile_id,worker_profile_id)
+    values(v_team_id,(select auth.uid()),p_worker_profile_id)
     returning id,status into v_inv,v_status;
   exception when unique_violation then
-    -- Protect concurrent Add actions: if another request created the pending
-    -- invitation first, return that invitation instead of surfacing a duplicate error.
+    -- Protect concurrent Add actions: if another request created the pending invitation first, return it.
     select i.id,i.status into v_inv,v_status
     from public.contractor_team_invitations i
-    where i.team_id=v_team_id
-      and i.worker_profile_id=p_worker_profile_id
-      and i.status='pending'
-    order by i.created_at desc
-    limit 1;
-
-    if v_inv is null then
-      raise;
-    end if;
-
+    where i.team_id=v_team_id and i.worker_profile_id=p_worker_profile_id and i.status='pending'
+    order by i.created_at desc limit 1;
+    if v_inv is null then raise; end if;
     return query select v_inv,p_worker_profile_id,v_status;
     return;
   end;
 
   insert into public.notifications(receiver_id,sender_id,type,metadata)
-  values(
-    p_worker_profile_id,
-    (select auth.uid()),
-    'team_invitation',
-    jsonb_build_object(
-      'invitation_id',v_inv,
-      'team_number',p_team_number,
-      'team_id',v_team_id,
-      'action_state','pending'
-    )
-  );
+  values(p_worker_profile_id,(select auth.uid()),'team_invitation',jsonb_build_object('invitation_id',v_inv,'team_number',p_team_number,'team_id',v_team_id,'action_state','pending'));
 
   return query select v_inv,p_worker_profile_id,v_status;
 end;
