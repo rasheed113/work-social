@@ -11,106 +11,183 @@ export function ContractorCreateTeamWorkflow({ profileId }: Props) {
   const [error, setError] = useState('');
   const [createdId, setCreatedId] = useState<number | null>(null);
   const wiredButtonRef = useRef<HTMLButtonElement | null>(null);
+  const handlerRef = useRef<((event: MouseEvent) => void) | null>(null);
 
   useEffect(() => {
     const wire = () => {
       const button = document.querySelector<HTMLButtonElement>('.contractor-dashboard .cd-actions > button:first-child');
       if (!button || wiredButtonRef.current === button) return;
+
+      if (wiredButtonRef.current && handlerRef.current) {
+        wiredButtonRef.current.removeEventListener('click', handlerRef.current, true);
+      }
+
       wiredButtonRef.current = button;
       button.textContent = '＋ Create a Team';
       button.className = 'cd-btn cd-btn-primary cd-create-team-trigger';
-      button.onclick = (event) => {
+
+      const handler = (event: MouseEvent) => {
         event.preventDefault();
-        event.stopPropagation();
+        event.stopImmediatePropagation();
         setError('');
         setCreatedId(null);
         setOpen(true);
       };
+
+      handlerRef.current = handler;
+      // Capture phase + stopImmediatePropagation prevents the old Settings
+      // React handler from receiving this dashboard-only button click.
+      button.addEventListener('click', handler, true);
     };
+
     wire();
     const observer = new MutationObserver(wire);
     observer.observe(document.body, { childList: true, subtree: true });
-    return () => observer.disconnect();
+
+    return () => {
+      observer.disconnect();
+      if (wiredButtonRef.current && handlerRef.current) {
+        wiredButtonRef.current.removeEventListener('click', handlerRef.current, true);
+      }
+      wiredButtonRef.current = null;
+      handlerRef.current = null;
+    };
   }, []);
 
-  const close = () => {
-    if (creating) return;
+  const reset = () => {
     setOpen(false);
-    setError('');
-    setCreatedId(null);
     setName('');
     setPurpose('');
+    setError('');
+    setCreatedId(null);
   };
 
   const createTeam = async () => {
     const trimmedName = name.trim();
     const trimmedPurpose = purpose.trim();
-    if (!trimmedName || !trimmedPurpose) return setError('Team Name and Team Purpose are required.');
-    if (trimmedName.length > 160) return setError('Team Name must be 160 characters or fewer.');
-    if (trimmedPurpose.length > 1000) return setError('Team Purpose must be 1000 characters or fewer.');
+
+    if (!trimmedName || !trimmedPurpose) {
+      setError('Team Name and Team Purpose are required.');
+      return;
+    }
 
     setCreating(true);
     setError('');
+
     const { data, error: insertError } = await supabase
       .from('contractor_teams')
-      .insert({ leader_profile_id: profileId, name: trimmedName, purpose: trimmedPurpose })
+      .insert({
+        leader_profile_id: profileId,
+        name: trimmedName,
+        purpose: trimmedPurpose,
+      })
       .select('team_number')
       .single();
+
     setCreating(false);
-    if (insertError) return setError(insertError.message || 'Unable to create team.');
+
+    if (insertError) {
+      setError(insertError.message || 'Unable to create team.');
+      return;
+    }
+
     setCreatedId(data.team_number);
   };
 
   const copyTeamId = async () => {
     if (createdId === null) return;
-    await navigator.clipboard?.writeText(String(createdId));
+    await navigator.clipboard.writeText(String(createdId));
   };
 
   if (!open) return null;
 
   return (
-    <div className="ctw-overlay" role="dialog" aria-modal="true" aria-labelledby="ctw-title">
-      <div className="ctw-modal">
-        <div className="ctw-orb" aria-hidden="true"><span>＋</span></div>
-        <button className="ctw-close" type="button" onClick={close} aria-label="Close">×</button>
-        {createdId === null ? <>
-          <div className="ctw-eyebrow">Contractor Team</div>
-          <h2 id="ctw-title">Create a Team</h2>
-          <p className="ctw-subtitle">Keep the purpose in your own words. This becomes searchable team context for future Work Social automation.</p>
-          <div className="ctw-field"><label htmlFor="ctw-name">Team Name</label><input id="ctw-name" value={name} onChange={(event) => setName(event.target.value)} placeholder="e.g. Stitching Machine Operators" maxLength={160} autoFocus /></div>
-          <div className="ctw-field"><label htmlFor="ctw-purpose">Team Purpose</label><textarea id="ctw-purpose" value={purpose} onChange={(event) => setPurpose(event.target.value)} placeholder="Describe what this team is responsible for..." maxLength={1000} rows={4} /></div>
-          {error && <div className="ctw-error">{error}</div>}
-          <button className="ctw-create" type="button" onClick={createTeam} disabled={creating}>{creating ? 'Creating Team…' : 'Create Team'}</button>
-        </> : <div className="ctw-success">
-          <div className="ctw-success-icon">✓</div>
-          <div className="ctw-eyebrow">Team Created</div>
-          <h2>Team created successfully ✓</h2>
-          <p>You are the Team Leader. Your unique numeric Team ID is ready.</p>
-          <div className="ctw-id-label">Team ID</div>
-          <div className="ctw-id" aria-label={`Team ID ${createdId}`}>{createdId}</div>
-          <button className="ctw-copy" type="button" onClick={copyTeamId}>Copy Team ID</button>
-          <button className="ctw-done" type="button" onClick={close}>Done</button>
-        </div>}
+    <div className="ctw-overlay" role="presentation" onMouseDown={(event) => {
+      if (event.target === event.currentTarget) reset();
+    }}>
+      <div className="ctw-modal" role="dialog" aria-modal="true" aria-labelledby="ctw-title">
+        <div className="ctw-orb" aria-hidden="true" />
+        <div className="ctw-kicker">CONTRACTOR WORKSPACE</div>
+
+        {createdId === null ? (
+          <>
+            <div className="ctw-title-row">
+              <div>
+                <h2 id="ctw-title">Create a Team</h2>
+                <p>Build a dedicated team for your work operations.</p>
+              </div>
+              <button className="ctw-close" type="button" onClick={reset} aria-label="Close">×</button>
+            </div>
+
+            <label className="ctw-label">
+              Team Name
+              <input
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                placeholder="e.g. Stitching Machine Operators"
+                maxLength={160}
+                autoFocus
+              />
+            </label>
+
+            <label className="ctw-label">
+              Team Purpose
+              <textarea
+                value={purpose}
+                onChange={(event) => setPurpose(event.target.value)}
+                placeholder="e.g. Manage daily stitching machine operators and production work."
+                maxLength={1000}
+                rows={4}
+              />
+            </label>
+
+            {error && <div className="ctw-error">{error}</div>}
+
+            <button className="ctw-create" type="button" onClick={createTeam} disabled={creating}>
+              {creating ? 'Creating Team…' : 'Create Team'}
+            </button>
+          </>
+        ) : (
+          <div className="ctw-success">
+            <div className="ctw-success-icon">✓</div>
+            <h2>Team created successfully</h2>
+            <p>You are the Team Leader. Your unique numeric Team ID is ready.</p>
+            <div className="ctw-id-label">Team ID</div>
+            <div className="ctw-id">{createdId}</div>
+            <button className="ctw-copy" type="button" onClick={copyTeamId}>Copy Team ID</button>
+            <button className="ctw-done" type="button" onClick={reset}>Done</button>
+          </div>
+        )}
       </div>
+
       <style>{`
-        .ctw-overlay{position:fixed;inset:0;z-index:10000;display:grid;place-items:center;padding:20px;background:rgba(8,15,25,.58);backdrop-filter:blur(16px);animation:ctwFade .18s ease-out}
-        .ctw-modal{position:relative;width:min(100%,520px);overflow:hidden;border:1px solid rgba(255,255,255,.38);border-radius:30px;padding:34px 26px 26px;background:linear-gradient(145deg,rgba(255,255,255,.98),rgba(235,247,244,.96));box-shadow:0 35px 90px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.9);animation:ctwPop .24s cubic-bezier(.2,.8,.2,1)}
-        .ctw-modal:before{content:'';position:absolute;inset:-35% -20% auto;height:240px;background:radial-gradient(circle,rgba(16,185,129,.23),transparent 68%);pointer-events:none}
-        .ctw-orb{position:relative;display:grid;place-items:center;width:72px;height:72px;margin:0 auto 17px;border-radius:24px;transform:rotate(-6deg);background:linear-gradient(145deg,#34d399,#047857);box-shadow:inset 8px 8px 16px rgba(255,255,255,.28),inset -10px -12px 18px rgba(0,70,45,.25),0 18px 30px rgba(4,120,87,.28)}
-        .ctw-orb span{font-size:34px;font-weight:900;color:white;transform:rotate(6deg);text-shadow:0 3px 7px rgba(0,0,0,.2)}
-        .ctw-close{position:absolute;right:16px;top:14px;width:38px;height:38px;border:0;border-radius:13px;background:rgba(15,23,42,.07);font-size:25px;line-height:1;color:#334155;cursor:pointer}
-        .ctw-eyebrow{text-align:center;text-transform:uppercase;letter-spacing:.14em;font-size:11px;font-weight:900;color:#047857}
-        .ctw-modal h2{position:relative;margin:5px 0 7px;text-align:center;font-size:27px;letter-spacing:-.04em;color:#12231f}
-        .ctw-subtitle{position:relative;margin:0 auto 22px;max-width:430px;text-align:center;font-size:13px;line-height:1.55;color:#60716d}
-        .ctw-field{position:relative;margin-top:14px}.ctw-field label{display:block;margin:0 0 7px 4px;font-size:12px;font-weight:900;color:#28423a}
-        .ctw-field input,.ctw-field textarea{width:100%;box-sizing:border-box;border:1px solid rgba(71,96,88,.16);border-radius:17px;padding:13px 14px;outline:none;background:rgba(255,255,255,.78);color:#172a25;box-shadow:inset 0 2px 7px rgba(20,60,45,.05),0 7px 18px rgba(20,60,45,.04);font:inherit;transition:.18s}
-        .ctw-field input:focus,.ctw-field textarea:focus{border-color:#10b981;box-shadow:0 0 0 4px rgba(16,185,129,.12),0 9px 22px rgba(4,120,87,.08)}.ctw-field textarea{resize:vertical;min-height:110px}
-        .ctw-error{margin-top:12px;border:1px solid rgba(220,38,38,.16);border-radius:14px;padding:10px 12px;background:rgba(254,226,226,.72);color:#b91c1c;font-size:12px;font-weight:700}
-        .ctw-create,.ctw-copy,.ctw-done{width:100%;border:0;border-radius:17px;padding:14px 16px;font:inherit;font-weight:900;cursor:pointer}.ctw-create{margin-top:18px;color:white;background:linear-gradient(135deg,#059669,#047857);box-shadow:0 14px 28px rgba(4,120,87,.25),inset 0 1px 0 rgba(255,255,255,.22)}.ctw-create:disabled{opacity:.62;cursor:wait}
-        .ctw-success{text-align:center;padding:14px 0 4px}.ctw-success-icon{display:grid;place-items:center;width:68px;height:68px;margin:0 auto 14px;border-radius:22px;background:linear-gradient(145deg,#34d399,#047857);color:#fff;font-size:34px;font-weight:1000;box-shadow:0 16px 30px rgba(4,120,87,.25),inset 5px 5px 10px rgba(255,255,255,.2)}.ctw-success h2{margin-top:7px}.ctw-success p{max-width:390px;margin:0 auto 19px;color:#5c6e69;font-size:13px;line-height:1.55}
-        .ctw-id-label{font-size:11px;text-transform:uppercase;letter-spacing:.14em;font-weight:900;color:#047857}.ctw-id{margin:7px auto 16px;width:max-content;max-width:100%;padding:10px 18px;border-radius:16px;background:rgba(4,120,87,.08);color:#075e48;font-size:30px;line-height:1;font-weight:1000;letter-spacing:.06em;box-shadow:inset 0 2px 7px rgba(4,120,87,.06)}
-        .ctw-copy{color:#fff;background:linear-gradient(135deg,#0f766e,#115e59);box-shadow:0 12px 25px rgba(15,118,110,.22)}.ctw-done{margin-top:9px;color:#28534a;background:rgba(15,118,110,.07)}
-        @keyframes ctwFade{from{opacity:0}to{opacity:1}}@keyframes ctwPop{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+        .ctw-overlay{position:fixed;inset:0;z-index:99999;display:grid;place-items:center;padding:24px;background:rgba(3,7,18,.66);backdrop-filter:blur(18px);animation:ctwFade .18s ease-out}
+        .ctw-modal{position:relative;width:min(520px,100%);overflow:hidden;border:1px solid rgba(255,255,255,.16);border-radius:30px;padding:34px;background:linear-gradient(145deg,rgba(25,31,52,.97),rgba(9,13,27,.98));box-shadow:0 30px 90px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.1);animation:ctwIn .28s cubic-bezier(.2,.8,.2,1)}
+        .ctw-modal:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 80% 0,rgba(99,102,241,.22),transparent 38%),radial-gradient(circle at 0 100%,rgba(20,184,166,.12),transparent 40%);pointer-events:none}
+        .ctw-orb{position:absolute;right:-50px;top:-70px;width:180px;height:180px;border-radius:50%;background:linear-gradient(145deg,rgba(129,140,248,.65),rgba(45,212,191,.12));filter:blur(1px);box-shadow:-20px 20px 60px rgba(99,102,241,.22),inset 12px 12px 25px rgba(255,255,255,.16);transform:rotate(18deg)}
+        .ctw-kicker,.ctw-title-row,.ctw-label,.ctw-error,.ctw-create,.ctw-success{position:relative;z-index:1}
+        .ctw-kicker{font-size:10px;letter-spacing:.2em;font-weight:800;color:#a5b4fc;margin-bottom:14px}
+        .ctw-title-row{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:28px}
+        .ctw-title-row h2,.ctw-success h2{margin:0;color:#fff;font-size:28px;line-height:1.1;letter-spacing:-.03em}
+        .ctw-title-row p,.ctw-success p{margin:9px 0 0;color:#aab2c5;font-size:14px;line-height:1.5}
+        .ctw-close{width:38px;height:38px;border:1px solid rgba(255,255,255,.1);border-radius:12px;background:rgba(255,255,255,.06);color:#dbe2f0;font-size:24px;cursor:pointer}
+        .ctw-label{display:grid;gap:9px;margin-bottom:18px;color:#dfe5f2;font-size:12px;font-weight:800;letter-spacing:.04em}
+        .ctw-label input,.ctw-label textarea{width:100%;box-sizing:border-box;border:1px solid rgba(255,255,255,.1);border-radius:16px;outline:none;padding:14px 15px;color:#fff;background:rgba(255,255,255,.055);box-shadow:inset 0 1px 0 rgba(255,255,255,.04);font:inherit;font-size:14px;resize:vertical;transition:.2s}
+        .ctw-label input:focus,.ctw-label textarea:focus{border-color:rgba(129,140,248,.7);box-shadow:0 0 0 4px rgba(99,102,241,.12),inset 0 1px 0 rgba(255,255,255,.06)}
+        .ctw-label input::placeholder,.ctw-label textarea::placeholder{color:#68738b}
+        .ctw-error{margin:-4px 0 16px;padding:11px 13px;border-radius:13px;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.2);color:#fca5a5;font-size:12px}
+        .ctw-create{width:100%;border:0;border-radius:17px;padding:15px;color:#fff;font-weight:900;font-size:14px;cursor:pointer;background:linear-gradient(135deg,#6366f1,#14b8a6);box-shadow:0 14px 35px rgba(79,70,229,.3),inset 0 1px 0 rgba(255,255,255,.22);transition:.2s}
+        .ctw-create:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 18px 40px rgba(79,70,229,.38),inset 0 1px 0 rgba(255,255,255,.22)}
+        .ctw-create:disabled{opacity:.65;cursor:wait}
+        .ctw-success{text-align:center;padding:12px 4px 4px}
+        .ctw-success-icon{display:grid;place-items:center;width:72px;height:72px;margin:4px auto 20px;border-radius:24px;color:#fff;font-size:36px;font-weight:900;background:linear-gradient(145deg,#14b8a6,#6366f1);box-shadow:0 18px 45px rgba(20,184,166,.25),inset 0 1px 0 rgba(255,255,255,.25)}
+        .ctw-id-label{margin-top:27px;color:#7f8ba3;font-size:10px;letter-spacing:.2em;font-weight:900}
+        .ctw-id{margin:8px 0 17px;color:#fff;font-size:32px;font-weight:950;letter-spacing:.08em;text-shadow:0 5px 25px rgba(129,140,248,.35)}
+        .ctw-copy,.ctw-done{width:100%;border-radius:15px;padding:13px;font-weight:900;cursor:pointer}
+        .ctw-copy{border:1px solid rgba(129,140,248,.35);color:#c7d2fe;background:rgba(99,102,241,.12);margin-bottom:10px}
+        .ctw-done{border:0;color:#fff;background:rgba(255,255,255,.08)}
+        @keyframes ctwFade{from{opacity:0}to{opacity:1}}
+        @keyframes ctwIn{from{opacity:0;transform:translateY(16px) scale(.97)}to{opacity:1;transform:none}}
       `}</style>
     </div>
   );
