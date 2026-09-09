@@ -3,7 +3,7 @@ create table public.contractor_team_work_reports (
   team_id bigint not null references public.contractor_teams(id) on delete cascade,
   work_entry_id uuid not null references public.worker_team_work_entries(id) on delete cascade,
   contractor_profile_id uuid not null references public.profiles(id) on delete restrict,
-  worker_profile_id uuid not null references public.profiles(id) on delete restrict,
+  worker_profile_id uuid not null references public.worker_profiles(id) on delete restrict,
   report_text text not null check (char_length(btrim(report_text)) between 1 and 4000),
   reported_at timestamptz not null default now(),
   read_at timestamptz null,
@@ -45,10 +45,31 @@ create policy "Contractors can view their team reports"
 create policy "Workers can view reports about their entries"
   on public.contractor_team_work_reports
   for select to authenticated
-  using (worker_profile_id = (select auth.uid()));
+  using (
+    exists (
+      select 1
+      from public.worker_profiles wp
+      where wp.id = contractor_team_work_reports.worker_profile_id
+        and wp.profile_id = (select auth.uid())
+    )
+  );
 
 create policy "Workers can mark their reports read"
   on public.contractor_team_work_reports
   for update to authenticated
-  using (worker_profile_id = (select auth.uid()))
-  with check (worker_profile_id = (select auth.uid()));
+  using (
+    exists (
+      select 1
+      from public.worker_profiles wp
+      where wp.id = contractor_team_work_reports.worker_profile_id
+        and wp.profile_id = (select auth.uid())
+    )
+  )
+  with check (
+    exists (
+      select 1
+      from public.worker_profiles wp
+      where wp.id = contractor_team_work_reports.worker_profile_id
+        and wp.profile_id = (select auth.uid())
+    )
+  );
