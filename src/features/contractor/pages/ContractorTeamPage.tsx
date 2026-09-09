@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { navigate } from '../../../app/Router';
 import { supabase } from '../../../lib/supabase/client';
+import { ContractorTeamTrash } from '../components/ContractorTeamTrash';
 
 interface Props { profileId: string; teamNumber: string; }
 type Team = { team_number: number; name: string; purpose: string; created_at: string };
@@ -28,6 +29,7 @@ export function ContractorTeamPage({ profileId, teamNumber }: Props) {
   const [error, setError] = useState('');
   const [membersOpen, setMembersOpen] = useState(false);
   const [addMembersOpen, setAddMembersOpen] = useState(false);
+  const [trashOpen, setTrashOpen] = useState(false);
   const parsedTeamNumber = useMemo(() => Number(teamNumber), [teamNumber]);
 
   useEffect(() => {
@@ -83,6 +85,8 @@ export function ContractorTeamPage({ profileId, teamNumber }: Props) {
       .ctd-card-value{margin-top:2px;color:#172033;font-size:17px;font-weight:950;letter-spacing:-.03em}
       .ctd-card-caption{margin-top:2px;color:#94a3b8;font-size:8px;font-weight:700;line-height:1.3}
       .ctd-zero-state{margin-top:8px;padding:9px 11px;border-radius:12px;border:1px solid rgba(16,185,129,.12);background:rgba(255,255,255,.7);color:#64748b;font-size:8px;line-height:1.4;text-align:center}
+      .ctd-trash-folder{width:100%;margin-top:9px;min-height:58px;padding:10px 12px;display:flex;align-items:center;gap:10px;text-align:left;border:1px solid rgba(255,255,255,.92);border-radius:16px;background:linear-gradient(145deg,rgba(255,255,255,.98),rgba(254,242,242,.94));box-shadow:0 11px 23px rgba(15,23,42,.075),inset 0 1px 0 #fff;color:#172033;cursor:pointer}
+      .ctd-trash-folder span:first-child{font-size:21px}.ctd-trash-folder b{display:block;font-size:11px;font-weight:950}.ctd-trash-folder small{display:block;margin-top:2px;color:#94a3b8;font-size:8px;font-weight:750}
       .ctd-state{padding:17px;border-radius:18px;background:rgba(255,255,255,.92);border:1px solid rgba(148,163,184,.16);box-shadow:0 11px 25px rgba(15,23,42,.08)}
       .ctd-error{color:#b91c1c;font-size:11px}.ctd-retry{margin-top:9px;min-height:36px;padding:0 11px;border:0;border-radius:10px;background:#0f766e;color:#fff;font-size:10px;font-weight:900;cursor:pointer}
       .ctd-panel-backdrop{position:fixed;inset:0;z-index:1000;background:rgba(15,23,42,.25);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);display:grid;align-items:start;justify-items:center;padding:72px 14px 20px;box-sizing:border-box}
@@ -102,8 +106,10 @@ export function ContractorTeamPage({ profileId, teamNumber }: Props) {
         <div className="ctd-section-kicker">TEAM WORK OVERVIEW</div>
         <section className="ctd-summary-grid" aria-label="Team work summary"><SummaryCard label="Today" value="PKR 0" caption="No member work recorded yet" icon="◷"/><SummaryCard label="Weekly" value="PKR 0" caption="No member work recorded yet" icon="▥"/><SummaryCard label="Monthly" value="PKR 0" caption="No member work recorded yet" icon="◫"/><SummaryCard label="Grand Total" value="PKR 0" caption="No member work recorded yet" icon="◆"/></section>
         <div className="ctd-zero-state">Team totals will populate from real member work entries once team-member work linkage is active. No fake totals are shown.</div>
+        <button type="button" className="ctd-trash-folder" onClick={() => setTrashOpen(true)} aria-label="Open Team Work Trash"><span aria-hidden="true">🗑️</span><span><b>Trash</b><small>Deleted Team Work</small></span></button>
       </> : null}
     </div>
+    {trashOpen && <ContractorTeamTrash teamNumber={parsedTeamNumber} onClose={() => setTrashOpen(false)} />}
     {membersOpen && <div className="ctd-panel-backdrop" role="presentation" onMouseDown={e => { if(e.currentTarget===e.target)setMembersOpen(false); }}><section className="ctd-panel" role="dialog" aria-modal="true" aria-label="Team members"><div className="ctd-panel-head"><div className="ctd-panel-title">MY TEAM MEMBERS</div><button type="button" className="ctd-close" onClick={() => setMembersOpen(false)}>×</button></div><div className="ctd-member-empty">No team members yet. Add Members to start building this team.</div></section></div>}
     {addMembersOpen && <div className="ctd-panel-backdrop" role="presentation" onMouseDown={e => { if(e.currentTarget===e.target)setAddMembersOpen(false); }}><section className="ctd-panel" role="dialog" aria-modal="true" aria-label="Add team members"><div className="ctd-panel-head"><div className="ctd-panel-title">ADD MEMBERS</div><button type="button" className="ctd-close" onClick={() => setAddMembersOpen(false)}>×</button></div><p className="ctd-add-copy">The member invitation and membership workflow will be connected in the Team Members phase. No fake member records are created here.</p><button type="button" className="ctd-panel-primary" onClick={() => setAddMembersOpen(false)}>Close</button></section></div>}
   </main>;
