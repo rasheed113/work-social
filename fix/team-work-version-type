@@ -1,0 +1,1 @@
+type Version = { id: string; revision_no: number; item_name: string; size: string[] | null; quantity: string | number; rate: string | number; total: string | number; special_note: string | null; recorded_at: string };
