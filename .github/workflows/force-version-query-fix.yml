@@ -1,0 +1,37 @@
+name: force-version-query-fix
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  fix:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply version query fix
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('src/features/worker/pages/WorkerTeamDashboardWorkPageV2.tsx')
+          s=p.read_text()
+          old="select('id,revision_no,item_name,quantity,rate,total,recorded_at')"
+          new="select('id,revision_no,item_name,size,quantity,rate,total,special_note,recorded_at')"
+          if old not in s:
+              raise SystemExit('expected old version query not found')
+          p.write_text(s.replace(old,new,1))
+          PY
+          git diff --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/features/worker/pages/WorkerTeamDashboardWorkPageV2.tsx
+          git commit -m 'fix: include size and special note in version query'
+          git push origin HEAD:main
+      - name: Remove temporary workflow
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm .github/workflows/force-version-query-fix.yml
+          git commit -m 'chore: remove temporary version query workflow'
+          git push origin HEAD:main
