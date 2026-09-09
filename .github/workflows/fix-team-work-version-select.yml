@@ -1,0 +1,33 @@
+name: fix-team-work-version-select
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  fix:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fix version snapshot select typing
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('src/features/worker/pages/WorkerTeamDashboardWorkPageV2.tsx')
+          s=p.read_text()
+          old="select('id,revision_no,item_name,quantity,rate,total,recorded_at')"
+          new="select('id,revision_no,item_name,size,quantity,rate,total,special_note,recorded_at')"
+          if old not in s:
+              raise SystemExit('expected version select not found')
+          p.write_text(s.replace(old,new,1))
+          PY
+          git diff --check
+      - name: Commit fix and remove workflow
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/features/worker/pages/WorkerTeamDashboardWorkPageV2.tsx .github/workflows/fix-team-work-version-select.yml
+          git rm .github/workflows/fix-team-work-version-select.yml
+          git commit -m 'fix: include original version fields in history query'
+          git push origin HEAD:main
