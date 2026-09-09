@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { supabase } from '../../lib/supabase/client';
 import { signOut } from '../../features/auth/api/signOut';
 import { accountModePath, getLastAccountMode, setLastAccountMode, type AccountMode } from '../../features/account/accountModePersistence';
-import { getRegisteredAccounts, registerAccount, type RegisteredAccount } from '../../features/account/accountSessionRegistry';
+import { getRegisteredAccounts, refreshRegisteredAccount, registerAccount, type RegisteredAccount } from '../../features/account/accountSessionRegistry';
 
 interface GlobalModuleMenuProps { onNavigate: (path: string) => void; }
 type ModuleId = 'social' | 'work' | 'expense' | 'diary';
@@ -55,10 +55,17 @@ export function GlobalModuleMenu({ onNavigate }: GlobalModuleMenuProps) {
     if (switching) return;
     if (account.id === profileId) { closeAll(); return; }
     setSwitching(true);
-    const { error } = await supabase.auth.setSession({ access_token: account.session.access_token, refresh_token: account.session.refresh_token });
-    if (error) { setSwitching(false); return; }
-    const fresh = (await supabase.auth.getSession()).data.session;
-    registerAccount({ ...account, session: fresh ?? account.session });
+
+    const freshTarget = await refreshRegisteredAccount(account);
+    if (!freshTarget) { setSwitching(false); return; }
+
+    const { data, error } = await supabase.auth.setSession({
+      access_token: freshTarget.access_token,
+      refresh_token: freshTarget.refresh_token,
+    });
+    if (error || !data.session) { setSwitching(false); return; }
+
+    registerAccount({ ...account, session: data.session });
     setProfileId(account.id);
     const mode = getLastAccountMode(account.id) ?? 'social';
     setSwitching(false);
