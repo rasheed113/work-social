@@ -6,7 +6,7 @@ import { useCurrentWorkerProfileId } from '../hooks/useCurrentWorkerProfileId';
 import { useWorkerProfile } from '../hooks/useWorkerProfile';
 
 type Destination = { path: string; label: string; icon: string; salaryLabel?: string };
-type TeamInvitation = { id:string; sender_id:string; metadata:Record<string,unknown>|null; created_at:string; sender?:{display_name:string|null;username:string|null;gender:string|null} };
+type TeamInvitation = { id:string; sender_id:string; type:string; metadata:Record<string,unknown>|null; created_at:string; sender?:{display_name:string|null;username:string|null;gender:string|null} };
 const workerDestinations: Destination[] = [
   { path: '/work', label: 'Home', icon: '⌂' },
   { path: '/work/finance', label: 'Finance', salaryLabel: 'Salary', icon: '¤' },
