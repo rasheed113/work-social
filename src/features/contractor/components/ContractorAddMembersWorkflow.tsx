@@ -24,17 +24,8 @@ export function ContractorAddMembersWorkflow({ profileId, teamNumber }: Props) {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    let disposed = false;
     let observer: MutationObserver | null = null;
     let button: HTMLButtonElement | null = null;
-
-    const attach = () => {
-      const next = document.querySelector<HTMLButtonElement>('.contractor-team-page .ctd-add');
-      if (!next || next === button) return;
-      if (button) button.removeEventListener('click', intercept, true);
-      button = next;
-      button.addEventListener('click', intercept, true);
-    };
 
     const intercept = (event: Event) => {
       event.preventDefault();
@@ -45,12 +36,19 @@ export function ContractorAddMembersWorkflow({ profileId, teamNumber }: Props) {
       setOpen(true);
     };
 
+    const attach = () => {
+      const next = document.querySelector<HTMLButtonElement>('.contractor-team-page .ctd-add');
+      if (!next || next === button) return;
+      if (button) button.removeEventListener('click', intercept, true);
+      button = next;
+      button.addEventListener('click', intercept, true);
+    };
+
     attach();
     observer = new MutationObserver(attach);
     observer.observe(document.body, { childList: true, subtree: true });
 
     return () => {
-      disposed = true;
       observer?.disconnect();
       if (button) button.removeEventListener('click', intercept, true);
     };
