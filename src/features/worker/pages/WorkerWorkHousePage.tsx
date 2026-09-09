@@ -2,6 +2,7 @@ import { SalaryDashboardPage } from './SalaryDashboardPage';
 import { WorkerWorkHouse } from '../components/WorkerWorkHouse';
 import { useCurrentWorkerProfileId } from '../hooks/useCurrentWorkerProfileId';
 import { useWorkerProfile } from '../hooks/useWorkerProfile';
+import { WorkerTeamWorkPage } from './WorkerTeamWorkPage';
 
 export function WorkerWorkHousePage() {
   const session = useCurrentWorkerProfileId();
@@ -17,6 +18,10 @@ export function WorkerWorkHousePage() {
 
   if (profile.error) {
     return <main style={{ width: '100%', maxWidth: 900, margin: '0 auto', padding: '24px 14px 112px', boxSizing: 'border-box' }}><p role="alert" style={{ color: '#b91c1c', fontWeight: 700 }}>{profile.error}</p></main>;
+  }
+
+  if (window.location.pathname === '/work/team-work') {
+    return <WorkerTeamWorkPage />;
   }
 
   // Personal Diary is a global module and must remain reachable from the

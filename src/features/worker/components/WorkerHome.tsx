@@ -101,7 +101,8 @@ export function WorkerHome({ profileId }: WorkerHomeProps) {
                 <span className="worker-home__resource-icon" aria-hidden="true">◫</span>
                 <h2 id="worker-home-team">Team Work</h2>
               </div>
-              <p className="worker-home__section-copy">Teams and approved Team Work are intentionally outside Phase 3C.</p>
+              <p className="worker-home__section-copy">Approved teams only. Team Work stays separate from your personal My Work totals.</p>
+              <button className="worker-home__card-button" type="button" onClick={() => navigate('/work/team-work')}>Open Team Work&nbsp;→</button>
             </section>
 
             <section className="worker-home__section worker-home__resource worker-home__resource--finance" aria-labelledby="worker-home-finance">
