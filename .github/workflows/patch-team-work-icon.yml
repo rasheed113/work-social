@@ -1,8 +1,9 @@
 name: Patch Team Work Icon
 
 on:
-  pull_request:
-    types: [opened]
+  push:
+    branches:
+      - main
 
 permissions:
   contents: write
@@ -41,4 +42,4 @@ jobs:
           git add src/features/worker/components/WorkerHome.tsx .github/workflows/patch-team-work-icon.yml
           git diff --cached --quiet && exit 0
           git commit -m "feat: use premium users icon for Team Work card"
-          git push origin HEAD:${{ github.head_ref }}
+          git push origin HEAD:main
