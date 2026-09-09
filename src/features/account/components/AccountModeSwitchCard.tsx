@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { navigate } from '../../../app/Router';
 import { setWorkerType } from '../../worker/api/salary';
+import { setLastAccountMode } from '../accountModePersistence';
 
 export type AccountMode = 'salary_person' | 'contract' | 'contractor';
 
@@ -33,14 +34,16 @@ export function AccountModeSwitchCard({ currentMode, profileId, onWorkerModeChan
   const current = modes.find((mode) => mode.value === currentMode) ?? modes[0];
 
   const choose = async (value: AccountMode) => {
-    if (value === currentMode) { setOpen(false); return; }
+    if (value === currentMode) { setLastAccountMode(profileId, value); setOpen(false); return; }
     setError(''); setSwitching(true);
     if (value === 'contractor') {
+      setLastAccountMode(profileId, value);
       setSwitching(false); setOpen(false); navigate('/work/contractor?view=settings'); return;
     }
     const { error: updateError } = await setWorkerType(profileId, value);
     setSwitching(false);
     if (updateError) { setError(updateError.message); return; }
+    setLastAccountMode(profileId, value);
     setOpen(false);
     await onWorkerModeChanged?.();
     navigate('/work/settings');
