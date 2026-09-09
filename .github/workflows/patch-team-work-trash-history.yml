@@ -1,0 +1,60 @@
+name: Patch Team Work Trash History
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch source
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/features/worker/pages/WorkerTeamDashboardWorkPageV2.tsx')
+          s=p.read_text()
+          old="const [versions,setVersions]=useState<Array<{id:string;revision_no:number;item_name:string;quantity:string|number;rate:string|number;total:string|number;recorded_at:string}>>([]);const [versionEntry,setVersionEntry]=useState<string|null>(null);"
+          new=old+"const [editedEntryIds,setEditedEntryIds]=useState<Set<string>>(new Set());"
+          assert old in s
+          s=s.replace(old,new,1)
+          old="const r=await supabase.from('worker_team_work_entries').select(COLS).eq('team_id',next.team_id).eq('worker_profile_id',next.worker_profile_id).eq('lifecycle_state','active').order('occurred_at',{ascending:false}).order('id',{ascending:false}).limit(100).returns<Entry[]>();if(r.error)setError(r.error.message);else setEntries(r.data??[]);const tr=await supabase.rpc('get_worker_team_work_trash'"
+          new="const r=await supabase.from('worker_team_work_entries').select(COLS).eq('team_id',next.team_id).eq('worker_profile_id',next.worker_profile_id).eq('lifecycle_state','active').order('occurred_at',{ascending:false}).order('id',{ascending:false}).limit(100).returns<Entry[]>();if(r.error)setError(r.error.message);else{const nextEntries=r.data??[];setEntries(nextEntries);if(next.is_team_owner&&nextEntries.length){const vr=await supabase.from('worker_team_work_entry_versions').select('work_entry_id').in('work_entry_id',nextEntries.map(e=>e.id));if(!vr.error){const counts=new Map<string,number>();for(const row of vr.data??[]){counts.set(row.work_entry_id,(counts.get(row.work_entry_id)??0)+1)}setEditedEntryIds(new Set([...counts].filter(([,count])=>count>1).map(([id])=>id)))}}else setEditedEntryIds(new Set())}const tr=await supabase.rpc('get_worker_team_work_trash'"
+          assert old in s
+          s=s.replace(old,new,1)
+          old="const showVersions=async(id:string)=>{const r=await supabase.from('worker_team_work_entry_versions').select('id,revision_no,item_name,quantity,rate,total,recorded_at').eq('work_entry_id',id).order('revision_no',{ascending:false});if(r.error)setError(r.error.message);else{setVersions(r.data??[]);setVersionEntry(id)}};"
+          new=old+"const showOriginal=async(id:string)=>{const r=await supabase.from('worker_team_work_entry_versions').select('id,revision_no,item_name,size,quantity,rate,total,special_note,recorded_at').eq('work_entry_id',id).eq('revision_no',1).maybeSingle();if(r.error)setError(r.error.message);else{setVersions(r.data?[r.data]:[]);setVersionEntry(id)}};"
+          assert old in s
+          s=s.replace(old,new,1)
+          old="<div className=\"twd-entry-name\">{e.item_name}</div>"
+          new="<div className=\"twd-entry-name\">{e.item_name}{context.is_team_owner&&editedEntryIds.has(e.id)&&<span style={{marginLeft:6,padding:'3px 6px',borderRadius:999,background:'#fff7ed',color:'#c2410c',fontSize:8,fontWeight:950,letterSpacing:'.08em'}}>EDITED</span>}</div>"
+          assert old in s
+          s=s.replace(old,new,1)
+          old="<button type=\"button\" className=\"twd-mini\" onClick={()=>void showVersions(e.id)}>History</button><button type=\"button\" className=\"twd-mini danger\""
+          new="<button type=\"button\" className=\"twd-mini\" onClick={()=>void showVersions(e.id)}>History</button>{context.is_team_owner&&editedEntryIds.has(e.id)&&<button type=\"button\" className=\"twd-mini\" onClick={()=>void showOriginal(e.id)}>Show Original</button>}<button type=\"button\" className=\"twd-mini danger\""
+          assert old in s
+          s=s.replace(old,new,1)
+          old="{context.is_team_owner?<><button type=\"button\" className=\"twd-mini\" disabled={busy===e.id} onClick={()=>void restore(e.id)}>{busy===e.id?'Working…':'Restore'}</button><button type=\"button\" className=\"twd-mini danger\" disabled={busy===e.id} onClick={()=>void purge(e.id)}>Permanently Delete</button></>:<span className=\"twd-entry-meta\">🔒 Waiting for Team Owner</span>}"
+          new="<button type=\"button\" className=\"twd-mini\" disabled={busy===e.id} onClick={()=>void restore(e.id)}>{busy===e.id?'Restoring…':'Restore'}</button>{context.is_team_owner?<button type=\"button\" className=\"twd-mini danger\" disabled={busy===e.id} onClick={()=>void purge(e.id)}>Permanently Delete</button>:<span className=\"twd-entry-meta\">↩ Restore is available to you · permanent removal stays Owner-only</span>}"
+          assert old in s
+          s=s.replace(old,new,1)
+          old="{versionEntry&&<div className=\"twd-modal-backdrop\"><section className=\"twd-modal\"><div className=\"twd-kicker\">REVISION HISTORY</div><h3>Saved versions</h3>{versions.length===0?<p className=\"twd-copy\">No revisions recorded.</p>:versions.map(v=><div key={v.id} className=\"twd-entry\"><strong>Revision {v.revision_no} · {v.item_name}</strong><div className=\"twd-entry-meta\">{new Date(v.recorded_at).toLocaleString()} · Qty {v.quantity} · Rate {v.rate} · Total {formatWorkDecimal(String(v.total))}</div></div>)}<div className=\"twd-modal-actions\"><button type=\"button\" className=\"twd-button\" onClick={()=>setVersionEntry(null)}>Close</button></div></section></div>}"
+          new="{versionEntry&&<div className=\"twd-modal-backdrop\"><section className=\"twd-modal\"><div className=\"twd-kicker\">{versions.length===1&&versions[0]?.revision_no===1?'ORIGINAL ENTRY':'REVISION HISTORY'}</div><h3>{versions.length===1&&versions[0]?.revision_no===1?'Original entry':'Saved versions'}</h3>{versions.length===0?<p className=\"twd-copy\">No revisions recorded.</p>:versions.map(v=><div key={v.id} className=\"twd-entry\"><strong>{v.revision_no===1?'Original Entry':`Revision ${v.revision_no}`} · {v.item_name}</strong><div className=\"twd-entry-meta\">{new Date(v.recorded_at).toLocaleString()} · Qty {v.quantity} · Rate {v.rate} · Total {formatWorkDecimal(String(v.total))}{v.size?.length?` · ${v.size.join(', ')}`:''}</div>{v.special_note&&<div className=\"twd-entry-note\">{v.special_note}</div>}</div>)}<div className=\"twd-modal-actions\"><button type=\"button\" className=\"twd-button\" onClick={()=>setVersionEntry(null)}>Close</button></div></section></div>}"
+          assert old in s
+          s=s.replace(old,new,1)
+          p.write_text(s)
+          PY
+      - name: Commit patch and remove workflow
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/features/worker/pages/WorkerTeamDashboardWorkPageV2.tsx
+          git commit -m "feat: restore Team Work trash entries and show original edits"
+          git rm .github/workflows/patch-team-work-trash-history.yml
+          git commit -m "chore: remove temporary Team Work patch workflow"
+          git push
