@@ -1,0 +1,43 @@
+name: Fix Team Dashboard TS
+on:
+  push:
+    branches: [feat/team-work-dashboard-cards-v2]
+    paths:
+      - src/features/worker/pages/WorkerTeamDashboardWorkPage.tsx
+      - .github/workflows/fix-team-dashboard-ts.yml
+jobs:
+  fix:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/team-work-dashboard-cards-v2
+      - name: Fix escaped regex literals
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('src/features/worker/pages/WorkerTeamDashboardWorkPage.tsx')
+          s = p.read_text()
+          replacements = {
+              r'match(/^\\/work\\/team-work\\/(\\d+)(?:\\/|$)/)': r'match(/^\/work\/team-work\/(\d+)(?:\/|$)/)',
+              r'split(/\\s+/)': r'split(/\s+/)',
+              r'if(!/^\\d+(?:\\.\\d{1,4})?$/.test(quantity)': r'if(!/^\d+(?:\.\d{1,4})?$/.test(quantity)',
+              r'if(!/^\\d+(?:\\.\\d{1,4})?$/.test(rate)': r'if(!/^\d+(?:\.\d{1,4})?$/.test(rate)',
+          }
+          for old, new in replacements.items():
+              s2 = s.replace(old, new)
+              if s2 == s:
+                  raise SystemExit(f'pattern not found: {old}')
+              s = s2
+          p.write_text(s)
+          PY
+      - name: Commit fix
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/features/worker/pages/WorkerTeamDashboardWorkPage.tsx
+          git commit -m 'fix: correct team dashboard regex literals'
+          git push origin HEAD:feat/team-work-dashboard-cards-v2
