@@ -1,12 +1,11 @@
-import { Component, lazy, Suspense, type ErrorInfo, type ReactNode } from 'react';
+import { Component, type ErrorInfo, type ReactNode } from 'react';
 import { SalaryDashboardPage } from './SalaryDashboardPage';
 import { WorkerWorkHouse } from '../components/WorkerWorkHouse';
 import { useCurrentWorkerProfileId } from '../hooks/useCurrentWorkerProfileId';
 import { useWorkerProfile } from '../hooks/useWorkerProfile';
 import { WorkerTeamWorkPage } from './WorkerTeamWorkPage';
 import { WorkerTeamDashboardPage } from './WorkerTeamDashboardPage';
-
-const WorkerTeamDashboardWorkPage = lazy(() => import('./WorkerTeamDashboardWorkPage').then((module) => ({ default: module.WorkerTeamDashboardWorkPage })));
+import { WorkerTeamDashboardWorkPage } from './WorkerTeamDashboardWorkPage';
 
 class TeamDashboardWorkBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
   state = { hasError: false };
@@ -23,10 +22,6 @@ class TeamDashboardWorkBoundary extends Component<{ children: ReactNode }, { has
     if (this.state.hasError) return <WorkerTeamDashboardPage />;
     return this.props.children;
   }
-}
-
-function TeamDashboardWorkFallback() {
-  return <main style={{ width: '100%', maxWidth: 980, margin: '0 auto', padding: '24px 14px 112px', boxSizing: 'border-box' }}><p style={{ color: '#64748b', fontWeight: 700 }}>Opening Team Work Dashboard…</p></main>;
 }
 
 export function WorkerWorkHousePage() {
@@ -49,7 +44,7 @@ export function WorkerWorkHousePage() {
     if (/^\/work\/team-work\/\d+\/(?:finance|settings)\/?$/.test(window.location.pathname)) {
       return <WorkerTeamDashboardPage />;
     }
-    return <TeamDashboardWorkBoundary><Suspense fallback={<TeamDashboardWorkFallback />}><WorkerTeamDashboardWorkPage /></Suspense></TeamDashboardWorkBoundary>;
+    return <TeamDashboardWorkBoundary><WorkerTeamDashboardWorkPage /></TeamDashboardWorkBoundary>;
   }
 
   if (window.location.pathname === '/work/team-work') return <WorkerTeamWorkPage />;
