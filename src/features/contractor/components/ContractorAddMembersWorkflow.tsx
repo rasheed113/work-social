@@ -2,118 +2,14 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../../../lib/supabase/client';
 
 type Props = { profileId: string; teamNumber: string };
-type WorkerResult = {
-  profile_id: string;
-  work_id: string;
-  display_name: string | null;
-  username: string | null;
-  avatar_url: string | null;
-  worker_type: string;
-};
-
-function initials(name: string) {
-  const value = name.trim();
-  return value ? value.split(/\s+/).slice(0, 2).map(part => part.charAt(0)).join('').toUpperCase() : 'W';
-}
-
-export function ContractorAddMembersWorkflow({ profileId, teamNumber }: Props) {
-  const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState('');
-  const [results, setResults] = useState<WorkerResult[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    let observer: MutationObserver | null = null;
-    let button: HTMLButtonElement | null = null;
-
-    const intercept = (event: Event) => {
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      setQuery('');
-      setResults([]);
-      setError('');
-      setOpen(true);
-    };
-
-    const attach = () => {
-      const next = document.querySelector<HTMLButtonElement>('.contractor-team-page .ctd-add');
-      if (!next || next === button) return;
-      if (button) button.removeEventListener('click', intercept, true);
-      button = next;
-      button.addEventListener('click', intercept, true);
-    };
-
-    attach();
-    observer = new MutationObserver(attach);
-    observer.observe(document.body, { childList: true, subtree: true });
-
-    return () => {
-      observer?.disconnect();
-      if (button) button.removeEventListener('click', intercept, true);
-    };
-  }, [profileId, teamNumber]);
-
-  useEffect(() => {
-    if (!open) return;
-    const trimmed = query.trim();
-    if (trimmed.length < 2) {
-      setResults([]);
-      setLoading(false);
-      setError('');
-      return;
-    }
-
-    let active = true;
-    const timer = window.setTimeout(async () => {
-      setLoading(true);
-      setError('');
-      const { data, error: searchError } = await supabase.rpc('search_workers_for_contractor', { p_query: trimmed });
-      if (!active) return;
-      setLoading(false);
-      if (searchError) {
-        setResults([]);
-        setError(searchError.message);
-        return;
-      }
-      setResults((data ?? []) as WorkerResult[]);
-    }, 260);
-
-    return () => {
-      active = false;
-      window.clearTimeout(timer);
-    };
-  }, [open, query]);
-
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setOpen(false);
-    };
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [open]);
-
-  return open ? <div className="cam-backdrop" role="presentation" onMouseDown={event => { if (event.currentTarget === event.target) setOpen(false); }}>
-    <style>{`
-      .cam-backdrop{position:fixed;inset:0;z-index:1200;display:grid;place-items:start center;padding:68px 12px 20px;box-sizing:border-box;background:rgba(7,20,30,.34);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);animation:camFade .18s ease-out}
-      .cam-panel{position:relative;width:min(440px,100%);max-height:calc(100dvh - 88px);overflow:auto;border:1px solid rgba(255,255,255,.94);border-radius:26px;padding:17px;background:linear-gradient(145deg,rgba(255,255,255,.995),rgba(236,253,245,.985) 55%,rgba(239,246,255,.98));box-shadow:0 34px 90px rgba(15,23,42,.28),inset 0 1px 0 #fff;animation:camRise .22s cubic-bezier(.2,.8,.2,1)}
-      .cam-glow{position:absolute;right:-70px;top:-90px;width:210px;height:210px;border-radius:50%;background:radial-gradient(circle,rgba(16,185,129,.2),rgba(99,102,241,.09) 48%,transparent 70%);pointer-events:none}
-      .cam-head{position:relative;display:flex;align-items:center;justify-content:space-between;gap:12px}.cam-kicker{display:inline-flex;padding:5px 9px;border-radius:999px;background:linear-gradient(145deg,#ecfdf5,#dbeafe);border:1px solid rgba(16,185,129,.16);color:#047857;font-size:8px;font-weight:950;letter-spacing:.16em}.cam-title{margin:7px 0 0;font-size:25px;line-height:1;font-weight:950;letter-spacing:-.045em;color:#172033;text-shadow:0 2px 0 #fff,0 8px 22px rgba(15,23,42,.08)}.cam-sub{margin:6px 0 0;color:#64748b;font-size:9px;line-height:1.45}.cam-close{width:35px;height:35px;flex:0 0 auto;border:1px solid rgba(100,116,139,.13);border-radius:11px;background:linear-gradient(145deg,#fff,#f1f5f9);box-shadow:0 7px 16px rgba(15,23,42,.08),inset 0 1px 0 #fff;color:#475569;font-size:18px;font-weight:950;cursor:pointer}
-      .cam-search{position:relative;margin-top:14px;display:flex;align-items:center;gap:9px;padding:0 12px;border-radius:15px;border:1px solid rgba(255,255,255,.96);background:linear-gradient(145deg,rgba(255,255,255,.99),rgba(248,250,252,.94));box-shadow:0 11px 24px rgba(15,23,42,.09),inset 0 1px 0 #fff}.cam-search-icon{font-size:16px;color:#0f766e}.cam-input{width:100%;min-height:46px;border:0;outline:0;background:transparent;color:#172033;font:inherit;font-size:12px;font-weight:750}.cam-input::placeholder{color:#94a3b8;font-weight:650}.cam-hint{margin:7px 2px 0;color:#94a3b8;font-size:8px}
-      .cam-status{margin-top:12px;padding:12px;border-radius:14px;background:rgba(255,255,255,.72);border:1px dashed rgba(100,116,139,.18);color:#64748b;text-align:center;font-size:9px;line-height:1.45}.cam-error{color:#b91c1c;border-color:rgba(185,28,28,.16);background:rgba(254,242,242,.75)}
-      .cam-results{display:grid;gap:8px;margin-top:12px}.cam-result{display:flex;align-items:center;gap:10px;padding:10px;border-radius:15px;border:1px solid rgba(255,255,255,.9);background:linear-gradient(145deg,rgba(255,255,255,.98),rgba(248,250,252,.9));box-shadow:0 8px 18px rgba(15,23,42,.06),inset 0 1px 0 #fff}.cam-avatar{width:42px;height:42px;flex:0 0 auto;border-radius:13px;display:grid;place-items:center;overflow:hidden;background:linear-gradient(145deg,#d1fae5,#dbeafe);color:#047857;font-size:13px;font-weight:950;box-shadow:inset 0 1px 0 #fff}.cam-avatar img{width:100%;height:100%;object-fit:cover}.cam-result-body{min-width:0;flex:1}.cam-result-name{color:#172033;font-size:11px;font-weight:950;overflow-wrap:anywhere}.cam-result-user{margin-top:2px;color:#64748b;font-size:8px}.cam-result-id{margin-top:4px;color:#047857;font-size:8px;font-weight:950;letter-spacing:.04em;overflow-wrap:anywhere}.cam-result-type{font-size:7px;font-weight:900;color:#64748b;padding:5px 7px;border-radius:999px;background:#f1f5f9;white-space:nowrap}
-      .cam-foot{margin-top:13px;padding-top:11px;border-top:1px solid rgba(100,116,139,.12);color:#94a3b8;font-size:8px;line-height:1.45;text-align:center}.cam-foot strong{color:#64748b}
-      @keyframes camFade{from{opacity:0}to{opacity:1}}@keyframes camRise{from{opacity:0;transform:translateY(10px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
-      @media(max-width:480px){.cam-backdrop{padding:58px 10px 14px}.cam-panel{border-radius:22px;padding:14px}.cam-title{font-size:23px}}
-    `}</style>
-    <section className="cam-panel" role="dialog" aria-modal="true" aria-label="Add team members">
-      <div className="cam-glow" aria-hidden="true" />
-      <div className="cam-head"><div><div className="cam-kicker">TEAM MEMBERS · {teamNumber}</div><h2 className="cam-title">Add Members</h2><p className="cam-sub">Search real Work Social workers before sending them into this team.</p></div><button type="button" className="cam-close" onClick={() => setOpen(false)} aria-label="Close">×</button></div>
-      <label className="cam-search"><span className="cam-search-icon" aria-hidden="true">⌕</span><input autoFocus className="cam-input" value={query} onChange={event => setQuery(event.target.value)} placeholder="Search worker name or Worker ID…" aria-label="Search worker name or Worker ID" /></label>
-      <div className="cam-hint">Supports Worker name, username, or unique Worker ID number.</div>
-      {query.trim().length < 2 ? <div className="cam-status">Type at least 2 characters to search the real worker directory.</div> : loading ? <div className="cam-status">Searching workers…</div> : error ? <div className="cam-status cam-error">Unable to search workers: {error}</div> : results.length ? <div className="cam-results">{results.map(worker => <article className="cam-result" key={worker.work_id}><div className="cam-avatar">{worker.avatar_url ? <img src={worker.avatar_url} alt=""/> : initials(worker.display_name ?? '')}</div><div className="cam-result-body"><div className="cam-result-name">{worker.display_name || 'Unnamed worker'}</div>{worker.username && <div className="cam-result-user">@{worker.username}</div>}<div className="cam-result-id">Worker ID · {worker.work_id}</div></div><span className="cam-result-type">{worker.worker_type === 'salary_person' ? 'Salary' : 'Contract'}</span></article>)}</div> : <div className="cam-status">No worker matched “{query.trim()}”. Try the worker name or Worker ID.</div>}
-      <div className="cam-foot"><strong>Search is real.</strong> No fake members are created by this screen. The actual invitation/membership action remains the next Team Members step.</div>
-    </section>
-  </div> : null;
+type WorkerResult = { profile_id:string; work_id:string; display_name:string|null; username:string|null; avatar_url:string|null; worker_type:string; member_status?:string };
+function initials(name:string){const v=name.trim();return v?v.split(/\s+/).slice(0,2).map(x=>x.charAt(0)).join('').toUpperCase():'W'}
+export function ContractorAddMembersWorkflow({ profileId, teamNumber }: Props){
+ const [open,setOpen]=useState(false),[query,setQuery]=useState(''),[results,setResults]=useState<WorkerResult[]>([]),[loading,setLoading]=useState(false),[error,setError]=useState(''),[sending,setSending]=useState<string|null>(null),[notice,setNotice]=useState('');
+ useEffect(()=>{let button:HTMLButtonElement|null=null;const intercept=(e:Event)=>{e.preventDefault();e.stopImmediatePropagation();setQuery('');setResults([]);setError('');setNotice('');setOpen(true)};const attach=()=>{const next=document.querySelector<HTMLButtonElement>('.contractor-team-page .ctd-add');if(!next||next===button)return;if(button)button.removeEventListener('click',intercept,true);button=next;button.addEventListener('click',intercept,true)};attach();const observer=new MutationObserver(attach);observer.observe(document.body,{childList:true,subtree:true});return()=>{observer.disconnect();if(button)button.removeEventListener('click',intercept,true)}},[]);
+ useEffect(()=>{if(!open)return;const q=query.trim();if(q.length<2){setResults([]);setLoading(false);setError('');return}let active=true;const timer=window.setTimeout(async()=>{setLoading(true);setError('');const {data,error:e}=await supabase.rpc('search_workers_for_contractor',{p_query:q});if(!active)return;setLoading(false);if(e){setError(e.message);setResults([]);return}const rows=(data??[]) as WorkerResult[];const withStatus=await Promise.all(rows.map(async w=>{const {data:s}=await supabase.rpc('get_contractor_team_member_status',{p_team_number:Number(teamNumber),p_worker_profile_id:w.profile_id});return {...w,member_status:(s as string)||'available'}}));if(active)setResults(withStatus)},260);return()=>{active=false;window.clearTimeout(timer)}},[open,query,teamNumber]);
+ useEffect(()=>{if(!notice)return;const t=window.setTimeout(()=>setNotice(''),10000);return()=>window.clearTimeout(t)},[notice]);
+ const add=async(w:WorkerResult)=>{if(w.member_status&&w.member_status!=='available')return;setSending(w.profile_id);setError('');const {error:e}=await supabase.rpc('invite_worker_to_contractor_team',{p_team_number:Number(teamNumber),p_worker_profile_id:w.profile_id});setSending(null);if(e){setError(e.message);return}setResults(prev=>prev.map(x=>x.profile_id===w.profile_id?{...x,member_status:'pending'}:x));setNotice(`${w.display_name||'Worker'} ko Team ${teamNumber} join karne ki invitation bhej di gayi.`)};
+ const viewProfile=(w:WorkerResult)=>{window.location.href=`/profile/${encodeURIComponent(w.profile_id)}`};
+ return <>{notice&&<div className="cam-toast" role="status">✓ Invitation sent<div>{notice}</div></div>}{open&&<div className="cam-backdrop" role="presentation" onMouseDown={e=>{if(e.currentTarget===e.target)setOpen(false)}}><style>{`.cam-backdrop{position:fixed;inset:0;z-index:1200;display:grid;place-items:start center;padding:58px 10px 16px;background:rgba(7,20,30,.42);backdrop-filter:blur(13px);-webkit-backdrop-filter:blur(13px)}.cam-panel{position:relative;width:min(480px,100%);max-height:calc(100dvh - 76px);overflow:auto;border:1px solid rgba(255,255,255,.96);border-radius:28px;padding:16px;background:linear-gradient(145deg,rgba(255,255,255,.995),rgba(236,253,245,.98) 55%,rgba(239,246,255,.98));box-shadow:0 38px 100px rgba(15,23,42,.32),inset 0 1px 0 #fff}.cam-head{display:flex;justify-content:space-between;gap:12px}.cam-kicker{display:inline-flex;padding:5px 9px;border-radius:999px;background:linear-gradient(145deg,#ecfdf5,#dbeafe);border:1px solid rgba(16,185,129,.18);color:#047857;font-size:8px;font-weight:950;letter-spacing:.15em}.cam-title{margin:7px 0 0;font-size:25px;font-weight:950;letter-spacing:-.045em;color:#172033;text-shadow:0 2px 0 #fff,0 8px 22px rgba(15,23,42,.08)}.cam-sub{margin:5px 0 0;color:#64748b;font-size:9px;line-height:1.45}.cam-close{width:36px;height:36px;border:1px solid rgba(100,116,139,.14);border-radius:11px;background:linear-gradient(145deg,#fff,#f1f5f9);box-shadow:0 7px 16px rgba(15,23,42,.08),inset 0 1px 0 #fff;color:#475569;font-size:18px;font-weight:950;cursor:pointer}.cam-search{display:flex;align-items:center;gap:8px;margin-top:14px;padding:0 12px;border:1px solid rgba(255,255,255,.96);border-radius:15px;background:#fff;box-shadow:0 11px 24px rgba(15,23,42,.09),inset 0 1px 0 #fff}.cam-input{width:100%;min-height:45px;border:0;outline:0;background:transparent;color:#172033;font-size:12px;font-weight:750}.cam-hint{margin:6px 2px 0;color:#94a3b8;font-size:8px}.cam-results{display:grid;gap:8px;margin-top:12px}.cam-result{display:grid;grid-template-columns:42px minmax(0,1fr) auto;gap:9px;align-items:center;padding:10px;border:1px solid rgba(255,255,255,.92);border-radius:16px;background:linear-gradient(145deg,#fff,#f8fafc);box-shadow:0 9px 20px rgba(15,23,42,.07),inset 0 1px 0 #fff}.cam-avatar{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;overflow:hidden;background:linear-gradient(145deg,#d1fae5,#dbeafe);color:#047857;font-size:13px;font-weight:950}.cam-avatar img{width:100%;height:100%;object-fit:cover}.cam-result-name{font-size:11px;font-weight:950;color:#172033}.cam-result-user{margin-top:2px;font-size:8px;color:#64748b}.cam-result-id{margin-top:4px;font-size:8px;font-weight:900;color:#047857;overflow-wrap:anywhere}.cam-type{font-size:7px;color:#64748b;font-weight:900;padding:5px 7px;border-radius:999px;background:#f1f5f9}.cam-buttons{grid-column:2/-1;display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:2px}.cam-btn{min-height:34px;border-radius:10px;border:1px solid rgba(100,116,139,.16);font-size:9px;font-weight:950;cursor:pointer;box-shadow:0 4px 0 rgba(15,23,42,.07),inset 0 1px 0 #fff}.cam-view{background:linear-gradient(145deg,#fff,#eef2ff);color:#4338ca}.cam-add{background:linear-gradient(145deg,#10b981,#047857);color:#fff;border-color:rgba(4,120,87,.3)}.cam-add:disabled{opacity:.65;cursor:wait}.cam-pending{background:linear-gradient(145deg,#fef3c7,#fff7ed);color:#a16207}.cam-foot{margin-top:12px;padding-top:10px;border-top:1px solid rgba(100,116,139,.12);text-align:center;color:#94a3b8;font-size:8px}.cam-status{margin-top:12px;padding:12px;border-radius:14px;background:rgba(255,255,255,.75);border:1px dashed rgba(100,116,139,.18);text-align:center;color:#64748b;font-size:9px}.cam-error{color:#b91c1c;background:#fef2f2}.cam-toast{position:fixed;right:14px;top:70px;z-index:1400;width:min(330px,calc(100% - 28px));padding:12px 14px;border-radius:15px;border:1px solid rgba(255,255,255,.9);background:linear-gradient(145deg,rgba(236,253,245,.98),rgba(255,255,255,.98));box-shadow:0 20px 50px rgba(15,23,42,.22),inset 0 1px 0 #fff;color:#047857;font-size:10px;font-weight:950}.cam-toast div{margin-top:4px;color:#334155;font-size:9px;font-weight:750;line-height:1.4}@media(max-width:480px){.cam-panel{border-radius:23px;padding:14px}.cam-result{grid-template-columns:40px minmax(0,1fr)}.cam-type{grid-column:2}.cam-buttons{grid-column:1/-1}}`}</style><section className="cam-panel" role="dialog" aria-modal="true"><div className="cam-head"><div><div className="cam-kicker">TEAM MEMBERS · {teamNumber}</div><h2 className="cam-title">Add Members</h2><p className="cam-sub">Search real Work Social workers before sending them into this team.</p></div><button type="button" className="cam-close" onClick={()=>setOpen(false)} aria-label="Close">×</button></div><label className="cam-search"><span>⌕</span><input autoFocus className="cam-input" value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search worker name or Worker ID…" aria-label="Search worker name or Worker ID"/></label><div className="cam-hint">Supports Worker name, username, or unique Worker ID number.</div>{query.trim().length<2?<div className="cam-status">Type at least 2 characters to search the real worker directory.</div>:loading?<div className="cam-status">Searching workers…</div>:error?<div className="cam-status cam-error">{error}</div>:results.length?<div className="cam-results">{results.map(w=><article className="cam-result" key={w.profile_id}><div className="cam-avatar">{w.avatar_url?<img src={w.avatar_url} alt=""/>:initials(w.display_name||'')}</div><div><div className="cam-result-name">{w.display_name||'Unnamed worker'}</div>{w.username&&<div className="cam-result-user">@{w.username}</div>}<div className="cam-result-id">Worker ID · {w.work_id}</div></div><span className="cam-type">{w.worker_type==='salary_person'?'Salary':'Contract'}</span><div className="cam-buttons"><button className="cam-btn cam-view" type="button" onClick={()=>viewProfile(w)}>View</button><button className={`cam-btn ${w.member_status==='pending'?'cam-pending':'cam-add'}`} type="button" disabled={sending===w.profile_id||w.member_status!=='available'} onClick={()=>void add(w)}>{sending===w.profile_id?'Sending…':w.member_status==='pending'?'Pending':w.member_status==='member'?'Member':'＋ Add'}</button></div></article>)}</div>:<div className="cam-status">No worker matched “{query.trim()}”. Try the worker name or Worker ID.</div>}<div className="cam-foot"><strong>Real worker directory.</strong> View opens only the public Work Social profile. Add creates a real pending team invitation.</div></section></div>}</>
 }
