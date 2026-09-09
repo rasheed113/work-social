@@ -21,6 +21,18 @@ export function registerAccount(account: RegisteredAccount) { write([account, ..
 function inspectionClient(accountId: string) {
   return createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false, storageKey: `work-social:inspect:${accountId}` } });
 }
+
+/** Refresh a registered account in an isolated Supabase client before replacing the active session. */
+export async function refreshRegisteredAccount(account: RegisteredAccount): Promise<Session | null> {
+  const client = inspectionClient(account.id);
+  const { data, error } = await client.auth.setSession({
+    access_token: account.session.access_token,
+    refresh_token: account.session.refresh_token,
+  });
+  if (error || !data.session) return null;
+  return data.session;
+}
+
 export type AccountRole = 'contract' | 'salary_person' | 'contractor';
 export async function getAccountRoles(account: RegisteredAccount): Promise<AccountRole[]> {
   const client = inspectionClient(account.id);
