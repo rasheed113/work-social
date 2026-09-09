@@ -6,10 +6,19 @@ import { LoginForm } from '../features/auth/components/LoginForm';
 import { SignupForm } from '../features/auth/components/SignupForm';
 import { WorkSocialAiAssistant } from '../features/ai/components/WorkSocialAiAssistantWithMode';
 import { MovableAiLauncher } from '../features/ai/components/MovableAiLauncher';
-import { Router } from './Router';
+import { accountModePath, getLastAccountMode } from '../features/account/accountModePersistence';
+import { Router, navigate } from './Router';
 
 const AUTH_INIT_TIMEOUT_MS = 8000;
 function withTimeout<T>(promise: Promise<T>, timeoutMs: number, message: string): Promise<T> { return Promise.race([promise, new Promise<T>((_, reject) => { window.setTimeout(() => reject(new Error(message)), timeoutMs); })]); }
+
+function restoreLastAccountMode(profileId: string) {
+  const mode = getLastAccountMode(profileId);
+  if (!mode) return;
+  const target = accountModePath(mode);
+  if (target === '/' || window.location.pathname !== '/') return;
+  navigate(target);
+}
 
 export function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -30,11 +39,12 @@ export function App() {
         }
         const { data, error } = await withTimeout(getSession(), AUTH_INIT_TIMEOUT_MS, 'Authentication initialization timed out. The app will continue and retry in the background.');
         if (!active) return; if (error) setAuthError(error.message); setSession(data.session);
+        if (data.session) window.setTimeout(() => restoreLastAccountMode(data.session!.user.id), 0);
       } catch (error) { if (active) setAuthError(error instanceof Error ? error.message : 'Authentication initialization failed.'); }
       finally { if (active) setInitializing(false); }
     }
     void initializeAuth();
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => { if (active) { setSession(nextSession); setAuthError(null); } });
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => { if (active) { setSession(nextSession); setAuthError(null); if (nextSession) window.setTimeout(() => restoreLastAccountMode(nextSession.user.id), 0); } });
     return () => { active = false; listener.subscription.unsubscribe(); };
   }, []);
   if (initializing) return <main className="app-shell"><div className="auth-card"><p>Signing you in…</p></div></main>;
