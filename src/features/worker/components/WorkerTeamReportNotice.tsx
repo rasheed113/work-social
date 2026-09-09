@@ -6,7 +6,7 @@ type Report={id:string;work_entry_id:string;reported_at:string;read_at:string|nu
 function teamNumber(){const m=window.location.pathname.match(/^\/work\/team-work\/(\d+)(?:\/|$)/);return m?.[1]??null}
 export function WorkerTeamReportNotice(){
  const [reports,setReports]=useState<Report[]>([]);
- const load=async()=>{const number=teamNumber();if(!number)return;const r=await supabase.from('contractor_team_work_reports').select('id,work_entry_id,reported_at,read_at').is('read_at',null).order('reported_at',{ascending:false}).limit(20);if(!r.error)setReports((r.data??[]) as Report[])};
+ const load=async()=>{const number=teamNumber();if(!number)return;const context=await supabase.rpc('get_worker_team_work_context',{p_team_number:Number(number)});const teamId=context.data?.[0]?.team_id;if(context.error||!teamId)return;const r=await supabase.from('contractor_team_work_reports').select('id,work_entry_id,reported_at,read_at').eq('team_id',teamId).is('read_at',null).order('reported_at',{ascending:false}).limit(20);if(!r.error)setReports((r.data??[]) as Report[])};
  useEffect(()=>{void load();const i=window.setInterval(()=>void load(),5000);return()=>window.clearInterval(i)},[]);
  if(!reports.length)return null;
  const first=reports[0];
