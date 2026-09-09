@@ -12,13 +12,13 @@ create table public.contractor_team_work_reports (
 
 create index contractor_team_work_reports_worker_idx
   on public.contractor_team_work_reports (worker_profile_id, read_at, reported_at desc);
-
 create index contractor_team_work_reports_team_idx
   on public.contractor_team_work_reports (team_id, reported_at desc);
 
 alter table public.contractor_team_work_reports enable row level security;
 revoke all on public.contractor_team_work_reports from anon, authenticated;
-grant select, insert, update on public.contractor_team_work_reports to authenticated;
+grant select, insert on public.contractor_team_work_reports to authenticated;
+grant update (read_at) on public.contractor_team_work_reports to authenticated;
 
 create policy "Contractors can create reports for their team entries"
   on public.contractor_team_work_reports
@@ -26,8 +26,7 @@ create policy "Contractors can create reports for their team entries"
   with check (
     contractor_profile_id = (select auth.uid())
     and exists (
-      select 1
-      from public.contractor_teams t
+      select 1 from public.contractor_teams t
       join public.worker_team_work_entries e on e.team_id = t.id
       where t.id = contractor_team_work_reports.team_id
         and t.leader_profile_id = (select auth.uid())
@@ -47,8 +46,7 @@ create policy "Workers can view reports about their entries"
   for select to authenticated
   using (
     exists (
-      select 1
-      from public.worker_profiles wp
+      select 1 from public.worker_profiles wp
       where wp.id = contractor_team_work_reports.worker_profile_id
         and wp.profile_id = (select auth.uid())
     )
@@ -59,16 +57,14 @@ create policy "Workers can mark their reports read"
   for update to authenticated
   using (
     exists (
-      select 1
-      from public.worker_profiles wp
+      select 1 from public.worker_profiles wp
       where wp.id = contractor_team_work_reports.worker_profile_id
         and wp.profile_id = (select auth.uid())
     )
   )
   with check (
     exists (
-      select 1
-      from public.worker_profiles wp
+      select 1 from public.worker_profiles wp
       where wp.id = contractor_team_work_reports.worker_profile_id
         and wp.profile_id = (select auth.uid())
     )
