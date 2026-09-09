@@ -57,8 +57,16 @@ export interface WorkEntryVersion {
 }
 
 export interface WorkerWorkTotals {
+  daily_personal_total?: WorkDecimal;
+  daily_team_total?: WorkDecimal;
   daily_total: WorkDecimal;
+  weekly_personal_total?: WorkDecimal;
+  weekly_team_total?: WorkDecimal;
   weekly_total: WorkDecimal;
+  monthly_personal_total?: WorkDecimal;
+  monthly_team_total?: WorkDecimal;
   monthly_total: WorkDecimal;
+  lifetime_personal_total?: WorkDecimal;
+  lifetime_team_total?: WorkDecimal;
   lifetime_total: WorkDecimal;
 }
