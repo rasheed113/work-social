@@ -1,9 +1,33 @@
+import { Component, lazy, Suspense, type ErrorInfo, type ReactNode } from 'react';
 import { SalaryDashboardPage } from './SalaryDashboardPage';
 import { WorkerWorkHouse } from '../components/WorkerWorkHouse';
 import { useCurrentWorkerProfileId } from '../hooks/useCurrentWorkerProfileId';
 import { useWorkerProfile } from '../hooks/useWorkerProfile';
 import { WorkerTeamWorkPage } from './WorkerTeamWorkPage';
 import { WorkerTeamDashboardPage } from './WorkerTeamDashboardPage';
+
+const WorkerTeamDashboardWorkPage = lazy(() => import('./WorkerTeamDashboardWorkPage').then((module) => ({ default: module.WorkerTeamDashboardWorkPage })));
+
+class TeamDashboardWorkBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
+  state = { hasError: false };
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    console.error('Team Dashboard Work view failed to render.', error, info);
+  }
+
+  render() {
+    if (this.state.hasError) return <WorkerTeamDashboardPage />;
+    return this.props.children;
+  }
+}
+
+function TeamDashboardWorkFallback() {
+  return <main style={{ width: '100%', maxWidth: 980, margin: '0 auto', padding: '24px 14px 112px', boxSizing: 'border-box' }}><p style={{ color: '#64748b', fontWeight: 700 }}>Opening Team Work Dashboard…</p></main>;
+}
 
 export function WorkerWorkHousePage() {
   const session = useCurrentWorkerProfileId();
@@ -22,7 +46,10 @@ export function WorkerWorkHousePage() {
   }
 
   if (/^\/work\/team-work\/\d+(?:\/|$)/.test(window.location.pathname)) {
-    return <WorkerTeamDashboardPage />;
+    if (/^\/work\/team-work\/\d+\/(?:finance|settings)\/?$/.test(window.location.pathname)) {
+      return <WorkerTeamDashboardPage />;
+    }
+    return <TeamDashboardWorkBoundary><Suspense fallback={<TeamDashboardWorkFallback />}><WorkerTeamDashboardWorkPage /></Suspense></TeamDashboardWorkBoundary>;
   }
 
   if (window.location.pathname === '/work/team-work') return <WorkerTeamWorkPage />;
