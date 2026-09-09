@@ -4,7 +4,6 @@ import { useCurrentWorkerProfileId } from '../hooks/useCurrentWorkerProfileId';
 import { useWorkerProfile } from '../hooks/useWorkerProfile';
 import { WorkerTeamWorkPage } from './WorkerTeamWorkPage';
 import { WorkerTeamDashboardPage } from './WorkerTeamDashboardPage';
-import { WorkerTeamDashboardWorkPage } from './WorkerTeamDashboardWorkPage';
 
 export function WorkerWorkHousePage() {
   const session = useCurrentWorkerProfileId();
@@ -23,8 +22,7 @@ export function WorkerWorkHousePage() {
   }
 
   if (/^\/work\/team-work\/\d+(?:\/|$)/.test(window.location.pathname)) {
-    if (/^\/work\/team-work\/\d+\/(?:finance|settings)\/?$/.test(window.location.pathname)) return <WorkerTeamDashboardPage />;
-    return <WorkerTeamDashboardWorkPage />;
+    return <WorkerTeamDashboardPage />;
   }
 
   if (window.location.pathname === '/work/team-work') return <WorkerTeamWorkPage />;
