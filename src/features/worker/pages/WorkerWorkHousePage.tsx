@@ -4,6 +4,7 @@ import { useCurrentWorkerProfileId } from '../hooks/useCurrentWorkerProfileId';
 import { useWorkerProfile } from '../hooks/useWorkerProfile';
 import { WorkerTeamWorkPage } from './WorkerTeamWorkPage';
 import { WorkerTeamDashboardPage } from './WorkerTeamDashboardPage';
+import { WorkerTeamDashboardWorkPage } from './WorkerTeamDashboardWorkPage';
 
 export function WorkerWorkHousePage() {
   const session = useCurrentWorkerProfileId();
@@ -22,22 +23,12 @@ export function WorkerWorkHousePage() {
   }
 
   if (/^\/work\/team-work\/\d+(?:\/|$)/.test(window.location.pathname)) {
-    return <WorkerTeamDashboardPage />;
+    if (/^\/work\/team-work\/\d+\/(?:finance|settings)\/?$/.test(window.location.pathname)) return <WorkerTeamDashboardPage />;
+    return <WorkerTeamDashboardWorkPage />;
   }
 
-  if (window.location.pathname === '/work/team-work') {
-    return <WorkerTeamWorkPage />;
-  }
-
-  // Personal Diary is a global module and must remain reachable from the
-  // module switcher regardless of worker profile type.
-  if (window.location.pathname === '/work/diary') {
-    return <WorkerWorkHouse profileId={session.profileId} />;
-  }
-
-  if (profile.workerProfile?.worker_type === 'salary_person') {
-    return <SalaryDashboardPage profileId={session.profileId} />;
-  }
-
+  if (window.location.pathname === '/work/team-work') return <WorkerTeamWorkPage />;
+  if (window.location.pathname === '/work/diary') return <WorkerWorkHouse profileId={session.profileId} />;
+  if (profile.workerProfile?.worker_type === 'salary_person') return <SalaryDashboardPage profileId={session.profileId} />;
   return <WorkerWorkHouse profileId={session.profileId} />;
 }
