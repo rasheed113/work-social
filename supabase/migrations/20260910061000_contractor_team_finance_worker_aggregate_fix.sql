@@ -1,0 +1,17 @@
+create or replace function public.get_contractor_team_finance_workers(p_team_number bigint,p_start timestamptz,p_end timestamptz)
+returns table(worker_profile_id uuid,work_id uuid,display_name text,username text,avatar_url text,payable numeric(24,4),paid numeric(24,4),due numeric(24,4))
+language sql security definer stable set search_path=''
+as $$
+  select wp.id,wp.work_id,pr.display_name,pr.username,pr.avatar_url,
+    coalesce((select sum(py.payable_amount) from public.contractor_team_worker_payables py where py.team_id=t.id and py.worker_profile_id=wp.id and py.created_at>=p_start and py.created_at<p_end),0)::numeric(24,4),
+    coalesce((select sum(pm.amount) from public.contractor_team_worker_payments pm where pm.team_id=t.id and pm.worker_profile_id=wp.id and pm.paid_at>=p_start and pm.paid_at<p_end),0)::numeric(24,4),
+    (coalesce((select sum(py.payable_amount) from public.contractor_team_worker_payables py where py.team_id=t.id and py.worker_profile_id=wp.id and py.created_at>=p_start and py.created_at<p_end),0)-coalesce((select sum(pm.amount) from public.contractor_team_worker_payments pm where pm.team_id=t.id and pm.worker_profile_id=wp.id and pm.paid_at>=p_start and pm.paid_at<p_end),0))::numeric(24,4)
+  from public.contractor_team_members m
+  join public.contractor_teams t on t.id=m.team_id and t.team_number=p_team_number and t.leader_profile_id=(select auth.uid())
+  join public.worker_profiles wp on wp.profile_id=m.profile_id
+  left join public.profiles pr on pr.id=wp.profile_id
+  group by wp.id,wp.work_id,pr.display_name,pr.username,pr.avatar_url,m.joined_at,t.id
+  order by coalesce(pr.display_name,pr.username,''),m.joined_at;
+$$;
+revoke all on function public.get_contractor_team_finance_workers(bigint,timestamptz,timestamptz) from public,anon;
+grant execute on function public.get_contractor_team_finance_workers(bigint,timestamptz,timestamptz) to authenticated;
