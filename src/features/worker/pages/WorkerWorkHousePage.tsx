@@ -23,7 +23,7 @@ export function WorkerWorkHousePage() {
   if (profile.error) return <main style={{ width: '100%', maxWidth: 900, margin: '0 auto', padding: '24px 14px 112px', boxSizing: 'border-box' }}><p role="alert" style={{ color: '#b91c1c', fontWeight: 700 }}>{profile.error}</p></main>;
   const pathname = window.location.pathname;
   const financeMatch = pathname.match(/^\/work\/contractor\/team-finance\/(\d+)\/?$/);
-  if (financeMatch) return <ContractorTeamFinancePage profileId={session.profileId} teamNumber={financeMatch[1]} />;
+  if (financeMatch) return <ContractorTeamFinancePage teamNumber={financeMatch[1]} />;
   if (/^\/work\/team-work\/\d+(?:\/|$)/.test(pathname)) {
     if (/^\/work\/team-work\/\d+\/(?:finance|settings)\/?$/.test(pathname)) return <WorkerTeamDashboardPage />;
     return <TeamDashboardWorkBoundary><WorkerTeamDashboardWorkPageV2 /></TeamDashboardWorkBoundary>;
