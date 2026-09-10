@@ -4,7 +4,6 @@ import { navigate } from '../../../app/Router';
 import { supabase } from '../../../lib/supabase/client';
 import { AccountModeSwitchCard } from '../../account/components/AccountModeSwitchCard';
 import { ContractorPersonalDashboard } from '../components/ContractorPersonalDashboard';
-import { ContractorTeamPersonalDashboard } from '../components/ContractorTeamPersonalDashboard';
 import { ContractorCreateTeamWorkflow } from '../components/ContractorCreateTeamWorkflow';
 import { ContractorTeamListMenu } from '../components/ContractorTeamListMenu';
 import { ContractorAddMembersWorkflow } from '../components/ContractorAddMembersWorkflow';
@@ -34,7 +33,7 @@ export function ContractorAccountPage(){
  if(account&&!editing&&(!view||view==='overview'))return <ContractorOverviewPage profileId={profile.id}/>;
  if(account&&!editing&&view==='team-detail'&&teamNumber)return <ContractorTeamDetailPage profileId={profile.id} teamNumber={teamNumber}/>;
  if(account&&!editing&&view==='dashboard')return <><ContractorPersonalDashboard profileId={profile.id} displayName={profile.display_name}/><ContractorCreateTeamWorkflow profileId={profile.id}/><ContractorTeamListMenu profileId={profile.id}/></>;
- if(account&&!editing&&view==='team-dashboard'&&teamNumber)return <ContractorTeamPersonalDashboard profileId={profile.id} displayName={profile.display_name} teamNumber={teamNumber}/>;
+ if(account&&!editing&&view==='team-dashboard'&&teamNumber)return <ContractorPersonalDashboard profileId={profile.id} displayName={profile.display_name} teamNumber={teamNumber}/>;
  if(account&&!editing&&view==='team-work'&&teamNumber)return <><ContractorTeamPage profileId={profile.id} teamNumber={teamNumber}/><ContractorAddMembersWorkflow profileId={profile.id} teamNumber={teamNumber}/></>;
  if(account&&!editing&&view==='team'&&teamNumber)return <><ContractorTeamPage profileId={profile.id} teamNumber={teamNumber}/><ContractorAddMembersWorkflow profileId={profile.id} teamNumber={teamNumber}/></>;
  if(account&&!editing&&view==='team-settings'&&teamNumber)return <ContractorTeamSettingsPage profileId={profile.id} teamNumber={teamNumber}/>;
