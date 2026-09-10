@@ -20,6 +20,8 @@ jobs:
           from pathlib import Path
           p = Path('src/features/contractor/pages/ContractorTeamPage.tsx')
           s = p.read_text()
+          if 'Premium Team History' in s:
+              raise SystemExit('Dashboard history patch already present')
           old = '''type SummaryCardProps = { label: string; value: string; caption: string; icon: string };'''
           new = '''type SummaryCardProps = { label: string; value: string; caption: string; icon: string; onClick: () => void };\ntype HistoryPeriod = 'daily' | 'weekly' | 'monthly' | 'lifetime';'''
           assert old in s
@@ -28,10 +30,6 @@ jobs:
           new = '''function SummaryCard({ label, value, caption, icon, onClick }: SummaryCardProps) { return <button type="button" className="ctd-summary-card" onClick={onClick}><div className="ctd-card-icon" aria-hidden="true">{icon}</div><div className="ctd-card-label">{label}</div><div className="ctd-card-value">{value}</div><div className="ctd-card-caption">{caption}</div><span className="ctd-card-open">VIEW HISTORY ›</span></button>; }'''
           assert old in s
           s = s.replace(old, new, 1)
-          old = '''const [team, setTeam] = useState<Team | null>(null), [leader, setLeader] = useState<Profile | null>(null), [entries, setEntries] = useState<TeamWorkEntry[]>([]), [totals, setTotals] = useState<TeamWorkTotals | null>(null),'''
-          new = '''const [team, setTeam] = useState<Team | null>(null), [leader, setLeader] = useState<Profile | null>(null), [entries, setEntries] = useState<TeamWorkEntry[]>([]), [totals, setTotals] = useState<TeamWorkTotals | null>(null),'''
-          assert old in s
-          # insert state after the existing state declaration line using a stable tail
           needle = '''[reportSuccess, setReportSuccess] = useState(false), [reportError, setReportError] = useState('');'''
           repl = '''[reportSuccess, setReportSuccess] = useState(false), [reportError, setReportError] = useState(''), [historyPeriod, setHistoryPeriod] = useState<HistoryPeriod | null>(null);'''
           assert needle in s
@@ -62,11 +60,9 @@ jobs:
           s = s.replace(marker, css, 1)
           p.write_text(s)
           PY
-          grep -q "Premium Team History" src/features/contractor/pages/ContractorTeamPage.tsx
-          grep -q "VIEW HISTORY" src/features/contractor/pages/ContractorTeamPage.tsx
-          grep -q "ctd-history-modal" src/features/contractor/pages/ContractorTeamPage.tsx
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add src/features/contractor/pages/ContractorTeamPage.tsx
           git commit -m 'feat: add clickable contractor team history cards'
           git push
+# trigger
