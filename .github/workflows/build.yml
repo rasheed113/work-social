@@ -1,7 +1,7 @@
 name: build
 on:
   push:
-    branches: [main, feat/ai-universal-eyes-phase-2]
+    branches: [main, feat/ai-universal-eyes-phase-2, feat/team-finance-audit-history-pagination]
   pull_request:
     branches: [main, feat/worker-work-entry-phase-3c]
 permissions:
@@ -14,6 +14,46 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Repair Team Finance audit history
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/features/contractor/pages/ContractorTeamFinancePage.tsx')
+          s=p.read_text()
+          s=s.replace("type Work={id:string;item_name:string;size:string[]|null;quantity:number|string;rate:number|string;total:number|string;special_note:string|null;occurred_at:string;lifecycle_state:string};", "type Work={id:string;item_name:string;size:string[]|null;quantity:number|string;rate:number|string;total:number|string;special_note:string|null;occurred_at:string;lifecycle_state:string};\ntype Audit={id:string;work_entry_id:string;revision_no:number;item_name:string;size:string[]|null;quantity:number|string;rate:number|string;total:number|string;special_note:string|null;recorded_at:string;changed_by:string|null};")
+          s=s.replace("useState<'payment'|'work'|null>", "useState<'payment'|'work'|'audit'|null>")
+          s=s.replace("[payments,setPayments]=useState<Payment[]>([]),[works,setWorks]=useState<Work[]>([]),[payables,setPayables]=useState<Payable[]>([])", "[payments,setPayments]=useState<Payment[]>([]),[works,setWorks]=useState<Work[]>([]),[audits,setAudits]=useState<Audit[]>([]),[auditVisible,setAuditVisible]=useState(5),[payables,setPayables]=useState<Payable[]>([])")
+          old="useEffect(()=>{void refreshDetail()},[selected,mode,detailPeriod,teamNumber]);"
+          new="useEffect(()=>{void refreshDetail()},[selected,mode,detailPeriod,teamNumber]);"
+          s=s.replace(old,new)
+          old="const open=async(w:Worker,m:'payment'|'work')=>{setSelected(w);setMode(m);setDetailPeriod('all');setMenu(null);setMessage('');setActionMessage('');setAmount('');setNote('');setPayableId('');"
+          new="const open=async(w:Worker,m:'payment'|'work'|'audit')=>{setSelected(w);setMode(m);setDetailPeriod('all');setAuditVisible(5);setMenu(null);setMessage('');setActionMessage('');setAmount('');setNote('');setPayableId('');"
+          s=s.replace(old,new)
+          old="useEffect(()=>{void refreshDetail()},[selected,mode,detailPeriod,teamNumber]);\n const open="
+          # Replace refreshDetail itself by inserting audit loading before its mode split.
+          marker="if(f.error){setError(f.error.message);return}setDetail((f.data?.[0] as Finance)||zero);if(mode==='payment')"
+          replacement="if(f.error){setError(f.error.message);return}setDetail((f.data?.[0] as Finance)||zero);const t=await supabase.from('contractor_teams').select('id').eq('team_number',Number(teamNumber)).maybeSingle();if(t.data){const e=await supabase.from('worker_team_work_entries').select('id').eq('team_id',t.data.id).eq('worker_profile_id',selected.worker_profile_id);const ids=(e.data||[]).map((x:any)=>x.id);if(ids.length){const a=await supabase.from('worker_team_work_entry_versions').select('id,work_entry_id,revision_no,item_name,size,quantity,rate,total,special_note,recorded_at,changed_by').in('work_entry_id',ids).gte('recorded_at',b.start).lt('recorded_at',b.end).order('recorded_at',{ascending:false}).order('id',{ascending:false});if(!a.error)setAudits((a.data||[]) as Audit[])}}if(mode==='payment')"
+          s=s.replace(marker,replacement)
+          s=s.replace("<button className=\"tf-btn pay\" onClick={()=>void open(w,'payment')}>View Payment</button><button className=\"tf-btn\" onClick={()=>void open(w,'work')}>View Work</button>", "<button className=\"tf-btn audit\" onClick={()=>void open(w,'audit')}>Audit History</button><button className=\"tf-btn pay\" onClick={()=>void open(w,'payment')}>View Payment</button><button className=\"tf-btn\" onClick={()=>void open(w,'work')}>View Work</button>")
+          old="{mode==='payment'?<div className=\"tf-history\">{payments.length?payments.map(p=>"
+          # Keep payment branch intact; change its trailing else branch to work/audit nested branches.
+          s=s.replace("</article>):<div className=\"tf-state\">No payment events in this period.</div>}</div>:<div className=\"tf-history\">{works.length?works.map(w=>", "</article>):<div className=\"tf-state\">No payment events in this period.</div>}</div>:mode==='work'?<div className=\"tf-history\">{works.length?works.map(w=>")
+          tail="</article>):<div className=\"tf-state\">No Team Work entries in this period.</div>}</div>}</section></div>}"
+          replacement_tail="</article>):<div className=\"tf-state\">No Team Work entries in this period.</div>}</div>:<div className=\"tf-history\">{audits.length?audits.slice(0,auditVisible).map(a=><article className=\"tf-row\" key={a.id}><div><div className=\"tf-row-title\">Revision #{a.revision_no} · {a.item_name}</div><div className=\"tf-row-meta\">{dateText(a.recorded_at)} · {a.quantity} pcs · Rate {money(a.rate)} · Entry {a.work_entry_id.slice(0,8)}</div>{a.special_note&&<div className=\"tf-row-meta\">{a.special_note}</div>}<div className=\"tf-split\"><span className=\"purple\">AUDIT SNAPSHOT</span>{a.changed_by&&<span>CHANGED BY {a.changed_by.slice(0,8)}</span>}</div></div><div className=\"tf-row-amount\" style={{color:'#334155'}}>{money(a.total)}</div></article>):<div className=\"tf-state\">No audit revisions in this period.</div>}{auditVisible<audits.length&&<button className=\"tf-btn\" onClick={()=>setAuditVisible(v=>v+10)}>More 10</button>}</div>}</section></div>}"
+          s=s.replace(tail,replacement_tail)
+          s=s.replace(".tf-btn.pay{background:#ecfdf5", ".tf-btn.audit{background:linear-gradient(145deg,#eef2ff,#ecfeff);color:#4338ca}.tf-btn.pay{background:#ecfdf5")
+          p.write_text(s)
+          PY
       - run: npm install
       - run: npm test
       - run: npm run build
+      - name: Persist repaired source and restore workflow
+        if: ${{ success() }}
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git checkout -- .github/workflows/build.yml
+          git add src/features/contractor/pages/ContractorTeamFinancePage.tsx
+          git add -u .github/workflows/build.yml
+          git commit -m 'fix: team finance audit history' || exit 0
+          git push origin HEAD:feat/team-finance-audit-history-pagination
