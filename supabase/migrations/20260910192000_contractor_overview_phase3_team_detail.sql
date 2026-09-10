@@ -2,7 +2,6 @@
 -- This intentionally exposes only work-intelligence fields. Finance remains separate.
 
 create or replace function public.get_contractor_team_detail(
-  p_team_id bigint,
   p_team_number bigint
 )
 returns table(
@@ -31,8 +30,7 @@ as $$
   with owned_team as (
     select t.id, t.team_number, t.name
     from public.contractor_teams t
-    where t.id = p_team_id
-      and t.team_number = p_team_number
+    where t.team_number = p_team_number
       and t.leader_profile_id = (select auth.uid())
   ),
   team_taken as (
@@ -99,5 +97,5 @@ as $$
   order by m.display_name nulls last, m.work_id;
 $$;
 
-revoke all on function public.get_contractor_team_detail(bigint,bigint) from public, anon;
-grant execute on function public.get_contractor_team_detail(bigint,bigint) to authenticated;
+revoke all on function public.get_contractor_team_detail(bigint) from public, anon;
+grant execute on function public.get_contractor_team_detail(bigint) to authenticated;
