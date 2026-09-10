@@ -1,0 +1,72 @@
+name: Patch contractor team dashboard history
+
+on:
+  push:
+    branches:
+      - feat/contractor-team-dashboard-history-cards
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch dashboard
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('src/features/contractor/pages/ContractorTeamPage.tsx')
+          s = p.read_text()
+          old = '''type SummaryCardProps = { label: string; value: string; caption: string; icon: string };'''
+          new = '''type SummaryCardProps = { label: string; value: string; caption: string; icon: string; onClick: () => void };\ntype HistoryPeriod = 'daily' | 'weekly' | 'monthly' | 'lifetime';'''
+          assert old in s
+          s = s.replace(old, new, 1)
+          old = '''function SummaryCard({ label, value, caption, icon }: SummaryCardProps) { return <article className="ctd-summary-card"><div className="ctd-card-icon" aria-hidden="true">{icon}</div><div className="ctd-card-label">{label}</div><div className="ctd-card-value">{value}</div><div className="ctd-card-caption">{caption}</div></article>; }'''
+          new = '''function SummaryCard({ label, value, caption, icon, onClick }: SummaryCardProps) { return <button type="button" className="ctd-summary-card" onClick={onClick}><div className="ctd-card-icon" aria-hidden="true">{icon}</div><div className="ctd-card-label">{label}</div><div className="ctd-card-value">{value}</div><div className="ctd-card-caption">{caption}</div><span className="ctd-card-open">VIEW HISTORY ›</span></button>; }'''
+          assert old in s
+          s = s.replace(old, new, 1)
+          old = '''const [team, setTeam] = useState<Team | null>(null), [leader, setLeader] = useState<Profile | null>(null), [entries, setEntries] = useState<TeamWorkEntry[]>([]), [totals, setTotals] = useState<TeamWorkTotals | null>(null),'''
+          new = '''const [team, setTeam] = useState<Team | null>(null), [leader, setLeader] = useState<Profile | null>(null), [entries, setEntries] = useState<TeamWorkEntry[]>([]), [totals, setTotals] = useState<TeamWorkTotals | null>(null),'''
+          assert old in s
+          # insert state after the existing state declaration line using a stable tail
+          needle = '''[reportSuccess, setReportSuccess] = useState(false), [reportError, setReportError] = useState('');'''
+          repl = '''[reportSuccess, setReportSuccess] = useState(false), [reportError, setReportError] = useState(''), [historyPeriod, setHistoryPeriod] = useState<HistoryPeriod | null>(null);'''
+          assert needle in s
+          s = s.replace(needle, repl, 1)
+          needle = '''  const openTrash = () => { setTrashAttention(false); setTrashOpen(true); void loadTrashCount(false); };'''
+          repl = '''  const openTrash = () => { setTrashAttention(false); setTrashOpen(true); void loadTrashCount(false); };\n  const openHistory = (period: HistoryPeriod) => setHistoryPeriod(period);\n  const historyEntries = useMemo(() => {\n    if (!historyPeriod) return [];\n    const now = new Date();\n    const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());\n    const weekStart = new Date(dayStart); weekStart.setDate(weekStart.getDate() - ((weekStart.getDay() + 6) % 7));\n    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);\n    const start = historyPeriod === 'daily' ? dayStart : historyPeriod === 'weekly' ? weekStart : historyPeriod === 'monthly' ? monthStart : null;\n    return entries.filter(entry => { const when = new Date(entry.occurred_at); return !start || when >= start; }).sort((a,b) => new Date(b.occurred_at).getTime() - new Date(a.occurred_at).getTime());\n  }, [entries, historyPeriod]);\n  const historyTitle = historyPeriod === 'daily' ? 'Today History' : historyPeriod === 'weekly' ? 'Weekly History' : historyPeriod === 'monthly' ? 'Monthly History' : 'Complete Team History';'''
+          assert needle in s
+          s = s.replace(needle, repl, 1)
+          old = '''<section className="ctd-summary-grid" aria-label="Team work summary"><SummaryCard label="Today" value={money(totals?.daily_total ?? 0)} caption={totals?.entry_count ? `${totals.entry_count} active team entries` : 'No member work recorded yet'} icon="◷"/><SummaryCard label="Weekly" value={money(totals?.weekly_total ?? 0)} caption="Active member Team Work" icon="▥"/><SummaryCard label="Monthly" value={money(totals?.monthly_total ?? 0)} caption="Active member Team Work" icon="◫"/><SummaryCard label="Grand Total" value={money(totals?.lifetime_total ?? 0)} caption="All active Team Work" icon="◆"/></section>'''
+          new = '''<section className="ctd-summary-grid" aria-label="Team work summary"><SummaryCard label="Today" value={money(totals?.daily_total ?? 0)} caption={totals?.entry_count ? `${totals.entry_count} active team entries` : 'No member work recorded yet'} icon="◷" onClick={() => openHistory('daily')}/><SummaryCard label="Weekly" value={money(totals?.weekly_total ?? 0)} caption="Active member Team Work" icon="▥" onClick={() => openHistory('weekly')}/><SummaryCard label="Monthly" value={money(totals?.monthly_total ?? 0)} caption="Active member Team Work" icon="◫" onClick={() => openHistory('monthly')}/><SummaryCard label="Grand Total" value={money(totals?.lifetime_total ?? 0)} caption="All active Team Work" icon="◆" onClick={() => openHistory('lifetime')}/></section>'''
+          assert old in s
+          s = s.replace(old, new, 1)
+          old = '''.ctd-summary-card{min-height:105px;box-sizing:border-box;padding:11px 12px;border-radius:16px;border:1px solid rgba(255,255,255,.9);background:linear-gradient(145deg,rgba(255,255,255,.98),rgba(248,250,252,.9));box-shadow:0 11px 23px rgba(15,23,42,.075),inset 0 1px 0 #fff}'''
+          new = '''.ctd-summary-card{min-height:82px;box-sizing:border-box;padding:9px 10px;border-radius:14px;border:1px solid rgba(255,255,255,.9);background:linear-gradient(145deg,rgba(255,255,255,.98),rgba(248,250,252,.9));box-shadow:0 8px 17px rgba(15,23,42,.065),inset 0 1px 0 #fff;text-align:left;cursor:pointer;color:#172033;transition:transform .16s ease,box-shadow .16s ease}.ctd-summary-card:hover{transform:translateY(-2px);box-shadow:0 12px 22px rgba(15,23,42,.09),inset 0 1px 0 #fff}.ctd-summary-card:active{transform:translateY(0)}'''
+          assert old in s
+          s = s.replace(old, new, 1)
+          old = '''.ctd-card-caption{margin-top:2px;color:#94a3b8;font-size:8px;font-weight:700;line-height:1.3}'''
+          new = '''.ctd-card-caption{margin-top:2px;color:#94a3b8;font-size:7px;font-weight:700;line-height:1.25}.ctd-card-open{display:block;margin-top:5px;color:#4338ca;font-size:6px;font-weight:950;letter-spacing:.12em}'''
+          assert old in s
+          s = s.replace(old, new, 1)
+          needle = '''  {reportEntry && <div className="ctd-panel-backdrop" role="presentation"'''
+          modal = '''  {historyPeriod && <div className="ctd-panel-backdrop" role="presentation" onMouseDown={e => { if(e.currentTarget===e.target)setHistoryPeriod(null); }}><section className="ctd-history-modal" role="dialog" aria-modal="true" aria-label={historyTitle}><div className="ctd-panel-head"><div><div className="ctd-history-kicker">PREMIUM TEAM HISTORY</div><div className="ctd-history-title">{historyTitle}</div></div><button type="button" className="ctd-close" onClick={() => setHistoryPeriod(null)}>×</button></div><div className="ctd-history-total">{historyEntries.length} real Team Work {historyEntries.length === 1 ? 'entry' : 'entries'}</div>{historyEntries.length ? <div className="ctd-history-list">{historyEntries.map(entry => { const isReported = entry.item_name.includes(' · REPORTED'); const isEdited = entry.item_name.endsWith(' · Edited'); const name = entry.item_name.replace(/ · REPORTED/g,'').replace(/ · Edited$/,''); return <article className={`ctd-history-card${isReported ? ' ctd-history-reported' : ''}`} key={entry.id}><div className="ctd-history-row"><div><div className="ctd-history-name">{name}</div><div className="ctd-history-worker">{workerName(entry)}</div></div><strong>{money(entry.total)}</strong></div><div className="ctd-history-meta">{entry.size?.join(' × ') || 'No size'} · {entry.quantity} pcs · {formatDate(entry.occurred_at)}</div>{entry.special_note&&<div className="ctd-history-note">{entry.special_note}</div>}<div className="ctd-history-tags">{isReported&&<span>REPORTED · REVIEWED</span>}{isEdited&&<span>EDITED</span>}</div></article>; })}</div> : <div className="ctd-member-empty">No Team Work entries in this history period.</div>}</section></div>}\n'''
+          assert needle in s
+          s = s.replace(needle, modal + needle, 1)
+          marker = '''.ctd-report-modal{width:min(430px,100%);'''
+          css = '''.ctd-history-modal{width:min(560px,100%);max-height:min(78dvh,720px);overflow:hidden;padding:15px;border:1px solid rgba(255,255,255,.96);border-radius:22px;background:linear-gradient(145deg,rgba(255,255,255,.99),rgba(239,246,255,.98) 54%,rgba(236,253,245,.98));box-shadow:0 30px 80px rgba(15,23,42,.25),inset 0 1px 0 #fff}.ctd-history-kicker{color:#4338ca;font-size:7px;font-weight:950;letter-spacing:.15em}.ctd-history-title{margin-top:3px;color:#172033;font-size:18px;font-weight:950;letter-spacing:-.035em}.ctd-history-total{margin:0 0 9px;padding:7px 9px;border-radius:10px;background:rgba(238,242,255,.72);color:#64748b;font-size:8px;font-weight:800}.ctd-history-list{display:grid;gap:7px;max-height:58dvh;overflow:auto;padding-right:2px}.ctd-history-card{padding:9px 10px;border-radius:13px;border:1px solid rgba(15,118,110,.13);background:rgba(255,255,255,.86);box-shadow:0 6px 14px rgba(15,23,42,.055)}.ctd-history-reported{border-color:rgba(220,38,38,.2);background:linear-gradient(145deg,#fff,rgba(255,247,247,.96),rgba(250,245,255,.95))}.ctd-history-row{display:flex;justify-content:space-between;gap:8px}.ctd-history-name{font-size:10px;font-weight:950}.ctd-history-worker{margin-top:3px;color:#0f766e;font-size:7px;font-weight:850}.ctd-history-row strong{font-size:10px;white-space:nowrap}.ctd-history-meta{margin-top:5px;color:#64748b;font-size:7px;line-height:1.4}.ctd-history-note{margin-top:5px;padding:6px 7px;border-radius:8px;background:#f8fafc;color:#475569;font-size:7px}.ctd-history-tags{display:flex;gap:5px;margin-top:6px}.ctd-history-tags span{padding:4px 6px;border-radius:999px;background:#eef2ff;color:#4338ca;font-size:6px;font-weight:950;letter-spacing:.08em}.ctd-history-reported .ctd-history-tags span{background:#fee2e2;color:#b91c1c}.ctd-report-modal{width:min(430px,100%);'''
+          assert marker in s
+          s = s.replace(marker, css, 1)
+          p.write_text(s)
+          PY
+          grep -q "Premium Team History" src/features/contractor/pages/ContractorTeamPage.tsx
+          grep -q "VIEW HISTORY" src/features/contractor/pages/ContractorTeamPage.tsx
+          grep -q "ctd-history-modal" src/features/contractor/pages/ContractorTeamPage.tsx
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/features/contractor/pages/ContractorTeamPage.tsx
+          git commit -m 'feat: add clickable contractor team history cards'
+          git push
