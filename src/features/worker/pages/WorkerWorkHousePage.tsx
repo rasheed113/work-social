@@ -6,6 +6,7 @@ import { useWorkerProfile } from '../hooks/useWorkerProfile';
 import { WorkerTeamWorkPage } from './WorkerTeamWorkPage';
 import { WorkerTeamDashboardPage } from './WorkerTeamDashboardPage';
 import { WorkerTeamDashboardWorkPageV2 } from './WorkerTeamDashboardWorkPageV2';
+import { ContractorTeamFinancePage } from '../../contractor/pages/ContractorTeamFinancePage';
 
 class TeamDashboardWorkBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
   state = { hasError: false };
@@ -20,12 +21,15 @@ export function WorkerWorkHousePage() {
   if (session.loading || profile.loading) return <main style={{ width: '100%', maxWidth: 900, margin: '0 auto', padding: '24px 14px 112px', boxSizing: 'border-box' }}><p style={{ color: '#64748b' }}>Loading Worker workspace…</p></main>;
   if (session.error || !session.profileId) return <main style={{ width: '100%', maxWidth: 900, margin: '0 auto', padding: '24px 14px 112px', boxSizing: 'border-box' }}><p role="alert" style={{ color: '#b91c1c', fontWeight: 700 }}>{session.error ?? 'Authenticated profile is unavailable.'}</p></main>;
   if (profile.error) return <main style={{ width: '100%', maxWidth: 900, margin: '0 auto', padding: '24px 14px 112px', boxSizing: 'border-box' }}><p role="alert" style={{ color: '#b91c1c', fontWeight: 700 }}>{profile.error}</p></main>;
-  if (/^\/work\/team-work\/\d+(?:\/|$)/.test(window.location.pathname)) {
-    if (/^\/work\/team-work\/\d+\/(?:finance|settings)\/?$/.test(window.location.pathname)) return <WorkerTeamDashboardPage />;
+  const pathname = window.location.pathname;
+  const financeMatch = pathname.match(/^\/work\/contractor\/team-finance\/(\d+)\/?$/);
+  if (financeMatch) return <ContractorTeamFinancePage profileId={session.profileId} teamNumber={financeMatch[1]} />;
+  if (/^\/work\/team-work\/\d+(?:\/|$)/.test(pathname)) {
+    if (/^\/work\/team-work\/\d+\/(?:finance|settings)\/?$/.test(pathname)) return <WorkerTeamDashboardPage />;
     return <TeamDashboardWorkBoundary><WorkerTeamDashboardWorkPageV2 /></TeamDashboardWorkBoundary>;
   }
-  if (window.location.pathname === '/work/team-work') return <WorkerTeamWorkPage />;
-  if (window.location.pathname === '/work/diary') return <WorkerWorkHouse profileId={session.profileId} />;
+  if (pathname === '/work/team-work') return <WorkerTeamWorkPage />;
+  if (pathname === '/work/diary') return <WorkerWorkHouse profileId={session.profileId} />;
   if (profile.workerProfile?.worker_type === 'salary_person') return <SalaryDashboardPage profileId={session.profileId} />;
   return <WorkerWorkHouse profileId={session.profileId} />;
 }
