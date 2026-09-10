@@ -1,0 +1,43 @@
+name: repair-team-finance-audit
+
+on:
+  push:
+    branches: [feat/team-finance-audit-history-pagination]
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    if: ${{ !startsWith(github.event.head_commit.message, 'fix: repair team finance audit syntax') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Repair audit implementation
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/features/contractor/pages/ContractorTeamFinancePage.tsx')
+          s=p.read_text()
+          # The previous audit patch was syntactically invalid because it mixed
+          # the audit view into the existing payment/work ternary. Restore the
+          # stable modal and expose Audit History as a separate modal instead.
+          marker=" {editPayment&&<div className=\"tf-overlay\">"
+          audit=""" {selected&&mode==='audit'&&<div className=\"tf-overlay\" onMouseDown={e=>{if(e.currentTarget===e.target){setSelected(null);setMode(null)}}}><section className=\"tf-modal\"><div className=\"tf-modal-head\"><div className=\"tf-id\"><div className=\"tf-avatar\">{selected.avatar_url?<img src={selected.avatar_url} alt=\"\"/>:initials(selected.display_name||selected.username||'Worker')}</div><div><div className=\"tf-name\">{selected.display_name||selected.username||'Work Social Worker'}</div><div className=\"tf-wid\">Worker ID · {selected.work_id||selected.worker_profile_id}</div></div></div><button className=\"tf-x\" onClick={()=>{setSelected(null);setMode(null)}}>×</button></div>{periods(detailPeriod,setDetailPeriod)}<div className=\"tf-audit-head\"><div className=\"tf-audit-title\">AUDIT HISTORY</div><div className=\"tf-audit-note\">Immutable Team Work revisions · newest first · 5 initial records, then 10 more per request.</div></div><div className=\"tf-history\">{auditLoading?<div className=\"tf-state\">Loading immutable audit history…</div>:audits.length?audits.slice(0,auditVisible).map(a=><article className=\"tf-row\" key={a.id}><div><div className=\"tf-row-title\">{a.item_name} · Revision {a.revision_no}</div><div className=\"tf-row-meta\">{dateText(a.recorded_at)} · Qty {a.quantity} · Rate {money(a.rate)} · Entry {a.work_entry_id.slice(0,8)}…</div>{a.special_note&&<div className=\"tf-row-meta\">{a.special_note}</div>}<div className=\"tf-split\"><span className=\"orange\">AUDIT SNAPSHOT</span>{a.changed_by&&<span className=\"purple\">BY {a.changed_by.slice(0,8)}…</span>}</div></div><div className=\"tf-row-amount\" style={{color:'#334155'}}>{money(a.total)}</div></article>):<div className=\"tf-state\">No audit revisions in this period.</div>}</div>{auditVisible<audits.length&&<button className=\"tf-load-more\" onClick={()=>setAuditVisible(v=>v+10)}>Show 10 more · {audits.length-auditVisible} remaining</button>}</section></div>}
+"""
+          # If the audit modal was already inserted by a retry, do not duplicate it.
+          if "selected&&mode==='audit'&&<div className=\"tf-overlay\"" not in s:
+              if marker not in s: raise SystemExit('edit modal anchor missing')
+              s=s.replace(marker,audit+marker,1)
+          p.write_text(s)
+          PY
+          if git diff --quiet -- src/features/contractor/pages/ContractorTeamFinancePage.tsx; then
+            echo 'No page repair needed.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/features/contractor/pages/ContractorTeamFinancePage.tsx
+          git commit -m 'fix: repair team finance audit syntax'
+          git push
