@@ -1,0 +1,148 @@
+create table if not exists public.contractor_team_worker_payables (
+  id uuid primary key default gen_random_uuid(),
+  team_id bigint not null references public.contractor_teams(id) on delete cascade,
+  worker_profile_id uuid not null references public.worker_profiles(id) on delete restrict,
+  work_entry_id uuid not null references public.worker_team_work_entries(id) on delete restrict,
+  quantity numeric(18,4) not null check (quantity > 0),
+  worker_rate numeric(24,4) not null check (worker_rate >= 0),
+  payable_amount numeric(24,4) not null check (payable_amount >= 0),
+  created_at timestamptz not null default now(),
+  unique(work_entry_id)
+);
+create index if not exists contractor_team_worker_payables_team_worker_idx on public.contractor_team_worker_payables(team_id,worker_profile_id,created_at desc);
+create index if not exists contractor_team_worker_payables_work_idx on public.contractor_team_worker_payables(work_entry_id);
+
+create table if not exists public.contractor_team_worker_payments (
+  id uuid primary key default gen_random_uuid(),
+  team_id bigint not null references public.contractor_teams(id) on delete cascade,
+  worker_profile_id uuid not null references public.worker_profiles(id) on delete restrict,
+  payable_id uuid not null references public.contractor_team_worker_payables(id) on delete restrict,
+  amount numeric(24,4) not null check (amount > 0),
+  paid_at timestamptz not null default now(),
+  note text,
+  created_by uuid not null references public.profiles(id) on delete restrict,
+  created_at timestamptz not null default now()
+);
+create index if not exists contractor_team_worker_payments_team_worker_idx on public.contractor_team_worker_payments(team_id,worker_profile_id,paid_at desc,id desc);
+create index if not exists contractor_team_worker_payments_payable_idx on public.contractor_team_worker_payments(payable_id,paid_at desc,id desc);
+
+alter table public.contractor_team_worker_payables enable row level security;
+alter table public.contractor_team_worker_payments enable row level security;
+revoke all on table public.contractor_team_worker_payables from anon,authenticated;
+revoke all on table public.contractor_team_worker_payments from anon,authenticated;
+grant select on public.contractor_team_worker_payables to authenticated;
+grant select on public.contractor_team_worker_payments to authenticated;
+
+create policy contractor_team_worker_payables_owner_select on public.contractor_team_worker_payables
+  for select to authenticated using (exists (select 1 from public.contractor_teams t where t.id=team_id and t.leader_profile_id=(select auth.uid())));
+create policy contractor_team_worker_payments_owner_select on public.contractor_team_worker_payments
+  for select to authenticated using (exists (select 1 from public.contractor_teams t where t.id=team_id and t.leader_profile_id=(select auth.uid())));
+
+create or replace function private.create_contractor_team_worker_payable()
+returns trigger language plpgsql security definer set search_path=''
+as $$
+begin
+  insert into public.contractor_team_worker_payables(team_id,worker_profile_id,work_entry_id,quantity,worker_rate,payable_amount)
+  values (new.team_id,new.worker_profile_id,new.id,new.quantity,new.rate,new.total)
+  on conflict (work_entry_id) do nothing;
+  return new;
+end;
+$$;
+revoke all on function private.create_contractor_team_worker_payable() from public,anon,authenticated;
+
+drop trigger if exists contractor_team_worker_payable_after_insert on public.worker_team_work_entries;
+create trigger contractor_team_worker_payable_after_insert
+after insert on public.worker_team_work_entries
+for each row execute function private.create_contractor_team_worker_payable();
+
+insert into public.contractor_team_worker_payables(team_id,worker_profile_id,work_entry_id,quantity,worker_rate,payable_amount,created_at)
+select e.team_id,e.worker_profile_id,e.id,e.quantity,e.rate,e.total,e.created_at
+from public.worker_team_work_entries e
+on conflict (work_entry_id) do nothing;
+
+create or replace function public.get_contractor_team_finance_summary(p_team_number bigint,p_start timestamptz,p_end timestamptz)
+returns table(payable numeric(24,4),paid numeric(24,4),due numeric(24,4),paid_percent numeric(8,2))
+language sql security definer stable set search_path=''
+as $$
+  with scope as (
+    select t.id as team_id from public.contractor_teams t where t.team_number=p_team_number and t.leader_profile_id=(select auth.uid()) limit 1
+  ),
+  p as (
+    select coalesce(sum(wp.payable_amount),0)::numeric(24,4) as payable
+    from public.contractor_team_worker_payables wp join scope s on s.team_id=wp.team_id
+    where wp.created_at>=p_start and wp.created_at<p_end
+  ),
+  paid_rows as (
+    select coalesce(sum(wm.amount),0)::numeric(24,4) as paid
+    from public.contractor_team_worker_payments wm join scope s on s.team_id=wm.team_id
+    where wm.paid_at>=p_start and wm.paid_at<p_end
+  )
+  select p.payable,paid_rows.paid,(p.payable-paid_rows.paid)::numeric(24,4),case when p.payable=0 then 0::numeric else round((paid_rows.paid/p.payable)*100,2) end from p,paid_rows;
+$$;
+revoke all on function public.get_contractor_team_finance_summary(bigint,timestamptz,timestamptz) from public,anon;
+grant execute on function public.get_contractor_team_finance_summary(bigint,timestamptz,timestamptz) to authenticated;
+
+create or replace function public.get_contractor_team_finance_workers(p_team_number bigint,p_start timestamptz,p_end timestamptz)
+returns table(worker_profile_id uuid,work_id uuid,display_name text,username text,avatar_url text,payable numeric(24,4),paid numeric(24,4),due numeric(24,4))
+language sql security definer stable set search_path=''
+as $$
+  select wp.id,wp.work_id,pr.display_name,pr.username,pr.avatar_url,
+    coalesce((select sum(py.payable_amount) from public.contractor_team_worker_payables py where py.team_id=t.id and py.worker_profile_id=wp.id and py.created_at>=p_start and py.created_at<p_end),0)::numeric(24,4),
+    coalesce((select sum(pm.amount) from public.contractor_team_worker_payments pm where pm.team_id=t.id and pm.worker_profile_id=wp.id and pm.paid_at>=p_start and pm.paid_at<p_end),0)::numeric(24,4),
+    (coalesce((select sum(py.payable_amount) from public.contractor_team_worker_payables py where py.team_id=t.id and py.worker_profile_id=wp.id and py.created_at>=p_start and py.created_at<p_end),0)-coalesce((select sum(pm.amount) from public.contractor_team_worker_payments pm where pm.team_id=t.id and pm.worker_profile_id=wp.id and pm.paid_at>=p_start and pm.paid_at<p_end),0))::numeric(24,4)
+  from public.contractor_team_members m
+  join public.contractor_teams t on t.id=m.team_id and t.team_number=p_team_number and t.leader_profile_id=(select auth.uid())
+  join public.worker_profiles wp on wp.profile_id=m.profile_id
+  left join public.profiles pr on pr.id=wp.profile_id
+  group by wp.id,wp.work_id,pr.display_name,pr.username,pr.avatar_url,m.joined_at,t.id
+  order by coalesce(pr.display_name,pr.username,''),m.joined_at;
+$$;
+revoke all on function public.get_contractor_team_finance_workers(bigint,timestamptz,timestamptz) from public,anon;
+grant execute on function public.get_contractor_team_finance_workers(bigint,timestamptz,timestamptz) to authenticated;
+
+create or replace function public.get_contractor_team_worker_payment_history(p_team_number bigint,p_worker_profile_id uuid,p_start timestamptz,p_end timestamptz)
+returns table(id uuid,amount numeric(24,4),paid_at timestamptz,note text,payable_id uuid,payable_amount numeric(24,4),created_at timestamptz)
+language sql security definer stable set search_path=''
+as $$
+  select pm.id,pm.amount,pm.paid_at,pm.note,pm.payable_id,py.payable_amount,pm.created_at
+  from public.contractor_team_worker_payments pm
+  join public.contractor_team_worker_payables py on py.id=pm.payable_id
+  join public.contractor_teams t on t.id=pm.team_id
+  where t.team_number=p_team_number and t.leader_profile_id=(select auth.uid()) and pm.worker_profile_id=p_worker_profile_id and pm.paid_at>=p_start and pm.paid_at<p_end
+  order by pm.paid_at desc,pm.id desc;
+$$;
+revoke all on function public.get_contractor_team_worker_payment_history(bigint,uuid,timestamptz,timestamptz) from public,anon;
+grant execute on function public.get_contractor_team_worker_payment_history(bigint,uuid,timestamptz,timestamptz) to authenticated;
+
+create or replace function public.get_contractor_team_worker_work_history(p_team_number bigint,p_worker_profile_id uuid,p_start timestamptz,p_end timestamptz)
+returns table(id uuid,item_name text,size text[],quantity numeric,rate numeric,total numeric,special_note text,occurred_at timestamptz,updated_at timestamptz,lifecycle_state text)
+language sql security definer stable set search_path=''
+as $$
+  select e.id,e.item_name,e.size,e.quantity,e.rate,e.total,e.special_note,e.occurred_at,e.updated_at,e.lifecycle_state
+  from public.worker_team_work_entries e join public.contractor_teams t on t.id=e.team_id
+  where t.team_number=p_team_number and t.leader_profile_id=(select auth.uid()) and e.worker_profile_id=p_worker_profile_id and e.occurred_at>=p_start and e.occurred_at<p_end
+  order by e.occurred_at desc,e.id desc;
+$$;
+revoke all on function public.get_contractor_team_worker_work_history(bigint,uuid,timestamptz,timestamptz) from public,anon;
+grant execute on function public.get_contractor_team_worker_work_history(bigint,uuid,timestamptz,timestamptz) to authenticated;
+
+create or replace function public.record_contractor_team_worker_payment(p_team_number bigint,p_payable_id uuid,p_amount numeric,p_paid_at timestamptz default now(),p_note text default null)
+returns uuid
+language plpgsql security definer set search_path=''
+as $$
+declare v_team_id bigint; v_worker_profile_id uuid; v_payable numeric(24,4); v_paid numeric(24,4); v_payment_id uuid;
+begin
+  if p_amount is null or p_amount<=0 then raise exception 'Payment amount must be greater than zero'; end if;
+  select py.team_id,py.worker_profile_id,py.payable_amount into v_team_id,v_worker_profile_id,v_payable
+  from public.contractor_team_worker_payables py join public.contractor_teams t on t.id=py.team_id
+  where py.id=p_payable_id and t.team_number=p_team_number and t.leader_profile_id=(select auth.uid()) for update;
+  if v_team_id is null then raise exception 'Worker payable not found or access denied'; end if;
+  select coalesce(sum(pm.amount),0)::numeric(24,4) into v_paid from public.contractor_team_worker_payments pm where pm.payable_id=p_payable_id;
+  if p_amount>v_payable-v_paid then raise exception 'Payment exceeds the remaining payable amount'; end if;
+  insert into public.contractor_team_worker_payments(team_id,worker_profile_id,payable_id,amount,paid_at,note,created_by)
+  values(v_team_id,v_worker_profile_id,p_payable_id,p_amount,p_paid_at,nullif(btrim(p_note),''),(select auth.uid())) returning id into v_payment_id;
+  return v_payment_id;
+end;
+$$;
+revoke all on function public.record_contractor_team_worker_payment(bigint,uuid,numeric,timestamptz,text) from public,anon;
+grant execute on function public.record_contractor_team_worker_payment(bigint,uuid,numeric,timestamptz,text) to authenticated;
