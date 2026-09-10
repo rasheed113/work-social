@@ -11,6 +11,7 @@ import { ContractorAddMembersWorkflow } from '../components/ContractorAddMembers
 import { ContractorTeamPage } from './ContractorTeamPage';
 import { ContractorTeamSettingsPage } from './ContractorTeamSettingsPage';
 import { ContractorOverviewPage } from './ContractorOverviewPage';
+import { ContractorTeamDetailPage } from './ContractorTeamDetailPage';
 
 type Profile={id:string;display_name:string|null;username:string|null;avatar_url:string|null};
 type ContractorAccount={profile_id:string;contractor_id:string;is_commission_based:boolean;work_types:string[];works_with:string[];business_name:string|null};
@@ -22,7 +23,7 @@ const input={width:'100%',minHeight:44,padding:'0 12px',boxSizing:'border-box' a
 function initials(name:string){const v=name.trim();return v?v.split(/\s+/).slice(0,2).map(x=>x.charAt(0)).join('').toUpperCase():'C'}
 export function ContractorAccountPage(){
  const [profile,setProfile]=useState<Profile|null>(null),[account,setAccount]=useState<ContractorAccount|null>(null),[loading,setLoading]=useState(true),[saving,setSaving]=useState(false),[error,setError]=useState(''),[saved,setSaved]=useState(false),[commissionBased,setCommissionBased]=useState<boolean|null>(null),[workTypes,setWorkTypes]=useState<string[]>([]),[worksWith,setWorksWith]=useState<string[]>([]),[businessName,setBusinessName]=useState('');
- const query=new URLSearchParams(window.location.search);const view=query.get('view');const teamNumber=query.get('team');const editing=view==='setup';
+ const query=new URLSearchParams(window.location.search);const view=query.get('view');const teamNumber=query.get('team');const teamId=query.get('team_id');const editing=view==='setup';
  const load=async()=>{setLoading(true);setError('');const u=await supabase.auth.getUser();if(u.error||!u.data.user){setError(u.error?.message||'Authenticated identity is unavailable.');setLoading(false);return;}const p=await supabase.from('profiles').select('id,display_name,username,avatar_url').eq('id',u.data.user.id).maybeSingle<Profile>();if(p.error||!p.data){setError(p.error?.message||'Profile could not be loaded.');setLoading(false);return;}setProfile(p.data);const a=await supabase.from('contractor_accounts').select('profile_id,contractor_id,is_commission_based,work_types,works_with,business_name').eq('profile_id',u.data.user.id).maybeSingle<ContractorAccount>();if(a.error){setError(a.error.message);setLoading(false);return;}if(a.data){setAccount(a.data);setCommissionBased(a.data.is_commission_based);setWorkTypes(a.data.work_types??[]);setWorksWith(a.data.works_with??[]);setBusinessName(a.data.business_name??'')}setLoading(false)};
  useEffect(()=>{void load()},[]);
  const toggle=(values:string[],value:string,setter:(v:string[])=>void)=>setter(values.includes(value)?values.filter(x=>x!==value):[...values,value]);
@@ -30,6 +31,7 @@ export function ContractorAccountPage(){
  if(loading)return <main style={shell}><section style={{...card,marginTop:18}}><strong>Loading Contractor Account…</strong></section></main>;
  if(!profile)return <main style={shell}><section style={{...card,marginTop:18}} role="alert"><strong>Unable to load Contractor Account</strong><p style={{color:'#64748b',fontSize:12}}>{error}</p><button type="button" onClick={()=>void load()}>Retry</button></section></main>;
  if(account&&!editing&&(!view||view==='overview'))return <ContractorOverviewPage profileId={profile.id}/>;
+ if(account&&!editing&&view==='team-detail'&&teamId&&teamNumber)return <ContractorTeamDetailPage profileId={profile.id} teamId={teamId} teamNumber={teamNumber}/>;
  if(account&&!editing&&view==='dashboard')return <><ContractorPersonalDashboard profileId={profile.id} displayName={profile.display_name}/><ContractorCreateTeamWorkflow profileId={profile.id}/><ContractorTeamListMenu profileId={profile.id}/></>;
  if(account&&!editing&&view==='team-dashboard'&&teamNumber)return <ContractorTeamPersonalDashboard profileId={profile.id} displayName={profile.display_name} teamNumber={teamNumber}/>;
  if(account&&!editing&&view==='team-work'&&teamNumber)return <><ContractorTeamPage profileId={profile.id} teamNumber={teamNumber}/><ContractorAddMembersWorkflow profileId={profile.id} teamNumber={teamNumber}/></>;
