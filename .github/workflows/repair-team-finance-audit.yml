@@ -1,12 +1,12 @@
 name: repair-team-finance-audit
 on:
-  push:
-    branches: [feat/team-finance-audit-history-pagination]
+  pull_request:
+    types: [opened, synchronize]
 permissions:
   contents: write
 jobs:
   repair:
-    if: ${{ !startsWith(github.event.head_commit.message, 'fix: team finance audit') }}
+    if: ${{ !startsWith(github.event.pull_request.title, 'fix: team finance audit') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
