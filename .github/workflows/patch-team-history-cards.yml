@@ -20,12 +20,12 @@ jobs:
           from pathlib import Path
           p = Path('src/features/contractor/pages/ContractorTeamPage.tsx')
           s = p.read_text()
-          old = "function SummaryCard({ label, value, caption, icon }: SummaryCardProps) { return <article className=\"ctd-summary-card\"><div className=\"ctd-card-icon\" aria-hidden=\"true\">{icon}</div><div className=\"ctd-card-label\">{label}</div><div className=\"ctd-card-value\">{value}</div><div className=\"ctd-card-caption\">{caption}</div></article>; }"
-          new = "function SummaryCard({ label, value, caption, icon, onClick }: SummaryCardProps & { onClick: () => void }) { return <button type=\"button\" className=\"ctd-summary-card\" onClick={onClick} aria-label={`${label} Team Work history`}><div className=\"ctd-card-icon\" aria-hidden=\"true\">{icon}</div><div className=\"ctd-card-label\">{label}</div><div className=\"ctd-card-value\">{value}</div><div className=\"ctd-card-caption\">{caption}</div><span className=\"ctd-card-open\" aria-hidden=\"true\">› History</span></button>; }"
+          old = 'function SummaryCard({ label, value, caption, icon }: SummaryCardProps) { return <article className="ctd-summary-card"><div className="ctd-card-icon" aria-hidden="true">{icon}</div><div className="ctd-card-label">{label}</div><div className="ctd-card-value">{value}</div><div className="ctd-card-caption">{caption}</div></article>; }'
+          new = 'function SummaryCard({ label, value, caption, icon, onClick }: SummaryCardProps & { onClick: () => void }) { return <button type="button" className="ctd-summary-card" onClick={onClick} aria-label={`${label} Team Work history`}><div className="ctd-card-icon" aria-hidden="true">{icon}</div><div className="ctd-card-label">{label}</div><div className="ctd-card-value">{value}</div><div className="ctd-card-caption">{caption}</div><span className="ctd-card-open" aria-hidden="true">› History</span></button>; }'
           if old not in s: raise SystemExit('SummaryCard source pattern not found')
           s = s.replace(old, new, 1)
-          old = "  const parsedTeamNumber = useMemo(() => Number(teamNumber), [teamNumber]);"
-          new = """  const parsedTeamNumber = useMemo(() => Number(teamNumber), [teamNumber]);
+          old = '  const parsedTeamNumber = useMemo(() => Number(teamNumber), [teamNumber]);'
+          new = '''  const parsedTeamNumber = useMemo(() => Number(teamNumber), [teamNumber]);
   const [historyPeriod, setHistoryPeriod] = useState<'today' | 'weekly' | 'monthly' | 'lifetime' | null>(null);
   const historyEntries = useMemo(() => {
     if (!historyPeriod) return [];
@@ -40,7 +40,7 @@ jobs:
   const historyTotal = useMemo(() => historyEntries.reduce((sum, entry) => sum + Number(entry.total || 0), 0), [historyEntries]);
   const historyTitle = historyPeriod === 'today' ? 'Today History' : historyPeriod === 'weekly' ? 'Weekly History' : historyPeriod === 'monthly' ? 'Monthly History' : 'Complete Team Work History';
   const openHistory = (period: 'today' | 'weekly' | 'monthly' | 'lifetime') => setHistoryPeriod(period);
-"""
+'''
           if old not in s: raise SystemExit('state anchor not found')
           s = s.replace(old, new, 1)
           s = s.replace('.ctd-summary-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.ctd-summary-card{min-height:105px;box-sizing:border-box;padding:11px 12px;', '.ctd-summary-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.ctd-summary-card{position:relative;min-height:82px;box-sizing:border-box;padding:8px 9px;', 1)
