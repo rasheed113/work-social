@@ -51,4 +51,4 @@ jobs:
           git add src/features/contractor/pages/ContractorTeamFinancePage.tsx
           git add -u .github/workflows/build.yml .github/workflows/repair-team-finance-audit.yml README_AUDIT_TMP.md
           git commit -m 'fix: team finance audit history syntax' || exit 0
-          git push
+          git push origin HEAD:feat/team-finance-audit-history-pagination
