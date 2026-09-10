@@ -14,6 +14,41 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Repair Team Finance audit implementation
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/features/contractor/pages/ContractorTeamFinancePage.tsx')
+          s=p.read_text()
+          s=s.replace("type Work={id:string;item_name:string;size:string[]|null;quantity:number|string;rate:number|string;total:number|string;special_note:string|null;occurred_at:string;lifecycle_state:string};", "type Work={id:string;item_name:string;size:string[]|null;quantity:number|string;rate:number|string;total:number|string;special_note:string|null;occurred_at:string;lifecycle_state:string};\ntype Audit={id:string;work_entry_id:string;revision_no:number;item_name:string;size:string[]|null;quantity:number|string;rate:number|string;total:number|string;special_note:string|null;recorded_at:string;changed_by:string|null};")
+          s=s.replace("[payments,setPayments]=useState<Payment[]>([]),[works,setWorks]=useState<Work[]>([]),[payables,setPayables]", "[payments,setPayments]=useState<Payment[]>([]),[works,setWorks]=useState<Work[]>([]),[audits,setAudits]=useState<Audit[]>([]),[auditVisible,setAuditVisible]=useState(5),[auditLoading,setAuditLoading]=useState(false),[payables,setPayables]")
+          s=s.replace("useState<'payment'|'work'|null>", "useState<'payment'|'work'|'audit'|null>")
+          s=s.replace("const open=async(w:Worker,m:'payment'|'work')", "const open=async(w:Worker,m:'payment'|'work'|'audit')")
+          s=s.replace("setPayableId('');if(m==='payment')", "setPayableId('');setAuditVisible(5);if(m==='payment')")
+          old="}else{const h=await supabase.rpc('get_contractor_team_worker_work_history',{p_team_number:Number(teamNumber),p_worker_profile_id:selected.worker_profile_id,p_start:b.start,p_end:b.end});if(!h.error)setWorks((h.data||[]) as Work[])}};"
+          new="}else if(mode==='work'){const h=await supabase.rpc('get_contractor_team_worker_work_history',{p_team_number:Number(teamNumber),p_worker_profile_id:selected.worker_profile_id,p_start:b.start,p_end:b.end});if(!h.error)setWorks((h.data||[]) as Work[])}else{setAuditLoading(true);const team=await supabase.from('contractor_teams').select('id').eq('team_number',Number(teamNumber)).maybeSingle();if(team.error){setAuditLoading(false);setError(team.error.message);return}const e=await supabase.from('worker_team_work_entries').select('id').eq('worker_profile_id',selected.worker_profile_id).eq('team_id',team.data?.id||0);if(e.error){setAuditLoading(false);setError(e.error.message);return}const ids=(e.data||[]).map((row:{id:string})=>row.id);if(!ids.length){setAudits([]);setAuditVisible(5);setAuditLoading(false);return}const h=await supabase.from('worker_team_work_entry_versions').select('id,work_entry_id,revision_no,item_name,size,quantity,rate,total,special_note,recorded_at,changed_by').in('work_entry_id',ids).gte('recorded_at',b.start).lt('recorded_at',b.end).order('recorded_at',{ascending:false}).order('id',{ascending:false});if(!h.error)setAudits((h.data||[]) as Audit[]);else setError(h.error.message);setAuditVisible(5);setAuditLoading(false)}};"
+          if old not in s: raise SystemExit('refresh anchor missing')
+          s=s.replace(old,new,1)
+          s=s.replace("<button className=\"tf-btn\" onClick={()=>void open(w,'work')}>View Work</button>", "<button className=\"tf-btn audit\" onClick={()=>void open(w,'audit')}>Audit History</button><button className=\"tf-btn\" onClick={()=>void open(w,'work')}>View Work</button>",1)
+          s=s.replace('.tf-action{width:min(470px,100%);', '.tf-audit-head{margin-top:11px;padding:10px;border-radius:13px;background:linear-gradient(145deg,#fff7ed,#eff6ff);border:1px solid rgba(249,115,22,.15)}.tf-audit-title{font-size:9px;font-weight:950;color:#c2410c}.tf-audit-note{margin-top:3px;color:#64748b;font-size:7px;line-height:1.4}.tf-load-more{width:100%;min-height:34px;margin-top:8px;border:1px solid rgba(79,70,229,.16);border-radius:10px;background:linear-gradient(145deg,#fff,#eef2ff);color:#4338ca;font-size:8px;font-weight:950;cursor:pointer}.tf-btn.audit{background:linear-gradient(145deg,#fff7ed,#ffedd5);color:#c2410c;border-color:rgba(249,115,22,.2)}.tf-action{width:min(470px,100%);')
+          marker=' {editPayment&&<div className="tf-overlay">'
+          audit=''' {selected&&mode==='audit'&&<div className="tf-overlay" onMouseDown={e=>{if(e.currentTarget===e.target){setSelected(null);setMode(null)}}}><section className="tf-modal"><div className="tf-modal-head"><div className="tf-id"><div className="tf-avatar">{selected.avatar_url?<img src={selected.avatar_url} alt=""/>:initials(selected.display_name||selected.username||'Worker')}</div><div><div className="tf-name">{selected.display_name||selected.username||'Work Social Worker'}</div><div className="tf-wid">Worker ID · {selected.work_id||selected.worker_profile_id}</div></div></div><button className="tf-x" onClick={()=>{setSelected(null);setMode(null)}}>×</button></div>{periods(detailPeriod,setDetailPeriod)}<div className="tf-audit-head"><div className="tf-audit-title">AUDIT HISTORY</div><div className="tf-audit-note">Immutable Team Work revisions · newest first · 5 initial records, then 10 more per request.</div></div><div className="tf-history">{auditLoading?<div className="tf-state">Loading immutable audit history…</div>:audits.length?audits.slice(0,auditVisible).map(a=><article className="tf-row" key={a.id}><div><div className="tf-row-title">{a.item_name} · Revision {a.revision_no}</div><div className="tf-row-meta">{dateText(a.recorded_at)} · Qty {a.quantity} · Rate {money(a.rate)} · Entry {a.work_entry_id.slice(0,8)}…</div>{a.special_note&&<div className="tf-row-meta">{a.special_note}</div>}<div className="tf-split"><span className="orange">AUDIT SNAPSHOT</span>{a.changed_by&&<span className="purple">BY {a.changed_by.slice(0,8)}…</span>}</div></div><div className="tf-row-amount" style={{color:'#334155'}}>{money(a.total)}</div></article>):<div className="tf-state">No audit revisions in this period.</div>}</div>{auditVisible<audits.length&&<button className="tf-load-more" onClick={()=>setAuditVisible(v=>v+10)}>Show 10 more · {audits.length-auditVisible} remaining</button>}</section></div>}\n'''
+          if "selected&&mode==='audit'&&<div className=\"tf-overlay\"" not in s:
+              if marker not in s: raise SystemExit('edit modal anchor missing')
+              s=s.replace(marker,audit+marker,1)
+          p.write_text(s)
+          PY
       - run: npm install
       - run: npm test
       - run: npm run build
+      - name: Persist repaired source and clean temporary workflow files
+        if: ${{ success() }}
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git checkout -- .github/workflows/build.yml
+          rm -f .github/workflows/repair-team-finance-audit.yml README_AUDIT_TMP.md
+          git add src/features/contractor/pages/ContractorTeamFinancePage.tsx
+          git add -u .github/workflows/build.yml .github/workflows/repair-team-finance-audit.yml README_AUDIT_TMP.md
+          git commit -m 'fix: team finance audit history syntax' || exit 0
+          git push origin HEAD:feat/team-finance-audit-history-pagination
