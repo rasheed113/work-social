@@ -14,26 +14,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Repair Team Finance audit implementation
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          p=Path('src/features/contractor/pages/ContractorTeamFinancePage.tsx')
-          s=p.read_text()
-          s=s.replace("useState<'payment'|'work'|null>", "useState<'payment'|'work'|'audit'|null>")
-          s=s.replace("const open=async(w:Worker,m:'payment'|'work')", "const open=async(w:Worker,m:'payment'|'work'|'audit')")
-          p.write_text(s)
-          PY
       - run: npm install
       - run: npm test
       - run: npm run build
-      - name: Persist repaired source
-        if: ${{ success() }}
-        run: |
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git checkout -- .github/workflows/build.yml
-          git add src/features/contractor/pages/ContractorTeamFinancePage.tsx
-          git add -u .github/workflows/build.yml
-          git commit -m 'fix: team finance audit history syntax' || exit 0
-          git push origin HEAD:feat/team-finance-audit-history-pagination
