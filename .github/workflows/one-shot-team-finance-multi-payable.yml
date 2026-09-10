@@ -1,0 +1,44 @@
+name: one-shot-team-finance-multi-payable
+on:
+  push:
+    paths:
+      - '.github/workflows/one-shot-team-finance-multi-payable.yml'
+permissions:
+  contents: write
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch Team Finance
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/features/contractor/pages/ContractorTeamFinancePage.tsx')
+          s=p.read_text()
+          old=""" const record=async()=>{const n=Number(amount);if(!payableId)return setMessage('Select a real payable attribution.');if(!Number.isFinite(n)||n<=0)return setMessage('Enter a valid payment amount.');setSaving(true);setMessage('');const r=await supabase.rpc('record_contractor_team_worker_payment',{p_team_number:Number(teamNumber),p_payable_id:payableId,p_amount:n,p_paid_at:new Date().toISOString(),p_note:note.trim()||null});setSaving(false);if(r.error){setMessage(r.error.message);return;}setAmount('');setNote('');setMessage('Payment recorded successfully.');await load();if(selected){const q=await supabase.rpc('get_contractor_team_worker_payables',{p_team_number:Number(teamNumber),p_worker_profile_id:selected.worker_profile_id});if(!q.error)setPayables((q.data||[]) as Payable[]);}};"""
+          new=""" const record=async()=>{const n=Number(amount);const ids=payableId.split(',').filter(Boolean);if(!ids.length)return setMessage('Select at least one real payable attribution.');if(!Number.isFinite(n)||n<=0)return setMessage('Enter a valid payment amount.');setSaving(true);setMessage('');let remainingPayment=n;for(const id of ids){if(remainingPayment<=0)break;const payable=payables.find(p=>p.id===id);const allocation=Math.min(remainingPayment,Number(payable?.remaining||0));if(allocation<=0)continue;const r=await supabase.rpc('record_contractor_team_worker_payment',{p_team_number:Number(teamNumber),p_payable_id:id,p_amount:allocation,p_paid_at:new Date().toISOString(),p_note:note.trim()||null});if(r.error){setSaving(false);setMessage(r.error.message);return;}remainingPayment-=allocation;}setSaving(false);setAmount('');setNote('');setMessage('Payment recorded successfully.');await load();if(selected){const q=await supabase.rpc('get_contractor_team_worker_payables',{p_team_number:Number(teamNumber),p_worker_profile_id:selected.worker_profile_id});if(!q.error)setPayables((q.data||[]) as Payable[]);}setPayableId('');setPayableOpen(false);setSelected(null);setMode(null);};"""
+          if old not in s: raise SystemExit('record block not found')
+          s=s.replace(old,new,1)
+          old=""" const selectedPayable=payables.find(p=>p.id===payableId);\n const payableOptions=payables.filter(p=>Number(p.remaining)>0);"""
+          new=""" const selectedPayableIds=payableId.split(',').filter(Boolean);\n const selectedPayables=payables.filter(p=>selectedPayableIds.includes(p.id));\n const selectedPayable=selectedPayables[0];\n const payableOptions=payables.filter(p=>Number(p.remaining)>0);\n const allPayablesSelected=payableOptions.length>0&&payableOptions.every(p=>selectedPayableIds.includes(p.id));"""
+          if old not in s: raise SystemExit('selection block not found')
+          s=s.replace(old,new,1)
+          old="""{selectedPayable?<span className=\"ctf-payable-selected\"><span className=\"ctf-payable-selected-main\"><span className=\"ctf-payable-selected-amount\">{money(selectedPayable.remaining)} due</span><span className=\"ctf-payable-selected-meta\">Payable · {dateText(selectedPayable.created_at)}</span></span><span className=\"ctf-payable-chip\">REAL</span></span>:<span className=\"ctf-payable-placeholder\">Select payable attribution</span>}"""
+          new="""{selectedPayables.length?<span className=\"ctf-payable-selected\"><span className=\"ctf-payable-selected-main\"><span className=\"ctf-payable-selected-amount\">{selectedPayables.length===1?`${money(selectedPayable!.remaining)} due`:`${selectedPayables.length} payables selected`}</span><span className=\"ctf-payable-selected-meta\">{selectedPayables.length===1?`Payable · ${dateText(selectedPayable!.created_at)}`:`Total due ${money(selectedPayables.reduce((sum,p)=>sum+Number(p.remaining),0))}`}</span></span><span className=\"ctf-payable-chip\">REAL</span></span>:<span className=\"ctf-payable-placeholder\">Select payable attribution</span>}"""
+          if old not in s: raise SystemExit('trigger block not found')
+          s=s.replace(old,new,1)
+          old="""{payableOptions.length?payableOptions.map(p=><button type=\"button\" role=\"option\" aria-selected={p.id===payableId} className={`ctf-payable-option ${p.id===payableId?'is-selected':''}`} key={p.id} onClick={()=>{setPayableId(p.id);setPayableOpen(false)}}><span className=\"ctf-payable-option-main\"><span className=\"ctf-payable-option-amount\">{money(p.remaining)} due</span><span className=\"ctf-payable-option-meta\">Payable · {dateText(p.created_at)} · {p.quantity} pcs · Rate {money(p.worker_rate)}</span></span><span className=\"ctf-payable-option-check\">✓</span></button>):<div className=\"ctf-payable-empty\">No remaining real payable attribution is available.</div>}"""
+          new="""{payableOptions.length?<><button type=\"button\" className={`ctf-payable-option ctf-payable-select-all ${allPayablesSelected?'is-selected':''}`} onClick={()=>setPayableId(allPayablesSelected?'':payableOptions.map(p=>p.id).join(','))}><span className=\"ctf-payable-option-main\"><span className=\"ctf-payable-option-amount\">Select all payables</span><span className=\"ctf-payable-option-meta\">{payableOptions.length} real payable{payableOptions.length===1?'':'s'} · {money(payableOptions.reduce((sum,p)=>sum+Number(p.remaining),0))} total due</span></span><span className=\"ctf-payable-option-check\">✓</span></button>{payableOptions.map(p=>{const checked=selectedPayableIds.includes(p.id);return <button type=\"button\" role=\"option\" aria-selected={checked} className={`ctf-payable-option ${checked?'is-selected':''}`} key={p.id} onClick={()=>{setPayableId(checked?selectedPayableIds.filter(id=>id!==p.id).join(','):[...selectedPayableIds,p.id].filter((id,i,a)=>a.indexOf(id)===i).join(',' ) )}}><span className=\"ctf-payable-option-main\"><span className=\"ctf-payable-option-amount\">{money(p.remaining)} due</span><span className=\"ctf-payable-option-meta\">Payable · {dateText(p.created_at)} · {p.quantity} pcs · Rate {money(p.worker_rate)}</span></span><span className=\"ctf-payable-option-check\">✓</span></button>})}</>:<div className=\"ctf-payable-empty\">No remaining real payable attribution is available.</div>}"""
+          if old not in s: raise SystemExit('options block not found')
+          s=s.replace(old,new,1)
+          p.write_text(s)
+          PY
+      - name: Commit repair and remove one-shot workflow
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/features/contractor/pages/ContractorTeamFinancePage.tsx .github/workflows/one-shot-team-finance-multi-payable.yml
+          git rm .github/workflows/one-shot-team-finance-multi-payable.yml
+          git commit -m 'fix: support multi-payable team finance payments'
+          git push
