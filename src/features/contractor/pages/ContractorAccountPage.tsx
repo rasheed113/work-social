@@ -9,6 +9,7 @@ import { ContractorTeamPage } from './ContractorTeamPage';
 import { ContractorTeamSettingsPage } from './ContractorTeamSettingsPage';
 import { ContractorOverviewPage } from './ContractorOverviewPage';
 import { ContractorTeamDetailPage } from './ContractorTeamDetailPage';
+import { ContractorFinancePage } from './ContractorFinancePage';
 
 type Profile={id:string;display_name:string|null;username:string|null;avatar_url:string|null};
 type ContractorAccount={profile_id:string;contractor_id:string;is_commission_based:boolean;work_types:string[];works_with:string[];business_name:string|null};
@@ -29,6 +30,7 @@ export function ContractorAccountPage(){
  if(loading)return <main style={shell}><section style={{...card,marginTop:18}}><strong>Loading Contractor Account…</strong></section></main>;
  if(!profile)return <main style={shell}><section style={{...card,marginTop:18}} role="alert"><strong>Unable to load Contractor Account</strong><p style={{color:'#64748b',fontSize:12}}>{error}</p><button type="button" onClick={()=>void load()}>Retry</button></section></main>;
  if(account&&!editing&&(!view||view==='overview'||view==='dashboard'))return <ContractorOverviewPage profileId={profile.id}/>;
+ if(account&&!editing&&view==='finance')return <ContractorFinancePage/>;
  if(account&&!editing&&view==='team-detail'&&teamNumber)return <ContractorTeamDetailPage profileId={profile.id} teamNumber={teamNumber}/>;
  if(account&&!editing&&view==='team-dashboard'&&teamNumber)return <ContractorPersonalDashboard profileId={profile.id} displayName={profile.display_name} teamNumber={teamNumber}/>;
  if(account&&!editing&&view==='team-work'&&teamNumber)return <><ContractorTeamPage profileId={profile.id} teamNumber={teamNumber}/><ContractorAddMembersWorkflow profileId={profile.id} teamNumber={teamNumber}/></>;
