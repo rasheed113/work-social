@@ -58,6 +58,9 @@ function num(value: number | string) { return Number(value) || 0; }
 
 export function ContractorFinancePage() {
   const [profileId, setProfileId] = useState('');
+  const [teamId, setTeamId] = useState<number | null>(null);
+  const [teamNumber, setTeamNumber] = useState<number | null>(null);
+  const [teamName, setTeamName] = useState<string | null>(null);
   const [summary, setSummary] = useState<Summary | null>(null);
   const [entries, setEntries] = useState<Entry[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
@@ -76,10 +79,42 @@ export function ContractorFinancePage() {
     }
     setProfileId(id);
 
+    const params = new URLSearchParams(window.location.search);
+    const requestedTeam = params.get('team');
+    let resolvedTeamId: number | null = null;
+    let resolvedTeamNumber: number | null = requestedTeam ? Number(requestedTeam) : null;
+    let resolvedTeamName: string | null = null;
+
+    if (requestedTeam) {
+      if (!Number.isFinite(resolvedTeamNumber) || resolvedTeamNumber <= 0) {
+        setError('The selected team context is invalid.');
+        setLoading(false);
+        return;
+      }
+      const contextResult = await supabase.rpc('get_contractor_team_context_by_number', {
+        p_team_number: resolvedTeamNumber,
+      });
+      if (contextResult.error || !contextResult.data?.[0]) {
+        setError(contextResult.error?.message || 'The selected team context is unavailable or unauthorized.');
+        setLoading(false);
+        return;
+      }
+      resolvedTeamId = Number(contextResult.data[0].team_id);
+      resolvedTeamNumber = Number(contextResult.data[0].team_number);
+      resolvedTeamName = contextResult.data[0].team_name ?? null;
+      setTeamId(resolvedTeamId);
+      setTeamNumber(resolvedTeamNumber);
+      setTeamName(resolvedTeamName);
+    } else {
+      setTeamId(null);
+      setTeamNumber(null);
+      setTeamName(null);
+    }
+
     const [summaryResult, entriesResult, paymentsResult] = await Promise.all([
-      supabase.rpc('get_contractor_stage2_finance_summary', { p_team_id: null }),
-      supabase.rpc('get_contractor_stage2_finance_entries', { p_team_id: null }),
-      supabase.rpc('get_contractor_stage2_finance_payments', { p_team_id: null }),
+      supabase.rpc('get_contractor_stage2_finance_summary', { p_team_id: resolvedTeamId }),
+      supabase.rpc('get_contractor_stage2_finance_entries', { p_team_id: resolvedTeamId }),
+      supabase.rpc('get_contractor_stage2_finance_payments', { p_team_id: resolvedTeamId }),
     ]);
 
     const firstError = summaryResult.error || entriesResult.error || paymentsResult.error;
@@ -104,7 +139,7 @@ export function ContractorFinancePage() {
     <header style={{ marginBottom: 14 }}>
       <div style={{ color: '#2563eb', fontSize: 10, fontWeight: 900, letterSpacing: '.12em' }}>CONTRACTOR FINANCE</div>
       <h1 style={{ margin: '4px 0', fontSize: 34, letterSpacing: '-.045em' }}>Finance</h1>
-      <p style={{ margin: 0, color: '#64748b', fontSize: 12 }}>Company → Contractor accounting. Real entries and real payments only.</p>
+      <p style={{ margin: 0, color: '#64748b', fontSize: 12 }}>Company → Contractor accounting. Real entries and real payments only.{teamNumber ? ` · Team ${teamNumber}${teamName ? ` · ${teamName}` : ''}` : ''}</p>
     </header>
 
     <section style={{ ...card, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 9, marginBottom: 12 }}>
@@ -134,7 +169,7 @@ export function ContractorFinancePage() {
       {!payments.length ? <Empty text="No contractor payments recorded yet." /> : payments.slice(0, 8).map(payment => <div key={payment.id} style={row}><div><strong>Payment received</strong><div style={sub}>{payment.team_number ? `Team ${payment.team_number}` : 'All / unassigned'} · {date(payment.paid_at)}{payment.note ? ` · ${payment.note}` : ''}</div></div><strong>PKR {money(payment.amount)}</strong></div>)}
     </section>
     <div style={{ marginTop: 10, color: '#94a3b8', fontSize: 10 }}>Contractor finance is separate from Team Finance. Commission is not treated as a payment.</div>
-    <span aria-hidden="true">{profileId}</span>
+    <span aria-hidden="true">{profileId}{teamId ?? ''}</span>
   </main>;
 }
 
