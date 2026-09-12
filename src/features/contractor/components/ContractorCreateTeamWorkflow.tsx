@@ -14,6 +14,14 @@ export function ContractorCreateTeamWorkflow({ profileId }: Props) {
   const handlerRef = useRef<((event: MouseEvent) => void) | null>(null);
 
   useEffect(() => {
+    const openWorkflow = () => {
+      setError('');
+      setCreatedId(null);
+      setOpen(true);
+    };
+
+    window.addEventListener('work-social:create-team', openWorkflow);
+
     const wire = () => {
       const button = document.querySelector<HTMLButtonElement>('.contractor-dashboard .cd-actions > button:first-child');
       if (!button || wiredButtonRef.current === button) return;
@@ -24,18 +32,19 @@ export function ContractorCreateTeamWorkflow({ profileId }: Props) {
       const handler = (event: MouseEvent) => {
         event.preventDefault();
         event.stopImmediatePropagation();
-        setError('');
-        setCreatedId(null);
-        setOpen(true);
+        openWorkflow();
       };
       handlerRef.current = handler;
       button.addEventListener('click', handler, true);
     };
+
     wire();
     const observer = new MutationObserver(wire);
     observer.observe(document.body, { childList: true, subtree: true });
+
     return () => {
       observer.disconnect();
+      window.removeEventListener('work-social:create-team', openWorkflow);
       if (wiredButtonRef.current && handlerRef.current) wiredButtonRef.current.removeEventListener('click', handlerRef.current, true);
     };
   }, []);
