@@ -65,7 +65,7 @@ export function ContractorOverviewElectricClock() {
       offset += (speed * elapsed) / 1000;
       const halfWidth = track.scrollWidth / 2;
       if (halfWidth > 0 && offset >= halfWidth) offset -= halfWidth;
-      track.style.transform = `translate3d(${-offset}px,0,0)`;
+      track.style.transform = `translate3d(${offset - halfWidth}px,0,0)`;
       frame = window.requestAnimationFrame(tick);
     };
 
