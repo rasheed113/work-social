@@ -86,6 +86,15 @@ nav[aria-label="Main navigation"] > button > b {
   }
 }
 
+/* Contractor Overview: the social footer navigation is intentionally hidden on this command-center surface. */
+body:has(.co5-page) nav[aria-label="Main navigation"] {
+  display: none !important;
+}
+
+body:has(.co5-page) .work-social-page-content {
+  padding-bottom: 0 !important;
+}
+
 /* Expense Manager mobile footer: sit flush with the viewport bottom. */
 @media (max-width: 767px) {
   .expense-manager-navigation {
