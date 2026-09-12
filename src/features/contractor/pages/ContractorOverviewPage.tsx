@@ -5,7 +5,7 @@ import { supabase } from '../../../lib/supabase/client';
 import { ContractorWorkIntelligence } from '../components/ContractorWorkIntelligence';
 import { ContractorTeamWorkerIntelligence } from '../components/ContractorTeamWorkerIntelligence';
 import { ContractorOverviewFinanceIntelligence } from '../components/ContractorOverviewFinanceIntelligence';
-import { ContractorOverviewSmartAttention } from '../components/ContractorOverviewSmartAttention';
+import { ContractorSmartAttention } from '../components/ContractorOverviewSmartAttention';
 
 interface Props { profileId: string; }
 type Team = { team_id:number; team_number:number; team_name:string; active_workers:number; taken_pieces:number; taken_amount:number; completed_pieces:number; completed_amount:number; remaining_pieces:number };
