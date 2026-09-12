@@ -86,8 +86,9 @@ nav[aria-label="Main navigation"] > button > b {
   }
 }
 
-/* Contractor Overview: the social footer navigation is intentionally hidden on this command-center surface. */
-body:has(.co5-page) nav[aria-label="Main navigation"] {
+/* Contractor Overview: no bottom navigation on this command-center surface. */
+body:has(.co5-page) nav[aria-label="Main navigation"],
+body:has(.co5-page) nav[aria-label="Contractor navigation"] {
   display: none !important;
 }
 
