@@ -27,7 +27,6 @@ export function WorkerWorkHousePage() {
   if (financeMatch) return <ContractorTeamFinancePage teamNumber={financeMatch[1]} />;
   const teamSubRoute = pathname.match(/^\/work\/team-work\/(\d+)\/(finance|settings)\/?$/);
   if (teamSubRoute) {
-    if (teamSubRoute[2] === 'finance') return <ContractorTeamFinancePage teamNumber={teamSubRoute[1]} />;
     return <WorkerTeamDashboardPage />;
   }
   if (/^\/work\/team-work\/\d+(?:\/|$)/.test(pathname)) {
