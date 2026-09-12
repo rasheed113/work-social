@@ -10,6 +10,7 @@ import {
 } from '../api/finance';
 import type { FinanceHistoryCursors, FinanceHistoryFilter } from '../api/finance';
 import type { FinanceListEntry, FinanceReceivedRecord, FinanceReceivedType, WorkerFinanceSummary } from '../types/finance';
+import { supabase } from '../../../lib/supabase/client';
 
 const EMPTY_SUMMARY: WorkerFinanceSummary = { total_earnings: '0', received: '0', remaining: '0' };
 
@@ -18,6 +19,8 @@ type HistorySourceState = {
   buffers: { earnings: FinanceListEntry[]; received: FinanceListEntry[] };
   hasMore: { earnings: boolean; received: boolean };
 };
+
+type Team = { team_number: number };
 
 function sortEntries(entries: FinanceListEntry[]) {
   return [...entries].sort((a, b) => {
@@ -51,6 +54,43 @@ function toReceivedEntry(record: FinanceReceivedRecord): FinanceListEntry {
   return { kind: record.entry_type, id: `received:${record.id}`, amount: record.amount, occurred_at: record.received_at, record };
 }
 
+async function getOverallWorkerFinanceSummary(): Promise<{ data: WorkerFinanceSummary | null; error: Error | null }> {
+  const personal = await getWorkerFinanceSummary();
+  if (personal.error || !personal.data) return { data: null, error: personal.error ?? new Error('Worker Finance summary is unavailable.') };
+
+  const teamsResult = await supabase.rpc('get_worker_team_work_teams');
+  if (teamsResult.error) return { data: null, error: teamsResult.error };
+  const teams = (teamsResult.data ?? []) as Team[];
+
+  const teamRows = await Promise.all(teams.map(async team => {
+    const result = await supabase.rpc('get_worker_team_finance_summary', { p_team_number: team.team_number });
+    if (result.error) return { error: result.error };
+    const row = (result.data?.[0] ?? null) as Record<string, unknown> | null;
+    if (!row) return { error: new Error('Worker Team Finance summary is unavailable.') };
+    return { data: {
+      earnings: Number(row.total_earnings || 0),
+      received: Number(row.received_amount || 0),
+    }};
+  }));
+
+  const firstError = teamRows.find(row => 'error' in row)?.error;
+  if (firstError) return { data: null, error: firstError instanceof Error ? firstError : new Error(String(firstError)) };
+
+  const teamEarnings = teamRows.reduce((sum, row) => sum + ('data' in row && row.data ? row.data.earnings : 0), 0);
+  const teamReceived = teamRows.reduce((sum, row) => sum + ('data' in row && row.data ? row.data.received : 0), 0);
+  const totalEarnings = Number(personal.data.total_earnings || 0) + teamEarnings;
+  const received = Number(personal.data.received || 0) + teamReceived;
+
+  return {
+    data: {
+      total_earnings: String(totalEarnings),
+      received: String(received),
+      remaining: String(totalEarnings - received),
+    },
+    error: null,
+  };
+}
+
 export function useWorkerFinance(filter: FinanceHistoryFilter = 'all') {
   const session = useCurrentWorkerProfileId();
   const [summary, setSummary] = useState<WorkerFinanceSummary>(EMPTY_SUMMARY);
@@ -74,8 +114,9 @@ export function useWorkerFinance(filter: FinanceHistoryFilter = 'all') {
     setError(null);
     historyRef.current = emptyHistoryState();
 
+    const isOverview = window.location.pathname === '/work';
     const [summaryResult, historyResult] = await Promise.all([
-      getWorkerFinanceSummary(),
+      isOverview ? getOverallWorkerFinanceSummary() : getWorkerFinanceSummary(),
       listWorkerFinanceHistoryBatch(session.profileId, filter, 5, historyRef.current.cursors),
     ]);
     if (requestId !== requestRef.current) return;
