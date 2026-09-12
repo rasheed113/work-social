@@ -2,96 +2,22 @@ import { useEffect, useMemo, useState } from 'react';
 import { navigate } from '../../../app/Router';
 import { supabase } from '../../../lib/supabase/client';
 
-type Props = {
-  remainingPieces: number;
-  priorityTeamName: string | null;
-  priorityTeamNumber: number | null;
-  remainingTeams: number;
-  inProgressTeams: number;
-  totalTeams: number;
-  activeWorkers: number;
-};
+type Props = { remainingPieces: number; priorityTeamName: string | null; priorityTeamNumber: number | null; remainingTeams: number; inProgressTeams: number; totalTeams: number; activeWorkers: number };
+type Finance = { total_payable: number | string; total_received: number | string; due: number | string; advance_paid: number | string; payment_coverage: number | string };
+const num=(v:unknown)=>Math.max(0,Number(v)||0);
+const pcs=(v:unknown)=>num(v).toLocaleString('en-PK',{maximumFractionDigits:0});
+const money=(v:unknown)=>`PKR ${num(v).toLocaleString('en-PK',{maximumFractionDigits:0})}`;
 
-type Finance = {
-  total_payable: number | string;
-  total_received: number | string;
-  due: number | string;
-  advance_paid: number | string;
-  payment_coverage: number | string;
-};
-
-const num = (v: unknown) => Math.max(0, Number(v) || 0);
-const pcs = (v: unknown) => num(v).toLocaleString('en-PK', { maximumFractionDigits: 0 });
-const money = (v: unknown) => `PKR ${num(v).toLocaleString('en-PK', { maximumFractionDigits: 0 })}`;
-
-export function ContractorOverviewSmartAttention(props: Props) {
-  const [finance, setFinance] = useState<Finance | null>(null);
-  const [financeReady, setFinanceReady] = useState(false);
-
-  useEffect(() => {
-    let cancelled = false;
-    const load = async () => {
-      const { data, error } = await supabase.rpc('get_contractor_stage2_finance_summary', { p_team_id: null });
-      if (cancelled) return;
-      if (!error) setFinance((data?.[0] as Finance | undefined) ?? null);
-      setFinanceReady(true);
-    };
-    void load();
-    return () => { cancelled = true; };
-  }, []);
-
-  const model = useMemo(() => {
-    const due = num(finance?.due);
-    const coverage = Math.max(0, Math.min(100, num(finance?.payment_coverage)));
-    const workPressure = props.remainingPieces > 0;
-    const financePressure = due > 0;
-    const idleWithBacklog = props.remainingPieces > 0 && props.inProgressTeams === 0;
-    const attentionCount = [workPressure, financePressure, idleWithBacklog].filter(Boolean).length;
-    return { due, coverage, workPressure, financePressure, idleWithBacklog, attentionCount };
-  }, [finance, props.remainingPieces, props.inProgressTeams]);
-
-  const primary = model.financePressure
-    ? { tone: 'risk', label: 'FINANCE PRESSURE', title: `${money(model.due)} remains due`, detail: `${model.coverage.toFixed(2)}% payment coverage across all teams.` }
-    : model.workPressure
-      ? { tone: 'work', label: 'WORK PRESSURE', title: `${pcs(props.remainingPieces)} pcs remain`, detail: props.priorityTeamName ? `Largest open workload: Team ${props.priorityTeamNumber} · ${props.priorityTeamName}.` : 'Open team workload is still present.' }
-      : { tone: 'clear', label: 'OPERATING CLEAR', title: 'No active attention signal', detail: 'Current real records do not identify an outstanding command-center condition.' };
-
-  return <section className="cosa" aria-labelledby="cosa-title">
-    <style>{styles}</style>
-    <div className="cosa-atmosphere" aria-hidden="true"><i/><b/><em/></div>
-    <div className="cosa-head">
-      <div><div className="cosa-kicker">SMART ATTENTION · COMMAND CENTER</div><h2 id="cosa-title">What needs attention now.</h2><p>Deterministic signals from the existing Work and Finance records. No invented alerts, scores, or history.</p></div>
-      <div className={`cosa-count ${model.attentionCount ? 'active' : 'clear'}`}><strong>{model.attentionCount}</strong><span>LIVE SIGNALS</span></div>
-    </div>
-
-    <div className={`cosa-primary ${primary.tone}`}>
-      <div className="cosa-orb"><span>{primary.tone === 'risk' ? '!' : primary.tone === 'work' ? '◈' : '✓'}</span></div>
-      <div className="cosa-primary-copy"><span>{primary.label}</span><strong>{primary.title}</strong><p>{primary.detail}</p></div>
-      {primary.tone === 'risk' && <div className="cosa-meter"><b style={{ width: `${Math.max(2, 100 - model.coverage)}%` }}/><span>EXPOSURE</span></div>}
-      {primary.tone === 'work' && props.priorityTeamNumber !== null && <button type="button" onClick={() => navigate(`/work/contractor?view=team&team=${props.priorityTeamNumber}`)}>View Team</button>}
-    </div>
-
-    <div className="cosa-grid">
-      <article className={`cosa-node ${model.workPressure ? 'hot' : 'quiet'}`}>
-        <span className="cosa-node-icon">W</span><div><small>WORKLOAD</small><strong>{props.remainingPieces > 0 ? `${pcs(props.remainingPieces)} pcs open` : 'No open pieces'}</strong><p>{props.remainingTeams} team{props.remainingTeams === 1 ? '' : 's'} with remaining work</p></div>
-      </article>
-      <article className={`cosa-node ${model.financePressure ? 'risk' : 'quiet'}`}>
-        <span className="cosa-node-icon">₨</span><div><small>FINANCE</small><strong>{financeReady ? (model.financePressure ? money(model.due) : 'Covered') : 'Reading…'}</strong><p>{financeReady ? `${model.coverage.toFixed(2)}% payment coverage` : 'Server-authoritative finance signal'}</p></div>
-      </article>
-      <article className={`cosa-node ${model.idleWithBacklog ? 'warning' : 'quiet'}`}>
-        <span className="cosa-node-icon">O</span><div><small>OPERATIONS</small><strong>{props.inProgressTeams} / {props.totalTeams} in progress</strong><p>{props.activeWorkers} active team workers</p></div>
-      </article>
-    </div>
-
-    <div className="cosa-foot"><span><i/>REAL DATA ONLY</span><span>SERVER-AUTHORITATIVE SIGNALS</span></div>
-  </section>;
+export function ContractorOverviewSmartAttention(props:Props){
+ const[finance,setFinance]=useState<Finance|null>(null);const[financeReady,setFinanceReady]=useState(false);
+ useEffect(()=>{let cancelled=false;const load=async()=>{const{data,error}=await supabase.rpc('get_contractor_stage2_finance_summary',{p_team_id:null});if(cancelled)return;if(!error)setFinance((data?.[0] as Finance|undefined)??null);setFinanceReady(true)};void load();return()=>{cancelled=true}},[]);
+ const model=useMemo(()=>{const due=num(finance?.due),coverage=Math.max(0,Math.min(100,num(finance?.payment_coverage))),workPressure=props.remainingPieces>0,financePressure=due>0,idleWithBacklog=props.remainingPieces>0&&props.inProgressTeams===0,attentionCount=[workPressure,financePressure,idleWithBacklog].filter(Boolean).length;return{due,coverage,workPressure,financePressure,idleWithBacklog,attentionCount}},[finance,props.remainingPieces,props.inProgressTeams]);
+ const primary=model.financePressure?{tone:'risk',label:'FINANCE PRESSURE',title:`${money(model.due)} remains due`,detail:`${model.coverage.toFixed(2)}% payment coverage across all teams.`}:model.workPressure?{tone:'work',label:'WORK PRESSURE',title:`${pcs(props.remainingPieces)} pcs remain`,detail:props.priorityTeamName?`Largest open workload: Team ${props.priorityTeamNumber} · ${props.priorityTeamName}.`:'Open team workload is still present.'}:{tone:'clear',label:'OPERATING CLEAR',title:'No active attention signal',detail:'Current real records do not identify an outstanding command-center condition.'};
+ return <section className="cosa" aria-labelledby="cosa-title"><style>{styles}</style><div className="cosa-atmosphere" aria-hidden="true"><i/><b/><em/></div><div className="cosa-head"><div><div className="cosa-kicker">SMART ATTENTION · COMMAND CENTER</div><h2 id="cosa-title">What needs attention now.</h2><p>Deterministic signals from the existing Work and Finance records. No invented alerts, scores, or history.</p></div><div className={`cosa-count ${model.attentionCount?'active':'clear'}`}><strong>{model.attentionCount}</strong><span>LIVE SIGNALS</span></div></div>
+ <div className={`cosa-primary ${primary.tone}`}><div className="cosa-orb"><span>{primary.tone==='risk'?'!':primary.tone==='work'?'◈':'✓'}</span></div><div className="cosa-primary-copy"><span>{primary.label}</span><strong>{primary.title}</strong><p>{primary.detail}</p></div>{primary.tone==='risk'&&<div className="cosa-meter"><b style={{width:`${Math.max(2,100-model.coverage)}%`}}/><span>EXPOSURE</span></div>}{primary.tone==='work'&&props.priorityTeamNumber!==null&&<button type="button" onClick={()=>navigate(`/work/contractor?view=team&team=${props.priorityTeamNumber}`)}>View Team</button>}</div>
+ <div className="cosa-grid"><article className={`cosa-node ${model.workPressure?'hot':'quiet'}`}><span className="cosa-node-icon">W</span><div><small>WORKLOAD</small><strong>{props.remainingPieces>0?`${pcs(props.remainingPieces)} pcs open`:'No open pieces'}</strong><p>{props.remainingTeams} team{props.remainingTeams===1?'':'s'} with remaining work</p></div></article><article className={`cosa-node ${model.financePressure?'risk':'quiet'}`}><span className="cosa-node-icon">₨</span><div><small>FINANCE</small><strong>{financeReady?(model.financePressure?money(model.due):'Covered'):'Reading…'}</strong><p>{financeReady?`${model.coverage.toFixed(2)}% payment coverage`:'Server-authoritative finance signal'}</p></div></article><article className={`cosa-node ${model.idleWithBacklog?'warning':'quiet'}`}><span className="cosa-node-icon">O</span><div><small>OPERATIONS</small><strong>{props.inProgressTeams} / {props.totalTeams} in progress</strong><p>{props.activeWorkers} active team workers</p></div></article></div>
+ <div className="cosa-foot"><span><i/>REAL DATA ONLY</span><span>SERVER-AUTHORITATIVE SIGNALS</span></div></section>;
 }
+export const ContractorSmartAttention=ContractorOverviewSmartAttention;
 
-const styles = `
-.cosa{position:relative;isolation:isolate;overflow:hidden;padding:15px;border-radius:26px;border:1px solid rgba(148,163,184,.18);background:linear-gradient(145deg,#07101f,#111a34 54%,#18132e);color:#eaf2ff;box-shadow:0 28px 60px rgba(2,6,23,.25),inset 0 1px 0 rgba(255,255,255,.13),inset 0 -25px 45px rgba(0,0,0,.25)}
-.cosa:after{content:"";position:absolute;inset:1px;border:1px solid rgba(255,255,255,.05);border-radius:25px;pointer-events:none}.cosa-atmosphere{position:absolute;inset:0;z-index:-1;overflow:hidden}.cosa-atmosphere:before,.cosa-atmosphere:after{content:"";position:absolute;border-radius:50%}.cosa-atmosphere:before{width:330px;height:220px;left:-130px;top:-150px;background:radial-gradient(circle,rgba(34,211,238,.2),transparent 68%)}.cosa-atmosphere:after{width:330px;height:240px;right:-140px;bottom:-160px;background:radial-gradient(circle,rgba(124,58,237,.22),transparent 68%)}.cosa-atmosphere i{position:absolute;right:22%;top:-45px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(99,102,241,.1),transparent 68%)}.cosa-atmosphere b{position:absolute;left:55%;top:-100px;width:1px;height:440px;background:linear-gradient(transparent,rgba(103,232,249,.12),transparent);transform:rotate(32deg)}.cosa-atmosphere em{position:absolute;right:12%;top:18%;width:2px;height:2px;border-radius:50%;background:#a5f3fc;box-shadow:-70px 35px 0 rgba(165,243,252,.3),-120px 100px 0 rgba(167,139,250,.25)}
-.cosa-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.cosa-kicker{font-size:7px;letter-spacing:.2em;color:#67e8f9;font-weight:950}.cosa h2{margin:4px 0 0;font-size:19px;line-height:1.05;letter-spacing:-.04em;font-weight:950}.cosa-head p{margin:5px 0 0;max-width:620px;color:#94a3b8;font-size:8px;line-height:1.45;font-weight:700}.cosa-count{min-width:58px;padding:7px 8px;border-radius:15px;text-align:center;background:rgba(2,6,23,.52);border:1px solid rgba(148,163,184,.15)}.cosa-count strong{display:block;font-size:18px;line-height:1}.cosa-count span{display:block;margin-top:3px;font-size:5px;letter-spacing:.12em;color:#94a3b8;font-weight:950}.cosa-count.active{border-color:rgba(251,113,133,.22);box-shadow:0 0 22px rgba(251,113,133,.07)}.cosa-count.active strong{color:#fb7185}.cosa-count.clear strong{color:#34d399}
-.cosa-primary{position:relative;display:grid;grid-template-columns:48px minmax(0,1fr) auto;gap:11px;align-items:center;margin-top:11px;padding:11px;border-radius:19px;border:1px solid rgba(255,255,255,.09);background:linear-gradient(145deg,rgba(30,41,72,.68),rgba(15,23,42,.55));box-shadow:inset 0 1px 0 rgba(255,255,255,.06),inset 0 -14px 28px rgba(0,0,0,.18)}.cosa-primary.risk{border-color:rgba(251,113,133,.18)}.cosa-primary.work{border-color:rgba(103,232,249,.18)}.cosa-primary.clear{border-color:rgba(52,211,153,.18)}.cosa-orb{width:44px;height:44px;border-radius:15px;display:grid;place-items:center;transform:perspective(300px) rotateX(10deg);background:radial-gradient(circle at 30% 20%,rgba(255,255,255,.16),rgba(30,41,72,.95));border:1px solid rgba(255,255,255,.12);box-shadow:inset 0 4px 8px rgba(255,255,255,.06),0 10px 18px rgba(0,0,0,.25)}.cosa-orb span{font-size:17px;font-weight:950;color:#67e8f9;text-shadow:0 0 13px rgba(103,232,249,.25)}.risk .cosa-orb span{color:#fb7185}.clear .cosa-orb span{color:#34d399}.cosa-primary-copy>span{font-size:6px;letter-spacing:.15em;color:#94a3b8;font-weight:950}.cosa-primary-copy strong{display:block;margin-top:3px;font-size:13px;font-weight:950}.cosa-primary-copy p{margin:3px 0 0;color:#94a3b8;font-size:7px;font-weight:700}.cosa-primary button{min-height:34px;padding:0 10px;border-radius:10px;border:1px solid rgba(103,232,249,.2);background:rgba(34,211,238,.09);color:#a5f3fc;font:inherit;font-size:7px;font-weight:950;cursor:pointer}.cosa-meter{width:72px;align-self:stretch;display:flex;flex-direction:column;justify-content:center;gap:4px}.cosa-meter b{display:block;height:5px;border-radius:99px;background:linear-gradient(90deg,#fb7185,#f59e0b);box-shadow:0 0 9px rgba(251,113,133,.16)}.cosa-meter span{font-size:5px;color:#64748b;letter-spacing:.13em;font-weight:950;text-align:right}
-.cosa-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:8px}.cosa-node{display:flex;gap:8px;align-items:center;min-width:0;padding:9px;border-radius:15px;background:linear-gradient(145deg,rgba(30,41,72,.55),rgba(15,23,42,.38));border:1px solid rgba(148,163,184,.11);box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}.cosa-node.hot{border-color:rgba(103,232,249,.16)}.cosa-node.risk{border-color:rgba(251,113,133,.16)}.cosa-node.warning{border-color:rgba(245,158,11,.16)}.cosa-node-icon{width:25px;height:25px;flex:0 0 25px;border-radius:9px;display:grid;place-items:center;background:rgba(99,102,241,.12);color:#a5b4fc;font-size:8px;font-weight:950}.cosa-node.risk .cosa-node-icon{background:rgba(251,113,133,.1);color:#fda4af}.cosa-node.warning .cosa-node-icon{background:rgba(245,158,11,.1);color:#fcd34d}.cosa-node small{display:block;font-size:5px;letter-spacing:.13em;color:#64748b;font-weight:950}.cosa-node strong{display:block;margin-top:3px;font-size:9px;color:#e2e8f0;font-weight:950;overflow-wrap:anywhere}.cosa-node p{margin:2px 0 0;color:#64748b;font-size:6px;font-weight:750}.cosa-foot{display:flex;justify-content:space-between;gap:8px;margin-top:8px;padding:7px 9px;border-top:1px solid rgba(148,163,184,.1);color:#64748b;font-size:5px;letter-spacing:.12em;font-weight:950}.cosa-foot i{display:inline-block;width:5px;height:5px;margin-right:5px;border-radius:50%;background:#34d399;box-shadow:0 0 8px rgba(52,211,153,.45)}
-@media(max-width:620px){.cosa-head{gap:8px}.cosa h2{font-size:17px}.cosa-primary{grid-template-columns:42px 1fr}.cosa-orb{width:40px;height:40px}.cosa-primary button,.cosa-meter{grid-column:2}.cosa-primary button{justify-self:start}.cosa-meter{width:100%;margin-top:3px}.cosa-grid{grid-template-columns:1fr}.cosa-node{padding:10px}.cosa-foot{flex-direction:column;gap:4px}}@media(prefers-reduced-motion:reduce){.cosa *{animation:none!important;transition:none!important}}
-`;
+const styles=`.cosa{position:relative;isolation:isolate;overflow:hidden;padding:15px;border-radius:26px;border:1px solid rgba(148,163,184,.18);background:linear-gradient(145deg,#07101f,#111a34 54%,#18132e);color:#eaf2ff;box-shadow:0 28px 60px rgba(2,6,23,.25),inset 0 1px 0 rgba(255,255,255,.13),inset 0 -25px 45px rgba(0,0,0,.25)}.cosa:after{content:"";position:absolute;inset:1px;border:1px solid rgba(255,255,255,.05);border-radius:25px;pointer-events:none}.cosa-atmosphere{position:absolute;inset:0;z-index:-1;overflow:hidden}.cosa-atmosphere:before,.cosa-atmosphere:after{content:"";position:absolute;border-radius:50%}.cosa-atmosphere:before{width:330px;height:220px;left:-130px;top:-150px;background:radial-gradient(circle,rgba(34,211,238,.2),transparent 68%)}.cosa-atmosphere:after{width:330px;height:240px;right:-140px;bottom:-160px;background:radial-gradient(circle,rgba(124,58,237,.22),transparent 68%)}.cosa-atmosphere i{position:absolute;right:22%;top:-45px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(99,102,241,.1),transparent 68%)}.cosa-atmosphere b{position:absolute;left:55%;top:-100px;width:1px;height:440px;background:linear-gradient(transparent,rgba(103,232,249,.12),transparent);transform:rotate(32deg)}.cosa-atmosphere em{position:absolute;right:12%;top:18%;width:2px;height:2px;border-radius:50%;background:#a5f3fc;box-shadow:-70px 35px 0 rgba(165,243,252,.3),-120px 100px 0 rgba(167,139,250,.25)}.cosa-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.cosa-kicker{font-size:7px;letter-spacing:.2em;color:#67e8f9;font-weight:950}.cosa h2{margin:4px 0 0;font-size:19px;line-height:1.05;letter-spacing:-.04em;font-weight:950}.cosa-head p{margin:5px 0 0;max-width:620px;color:#94a3b8;font-size:8px;line-height:1.45;font-weight:700}.cosa-count{min-width:58px;padding:7px 8px;border-radius:15px;text-align:center;background:rgba(2,6,23,.52);border:1px solid rgba(148,163,184,.15)}.cosa-count strong{display:block;font-size:18px;line-height:1}.cosa-count span{display:block;margin-top:3px;font-size:5px;letter-spacing:.12em;color:#94a3b8;font-weight:950}.cosa-count.active{border-color:rgba(251,113,133,.22)}.cosa-count.active strong{color:#fb7185}.cosa-count.clear strong{color:#34d399}.cosa-primary{position:relative;display:grid;grid-template-columns:48px minmax(0,1fr) auto;gap:11px;align-items:center;margin-top:11px;padding:11px;border-radius:19px;border:1px solid rgba(255,255,255,.09);background:linear-gradient(145deg,rgba(30,41,72,.68),rgba(15,23,42,.55));box-shadow:inset 0 1px 0 rgba(255,255,255,.06),inset 0 -14px 28px rgba(0,0,0,.18)}.cosa-primary.risk{border-color:rgba(251,113,133,.18)}.cosa-primary.work{border-color:rgba(103,232,249,.18)}.cosa-primary.clear{border-color:rgba(52,211,153,.18)}.cosa-orb{width:44px;height:44px;border-radius:15px;display:grid;place-items:center;transform:perspective(300px) rotateX(10deg);background:radial-gradient(circle at 30% 20%,rgba(255,255,255,.16),rgba(30,41,72,.95));border:1px solid rgba(255,255,255,.12);box-shadow:inset 0 4px 8px rgba(255,255,255,.06),0 10px 18px rgba(0,0,0,.25)}.cosa-orb span{font-size:17px;font-weight:950;color:#67e8f9}.risk .cosa-orb span{color:#fb7185}.clear .cosa-orb span{color:#34d399}.cosa-primary-copy>span{font-size:6px;letter-spacing:.15em;color:#94a3b8;font-weight:950}.cosa-primary-copy strong{display:block;margin-top:3px;font-size:13px;font-weight:950}.cosa-primary-copy p{margin:3px 0 0;color:#94a3b8;font-size:7px;font-weight:700}.cosa-primary button{min-height:34px;padding:0 10px;border-radius:10px;border:1px solid rgba(103,232,249,.2);background:rgba(34,211,238,.09);color:#a5f3fc;font:inherit;font-size:7px;font-weight:950;cursor:pointer}.cosa-meter{width:72px;align-self:stretch;display:flex;flex-direction:column;justify-content:center;gap:4px}.cosa-meter b{display:block;height:5px;border-radius:99px;background:linear-gradient(90deg,#fb7185,#f59e0b)}.cosa-meter span{font-size:5px;color:#64748b;letter-spacing:.13em;font-weight:950;text-align:right}.cosa-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:8px}.cosa-node{display:flex;gap:8px;align-items:center;min-width:0;padding:9px;border-radius:15px;background:linear-gradient(145deg,rgba(30,41,72,.55),rgba(15,23,42,.38));border:1px solid rgba(148,163,184,.11)}.cosa-node.hot{border-color:rgba(103,232,249,.16)}.cosa-node.risk{border-color:rgba(251,113,133,.16)}.cosa-node.warning{border-color:rgba(245,158,11,.16)}.cosa-node-icon{width:25px;height:25px;flex:0 0 25px;border-radius:9px;display:grid;place-items:center;background:rgba(99,102,241,.12);color:#a5b4fc;font-size:8px;font-weight:950}.cosa-node.risk .cosa-node-icon{background:rgba(251,113,133,.1);color:#fda4af}.cosa-node.warning .cosa-node-icon{background:rgba(245,158,11,.1);color:#fcd34d}.cosa-node small{display:block;font-size:5px;letter-spacing:.13em;color:#64748b;font-weight:950}.cosa-node strong{display:block;margin-top:3px;font-size:9px;color:#e2e8f0;font-weight:950;overflow-wrap:anywhere}.cosa-node p{margin:2px 0 0;color:#64748b;font-size:6px;font-weight:750}.cosa-foot{display:flex;justify-content:space-between;gap:8px;margin-top:8px;padding:7px 9px;border-top:1px solid rgba(148,163,184,.1);color:#64748b;font-size:5px;letter-spacing:.12em;font-weight:950}.cosa-foot i{display:inline-block;width:5px;height:5px;margin-right:5px;border-radius:50%;background:#34d399;box-shadow:0 0 8px rgba(52,211,153,.45)}@media(max-width:620px){.cosa-head{gap:8px}.cosa h2{font-size:17px}.cosa-primary{grid-template-columns:42px 1fr}.cosa-orb{width:40px;height:40px}.cosa-primary button,.cosa-meter{grid-column:2}.cosa-primary button{justify-self:start}.cosa-meter{width:100%;margin-top:3px}.cosa-grid{grid-template-columns:1fr}.cosa-node{padding:10px}.cosa-foot{flex-direction:column;gap:4px}}@media(prefers-reduced-motion:reduce){.cosa *{animation:none!important;transition:none!important}}`;
