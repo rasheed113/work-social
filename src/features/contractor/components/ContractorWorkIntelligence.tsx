@@ -102,7 +102,7 @@ export function ContractorWorkIntelligence({ remainingPieces }: Props) {
   const completedArea = points.length > 1 ? `${completedPath} L ${x(points.length - 1)} ${height - padY} L ${x(0)} ${height - padY} Z` : '';
   const noHistory = points.length === 0;
   const sparse = points.length === 1;
-  const comparisonText = model.completedChange === null ? 'NO COMPARABLE COMPLETED HISTORY' : `${formatComparison(model.completedChange)} COMPLETED`;
+  const comparisonText = model.completedChange === null ? 'BASELINE · NO PRIOR COMPLETION' : `${formatComparison(model.completedChange)} COMPLETED`;
   const momentumText = model.momentum === null ? 'STEADY' : `${model.momentum >= 0 ? '↑' : '↓'} ${Math.abs(model.momentum).toFixed(0)}%`;
   const momentumTone = model.momentum === null ? 'neutral' : model.momentum >= 0 ? 'positive' : 'pressure';
 
