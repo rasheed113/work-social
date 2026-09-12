@@ -17,6 +17,7 @@ import './features/expense-manager/overview-collapsible.css';
 import './features/expense-manager/overview-collapsible';
 import './features/contractor/team-finance-progress.css';
 import './features/contractor/team-work-compact.css';
+import './features/contractor/contractor-overview-team-intelligence-premium.css';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
