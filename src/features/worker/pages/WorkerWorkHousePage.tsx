@@ -7,6 +7,7 @@ import { useWorkerProfile } from '../hooks/useWorkerProfile';
 import { WorkerTeamWorkPage } from './WorkerTeamWorkPage';
 import { WorkerTeamDashboardPage } from './WorkerTeamDashboardPage';
 import { WorkerTeamDashboardWorkPageV2 } from './WorkerTeamDashboardWorkPageV2';
+import { WorkerTeamFinancePage } from './WorkerTeamFinancePage';
 import { ContractorTeamFinancePage } from '../../contractor/pages/ContractorTeamFinancePage';
 
 class TeamDashboardWorkBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
@@ -23,12 +24,12 @@ export function WorkerWorkHousePage() {
   if (session.error || !session.profileId) return <main style={{ width: '100%', maxWidth: 900, margin: '0 auto', padding: '24px 14px 112px', boxSizing: 'border-box' }}><p role="alert" style={{ color: '#b91c1c', fontWeight: 700 }}>{session.error ?? 'Authenticated profile is unavailable.'}</p></main>;
   if (profile.error) return <main style={{ width: '100%', maxWidth: 900, margin: '0 auto', padding: '24px 14px 112px', boxSizing: 'border-box' }}><p role="alert" style={{ color: '#b91c1c', fontWeight: 700 }}>{profile.error}</p></main>;
   const pathname = window.location.pathname;
-  const financeMatch = pathname.match(/^\/work\/contractor\/team-finance\/(\d+)\/?$/);
-  if (financeMatch) return <ContractorTeamFinancePage teamNumber={financeMatch[1]} />;
-  const teamSubRoute = pathname.match(/^\/work\/team-work\/(\d+)\/(finance|settings)\/?$/);
-  if (teamSubRoute) {
-    return <WorkerTeamDashboardPage />;
-  }
+  const contractorFinanceMatch = pathname.match(/^\/work\/contractor\/team-finance\/(\d+)\/?$/);
+  if (contractorFinanceMatch) return <ContractorTeamFinancePage teamNumber={contractorFinanceMatch[1]} />;
+  const workerFinanceMatch = pathname.match(/^\/work\/team-work\/(\d+)\/finance\/?$/);
+  if (workerFinanceMatch) return <WorkerTeamFinancePage />;
+  const teamSettingsMatch = pathname.match(/^\/work\/team-work\/(\d+)\/settings\/?$/);
+  if (teamSettingsMatch) return <WorkerTeamDashboardPage />;
   if (/^\/work\/team-work\/\d+(?:\/|$)/.test(pathname)) {
     return <TeamDashboardWorkBoundary><WorkerTeamDashboardWorkPageV2 /></TeamDashboardWorkBoundary>;
   }
