@@ -1,5 +1,3 @@
-import type { WorkerFinanceSummary } from '../types/finance';
-
 type Props = {
   todayEntries: number;
   weekEntries: number;
