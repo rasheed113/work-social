@@ -51,12 +51,9 @@ export function ContractorOverviewDiscoPulseRibbon(props: WorkProps) {
     return () => { cancelled = true; };
   }, []);
 
-  useEffect(() => {
-    const timer = window.setInterval(() => {
-      setChannel((current) => current === 'work' ? 'finance' : current === 'finance' ? 'health' : 'work');
-    }, 10500);
-    return () => window.clearInterval(timer);
-  }, []);
+  const advanceChannel = () => {
+    setChannel((current) => current === 'work' ? 'finance' : current === 'finance' ? 'health' : 'work');
+  };
 
   const health = useMemo(() => {
     const due = num(healthFinance?.due);
@@ -107,7 +104,7 @@ export function ContractorOverviewDiscoPulseRibbon(props: WorkProps) {
       <div className="codpr-glow" aria-hidden="true" />
       <div className="codpr-label"><i />{label}</div>
       <div className="codpr-window">
-        <div className="codpr-track">
+        <div key={channel} className="codpr-track" onAnimationIteration={advanceChannel}>
           {[...content, ...content].map((item, index) => (
             <span className={`codpr-item codpr-${item.tone}`} key={`${channel}-${index}`}>
               {item.value}<b>·</b>
