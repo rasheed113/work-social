@@ -19,6 +19,11 @@ type Finance = {
   worker_due: number | string;
 };
 
+type HealthFinance = {
+  due: number | string;
+  payment_coverage: number | string;
+};
+
 type Channel = 'work' | 'finance' | 'health';
 
 const num = (value: unknown) => Math.max(0, Number(value) || 0);
@@ -29,12 +34,18 @@ const percent = (value: unknown) => `${Math.max(0, Math.min(100, num(value))).to
 export function ContractorOverviewDiscoPulseRibbon(props: WorkProps) {
   const [channel, setChannel] = useState<Channel>('work');
   const [finance, setFinance] = useState<Finance | null>(null);
+  const [healthFinance, setHealthFinance] = useState<HealthFinance | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
-      const { data, error } = await supabase.rpc('get_contractor_overview_finance_intelligence');
-      if (!cancelled && !error) setFinance((data?.[0] as Finance | undefined) ?? null);
+      const [{ data: financeData, error: financeError }, { data: healthData, error: healthError }] = await Promise.all([
+        supabase.rpc('get_contractor_overview_finance_intelligence'),
+        supabase.rpc('get_contractor_stage2_finance_summary', { p_team_id: null }),
+      ]);
+      if (cancelled) return;
+      if (!financeError) setFinance((financeData?.[0] as Finance | undefined) ?? null);
+      if (!healthError) setHealthFinance((healthData?.[0] as HealthFinance | undefined) ?? null);
     };
     void load();
     return () => { cancelled = true; };
@@ -46,6 +57,16 @@ export function ContractorOverviewDiscoPulseRibbon(props: WorkProps) {
     }, 10500);
     return () => window.clearInterval(timer);
   }, []);
+
+  const health = useMemo(() => {
+    const due = num(healthFinance?.due);
+    const coverage = Math.max(0, Math.min(100, num(healthFinance?.payment_coverage)));
+    const workPressure = props.remaining > 0;
+    const financePressure = due > 0;
+    const idleWithBacklog = props.remaining > 0 && props.inProgressTeams === 0;
+    const attentionCount = [workPressure, financePressure, idleWithBacklog].filter(Boolean).length;
+    return { due, coverage, attentionCount };
+  }, [healthFinance, props.remaining, props.inProgressTeams]);
 
   const content = useMemo(() => {
     if (channel === 'work') {
@@ -69,20 +90,15 @@ export function ContractorOverviewDiscoPulseRibbon(props: WorkProps) {
       ];
     }
 
-    const signals = [
-      props.remaining > 0,
-      num(finance?.receivable_due) > 0,
-      props.remaining > 0 && props.inProgressTeams === 0,
-    ].filter(Boolean).length;
-
     return [
-      { value: `${signals} LIVE SIGNALS`, tone: signals > 0 ? 'pink' : 'mint' },
+      { value: `${health.attentionCount} LIVE SIGNALS`, tone: health.attentionCount > 0 ? 'pink' : 'mint' },
       { value: `${pieces(props.remaining)} PCS OPEN`, tone: 'cyan' },
       { value: `${props.inProgressTeams}/${props.totalTeams} TEAMS IN PROGRESS`, tone: 'violet' },
       { value: `${props.activeWorkers} ACTIVE WORKERS`, tone: 'mint' },
-      { value: num(finance?.receivable_due) > 0 ? `${money(finance?.receivable_due)} COLLECTION PRESSURE` : 'RECEIVABLES COVERED', tone: num(finance?.receivable_due) > 0 ? 'amber' : 'mint' },
+      { value: health.due > 0 ? `${money(health.due)} COLLECTION PRESSURE` : 'RECEIVABLES COVERED', tone: health.due > 0 ? 'amber' : 'mint' },
+      { value: `${percent(health.coverage)} PAYMENT COVERAGE`, tone: 'blue' },
     ];
-  }, [channel, finance, props]);
+  }, [channel, finance, health, props]);
 
   const label = channel === 'work' ? '⚡ WORK' : channel === 'finance' ? '◈ FINANCE' : '♥ HEALTH';
 
