@@ -3,7 +3,6 @@ import type { CSSProperties } from 'react';
 import { navigate } from '../../../app/Router';
 import { supabase } from '../../../lib/supabase/client';
 import { ContractorWorkIntelligence } from '../components/ContractorWorkIntelligence';
-import { ContractorWorkSignals } from '../components/ContractorWorkSignals';
 import { ContractorTeamWorkerIntelligence } from '../components/ContractorTeamWorkerIntelligence';
 import { ContractorOverviewFinanceIntelligence } from '../components/ContractorOverviewFinanceIntelligence';
 import { ContractorSmartAttention } from '../components/ContractorOverviewSmartAttention';
@@ -31,7 +30,6 @@ export function ContractorOverviewPage({profileId}:Props){
    <section className="co5-hero"><div className="co5-kicker">CONTRACTOR OVERVIEW</div><h1>Work, in one view.</h1><p>See what remains, where it sits, how work is moving, and which teams are producing real output.</p><div className="co5-progress"><div className="co5-ring" style={{'--p':overallPct??0} as CSSProperties}><div><strong>{overallPct===null?'—':`${overallPct.toFixed(0)}%`}</strong><span>overall complete</span></div></div><div className="co5-kpis"><div><span>TAKEN</span><strong>{pcs(taken)} pcs</strong><small>{pkr(o?.taken_amount)}</small></div><div><span>COMPLETED</span><strong>{pcs(done)} pcs</strong><small>{pkr(o?.completed_amount)}</small></div><div className="co5-remaining">{taken>0?`${pcs(remaining)} pieces remaining`:'No taken work baseline is available yet.'}</div></div></div></section>
    <section className="co5-section"><ContractorSmartAttention remainingPieces={remaining} priorityTeamName={d.priority?.team_name??null} priorityTeamNumber={d.priority?.team_number??null} remainingTeams={d.remainingTeams} inProgressTeams={d.inProgressTeams} totalTeams={totalTeams} activeWorkers={activeWorkers}/></section>
    <section className="co5-section"><ContractorWorkIntelligence remainingPieces={remaining}/></section>
-   <section className="co5-section"><ContractorWorkSignals teams={payload!.teams} activities={payload!.recent_activity} takenPieces={taken} completedPieces={done} remainingPieces={remaining} activeWorkers={activeWorkers}/></section>
    <section className="co5-section"><div className="co5-section-head"><span>OPERATIONAL SUMMARY</span></div><div className="co5-summary"><article><span>TEAMS IN PROGRESS</span><strong>{d.inProgressTeams} / {totalTeams}</strong><b style={{width:`${inProgressPct??0}%`}}/><small>{inProgressPct===null?'NO TEAMS':`${inProgressPct.toFixed(0)}% active`}</small></article><article><span>COMPLETED TEAMS</span><strong>{d.completedTeams} / {totalTeams}</strong><b className="green" style={{width:`${completedPct??0}%`}}/><small>{completedPct===null?'NO TEAMS':`${completedPct.toFixed(0)}% complete`}</small></article><article><span>TEAM WORKERS</span><strong>{activeWorkers}</strong><small>{activeWorkers===0?'NONE ACTIVE':'CURRENT TEAM MEMBERS'}</small></article></div></section>
    <section className="co5-section"><ContractorTeamWorkerIntelligence/></section>
    <section className="co5-section"><ContractorOverviewFinanceIntelligence/></section>
