@@ -1,1 +1,23 @@
 .co4-title{background:linear-gradient(135deg,#172554 0%,#3730a3 34%,#4f46e5 62%,#7c3aed 100%);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:0 1px 0 rgba(255,255,255,.95),0 2px 0 rgba(67,56,202,.16),0 5px 10px rgba(67,56,202,.14),0 12px 24px rgba(79,70,229,.12);filter:drop-shadow(0 5px 8px rgba(79,70,229,.12))}.co4-sub{color:#475569;text-shadow:0 1px 0 rgba(255,255,255,.9),0 3px 9px rgba(15,23,42,.08)}.co4-kicker{color:#4f46e5;text-shadow:0 1px 0 rgba(255,255,255,.9),0 3px 8px rgba(79,70,229,.14)}
+
+/* Phase 1 — Overall Work Progress: dimensional business-intelligence instrument. */
+.co4-progress{position:relative;padding:14px;border-radius:22px;background:linear-gradient(145deg,rgba(255,255,255,.72),rgba(239,246,255,.58) 55%,rgba(245,243,255,.62));border:1px solid rgba(255,255,255,.88);box-shadow:inset 0 1px 0 rgba(255,255,255,.98),0 16px 34px rgba(15,23,42,.055);overflow:visible}
+.co4-ring{position:relative;isolation:isolate;flex:0 0 auto;background:conic-gradient(from -32deg,#0ea5e9,#4f46e5,#06b6d4);box-shadow:0 18px 34px rgba(37,99,235,.17),0 5px 12px rgba(79,70,229,.11),inset 0 2px 4px rgba(255,255,255,.92),inset 0 -4px 8px rgba(15,23,42,.09);transition:transform .25s ease,box-shadow .35s ease}
+.co4-ring::before{content:"";position:absolute;inset:0;border-radius:50%;z-index:-1;background:conic-gradient(from -32deg,#22c55e 0%,#10b981 calc(var(--p)*1%),#f59e0b calc(var(--p)*1%),#fbbf24 100%);box-shadow:inset 0 2px 3px rgba(255,255,255,.68),inset 0 -5px 9px rgba(15,23,42,.12);animation:co4-progress-bloom .9s cubic-bezier(.22,.8,.24,1) both}
+.co4-ring::after{content:"";position:absolute;inset:-7px;border-radius:50%;z-index:-2;background:radial-gradient(circle at 32% 22%,rgba(125,211,252,.7),rgba(99,102,241,.28) 34%,transparent 68%);filter:blur(8px);opacity:.65;animation:co4-ring-light 5s ease-in-out infinite alternate}
+.co4-ring-inner{position:relative;z-index:2;background:radial-gradient(circle at 36% 25%,rgba(255,255,255,.99),rgba(248,250,252,.96) 48%,rgba(238,242,255,.93));border:1px solid rgba(255,255,255,.98);box-shadow:inset 0 2px 5px rgba(255,255,255,.95),inset 0 -5px 10px rgba(15,23,42,.055),0 7px 14px rgba(15,23,42,.08);overflow:hidden}
+.co4-ring-inner::before{content:"";position:absolute;left:16%;top:8%;width:48%;height:22%;border-radius:999px;background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.86),rgba(255,255,255,0));filter:blur(2px);transform:rotate(-18deg);opacity:.8;pointer-events:none}
+.co4-percent{position:relative;z-index:2;color:#172554;text-shadow:0 1px 0 #fff,0 3px 9px rgba(37,99,235,.16)}
+.co4-muted{position:relative;z-index:2;color:#64748b}
+.co4-ring[aria-label="Overall completion unavailable"]{background:conic-gradient(from -32deg,#0ea5e9,#4f46e5,#06b6d4)}
+.co4-ring[aria-label="Overall completion unavailable"]::before{background:conic-gradient(from -32deg,#38bdf8,#4f46e5,#06b6d4);opacity:.78}
+.co4-ring[aria-label="Overall completion unavailable"]::after{opacity:.42}
+.co4-progress:hover .co4-ring{transform:translateY(-2px);box-shadow:0 22px 40px rgba(37,99,235,.2),0 7px 15px rgba(79,70,229,.13),inset 0 2px 4px rgba(255,255,255,.94),inset 0 -4px 8px rgba(15,23,42,.09)}
+.co4-kpis{position:relative;z-index:2}
+.co4-kpi{background:linear-gradient(145deg,rgba(255,255,255,.86),rgba(248,250,252,.62));box-shadow:inset 0 1px 0 rgba(255,255,255,.98),0 9px 18px rgba(15,23,42,.045)}
+.co4-remaining{position:relative;z-index:2;background:linear-gradient(145deg,rgba(255,251,235,.88),rgba(255,255,255,.66));box-shadow:inset 0 1px 0 rgba(255,255,255,.92),0 6px 14px rgba(245,158,11,.055)}
+
+@keyframes co4-progress-bloom{0%{transform:scale(.965);opacity:.35;filter:saturate(.75)}55%{transform:scale(1.008);opacity:1;filter:saturate(1.06)}100%{transform:scale(1);opacity:1;filter:saturate(1)}}
+@keyframes co4-ring-light{0%{transform:translate3d(-2px,-1px,0) rotate(0deg);opacity:.42}100%{transform:translate3d(3px,2px,0) rotate(12deg);opacity:.72}}
+@media(max-width:620px){.co4-progress{padding:11px;border-radius:20px}.co4-ring::after{inset:-5px;filter:blur(7px)}}
+@media(prefers-reduced-motion:reduce){.co4-ring::before,.co4-ring::after{animation:none}.co4-progress:hover .co4-ring{transform:none}}
