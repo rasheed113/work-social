@@ -128,7 +128,7 @@ const styles = `
 .codpr-item{display:inline-flex;align-items:center;gap:9px;padding-left:17px;font-size:7px;line-height:1;letter-spacing:.055em;font-weight:900;white-space:nowrap;text-shadow:0 0 12px currentColor}.codpr-item b{font-size:10px;opacity:.45;color:#cbd5e1;text-shadow:none}.codpr-cyan{color:#67e8f9}.codpr-violet{color:#c4b5fd}.codpr-pink{color:#f9a8d4}.codpr-blue{color:#93c5fd}.codpr-mint{color:#6ee7b7}.codpr-amber{color:#fcd34d}
 @keyframes codpr-scroll{from{transform:translate3d(0,0,0)}to{transform:translate3d(-50%,0,0)}}@keyframes codpr-live{0%,100%{opacity:.45;transform:scale(.82)}50%{opacity:1;transform:scale(1.18)}}
 @media(max-width:620px){.codpr{min-height:29px;margin-top:9px}.codpr-label{height:23px;padding:0 8px;font-size:6px}.codpr-item{font-size:6.5px;padding-left:14px;gap:7px}.codpr-track{animation-duration:17s}}
-@media(prefers-reduced-motion:reduce){.codpr-track{animation:none!important}.codpr-label i{animation:none!important}}
+@media(prefers-reduced-motion:reduce){.codpr-label i{animation:none!important}}
 `;
 
 if (typeof document !== 'undefined' && !document.getElementById('codpr-styles')) {
