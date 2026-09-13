@@ -54,46 +54,73 @@ function buildHealthMap(container: Element, todayEntries: number, weekEntries: n
   container.querySelector('.wo-health-map-anchor')?.replaceWith(svg);
 }
 
-function buildFinanceProgress(container: Element) {
-  const existing = container.querySelector('.wo-live-finance-progress');
+function buildFinanceOrbit(container: Element) {
+  const existing = container.querySelector('.wo-live-finance-orbit');
   existing?.remove();
   const finance = container.querySelector('.wo-fin');
   if (!finance) return;
   const boxes = Array.from(finance.querySelectorAll('.wo-finbox strong')) as HTMLElement[];
   if (boxes.length < 3) return;
+
+  // Read the already-rendered authoritative finance values. This visual layer does not calculate accounting state.
   const earned = numericText(boxes[1].textContent || boxes[0].textContent || '0');
   const received = numericText(boxes[2].textContent || '0');
-  const ratio = earned > 0 ? received / earned : 0;
-  const coverage = earned > 0 ? ratio * 100 : 0;
+  const coverage = earned > 0 ? (received / earned) * 100 : 0;
   const remainingText = container.querySelector('.wo-rem')?.textContent || '';
   const remaining = numericText(remainingText);
   const ahead = remaining < 0 || received > earned;
-  const base = Math.max(earned, received, 1);
-  const earnedRatio = earned / base;
-  const receivedRatio = received / base;
-  const width = 620; const height = 184; const trackX = 38; const trackY = 72; const trackW = 544; const trackH = 24;
-  const svg = svgEl('svg'); svg.classList.add('wo-live-finance-progress'); svg.setAttribute('viewBox', `0 0 ${width} ${height}`); svg.setAttribute('preserveAspectRatio', 'none'); svg.setAttribute('aria-label', 'Worker overall finance progress'); addDefs(svg, 'finance-progress');
+  const delta = Math.abs(remaining);
+
+  const width = 620; const height = 264; const cx = width / 2; const cy = 132;
+  const svg = svgEl('svg');
+  svg.classList.add('wo-live-finance-orbit');
+  svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+  svg.setAttribute('preserveAspectRatio', 'none');
+  svg.setAttribute('aria-label', 'Worker financial orbit showing earned, received and live financial position');
+  addDefs(svg, 'finance-orbit');
+
   const defs = svg.querySelector('defs');
-  const grad = svgEl('linearGradient'); grad.id = 'finance-progress-gradient'; grad.setAttribute('x1','0%'); grad.setAttribute('x2','100%'); const stops=[['0%','#22d3ee'],['48%','#3b82f6'],['78%','#8b5cf6'],['100%','#ec4899']]; stops.forEach(([offset,color])=>{const s=svgEl('stop');s.setAttribute('offset',offset);s.setAttribute('stop-color',color);defs?.appendChild(s)});
-  addText(svg,'FINANCE COVERAGE PROGRESS',16,16,7,'#8192ae','950');
-  addText(svg,earned>0?`${coverage.toFixed(1)}% RECEIVED / EARNED`:'NO EARNED BASE',604,16,7,ahead?'#fbbf24':'#67e8f9','950','end');
-  const bg = svgEl('rect'); bg.setAttribute('x',String(trackX)); bg.setAttribute('y',String(trackY)); bg.setAttribute('width',String(trackW)); bg.setAttribute('height',String(trackH)); bg.setAttribute('rx','12'); bg.setAttribute('fill','rgba(255,255,255,.055)'); bg.setAttribute('stroke','rgba(255,255,255,.09)'); svg.appendChild(bg);
-  const fill = svgEl('rect'); fill.setAttribute('x',String(trackX)); fill.setAttribute('y',String(trackY)); fill.setAttribute('width',String(trackW * receivedRatio)); fill.setAttribute('height',String(trackH)); fill.setAttribute('rx','12'); fill.setAttribute('fill','url(#finance-progress-gradient)'); fill.setAttribute('opacity','.92'); svg.appendChild(fill);
-  const earnedX = trackX + trackW * earnedRatio;
-  const marker = svgEl('line'); marker.setAttribute('x1',String(earnedX)); marker.setAttribute('x2',String(earnedX)); marker.setAttribute('y1',String(trackY-12)); marker.setAttribute('y2',String(trackY+trackH+12)); marker.setAttribute('stroke','#f8fbff'); marker.setAttribute('stroke-width','2'); marker.setAttribute('stroke-dasharray','3 4'); svg.appendChild(marker);
-  const dot = svgEl('circle'); dot.setAttribute('cx',String(earnedX)); dot.setAttribute('cy',String(trackY+trackH/2)); dot.setAttribute('r','6'); dot.setAttribute('fill','#fff'); dot.setAttribute('stroke','#22d3ee'); dot.setAttribute('stroke-width','3'); svg.appendChild(dot);
-  addText(svg,'EARNED',trackX,124,7,'#91a4c2','900'); addText(svg,money(earned),trackX,137,10,'#67e8f9','950');
-  addText(svg,'RECEIVED',trackX+trackW,124,7,'#91a4c2','900','end'); addText(svg,money(received),trackX+trackW,137,10,'#f0abfc','950','end');
-  addText(svg,ahead ? `RECEIVED AHEAD · ${money(Math.abs(remaining))}` : remaining === 0 ? 'BALANCED · RECEIVED MATCHES EARNED' : `BALANCE OPEN · ${money(Math.abs(remaining))}`, width/2,165,7,ahead?'#fbbf24':'#67e8f9','950','middle');
-  finance.insertAdjacentElement('afterend',svg);
+  const grad = svgEl('linearGradient'); grad.id = 'finance-orbit-energy'; grad.setAttribute('x1','0%'); grad.setAttribute('y1','0%'); grad.setAttribute('x2','100%'); grad.setAttribute('y2','100%');
+  [['0%','#22d3ee'],['38%','#3b82f6'],['68%','#8b5cf6'],['100%','#ec4899']].forEach(([offset,color]) => { const s=svgEl('stop'); s.setAttribute('offset',offset); s.setAttribute('stop-color',color); grad.appendChild(s); }); defs?.appendChild(grad);
+  const coreGrad = svgEl('radialGradient'); coreGrad.id = 'finance-orbit-core';
+  [['0%','#ec4899'],['38%','#8b5cf6'],['72%','#2563eb'],['100%','#07111e']].forEach(([offset,color]) => { const s=svgEl('stop'); s.setAttribute('offset',offset); s.setAttribute('stop-color',color); coreGrad.appendChild(s); }); defs?.appendChild(coreGrad);
+  const soft = svgEl('filter'); soft.id = 'finance-orbit-soft'; soft.setAttribute('x','-100%'); soft.setAttribute('y','-100%'); soft.setAttribute('width','300%'); soft.setAttribute('height','300%'); const blur=svgEl('feGaussianBlur'); blur.setAttribute('stdDeviation','8'); soft.appendChild(blur); defs?.appendChild(soft);
+
+  addText(svg, 'FINANCIAL ORBIT', 16, 16, 7, '#8192ae', '950');
+  addText(svg, earned > 0 ? `${coverage.toFixed(1)}% COVERAGE` : 'NO EARNED BASE', width - 16, 16, 7, ahead ? '#fbbf24' : '#67e8f9', '950', 'end');
+
+  const halo = svgEl('circle'); halo.setAttribute('cx',String(cx)); halo.setAttribute('cy',String(cy)); halo.setAttribute('r','92'); halo.setAttribute('fill','url(#finance-orbit-energy)'); halo.setAttribute('fill-opacity','.10'); halo.setAttribute('filter','url(#finance-orbit-soft)'); svg.appendChild(halo);
+  [58,78,98].forEach((r, i) => { const ring=svgEl('circle'); ring.setAttribute('cx',String(cx)); ring.setAttribute('cy',String(cy)); ring.setAttribute('r',String(r)); ring.setAttribute('fill','none'); ring.setAttribute('stroke',i===1?'url(#finance-orbit-energy)':'rgba(255,255,255,.12)'); ring.setAttribute('stroke-width',i===1?'2.4':'1.2'); ring.setAttribute('stroke-dasharray',i===0?'2 9':i===1?'5 11':'12 8'); ring.setAttribute('opacity',i===1?'1':'.7'); if(i===1) ring.style.animation='woOrbitSpin 18s linear infinite'; if(i===2) ring.style.animation='woOrbitSpinReverse 28s linear infinite'; svg.appendChild(ring); });
+
+  const core = svgEl('circle'); core.setAttribute('cx',String(cx)); core.setAttribute('cy',String(cy)); core.setAttribute('r','49'); core.setAttribute('fill','url(#finance-orbit-core)'); core.setAttribute('stroke','rgba(255,255,255,.24)'); core.setAttribute('stroke-width','1.5'); core.setAttribute('filter','url(#finance-orbit-glow)'); svg.appendChild(core);
+  const inner = svgEl('circle'); inner.setAttribute('cx',String(cx)); inner.setAttribute('cy',String(cy)); inner.setAttribute('r','40'); inner.setAttribute('fill','rgba(4,10,22,.72)'); inner.setAttribute('stroke','rgba(255,255,255,.12)'); svg.appendChild(inner);
+
+  addText(svg, ahead ? 'RECEIVED AHEAD' : remaining === 0 ? 'BALANCED' : 'BALANCE OPEN', cx, cy - 13, 8, ahead ? '#fbbf24' : '#67e8f9', '950', 'middle');
+  addText(svg, money(delta), cx, cy + 7, 16, '#f8fbff', '950', 'middle');
+  addText(svg, ahead ? 'LIVE FINANCIAL POSITION' : 'LIVE FINANCIAL POSITION', cx, cy + 23, 6, '#a9b8cc', '850', 'middle');
+
+  const orbitPath = svgEl('circle'); orbitPath.setAttribute('cx',String(cx)); orbitPath.setAttribute('cy',String(cy)); orbitPath.setAttribute('r','78'); orbitPath.setAttribute('fill','none'); orbitPath.setAttribute('stroke','rgba(255,255,255,.04)'); orbitPath.setAttribute('stroke-width','1'); svg.appendChild(orbitPath);
+  const receivedDot = svgEl('circle'); receivedDot.setAttribute('cx',String(cx+78)); receivedDot.setAttribute('cy',String(cy)); receivedDot.setAttribute('r','5'); receivedDot.setAttribute('fill','#ec4899'); receivedDot.setAttribute('filter','url(#finance-orbit-glow)'); receivedDot.style.transformOrigin=`${cx}px ${cy}px`; receivedDot.style.animation='woOrbitSpin 7s linear infinite'; svg.appendChild(receivedDot);
+  const earnedDot = svgEl('circle'); earnedDot.setAttribute('cx',String(cx-78)); earnedDot.setAttribute('cy',String(cy)); earnedDot.setAttribute('r','4'); earnedDot.setAttribute('fill','#22d3ee'); earnedDot.setAttribute('filter','url(#finance-orbit-glow)'); earnedDot.style.transformOrigin=`${cx}px ${cy}px`; earnedDot.style.animation='woOrbitSpinReverse 11s linear infinite'; svg.appendChild(earnedDot);
+
+  const particles = [
+    [cx-104,cy-48,'#22d3ee'],[cx+108,cy-31,'#3b82f6'],[cx+101,cy+48,'#8b5cf6'],[cx-92,cy+54,'#ec4899'],[cx+18,cy-103,'#67e8f9'],[cx-31,cy+104,'#a78bfa']
+  ];
+  particles.forEach(([x,y,color],i)=>{const p=svgEl('circle'); p.setAttribute('cx',String(x)); p.setAttribute('cy',String(y)); p.setAttribute('r',i%2?'2.5':'2'); p.setAttribute('fill',String(color)); p.setAttribute('opacity','.85'); p.style.animation=`woEnergyPulse ${1.8+i*.23}s ease-in-out infinite alternate`; svg.appendChild(p);});
+
+  addText(svg, 'EARNED', 48, 221, 7, '#91a4c2', '900'); addText(svg, money(earned), 48, 236, 10, '#67e8f9', '950');
+  addText(svg, 'RECEIVED', width-48, 221, 7, '#91a4c2', '900', 'end'); addText(svg, money(received), width-48, 236, 10, '#f0abfc', '950', 'end');
+  addText(svg, 'ENERGY SOURCE', 48, 249, 5.5, '#5eead4', '850'); addText(svg, 'CHARGED FLOW', width-48, 249, 5.5, '#f0abfc', '850', 'end');
+
+  finance.insertAdjacentElement('afterend', svg);
 }
 
 export function WorkerOverallHealthCard({ todayEntries, weekEntries, remaining }: Props) {
   const work = workSignal(todayEntries, weekEntries); const finance = financeSignal(Number(remaining || 0));
-  useEffect(() => { const root = document.querySelector('.wo'); if (!root) return; const card = root.querySelector('.wo-health-card'); if (card) buildHealthMap(card, todayEntries, weekEntries, Number(remaining || 0)); const financeCard = root.querySelector('.wo-fin')?.closest('.wo-card'); if (financeCard) { financeCard.querySelector('.wo-actions')?.remove(); buildFinanceProgress(financeCard); } }, [todayEntries, weekEntries, remaining]);
+  useEffect(() => { const root = document.querySelector('.wo'); if (!root) return; const card = root.querySelector('.wo-health-card'); if (card) buildHealthMap(card, todayEntries, weekEntries, Number(remaining || 0)); const financeCard = root.querySelector('.wo-fin')?.closest('.wo-card'); if (financeCard) { financeCard.querySelector('.wo-actions')?.remove(); buildFinanceOrbit(financeCard); } }, [todayEntries, weekEntries, remaining]);
   return (
     <section className="wo-card wo-health-card">
-      <style>{`.wo-health-card{position:relative;overflow:hidden}.wo-health-card:before{content:"";position:absolute;inset:-70px -45px auto auto;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(34,211,238,.2),rgba(124,58,237,.08) 42%,transparent 70%);pointer-events:none}.wo-health-card:after{content:"";position:absolute;inset:auto -20px -90px auto;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(167,139,250,.13),transparent 68%);pointer-events:none}.wo-health-map-anchor{display:block;height:180px;margin-top:12px}.wo-live-map-health{display:block;width:100%;height:auto;padding:7px;border:1px solid rgba(255,255,255,.08);border-radius:18px;background:radial-gradient(circle at 50% 50%,rgba(124,58,237,.09),rgba(255,255,255,.025) 45%,rgba(255,255,255,.012));box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 12px 28px rgba(0,0,0,.16)}.wo-live-finance-progress{display:block;width:100%;height:auto;margin-top:10px;padding:7px;border:1px solid rgba(255,255,255,.08);border-radius:18px;background:linear-gradient(145deg,rgba(34,211,238,.055),rgba(124,58,237,.075),rgba(236,72,153,.045));box-shadow:inset 0 1px 0 rgba(255,255,255,.055),0 14px 32px rgba(0,0,0,.18)}.wo-health-note{position:relative;z-index:1;margin-top:9px;padding:9px 10px;border:1px solid rgba(34,211,238,.1);border-left:3px solid #22d3ee;border-radius:11px;background:linear-gradient(90deg,rgba(34,211,238,.07),rgba(34,211,238,.02));color:#91a2bd;font-size:7px;line-height:1.5}.wo-health-grid{display:none}@media(max-width:400px){.wo-health-map-anchor{height:180px}}`}</style>
+      <style>{`.wo-health-card{position:relative;overflow:hidden}.wo-health-card:before{content:"";position:absolute;inset:-70px -45px auto auto;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(34,211,238,.2),rgba(124,58,237,.08) 42%,transparent 70%);pointer-events:none}.wo-health-card:after{content:"";position:absolute;inset:auto -20px -90px auto;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(167,139,250,.13),transparent 68%);pointer-events:none}.wo-health-map-anchor{display:block;height:180px;margin-top:12px}.wo-live-map-health{display:block;width:100%;height:auto;padding:7px;border:1px solid rgba(255,255,255,.08);border-radius:18px;background:radial-gradient(circle at 50% 50%,rgba(124,58,237,.09),rgba(255,255,255,.025) 45%,rgba(255,255,255,.012));box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 12px 28px rgba(0,0,0,.16)}.wo-live-finance-orbit{display:block;width:100%;height:auto;margin-top:10px;padding:7px;border:1px solid rgba(255,255,255,.1);border-radius:20px;background:radial-gradient(circle at 50% 48%,rgba(59,130,246,.10),rgba(124,58,237,.075) 35%,rgba(236,72,153,.045) 62%,rgba(255,255,255,.012) 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 18px 38px rgba(15,23,42,.2)}.wo-live-finance-orbit text{font-family:inherit;letter-spacing:.03em}@keyframes woOrbitSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}@keyframes woOrbitSpinReverse{from{transform:rotate(360deg)}to{transform:rotate(0deg)}}@keyframes woEnergyPulse{from{opacity:.25;transform:scale(.75)}to{opacity:1;transform:scale(1.35)}}.wo-health-note{position:relative;z-index:1;margin-top:9px;padding:9px 10px;border:1px solid rgba(34,211,238,.1);border-left:3px solid #22d3ee;border-radius:11px;background:linear-gradient(90deg,rgba(34,211,238,.07),rgba(34,211,238,.02));color:#91a2bd;font-size:7px;line-height:1.5}.wo-health-grid{display:none}@media(max-width:400px){.wo-health-map-anchor{height:180px}.wo-live-finance-orbit{margin-top:8px}}@media(prefers-reduced-motion:reduce){.wo-live-finance-orbit *{animation:none!important}}`}</style>
       <div className="wo-eyebrow">04 · OVERALL HEALTH INTELLIGENCE</div>
       <h2>Real position map</h2>
       <p className="wo-muted">Live Worker health is expressed as connected work and finance signals — no artificial score.</p>
