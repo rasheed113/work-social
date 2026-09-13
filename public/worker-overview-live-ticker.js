@@ -63,21 +63,17 @@
 
   function paintTrack(ticker, items) {
     const track = ticker.querySelector('.ws-live-ticker-track');
-    const windowEl = ticker.querySelector('.ws-live-ticker-window');
-    if (!track || !windowEl) return;
+    if (!track) return;
     const safeItems = items?.length ? items : ['Live Worker data is loading'];
     const html = safeItems.map((item, i) => `<span class="ws-live-ticker-item ws-live-ticker-tone-${i % 6}">${item}</span>`).join('<i class="ws-live-ticker-separator">◆</i>');
     track.innerHTML = `<span class="ws-live-ticker-group">${html}</span><span class="ws-live-ticker-group" aria-hidden="true">${html}</span>`;
 
-    const firstGroup = track.querySelector('.ws-live-ticker-group');
-    const windowWidth = windowEl.clientWidth;
-    const groupWidth = firstGroup?.getBoundingClientRect().width || 1;
-    const travel = windowWidth + groupWidth;
-    track.style.setProperty('--ws-ticker-start', `${windowWidth}px`);
-    track.style.setProperty('--ws-ticker-distance', `${travel}px`);
-    track.style.animation = 'none';
-    void track.offsetWidth;
-    track.style.animation = '';
+    const group = track.querySelector('.ws-live-ticker-group');
+    if (!group) return;
+    const groupWidth = group.getBoundingClientRect().width || 1;
+    const pixelsPerSecond = 58;
+    const duration = Math.max(12, groupWidth / pixelsPerSecond);
+    track.style.setProperty('--ws-ticker-duration', `${duration}s`);
   }
 
   function rotate() {
