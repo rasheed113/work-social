@@ -11,6 +11,7 @@
   let groupWidth = 0;
   let currentWeather = null;
   let portal = null;
+  let portalHost = null;
 
   const formatDate = (now) => now.toLocaleDateString(undefined, { weekday:'short', month:'short', day:'numeric', year:'numeric' });
   const weatherText = (code) => ({0:'Clear sky',1:'Mainly clear',2:'Partly cloudy',3:'Overcast',45:'Foggy',48:'Rime fog',51:'Light drizzle',53:'Drizzle',55:'Heavy drizzle',56:'Light freezing drizzle',57:'Freezing drizzle',61:'Light rain',63:'Rain',65:'Heavy rain',66:'Light freezing rain',67:'Freezing rain',71:'Light snow',73:'Snow',75:'Heavy snow',77:'Snow grains',80:'Light showers',81:'Showers',82:'Heavy showers',85:'Light snow showers',86:'Snow showers',95:'Thunderstorm',96:'Thunderstorm with hail',99:'Thunderstorm with heavy hail'})[Number(code)] || 'Current weather';
@@ -36,10 +37,11 @@
     const sourceClock = findClock();
     const progressTicker = document.querySelector(PROGRESS_TICKER_SELECTOR);
     const welcome = findWelcome();
-    if (!sourceClock || !progressTicker || !welcome) return null;
+    const hero = sourceClock?.closest('.wo-hero');
+    if (!sourceClock || !progressTicker || !welcome || !hero) return null;
 
     sourceClock.classList.add(SOURCE_CLOCK_CLASS);
-    if (!portal || !portal.isConnected) {
+    if (!portal || !portal.isConnected || portalHost !== hero) {
       document.querySelectorAll(`.${PORTAL_CLASS}`).forEach((el) => el.remove());
       portal = document.createElement('div');
       portal.className = PORTAL_CLASS;
@@ -52,7 +54,8 @@
       ticker.className = 'wslc-context-ticker';
       ticker.innerHTML = `<span class="wslc-window"><span class="wslc-track"><span class="wslc-group"></span><span class="wslc-group" aria-hidden="true"></span></span></span>`;
       portal.appendChild(ticker);
-      document.body.appendChild(portal);
+      hero.appendChild(portal);
+      portalHost = hero;
       renderTicker();
     }
     return portal;
@@ -61,14 +64,14 @@
   function positionPortal() {
     const sourceClock = findClock();
     const hero = sourceClock?.closest('.wo-hero');
-    if (!portal || !sourceClock || !hero) return;
+    if (!portal || !sourceClock || !hero || portalHost !== hero) return;
     const clockRect = sourceClock.getBoundingClientRect();
     const heroRect = hero.getBoundingClientRect();
-    portal.style.left = `${Math.round(clockRect.left + window.scrollX)}px`;
-    portal.style.top = `${Math.round(clockRect.top + window.scrollY)}px`;
+    portal.style.left = `${Math.round(clockRect.left - heroRect.left)}px`;
+    portal.style.top = `${Math.round(clockRect.top - heroRect.top - 4)}px`;
     portal.style.width = `${Math.max(0, Math.round(heroRect.right - clockRect.left))}px`;
     const sourceTime = sourceClock.querySelector('.wo-time')?.textContent?.trim();
-    const clonedTime = portal.querySelector('.wslc-clock-time');
+    const clonedTime = portal.querySelector('.wo-time');
     if (sourceTime && clonedTime) clonedTime.textContent = sourceTime;
   }
 
@@ -80,7 +83,7 @@
     groups[0].innerHTML = content;
     groups[1].innerHTML = content;
     groupWidth = 0;
-    requestAnimationFrame(() => measure());
+    requestAnimationFrame(measure);
   }
 
   function measure() {
@@ -106,7 +109,7 @@
         currentWeather = { place:result?.name || result?.admin1 || 'Current location', temperature:Math.round(Number(weatherData.current?.temperature_2m)), code:Number(weatherData.current?.weather_code) };
         renderTicker();
       } catch { /* keep date ticker; never invent weather */ }
-    }, () => { /* location denied: keep weather absent rather than showing fake data */ }, { enableHighAccuracy:false, maximumAge:10*60*1000, timeout:10000 });
+    }, () => {}, { enableHighAccuracy:false, maximumAge:10*60*1000, timeout:10000 });
   }
 
   function animate(now) {
@@ -143,7 +146,6 @@
       positionPortal();
       requestAnimationFrame(measure);
     }, { passive:true });
-    window.addEventListener('scroll', positionPortal, { passive:true });
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once:true }); else boot();
