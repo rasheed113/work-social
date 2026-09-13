@@ -11,7 +11,6 @@ interface WorkerWorkSummaryCardsProps {
 }
 
 type Breakdown = { personal: WorkDecimal; team: WorkDecimal; total: WorkDecimal };
-
 type RingProps = { personal: WorkDecimal; team: WorkDecimal; total: WorkDecimal; label: string; period: string };
 
 function WorkRing({ personal, team, total, label, period }: RingProps) {
@@ -22,7 +21,6 @@ function WorkRing({ personal, team, total, label, period }: RingProps) {
   const circumference = 2 * Math.PI * radius;
   const personalLength = totalNumber > 0 ? Math.min(circumference, circumference * (personalNumber / totalNumber)) : 0;
   const teamLength = totalNumber > 0 ? Math.min(circumference - personalLength, circumference * (teamNumber / totalNumber)) : 0;
-
   return (
     <span className="worker-summary__ring-wrap" aria-hidden="true">
       <svg className="worker-summary__ring" viewBox="0 0 112 112" role="presentation">
@@ -40,13 +38,7 @@ function WorkRing({ personal, team, total, label, period }: RingProps) {
 }
 
 function MiniMetric({ code, label, value, accent }: { code: string; label: string; value: WorkDecimal; accent: string }) {
-  return (
-    <span className="worker-summary__metric">
-      <span className={`worker-summary__metric-dot worker-summary__metric-dot--${accent}`} />
-      <span className="worker-summary__metric-copy"><b>{code}</b>{label}</span>
-      <strong>{formatWorkDecimal(value)}</strong>
-    </span>
-  );
+  return <span className="worker-summary__metric"><span className={`worker-summary__metric-dot worker-summary__metric-dot--${accent}`} /><span className="worker-summary__metric-copy"><b>{code}</b>{label}</span><strong>{formatWorkDecimal(value)}</strong></span>;
 }
 
 export function WorkerWorkSummaryCards({ totals, periodLabels, onOpenHistory, cardOrder, hiddenCards = [] }: WorkerWorkSummaryCardsProps) {
@@ -107,7 +99,7 @@ export function WorkerWorkSummaryCards({ totals, periodLabels, onOpenHistory, ca
         @media (prefers-reduced-motion: reduce){.worker-summary__card{transition:none}}
       `}</style>
       <section className="worker-summary" aria-label="Personal Work, Team Work and Total">
-        {orderedCards.filter(card => !hiddenCards.includes(card.id)).map(card => {
+        {orderedCards.filter(card => !hiddenCards.includes(card.id) && card.id !== 'lifetime').map(card => {
           const totalNumber = Math.max(0, Number(card.breakdown.total) || 0);
           const personalNumber = Math.max(0, Number(card.breakdown.personal) || 0);
           const teamNumber = Math.max(0, Number(card.breakdown.team) || 0);
