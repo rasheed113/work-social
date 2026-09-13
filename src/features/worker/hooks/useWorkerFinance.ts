@@ -59,23 +59,28 @@ async function getOverallWorkerFinanceSummary(): Promise<{ data: WorkerFinanceSu
   if (personal.error || !personal.data) return { data: null, error: personal.error ?? new Error('Worker Finance summary is unavailable.') };
 
   const teamsResult = await supabase.rpc('get_worker_team_work_teams');
-  if (teamsResult.error) return { data: null, error: teamsResult.error };
+  if (teamsResult.error) return { data: null, error: new Error(teamsResult.error.message) };
   const teams = (teamsResult.data ?? []) as Team[];
 
-  const teamRows = await Promise.all(teams.map(async team => {
+  const teamRows = await Promise.all(teams.map(async (team) => {
     const result = await supabase.rpc('get_worker_team_finance_summary', { p_team_number: team.team_number });
-    if (result.error) return { error: result.error };
+    if (result.error) return { error: new Error(result.error.message) };
     const row = (result.data?.[0] ?? null) as Record<string, unknown> | null;
     if (!row) return { error: new Error('Worker Team Finance summary is unavailable.') };
-    return { data: {
-      earnings: Number(row.total_earnings || 0),
-      received: Number(row.received_amount || 0),
-    }};
+    return {
+      data: {
+        earnings: Number(row.total_earnings || 0),
+        received: Number(row.received_amount || 0),
+      },
+    };
   }));
 
-  const firstError = teamRows.find(row => 'error' in row)?.error;
-  if (firstError) return { data: null, error: firstError instanceof Error ? firstError : new Error(String(firstError)) };
+  const firstError = teamRows.find((row) => 'error' in row)?.error;
+  if (firstError) return { data: null, error: firstError };
 
+  // The personal ledger and each Worker Team Finance ledger are separate authoritative
+  // Worker-domain sources. Do not pull Contractor Finance totals or invent cross-ledger
+  // matching heuristics; preserve each source's own lineage and aggregate only its amount.
   const teamEarnings = teamRows.reduce((sum, row) => sum + ('data' in row && row.data ? row.data.earnings : 0), 0);
   const teamReceived = teamRows.reduce((sum, row) => sum + ('data' in row && row.data ? row.data.received : 0), 0);
   const totalEarnings = Number(personal.data.total_earnings || 0) + teamEarnings;
