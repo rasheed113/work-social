@@ -10,4 +10,4 @@
 .ws-live-ticker-separator{display:inline-block;flex:0 0 auto;margin:0 2px;color:rgba(255,255,255,.32);font-size:6px;text-shadow:0 0 8px rgba(103,232,249,.45);font-style:normal}
 @keyframes wsTickerPulse{0%,100%{opacity:.45;transform:scale(.75)}50%{opacity:1;transform:scale(1.15)}}
 @media(max-width:520px){.wo-ticker.ws-live-ticker{height:40px}.ws-live-ticker-label{flex-basis:68px;font-size:6px}.ws-live-ticker-item{font-size:8px;margin:0 14px!important}}
-@media(prefers-reduced-motion:reduce){.ws-live-ticker-dot{animation:none}.ws-live-ticker-track{transform:none!important}.ws-live-ticker-window{overflow:auto;mask-image:none}}
+@media(prefers-reduced-motion:reduce){.ws-live-ticker-dot{animation:none}}
