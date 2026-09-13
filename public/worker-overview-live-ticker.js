@@ -58,27 +58,50 @@
       .map((item, i) => `<span class="ws-live-ticker-item ws-live-ticker-tone-${i % 6}">${item}</span>`)
       .join('<i class="ws-live-ticker-separator">◆</i>');
 
-    // Build the two identical halves once. The animated track itself is never
-    // replaced again, so data hydration/category rotation cannot restart it.
     track.innerHTML = `<span class="ws-live-ticker-group">${html}</span><span class="ws-live-ticker-group" aria-hidden="true">${html}</span>`;
 
     const group = track.querySelector('.ws-live-ticker-group');
     if (!group) return;
-    const groupWidth = group.getBoundingClientRect().width || 1;
-    const pixelsPerSecond = 58;
-    const duration = Math.max(18, groupWidth / pixelsPerSecond);
-    track.style.setProperty('--ws-ticker-group-width', `${groupWidth}px`);
-    track.style.setProperty('--ws-ticker-duration', `${duration}s`);
-  }
 
-  function rotateLabelAtLoop(ticker) {
-    const track = ticker.querySelector('.ws-live-ticker-track');
-    if (!track) return;
-    track.addEventListener('animationiteration', () => {
-      active = (active + 1) % categories.length;
-      const label = ticker.querySelector('.ws-live-ticker-label b');
-      if (label) label.textContent = categories[active];
-    });
+    const label = ticker.querySelector('.ws-live-ticker-label b');
+    const pixelsPerSecond = 72;
+    let groupWidth = 0;
+    let previousElapsed = 0;
+    let startedAt = 0;
+
+    const measure = () => {
+      groupWidth = group.getBoundingClientRect().width;
+      if (!groupWidth) {
+        window.requestAnimationFrame(measure);
+        return;
+      }
+      previousElapsed = 0;
+      startedAt = performance.now();
+      window.requestAnimationFrame(frame);
+    };
+
+    const frame = (now) => {
+      if (!groupWidth) {
+        measure();
+        return;
+      }
+
+      const elapsed = (now - startedAt) / 1000;
+      const distance = (elapsed * pixelsPerSecond) % groupWidth;
+      const loops = Math.floor((elapsed * pixelsPerSecond) / groupWidth);
+
+      track.style.transform = `translate3d(${-distance}px, 0, 0)`;
+
+      if (loops !== Math.floor((previousElapsed * pixelsPerSecond) / groupWidth)) {
+        active = (active + 1) % categories.length;
+        if (label) label.textContent = categories[active];
+      }
+
+      previousElapsed = elapsed;
+      window.requestAnimationFrame(frame);
+    };
+
+    measure();
   }
 
   function initialize(root, ticker, groups) {
@@ -93,7 +116,6 @@
     `;
 
     paintTrack(ticker, groups);
-    rotateLabelAtLoop(ticker);
   }
 
   function boot() {
