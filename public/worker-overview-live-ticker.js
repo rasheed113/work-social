@@ -4,6 +4,7 @@
   let active = 0;
   let lastSignature = '';
   let initialized = false;
+  let animationBound = false;
 
   const clean = (value) => (value || '').replace(/\s+/g, ' ').trim();
   const read = (selector, root = document) => clean(root.querySelector(selector)?.textContent);
@@ -13,7 +14,6 @@
       read('.wo-stat.cyan strong', root) ? `Overall work volume ${read('.wo-stat.cyan strong', root)}` : '',
       read('.wo-stat.violet strong', root) ? `Work value ${read('.wo-stat.violet strong', root)}` : '',
       read('.wo-stat.lime strong', root) ? `${read('.wo-stat.lime strong', root)} real work entries` : '',
-      read('.wo-field-footer b', root) ? read('.wo-field-footer b', root) : '',
     ].filter(Boolean);
 
     const finance = [
@@ -35,13 +35,33 @@
       read('.wo-field-core strong', root) ? `Living work field: ${read('.wo-field-core strong', root)} pcs this month` : '',
       read('.wo-prism-value strong', root) ? `Work volume prism: ${read('.wo-prism-value strong', root)} pcs overall` : '',
       read('.wo-prism-meta b', root) ? read('.wo-prism-meta b', root) : '',
-      read('.wo-field-footer b', root) ? read('.wo-field-footer b', root) : '',
     ].filter(Boolean);
 
     return { WORK: work, FINANCE: finance, HEALTH: health, PROGRESS: progress };
   }
 
-  function signature(groups) { return JSON.stringify(groups); }
+  function signature(groups) {
+    return JSON.stringify(groups);
+  }
+
+  function paintTrack(ticker, items) {
+    const track = ticker.querySelector('.ws-live-ticker-track');
+    if (!track) return;
+    const safeItems = items?.length ? items : ['Live Worker data is loading'];
+    const html = safeItems
+      .map((item, i) => `<span class="ws-live-ticker-item ws-live-ticker-tone-${i % 6}">${item}</span>`)
+      .join('<i class="ws-live-ticker-separator">◆</i>');
+
+    track.innerHTML = `<span class="ws-live-ticker-group">${html}</span><span class="ws-live-ticker-group" aria-hidden="true">${html}</span>`;
+
+    const group = track.querySelector('.ws-live-ticker-group');
+    if (!group) return;
+    const groupWidth = group.getBoundingClientRect().width || 1;
+    const pixelsPerSecond = 58;
+    const duration = Math.max(12, groupWidth / pixelsPerSecond);
+    track.style.setProperty('--ws-ticker-group-width', `${groupWidth}px`);
+    track.style.setProperty('--ws-ticker-duration', `${duration}s`);
+  }
 
   function render(force = false) {
     const ticker = document.querySelector(SELECTOR);
@@ -59,45 +79,34 @@
       <span class="ws-live-ticker-window"><span class="ws-live-ticker-track"></span></span>
     `;
     paintTrack(ticker, groups[categories[active]]);
+    bindAnimation(ticker);
   }
 
-  function paintTrack(ticker, items) {
+  function bindAnimation(ticker) {
     const track = ticker.querySelector('.ws-live-ticker-track');
-    if (!track) return;
-    const safeItems = items?.length ? items : ['Live Worker data is loading'];
-    const html = safeItems.map((item, i) => `<span class="ws-live-ticker-item ws-live-ticker-tone-${i % 6}">${item}</span>`).join('<i class="ws-live-ticker-separator">◆</i>');
-    track.innerHTML = `<span class="ws-live-ticker-group">${html}</span><span class="ws-live-ticker-group" aria-hidden="true">${html}</span>`;
-
-    const group = track.querySelector('.ws-live-ticker-group');
-    if (!group) return;
-    const groupWidth = group.getBoundingClientRect().width || 1;
-    const pixelsPerSecond = 58;
-    const duration = Math.max(12, groupWidth / pixelsPerSecond);
-    track.style.setProperty('--ws-ticker-group-width', `${groupWidth}px`);
-    track.style.setProperty('--ws-ticker-duration', `${duration}s`);
-  }
-
-  function rotate() {
-    active = (active + 1) % categories.length;
-    const ticker = document.querySelector(SELECTOR);
-    const root = document.querySelector('.wo');
-    if (!ticker || !root) return;
-    const groups = buildItems(root);
-    const label = ticker.querySelector('.ws-live-ticker-label b');
-    if (label) label.textContent = categories[active];
-    paintTrack(ticker, groups[categories[active]]);
+    if (!track || animationBound) return;
+    animationBound = true;
+    track.addEventListener('animationiteration', () => {
+      const root = document.querySelector('.wo');
+      const currentTicker = document.querySelector(SELECTOR);
+      if (!root || !currentTicker) return;
+      active = (active + 1) % categories.length;
+      const groups = buildItems(root);
+      const label = currentTicker.querySelector('.ws-live-ticker-label b');
+      if (label) label.textContent = categories[active];
+      paintTrack(currentTicker, groups[categories[active]]);
+    });
   }
 
   function boot() {
     if (initialized) return;
     initialized = true;
     const observer = new MutationObserver(() => render());
-    observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+    observer.observe(document.body, { childList: true, subtree: true });
     const wait = window.setInterval(() => {
       if (document.querySelector(SELECTOR)) {
         window.clearInterval(wait);
         render(true);
-        window.setInterval(rotate, 7000);
       }
     }, 120);
   }
