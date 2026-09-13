@@ -73,6 +73,7 @@
     const groupWidth = group.getBoundingClientRect().width || 1;
     const pixelsPerSecond = 58;
     const duration = Math.max(12, groupWidth / pixelsPerSecond);
+    track.style.setProperty('--ws-ticker-group-width', `${groupWidth}px`);
     track.style.setProperty('--ws-ticker-duration', `${duration}s`);
   }
 
