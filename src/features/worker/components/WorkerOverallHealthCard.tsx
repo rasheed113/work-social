@@ -27,248 +27,219 @@ function numericText(value: string) {
   return Number(cleaned || 0);
 }
 
-function addChartTitle(svg: SVGSVGElement, text: string) {
-  const title = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-  title.setAttribute('x', '12');
-  title.setAttribute('y', '15');
-  title.setAttribute('fill', '#8192ae');
-  title.setAttribute('font-size', '8');
-  title.setAttribute('font-weight', '800');
-  title.textContent = text;
-  svg.appendChild(title);
+function svgEl<T extends keyof SVGElementTagNameMap>(tag: T) {
+  return document.createElementNS('http://www.w3.org/2000/svg', tag);
 }
 
-function buildVolumeChart(container: Element) {
-  if (container.querySelector('.wo-live-chart-volume')) return;
-  const cards = Array.from(container.querySelectorAll<HTMLElement>('.wo-v'));
-  if (!cards.length) return;
+function addText(svg: SVGSVGElement, text: string, x: number, y: number, size = 7, fill = '#8192ae', weight = '800', anchor = 'start') {
+  const node = svgEl('text');
+  node.setAttribute('x', String(x));
+  node.setAttribute('y', String(y));
+  node.setAttribute('fill', fill);
+  node.setAttribute('font-size', String(size));
+  node.setAttribute('font-weight', weight);
+  node.setAttribute('text-anchor', anchor);
+  node.textContent = text;
+  svg.appendChild(node);
+}
 
-  const values = cards.map(card => numericText(card.querySelector('strong')?.textContent || '0'));
-  const max = Math.max(1, ...values);
-  const width = 620;
-  const height = 170;
-  const left = 18;
-  const right = 12;
-  const top = 27;
-  const bottom = 34;
-  const plotW = width - left - right;
-  const plotH = height - top - bottom;
-  const points = values.map((value, index) => {
-    const x = left + (cards.length === 1 ? plotW / 2 : (plotW * index) / (cards.length - 1));
-    const y = top + plotH - (value / max) * plotH;
-    return { x, y };
-  });
-
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svg.classList.add('wo-live-chart-volume');
-  svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
-  svg.setAttribute('preserveAspectRatio', 'none');
-  svg.setAttribute('aria-label', 'Overall Worker work volume trend');
-
-  addChartTitle(svg, 'REAL WORK VOLUME TREND');
-
-  for (let i = 0; i < 3; i += 1) {
-    const y = top + (plotH * i) / 2;
-    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-    line.setAttribute('x1', String(left));
-    line.setAttribute('x2', String(width - right));
-    line.setAttribute('y1', String(y));
-    line.setAttribute('y2', String(y));
-    line.setAttribute('stroke', 'rgba(255,255,255,.08)');
-    line.setAttribute('stroke-width', '1');
-    svg.appendChild(line);
-  }
-
-  const area = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  const areaPath = `M ${points[0].x} ${top + plotH} ${points.map(point => `L ${point.x} ${point.y}`).join(' ')} L ${points[points.length - 1].x} ${top + plotH} Z`;
-  area.setAttribute('d', areaPath);
-  area.setAttribute('fill', 'url(#woVolumeArea)');
-  svg.appendChild(area);
-
-  const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
-  const gradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
-  gradient.id = 'woVolumeArea';
-  gradient.setAttribute('x1', '0');
-  gradient.setAttribute('x2', '0');
-  gradient.setAttribute('y1', '0');
-  gradient.setAttribute('y2', '1');
-  const stopA = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-  stopA.setAttribute('offset', '0');
-  stopA.setAttribute('stop-color', '#22d3ee');
-  stopA.setAttribute('stop-opacity', '.28');
-  const stopB = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-  stopB.setAttribute('offset', '1');
-  stopB.setAttribute('stop-color', '#7c3aed');
-  stopB.setAttribute('stop-opacity', '0');
-  gradient.append(stopA, stopB);
-  defs.appendChild(gradient);
+function addDefs(svg: SVGSVGElement, id: string) {
+  const defs = svgEl('defs');
+  const glow = svgEl('filter');
+  glow.id = `${id}-glow`;
+  glow.setAttribute('x', '-80%');
+  glow.setAttribute('y', '-80%');
+  glow.setAttribute('width', '260%');
+  glow.setAttribute('height', '260%');
+  const blur = svgEl('feGaussianBlur');
+  blur.setAttribute('stdDeviation', '3');
+  blur.setAttribute('result', 'blur');
+  glow.appendChild(blur);
+  defs.appendChild(glow);
   svg.insertBefore(defs, svg.firstChild);
-
-  const line = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
-  line.setAttribute('points', points.map(point => `${point.x},${point.y}`).join(' '));
-  line.setAttribute('fill', 'none');
-  line.setAttribute('stroke', '#67e8f9');
-  line.setAttribute('stroke-width', '3');
-  line.setAttribute('stroke-linecap', 'round');
-  line.setAttribute('stroke-linejoin', 'round');
-  line.setAttribute('filter', 'drop-shadow(0 0 5px rgba(34,211,238,.65))');
-  svg.appendChild(line);
-
-  cards.forEach((card, index) => {
-    const point = points[index];
-    const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-    dot.setAttribute('cx', String(point.x));
-    dot.setAttribute('cy', String(point.y));
-    dot.setAttribute('r', '5');
-    dot.setAttribute('fill', '#07111e');
-    dot.setAttribute('stroke', index % 2 ? '#a78bfa' : '#67e8f9');
-    dot.setAttribute('stroke-width', '3');
-    svg.appendChild(dot);
-
-    const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    label.setAttribute('x', String(point.x));
-    label.setAttribute('y', String(height - 11));
-    label.setAttribute('text-anchor', 'middle');
-    label.setAttribute('fill', '#8192ae');
-    label.setAttribute('font-size', '7');
-    label.setAttribute('font-weight', '800');
-    label.textContent = card.querySelector('small')?.textContent || '';
-    svg.appendChild(label);
-  });
-
-  container.insertBefore(svg, container.firstChild);
 }
 
-function buildFinanceChart(container: Element) {
-  if (container.querySelector('.wo-live-chart-finance')) return;
-  const boxes = Array.from(container.querySelectorAll<HTMLElement>('.wo-finbox'));
-  if (boxes.length < 3) return;
-
-  const earnings = numericText(boxes[0].querySelector('strong')?.textContent || '0');
-  const received = numericText(boxes[2].querySelector('strong')?.textContent || '0');
-  const max = Math.max(1, earnings, received);
-  const width = 620;
-  const height = 142;
-  const barW = 74;
-  const baseline = 104;
-  const chartTop = 30;
-  const scale = (value: number) => Math.max(4, (Math.max(0, value) / max) * (baseline - chartTop));
-
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svg.classList.add('wo-live-chart-finance');
-  svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
-  svg.setAttribute('preserveAspectRatio', 'none');
-  svg.setAttribute('aria-label', 'Worker earnings versus received finance chart');
-  addChartTitle(svg, 'EARNINGS VS RECEIVED');
-
-  const base = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-  base.setAttribute('x1', '72');
-  base.setAttribute('x2', String(width - 72));
-  base.setAttribute('y1', String(baseline));
-  base.setAttribute('y2', String(baseline));
-  base.setAttribute('stroke', 'rgba(255,255,255,.12)');
-  base.setAttribute('stroke-width', '1');
-  svg.appendChild(base);
-
-  const items = [
-    { label: 'EARNINGS', value: earnings, x: width * .27, color: '#67e8f9' },
-    { label: 'RECEIVED', value: received, x: width * .73, color: '#a78bfa' },
-  ];
-
-  items.forEach(item => {
-    const h = scale(item.value);
-    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-    rect.setAttribute('x', String(item.x - barW / 2));
-    rect.setAttribute('y', String(baseline - h));
-    rect.setAttribute('width', String(barW));
-    rect.setAttribute('height', String(h));
-    rect.setAttribute('rx', '10');
-    rect.setAttribute('fill', item.color);
-    rect.setAttribute('fill-opacity', '.8');
-    rect.setAttribute('filter', `drop-shadow(0 0 8px ${item.color})`);
-    svg.appendChild(rect);
-
-    const value = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    value.setAttribute('x', String(item.x));
-    value.setAttribute('y', String(Math.max(24, baseline - h - 8)));
-    value.setAttribute('text-anchor', 'middle');
-    value.setAttribute('fill', '#eef6ff');
-    value.setAttribute('font-size', '8');
-    value.setAttribute('font-weight', '900');
-    value.textContent = money(item.value);
-    svg.appendChild(value);
-
-    const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    label.setAttribute('x', String(item.x));
-    label.setAttribute('y', '125');
-    label.setAttribute('text-anchor', 'middle');
-    label.setAttribute('fill', '#8192ae');
-    label.setAttribute('font-size', '7');
-    label.setAttribute('font-weight', '800');
-    label.textContent = item.label;
-    svg.appendChild(label);
-  });
-
-  container.parentElement?.insertBefore(svg, container);
-}
-
-function buildWorkFlowChart(container: Element) {
-  if (container.querySelector('.wo-live-chart-flow')) return;
+function buildWorkFlowMap(container: Element) {
+  if (container.querySelector('.wo-live-map-flow')) return;
   const nodes = Array.from(container.querySelectorAll<HTMLElement>('.wo-node'));
   if (nodes.length < 2) return;
+
   const values = nodes.map(node => numericText(node.querySelector('b')?.textContent || '0'));
+  const labels = nodes.map(node => node.querySelector('small')?.textContent?.split(' · ')[0] || 'WORK');
   const max = Math.max(1, ...values);
   const width = 620;
-  const height = 110;
-  const left = 16;
-  const right = 16;
-  const top = 16;
-  const bottom = 22;
-  const plotW = width - left - right;
-  const plotH = height - top - bottom;
-  const points = values.map((value, index) => ({
-    x: left + (plotW * index) / Math.max(1, values.length - 1),
-    y: top + plotH - (value / max) * plotH,
-  }));
+  const height = 150;
+  const centerX = width / 2;
+  const centerY = 72;
+  const radiusX = 218;
+  const radiusY = 45;
 
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svg.classList.add('wo-live-chart-flow');
+  const svg = svgEl('svg');
+  svg.classList.add('wo-live-map-flow');
   svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
   svg.setAttribute('preserveAspectRatio', 'none');
-  svg.setAttribute('aria-label', 'Recent Worker work quantity chart');
-  addChartTitle(svg, 'RECENT REAL WORK');
+  svg.setAttribute('aria-label', 'Worker work intelligence map');
+  addDefs(svg, 'flow-map');
 
-  const line = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
-  line.setAttribute('points', points.map(point => `${point.x},${point.y}`).join(' '));
-  line.setAttribute('fill', 'none');
-  line.setAttribute('stroke', '#c4b5fd');
-  line.setAttribute('stroke-width', '3');
-  line.setAttribute('stroke-linecap', 'round');
-  line.setAttribute('stroke-linejoin', 'round');
-  line.setAttribute('filter', 'drop-shadow(0 0 6px rgba(167,139,250,.7))');
-  svg.appendChild(line);
+  const grid = svgEl('path');
+  grid.setAttribute('d', `M28 ${centerY} H${width - 28} M${centerX} 20 V124`);
+  grid.setAttribute('stroke', 'rgba(103,232,249,.08)');
+  grid.setAttribute('stroke-width', '1');
+  grid.setAttribute('stroke-dasharray', '3 8');
+  svg.appendChild(grid);
+
+  const title = svgEl('text');
+  title.setAttribute('x', '16'); title.setAttribute('y', '14');
+  title.setAttribute('fill', '#8192ae'); title.setAttribute('font-size', '7'); title.setAttribute('font-weight', '900');
+  title.textContent = 'LIVE WORK INTELLIGENCE MAP';
+  svg.appendChild(title);
+
+  const points = values.map((value, index) => {
+    const angle = values.length === 2 ? (index === 0 ? Math.PI : 0) : Math.PI + (Math.PI * index) / (values.length - 1);
+    return { x: centerX + Math.cos(angle) * radiusX, y: centerY + Math.sin(angle) * radiusY, value };
+  });
+
+  points.forEach(point => {
+    const connector = svgEl('path');
+    connector.setAttribute('d', `M ${centerX} ${centerY} Q ${(centerX + point.x) / 2} ${(centerY + point.y) / 2 - 8} ${point.x} ${point.y}`);
+    connector.setAttribute('fill', 'none'); connector.setAttribute('stroke', 'rgba(103,232,249,.26)'); connector.setAttribute('stroke-width', '1.5');
+    svg.appendChild(connector);
+  });
+
+  const halo = svgEl('circle');
+  halo.setAttribute('cx', String(centerX)); halo.setAttribute('cy', String(centerY)); halo.setAttribute('r', '27');
+  halo.setAttribute('fill', 'rgba(34,211,238,.07)'); halo.setAttribute('stroke', 'rgba(103,232,249,.35)'); halo.setAttribute('stroke-width', '1');
+  svg.appendChild(halo);
+  addText(svg, 'WORK', centerX, centerY - 2, 8, '#dffbff', '950', 'middle');
+  addText(svg, `${values.reduce((a, b) => a + b, 0).toLocaleString('en-PK')}`, centerX, centerY + 11, 8, '#67e8f9', '950', 'middle');
 
   points.forEach((point, index) => {
-    const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-    dot.setAttribute('cx', String(point.x));
-    dot.setAttribute('cy', String(point.y));
-    dot.setAttribute('r', '5');
-    dot.setAttribute('fill', '#07111e');
-    dot.setAttribute('stroke', '#67e8f9');
-    dot.setAttribute('stroke-width', '3');
-    svg.appendChild(dot);
+    const r = 10 + (point.value / max) * 7;
+    const glow = svgEl('circle');
+    glow.setAttribute('cx', String(point.x)); glow.setAttribute('cy', String(point.y)); glow.setAttribute('r', String(r + 7));
+    glow.setAttribute('fill', 'rgba(124,58,237,.08)'); glow.setAttribute('filter', 'url(#flow-map-glow)');
+    svg.appendChild(glow);
 
-    const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    label.setAttribute('x', String(point.x));
-    label.setAttribute('y', String(height - 7));
-    label.setAttribute('text-anchor', 'middle');
-    label.setAttribute('fill', '#8192ae');
-    label.setAttribute('font-size', '7');
-    label.textContent = nodes[index].querySelector('small')?.textContent?.split(' · ')[0] || '';
-    svg.appendChild(label);
+    const dot = svgEl('circle');
+    dot.setAttribute('cx', String(point.x)); dot.setAttribute('cy', String(point.y)); dot.setAttribute('r', String(r));
+    dot.setAttribute('fill', 'rgba(7,17,30,.95)'); dot.setAttribute('stroke', index % 2 ? '#a78bfa' : '#67e8f9'); dot.setAttribute('stroke-width', '2');
+    svg.appendChild(dot);
+    addText(svg, labels[index], point.x, point.y - 2, 6, '#9aaac0', '900', 'middle');
+    addText(svg, point.value.toLocaleString('en-PK'), point.x, point.y + 8, 7, '#f5fbff', '950', 'middle');
   });
 
   container.parentElement?.insertBefore(svg, container.nextSibling);
+}
+
+function buildVolumeMap(container: Element) {
+  if (container.querySelector('.wo-live-map-volume')) return;
+  const cards = Array.from(container.querySelectorAll<HTMLElement>('.wo-v'));
+  if (!cards.length) return;
+
+  const pairs = [
+    { label: 'TODAY', current: numericText(cards[0]?.querySelector('strong')?.textContent || '0'), previous: numericText(cards[1]?.querySelector('strong')?.textContent || '0') },
+    { label: 'WEEK', current: numericText(cards[2]?.querySelector('strong')?.textContent || '0'), previous: numericText(cards[3]?.querySelector('strong')?.textContent || '0') },
+    { label: 'MONTH', current: numericText(cards[4]?.querySelector('strong')?.textContent || '0'), previous: numericText(cards[5]?.querySelector('strong')?.textContent || '0') },
+  ];
+  const width = 620;
+  const height = 160;
+  const centerX = width / 2;
+  const centerY = 76;
+  const max = Math.max(1, ...pairs.flatMap(pair => [pair.current, pair.previous]));
+  const svg = svgEl('svg');
+  svg.classList.add('wo-live-map-volume');
+  svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+  svg.setAttribute('preserveAspectRatio', 'none');
+  svg.setAttribute('aria-label', 'Worker work volume comparison map');
+  addDefs(svg, 'volume-map');
+  addText(svg, 'CURRENT VS PREVIOUS PERIOD', 16, 14, 7, '#8192ae', '900');
+
+  const ring = svgEl('circle');
+  ring.setAttribute('cx', String(centerX)); ring.setAttribute('cy', String(centerY)); ring.setAttribute('r', '30');
+  ring.setAttribute('fill', 'rgba(124,58,237,.08)'); ring.setAttribute('stroke', 'rgba(167,139,250,.35)');
+  svg.appendChild(ring);
+  addText(svg, 'VOLUME', centerX, centerY - 2, 7, '#ddd6fe', '950', 'middle');
+  addText(svg, pairs.reduce((sum, pair) => sum + pair.current, 0).toLocaleString('en-PK'), centerX, centerY + 11, 8, '#67e8f9', '950', 'middle');
+
+  pairs.forEach((pair, index) => {
+    const angle = -Math.PI / 2 + (index - 1) * (Math.PI / 3);
+    const x = centerX + Math.cos(angle) * 190;
+    const y = centerY + Math.sin(angle) * 52;
+    const currentLen = 48 + (pair.current / max) * 48;
+    const previousLen = 28 + (pair.previous / max) * 28;
+
+    const connector = svgEl('path');
+    connector.setAttribute('d', `M ${centerX} ${centerY} L ${x} ${y}`);
+    connector.setAttribute('stroke', 'rgba(255,255,255,.08)'); connector.setAttribute('stroke-width', '1'); connector.setAttribute('stroke-dasharray', '2 6'); connector.setAttribute('fill', 'none');
+    svg.appendChild(connector);
+
+    const node = svgEl('circle');
+    node.setAttribute('cx', String(x)); node.setAttribute('cy', String(y)); node.setAttribute('r', '21');
+    node.setAttribute('fill', 'rgba(7,17,30,.96)'); node.setAttribute('stroke', index === 1 ? '#a78bfa' : '#67e8f9'); node.setAttribute('stroke-width', '2');
+    svg.appendChild(node);
+    addText(svg, pair.label, x, y - 2, 6, '#9aaac0', '900', 'middle');
+    addText(svg, pair.current.toLocaleString('en-PK'), x, y + 9, 8, '#f5fbff', '950', 'middle');
+
+    const current = svgEl('line');
+    current.setAttribute('x1', String(x - currentLen / 2)); current.setAttribute('x2', String(x + currentLen / 2)); current.setAttribute('y1', String(y + 31)); current.setAttribute('y2', String(y + 31));
+    current.setAttribute('stroke', '#67e8f9'); current.setAttribute('stroke-width', '4'); current.setAttribute('stroke-linecap', 'round');
+    svg.appendChild(current);
+    const previous = svgEl('line');
+    previous.setAttribute('x1', String(x - previousLen / 2)); previous.setAttribute('x2', String(x + previousLen / 2)); previous.setAttribute('y1', String(y + 39)); previous.setAttribute('y2', String(y + 39));
+    previous.setAttribute('stroke', '#64748b'); previous.setAttribute('stroke-width', '3'); previous.setAttribute('stroke-linecap', 'round');
+    svg.appendChild(previous);
+  });
+
+  addText(svg, 'CURRENT', 18, height - 11, 6, '#67e8f9', '900');
+  addText(svg, 'PREVIOUS', 74, height - 11, 6, '#64748b', '900');
+  container.insertBefore(svg, container.firstChild);
+}
+
+function buildFinanceMap(container: Element) {
+  if (container.querySelector('.wo-live-map-finance')) return;
+  const boxes = Array.from(container.querySelectorAll<HTMLElement>('.wo-finbox'));
+  if (boxes.length < 3) return;
+  const earnings = numericText(boxes[0].querySelector('strong')?.textContent || '0');
+  const received = numericText(boxes[2].querySelector('strong')?.textContent || '0');
+  const remaining = earnings - received;
+  const width = 620;
+  const height = 160;
+  const centerX = width / 2;
+  const centerY = 78;
+  const svg = svgEl('svg');
+  svg.classList.add('wo-live-map-finance');
+  svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+  svg.setAttribute('preserveAspectRatio', 'none');
+  svg.setAttribute('aria-label', 'Worker finance intelligence map');
+  addDefs(svg, 'finance-map');
+  addText(svg, 'MONEY FLOW POSITION', 16, 14, 7, '#8192ae', '900');
+
+  const nodes = [
+    { label: 'EARNINGS', value: earnings, x: 110, color: '#67e8f9' },
+    { label: 'RECEIVED', value: received, x: 310, color: '#a78bfa' },
+    { label: 'POSITION', value: remaining, x: 510, color: remaining < 0 ? '#fbbf24' : '#bef264' },
+  ];
+
+  const path = svgEl('path');
+  path.setAttribute('d', `M110 ${centerY} C190 ${centerY - 34},230 ${centerY + 34},310 ${centerY} S430 ${centerY - 34},510 ${centerY}`);
+  path.setAttribute('fill', 'none'); path.setAttribute('stroke', 'rgba(103,232,249,.24)'); path.setAttribute('stroke-width', '2'); path.setAttribute('stroke-dasharray', '5 7');
+  svg.appendChild(path);
+
+  nodes.forEach(node => {
+    const glow = svgEl('circle');
+    glow.setAttribute('cx', String(node.x)); glow.setAttribute('cy', String(centerY)); glow.setAttribute('r', '34');
+    glow.setAttribute('fill', node.color); glow.setAttribute('fill-opacity', '.05'); glow.setAttribute('filter', 'url(#finance-map-glow)');
+    svg.appendChild(glow);
+    const circle = svgEl('circle');
+    circle.setAttribute('cx', String(node.x)); circle.setAttribute('cy', String(centerY)); circle.setAttribute('r', '25');
+    circle.setAttribute('fill', 'rgba(7,17,30,.96)'); circle.setAttribute('stroke', node.color); circle.setAttribute('stroke-width', '2');
+    svg.appendChild(circle);
+    addText(svg, node.label, node.x, centerY - 3, 6, '#9aaac0', '900', 'middle');
+    addText(svg, money(node.value), node.x, centerY + 9, 7, '#f5fbff', '950', 'middle');
+  });
+
+  addText(svg, remaining < 0 ? 'RECEIVED IS AHEAD OF EARNINGS' : remaining > 0 ? 'EARNINGS STILL OPEN' : 'LEDGER IS BALANCED', centerX, 135, 7, remaining < 0 ? '#fbbf24' : '#67e8f9', '950', 'middle');
+  container.parentElement?.insertBefore(svg, container);
 }
 
 export function WorkerOverallHealthCard({ todayEntries, weekEntries, remaining }: Props) {
@@ -278,14 +249,14 @@ export function WorkerOverallHealthCard({ todayEntries, weekEntries, remaining }
   useEffect(() => {
     const root = document.querySelector('.wo');
     if (!root) return;
-    buildWorkFlowChart(root.querySelector('.wo-flow') || root);
-    buildVolumeChart(root.querySelector('.wo-volume') || root);
-    buildFinanceChart(root.querySelector('.wo-fin') || root);
+    buildWorkFlowMap(root.querySelector('.wo-flow') || root);
+    buildVolumeMap(root.querySelector('.wo-volume') || root);
+    buildFinanceMap(root.querySelector('.wo-fin') || root);
   }, [todayEntries, weekEntries, remaining]);
 
   return (
     <section className="wo-card wo-health-card">
-      <style>{`.wo-health-card{position:relative;overflow:hidden}.wo-health-card:before{content:"";position:absolute;inset:-70px -45px auto auto;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(34,211,238,.2),rgba(124,58,237,.08) 42%,transparent 70%);pointer-events:none}.wo-health-card:after{content:"";position:absolute;inset:auto -20px -90px auto;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(167,139,250,.13),transparent 68%);pointer-events:none}.wo-health-grid{position:relative;z-index:1;display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:13px}.wo-health-signal{position:relative;min-height:92px;padding:12px;border-radius:17px;background:linear-gradient(145deg,rgba(255,255,255,.065),rgba(255,255,255,.025));border:1px solid rgba(255,255,255,.1);box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 10px 24px rgba(0,0,0,.12);overflow:hidden}.wo-health-signal:before{content:"";position:absolute;top:0;left:0;width:34px;height:2px;background:currentColor;box-shadow:0 0 14px currentColor;opacity:.9}.wo-health-signal:after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:currentColor;opacity:.38}.wo-health-signal small{display:block;font-size:6px;color:#8192ae;font-weight:950;letter-spacing:.14em}.wo-health-signal strong{display:block;margin-top:7px;font-size:10px;letter-spacing:.02em}.wo-health-signal span{display:block;margin-top:5px;font-size:7px;color:#9aaac0;line-height:1.4}.wo-health-signal.lime{color:#bef264}.wo-health-signal.cyan{color:#67e8f9}.wo-health-signal.violet{color:#c4b5fd}.wo-health-signal.amber{color:#fbbf24}.wo-health-signal.muted{color:#94a3b8}.wo-health-note{position:relative;z-index:1;margin-top:9px;padding:9px 10px;border:1px solid rgba(34,211,238,.1);border-left:3px solid #22d3ee;border-radius:11px;background:linear-gradient(90deg,rgba(34,211,238,.07),rgba(34,211,238,.02));color:#91a2bd;font-size:7px;line-height:1.5}.wo-live-chart-volume,.wo-live-chart-finance,.wo-live-chart-flow{display:block;width:100%;height:auto;margin-top:12px;padding:7px;border:1px solid rgba(255,255,255,.08);border-radius:16px;background:linear-gradient(145deg,rgba(255,255,255,.045),rgba(255,255,255,.015));box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 10px 24px rgba(0,0,0,.14)}.wo-live-chart-flow{margin-top:12px}.wo-live-chart-finance{margin-bottom:10px}.wo-volume>.wo-live-chart-volume{grid-column:1/-1}.wo-live-chart-volume+ .wo-v{margin-top:0}@media(max-width:400px){.wo-health-grid{grid-template-columns:1fr}.wo-health-signal{min-height:82px}}`}</style>
+      <style>{`.wo-health-card{position:relative;overflow:hidden}.wo-health-card:before{content:"";position:absolute;inset:-70px -45px auto auto;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(34,211,238,.2),rgba(124,58,237,.08) 42%,transparent 70%);pointer-events:none}.wo-health-card:after{content:"";position:absolute;inset:auto -20px -90px auto;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(167,139,250,.13),transparent 68%);pointer-events:none}.wo-health-grid{position:relative;z-index:1;display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:13px}.wo-health-signal{position:relative;min-height:92px;padding:12px;border-radius:17px;background:linear-gradient(145deg,rgba(255,255,255,.065),rgba(255,255,255,.025));border:1px solid rgba(255,255,255,.1);box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 10px 24px rgba(0,0,0,.12);overflow:hidden}.wo-health-signal:before{content:"";position:absolute;top:0;left:0;width:34px;height:2px;background:currentColor;box-shadow:0 0 14px currentColor;opacity:.9}.wo-health-signal:after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:currentColor;opacity:.38}.wo-health-signal small{display:block;font-size:6px;color:#8192ae;font-weight:950;letter-spacing:.14em}.wo-health-signal strong{display:block;margin-top:7px;font-size:10px;letter-spacing:.02em}.wo-health-signal span{display:block;margin-top:5px;font-size:7px;color:#9aaac0;line-height:1.4}.wo-health-signal.lime{color:#bef264}.wo-health-signal.cyan{color:#67e8f9}.wo-health-signal.violet{color:#c4b5fd}.wo-health-signal.amber{color:#fbbf24}.wo-health-signal.muted{color:#94a3b8}.wo-health-note{position:relative;z-index:1;margin-top:9px;padding:9px 10px;border:1px solid rgba(34,211,238,.1);border-left:3px solid #22d3ee;border-radius:11px;background:linear-gradient(90deg,rgba(34,211,238,.07),rgba(34,211,238,.02));color:#91a2bd;font-size:7px;line-height:1.5}.wo-live-map-flow,.wo-live-map-volume,.wo-live-map-finance{display:block;width:100%;height:auto;margin-top:12px;padding:7px;border:1px solid rgba(255,255,255,.08);border-radius:18px;background:radial-gradient(circle at 50% 50%,rgba(124,58,237,.09),rgba(255,255,255,.025) 45%,rgba(255,255,255,.012));box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 12px 28px rgba(0,0,0,.16)}.wo-live-map-finance{margin-bottom:10px}@media(max-width:400px){.wo-health-grid{grid-template-columns:1fr}}`}</style>
       <div className="wo-eyebrow">04 · OVERALL HEALTH INTELLIGENCE</div>
       <h2>Real position signals</h2>
       <p className="wo-muted">Health is derived from live Worker work activity and the authoritative overall finance position — no artificial score.</p>
