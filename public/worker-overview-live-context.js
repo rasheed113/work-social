@@ -18,18 +18,17 @@
 
   function findWelcome() {
     const candidates = document.querySelectorAll('h1,h2,h3,h4,p,div,span');
-    return Array.from(candidates).find((el) => el.children.length === 0 && /welcome back,/i.test(el.textContent || '')) || null;
+    return Array.from(candidates).find((el) => /welcome back,/i.test(el.textContent || '')) || null;
   }
 
   function ensureClock() {
-    let clock = document.querySelector('.wslc-clock-banner');
-    if (clock) return clock;
+    const clock = document.querySelector('.wo-clock');
     const welcome = findWelcome();
-    if (!welcome) return null;
-    clock = document.createElement('div');
-    clock.className = 'wslc-clock-banner';
-    clock.innerHTML = `<span class="wslc-clock-live"><span class="wslc-dot"></span>LIVE</span><b class="wslc-clock-time">${escapeHtml(readTime())}</b>`;
-    welcome.parentElement?.insertBefore(clock, welcome);
+    if (!clock || !welcome) return clock;
+    clock.classList.add('wslc-clock-banner');
+    if (clock.parentElement !== welcome.parentElement || clock.nextElementSibling !== welcome) {
+      welcome.parentElement?.insertBefore(clock, welcome);
+    }
     return clock;
   }
 
@@ -52,9 +51,8 @@
   }
 
   function syncClock() {
-    const target = document.querySelector('.wslc-clock-time');
-    const source = document.querySelector('.wo-time');
-    if (target && source) target.textContent = source.textContent?.trim() || '--:--:--';
+    const target = document.querySelector('.wo-time');
+    if (target) target.textContent = readTime();
   }
 
   function measure(ticker) {
