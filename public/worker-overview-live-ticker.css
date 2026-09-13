@@ -1,0 +1,13 @@
+.wo-ticker.ws-live-ticker{position:relative;display:flex;align-items:center;height:44px;margin-top:10px;padding:0;border:1px solid rgba(255,255,255,.12);border-radius:14px;overflow:hidden;white-space:nowrap;background:linear-gradient(100deg,rgba(7,13,28,.96),rgba(18,26,55,.9) 52%,rgba(38,17,62,.94));box-shadow:0 12px 28px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.12),inset 0 -1px 0 rgba(34,211,238,.08)}
+.wo-ticker.ws-live-ticker:before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(34,211,238,.12),transparent 18%,transparent 82%,rgba(168,85,247,.12));}
+.ws-live-ticker-label{position:relative;z-index:4;flex:0 0 78px;height:100%;display:flex;align-items:center;justify-content:center;gap:6px;background:linear-gradient(145deg,rgba(20,31,58,.98),rgba(12,18,38,.98));border-right:1px solid rgba(255,255,255,.12);box-shadow:8px 0 22px rgba(0,0,0,.3);color:#eafcff;font-size:7px;letter-spacing:.13em;text-shadow:0 1px 0 #000,0 0 9px rgba(103,232,249,.35)}
+.ws-live-ticker-dot{width:6px;height:6px;border-radius:50%;background:#67e8f9;box-shadow:0 0 7px #67e8f9,0 0 15px rgba(34,211,238,.7);animation:wsTickerPulse 1.6s ease-in-out infinite}
+.ws-live-ticker-window{position:relative;display:block;flex:1;height:100%;overflow:hidden;mask-image:linear-gradient(90deg,transparent,#000 5%,#000 95%,transparent)}
+.ws-live-ticker-track{display:inline-flex;align-items:center;height:100%;width:max-content;min-width:100%;padding-left:100%;animation:wsTickerRun 25s linear infinite;will-change:transform}
+.ws-live-ticker-item{display:inline-block;margin:0 20px;font-size:9px;font-weight:950;letter-spacing:.045em;line-height:1;color:#fff;transform:translateZ(0);text-shadow:0 2px 0 rgba(0,0,0,.48),0 0 10px currentColor,0 7px 12px rgba(0,0,0,.45)}
+.ws-live-ticker-tone-0{color:#67e8f9}.ws-live-ticker-tone-1{color:#a78bfa}.ws-live-ticker-tone-2{color:#f0abfc}.ws-live-ticker-tone-3{color:#bef264}.ws-live-ticker-tone-4{color:#60a5fa}.ws-live-ticker-tone-5{color:#fbbf24}
+.ws-live-ticker-separator{display:inline-block;color:rgba(255,255,255,.32);font-size:6px;text-shadow:0 0 8px rgba(103,232,249,.45);font-style:normal}
+@keyframes wsTickerRun{from{transform:translate3d(0,0,0)}to{transform:translate3d(-50%,0,0)}}
+@keyframes wsTickerPulse{0%,100%{opacity:.45;transform:scale(.75)}50%{opacity:1;transform:scale(1.15)}}
+@media(max-width:520px){.wo-ticker.ws-live-ticker{height:40px}.ws-live-ticker-label{flex-basis:68px;font-size:6px}.ws-live-ticker-item{font-size:8px;margin:0 14px}.ws-live-ticker-track{animation-duration:22s}}
+@media(prefers-reduced-motion:reduce){.ws-live-ticker-track,.ws-live-ticker-dot{animation:none}.ws-live-ticker-track{padding-left:12px}.ws-live-ticker-window{overflow:auto;mask-image:none}}
