@@ -1,5 +1,6 @@
 (() => {
-  const SELECTOR = '.wo-ticker';
+  const PROGRESS_TICKER_SELECTOR = '.wo-ticker';
+  const CONTEXT_TICKER_CLASS = 'wslc-context-ticker';
   const SPEED_PX_PER_SECOND = 54;
   const WEATHER_REFRESH_MS = 15 * 60 * 1000;
   let initialized = false;
@@ -14,22 +15,35 @@
   const weatherIcon = (code) => { const n=Number(code); if(n===0)return '☀'; if([1,2].includes(n))return '◐'; if([3,45,48].includes(n))return '☁'; if([51,53,55,56,57,61,63,65,66,67,80,81,82].includes(n))return '◒'; if([71,73,75,77,85,86].includes(n))return '❄'; if([95,96,99].includes(n))return 'ϟ'; return '•'; };
   const escapeHtml = (value) => String(value).replace(/[&<>'"]/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'})[c]);
 
-  function readTime() { return document.querySelector('.wo-time')?.textContent?.trim() || '--:--:--'; }
-
   function findWelcome() {
-    const candidates = document.querySelectorAll('h1,h2,h3,h4,p,div,span');
-    return Array.from(candidates).find((el) => /welcome back,/i.test(el.textContent || '')) || null;
+    return Array.from(document.querySelectorAll('h1')).find((el) => /^Welcome back,/i.test((el.textContent || '').trim())) || null;
   }
 
   function ensureClock() {
     const clock = document.querySelector('.wo-clock');
     const welcome = findWelcome();
-    if (!clock || !welcome) return clock;
+    if (!clock || !welcome || !welcome.parentElement) return clock;
     clock.classList.add('wslc-clock-banner');
     if (clock.parentElement !== welcome.parentElement || clock.nextElementSibling !== welcome) {
-      welcome.parentElement?.insertBefore(clock, welcome);
+      welcome.parentElement.insertBefore(clock, welcome);
     }
     return clock;
+  }
+
+  function ensureContextTicker() {
+    const progressTicker = document.querySelector(PROGRESS_TICKER_SELECTOR);
+    const welcome = findWelcome();
+    if (!progressTicker || !welcome || !welcome.parentElement) return null;
+    let ticker = welcome.parentElement.querySelector(`.${CONTEXT_TICKER_CLASS}`);
+    if (!ticker) {
+      ticker = document.createElement('div');
+      ticker.className = CONTEXT_TICKER_CLASS;
+      ticker.setAttribute('aria-label', 'Live date and weather');
+    }
+    if (ticker.parentElement !== progressTicker.parentElement || ticker.nextElementSibling !== progressTicker) {
+      progressTicker.parentElement.insertBefore(ticker, progressTicker);
+    }
+    return ticker;
   }
 
   function itemHtml(dateText) {
@@ -39,20 +53,14 @@
     return `<span class="wslc-item wslc-date">${escapeHtml(dateText)}</span><i>◆</i>${weatherMarkup}<i>◆</i>`;
   }
 
-  function renderTicker() {
-    const ticker = document.querySelector(SELECTOR);
+  function renderContextTicker() {
+    const ticker = ensureContextTicker();
     if (!ticker) return;
     const content = itemHtml(formatDate(new Date()));
-    ticker.classList.add('wslc-ticker');
-    ticker.setAttribute('aria-label', 'Live date and weather ticker');
+    ticker.classList.add('wslc-context-ticker');
     ticker.innerHTML = `<span class="wslc-window"><span class="wslc-track"><span class="wslc-group">${content}</span><span class="wslc-group" aria-hidden="true">${content}</span></span></span>`;
     groupWidth = 0;
     requestAnimationFrame(() => measure(ticker));
-  }
-
-  function syncClock() {
-    const target = document.querySelector('.wo-time');
-    if (target) target.textContent = readTime();
   }
 
   function measure(ticker) {
@@ -76,8 +84,8 @@
         const geoData = geoResponse.ok ? await geoResponse.json() : null;
         const result = geoData?.results?.[0];
         currentWeather = { place:result?.name || result?.admin1 || 'Current location', temperature:Math.round(Number(weatherData.current?.temperature_2m)), code:Number(weatherData.current?.weather_code) };
-        renderTicker();
-      } catch { /* keep date/clock ticker; never invent weather */ }
+        renderContextTicker();
+      } catch { /* keep date ticker; never invent weather */ }
     }, () => { /* location denied: keep weather absent rather than showing fake data */ }, { enableHighAccuracy:false, maximumAge:10*60*1000, timeout:10000 });
   }
 
@@ -86,8 +94,7 @@
     const delta = Math.min(50, now - lastFrameTime);
     lastFrameTime = now;
     ensureClock();
-    syncClock();
-    const ticker = document.querySelector(SELECTOR);
+    const ticker = ensureContextTicker();
     const track = ticker?.querySelector('.wslc-track');
     if (track && groupWidth > 0) {
       offset += (delta / 1000) * SPEED_PX_PER_SECOND;
@@ -101,16 +108,19 @@
     if (initialized) return;
     initialized = true;
     const wait = window.setInterval(() => {
-      if (!document.querySelector(SELECTOR)) return;
+      if (!document.querySelector(PROGRESS_TICKER_SELECTOR)) return;
       if (!findWelcome()) return;
       window.clearInterval(wait);
       ensureClock();
-      renderTicker();
+      renderContextTicker();
       loadWeather();
       window.setInterval(loadWeather, WEATHER_REFRESH_MS);
       if (!frameId) frameId = requestAnimationFrame(animate);
     }, 120);
-    window.addEventListener('resize', () => { const ticker=document.querySelector(SELECTOR); if(ticker) requestAnimationFrame(() => measure(ticker)); }, { passive:true });
+    window.addEventListener('resize', () => {
+      const ticker = document.querySelector(`.${CONTEXT_TICKER_CLASS}`);
+      if (ticker) requestAnimationFrame(() => measure(ticker));
+    }, { passive:true });
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once:true }); else boot();
