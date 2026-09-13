@@ -4,7 +4,6 @@
   let active = 0;
   let lastSignature = '';
   let initialized = false;
-  let animationBound = false;
 
   const clean = (value) => (value || '').replace(/\s+/g, ' ').trim();
   const read = (selector, root = document) => clean(root.querySelector(selector)?.textContent);
@@ -63,6 +62,22 @@
     track.style.setProperty('--ws-ticker-duration', `${duration}s`);
   }
 
+  function rotateAtLoop(ticker) {
+    const track = ticker.querySelector('.ws-live-ticker-track');
+    if (!track || track.dataset.loopBound === '1') return;
+    track.dataset.loopBound = '1';
+    track.addEventListener('animationiteration', () => {
+      const root = document.querySelector('.wo');
+      const currentTicker = document.querySelector(SELECTOR);
+      if (!root || !currentTicker) return;
+      active = (active + 1) % categories.length;
+      const groups = buildItems(root);
+      const label = currentTicker.querySelector('.ws-live-ticker-label b');
+      if (label) label.textContent = categories[active];
+      paintTrack(currentTicker, groups[categories[active]]);
+    });
+  }
+
   function render(force = false) {
     const ticker = document.querySelector(SELECTOR);
     const root = document.querySelector('.wo');
@@ -79,23 +94,7 @@
       <span class="ws-live-ticker-window"><span class="ws-live-ticker-track"></span></span>
     `;
     paintTrack(ticker, groups[categories[active]]);
-    bindAnimation(ticker);
-  }
-
-  function bindAnimation(ticker) {
-    const track = ticker.querySelector('.ws-live-ticker-track');
-    if (!track || animationBound) return;
-    animationBound = true;
-    track.addEventListener('animationiteration', () => {
-      const root = document.querySelector('.wo');
-      const currentTicker = document.querySelector(SELECTOR);
-      if (!root || !currentTicker) return;
-      active = (active + 1) % categories.length;
-      const groups = buildItems(root);
-      const label = currentTicker.querySelector('.ws-live-ticker-label b');
-      if (label) label.textContent = categories[active];
-      paintTrack(currentTicker, groups[categories[active]]);
-    });
+    rotateAtLoop(ticker);
   }
 
   function boot() {
