@@ -2,7 +2,6 @@
   const SELECTOR = '.wo-ticker';
   const categories = ['WORK', 'FINANCE', 'HEALTH', 'PROGRESS'];
   let active = 0;
-  let lastSignature = '';
   let initialized = false;
 
   const clean = (value) => (value || '').replace(/\s+/g, ' ').trim();
@@ -39,53 +38,52 @@
     return { WORK: work, FINANCE: finance, HEALTH: health, PROGRESS: progress };
   }
 
-  function signature(groups) {
-    return JSON.stringify(groups);
+  function hasWorkerData(groups) {
+    return categories.some((category) => groups[category]?.length);
   }
 
-  function paintTrack(ticker, items) {
+  function flattenGroups(groups) {
+    return categories.flatMap((category) => {
+      const items = groups[category]?.length ? groups[category] : [`${category} data is loading`];
+      return items.map((item) => `${category} · ${item}`);
+    });
+  }
+
+  function paintTrack(ticker, groups) {
     const track = ticker.querySelector('.ws-live-ticker-track');
     if (!track) return;
-    const safeItems = items?.length ? items : ['Live Worker data is loading'];
-    const html = safeItems
+
+    const items = flattenGroups(groups);
+    const html = items
       .map((item, i) => `<span class="ws-live-ticker-item ws-live-ticker-tone-${i % 6}">${item}</span>`)
       .join('<i class="ws-live-ticker-separator">◆</i>');
 
+    // Build the two identical halves once. The animated track itself is never
+    // replaced again, so data hydration/category rotation cannot restart it.
     track.innerHTML = `<span class="ws-live-ticker-group">${html}</span><span class="ws-live-ticker-group" aria-hidden="true">${html}</span>`;
 
     const group = track.querySelector('.ws-live-ticker-group');
     if (!group) return;
     const groupWidth = group.getBoundingClientRect().width || 1;
     const pixelsPerSecond = 58;
-    const duration = Math.max(12, groupWidth / pixelsPerSecond);
+    const duration = Math.max(18, groupWidth / pixelsPerSecond);
     track.style.setProperty('--ws-ticker-group-width', `${groupWidth}px`);
     track.style.setProperty('--ws-ticker-duration', `${duration}s`);
   }
 
-  function rotateAtLoop(ticker) {
+  function rotateLabelAtLoop(ticker) {
     const track = ticker.querySelector('.ws-live-ticker-track');
-    if (!track || track.dataset.loopBound === '1') return;
-    track.dataset.loopBound = '1';
+    if (!track) return;
     track.addEventListener('animationiteration', () => {
-      const root = document.querySelector('.wo');
-      const currentTicker = document.querySelector(SELECTOR);
-      if (!root || !currentTicker) return;
       active = (active + 1) % categories.length;
-      const groups = buildItems(root);
-      const label = currentTicker.querySelector('.ws-live-ticker-label b');
+      const label = ticker.querySelector('.ws-live-ticker-label b');
       if (label) label.textContent = categories[active];
-      paintTrack(currentTicker, groups[categories[active]]);
     });
   }
 
-  function render(force = false) {
-    const ticker = document.querySelector(SELECTOR);
-    const root = document.querySelector('.wo');
-    if (!ticker || !root) return;
-    const groups = buildItems(root);
-    const sig = signature(groups);
-    if (!force && sig === lastSignature) return;
-    lastSignature = sig;
+  function initialize(root, ticker, groups) {
+    if (initialized) return;
+    initialized = true;
 
     ticker.classList.add('ws-live-ticker');
     ticker.setAttribute('aria-label', 'Worker Overview live intelligence ticker');
@@ -93,20 +91,27 @@
       <span class="ws-live-ticker-label" aria-hidden="true"><span class="ws-live-ticker-dot"></span><b>${categories[active]}</b></span>
       <span class="ws-live-ticker-window"><span class="ws-live-ticker-track"></span></span>
     `;
-    paintTrack(ticker, groups[categories[active]]);
-    rotateAtLoop(ticker);
+
+    paintTrack(ticker, groups);
+    rotateLabelAtLoop(ticker);
   }
 
   function boot() {
-    if (initialized) return;
-    initialized = true;
-    const observer = new MutationObserver(() => render());
-    observer.observe(document.body, { childList: true, subtree: true });
     const wait = window.setInterval(() => {
-      if (document.querySelector(SELECTOR)) {
+      if (initialized) {
         window.clearInterval(wait);
-        render(true);
+        return;
       }
+
+      const root = document.querySelector('.wo');
+      const ticker = document.querySelector(SELECTOR);
+      if (!root || !ticker) return;
+
+      const groups = buildItems(root);
+      if (!hasWorkerData(groups)) return;
+
+      window.clearInterval(wait);
+      initialize(root, ticker, groups);
     }, 120);
   }
 
