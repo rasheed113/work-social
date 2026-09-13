@@ -16,6 +16,23 @@
 
   function readTime() { return document.querySelector('.wo-time')?.textContent?.trim() || '--:--:--'; }
 
+  function findWelcome() {
+    const candidates = document.querySelectorAll('h1,h2,h3,h4,p,div,span');
+    return Array.from(candidates).find((el) => el.children.length === 0 && /welcome back,/i.test(el.textContent || '')) || null;
+  }
+
+  function ensureClock() {
+    let clock = document.querySelector('.wslc-clock-banner');
+    if (clock) return clock;
+    const welcome = findWelcome();
+    if (!welcome) return null;
+    clock = document.createElement('div');
+    clock.className = 'wslc-clock-banner';
+    clock.innerHTML = `<span class="wslc-clock-live"><span class="wslc-dot"></span>LIVE</span><b class="wslc-clock-time">${escapeHtml(readTime())}</b>`;
+    welcome.parentElement?.insertBefore(clock, welcome);
+    return clock;
+  }
+
   function itemHtml(dateText) {
     const weatherMarkup = currentWeather
       ? `<span class="wslc-weather"><b>${escapeHtml(weatherIcon(currentWeather.code))}</b> ${escapeHtml(currentWeather.place)} · ${escapeHtml(currentWeather.temperature)}°C · ${escapeHtml(weatherText(currentWeather.code))}</span>`
@@ -28,8 +45,8 @@
     if (!ticker) return;
     const content = itemHtml(formatDate(new Date()));
     ticker.classList.add('wslc-ticker');
-    ticker.setAttribute('aria-label', 'Live clock, date and weather ticker');
-    ticker.innerHTML = `<span class="wslc-clock"><span class="wslc-clock-live"><span class="wslc-dot"></span>LIVE</span><b class="wslc-clock-time">${escapeHtml(readTime())}</b></span><span class="wslc-window"><span class="wslc-track"><span class="wslc-group">${content}</span><span class="wslc-group" aria-hidden="true">${content}</span></span></span>`;
+    ticker.setAttribute('aria-label', 'Live date and weather ticker');
+    ticker.innerHTML = `<span class="wslc-window"><span class="wslc-track"><span class="wslc-group">${content}</span><span class="wslc-group" aria-hidden="true">${content}</span></span></span>`;
     groupWidth = 0;
     requestAnimationFrame(() => measure(ticker));
   }
@@ -70,6 +87,7 @@
     if (!lastFrameTime) lastFrameTime = now;
     const delta = Math.min(50, now - lastFrameTime);
     lastFrameTime = now;
+    ensureClock();
     syncClock();
     const ticker = document.querySelector(SELECTOR);
     const track = ticker?.querySelector('.wslc-track');
@@ -86,7 +104,9 @@
     initialized = true;
     const wait = window.setInterval(() => {
       if (!document.querySelector(SELECTOR)) return;
+      if (!findWelcome()) return;
       window.clearInterval(wait);
+      ensureClock();
       renderTicker();
       loadWeather();
       window.setInterval(loadWeather, WEATHER_REFRESH_MS);
