@@ -14,9 +14,7 @@
   const weatherIcon = (code) => { const n=Number(code); if(n===0)return '☀'; if([1,2].includes(n))return '◐'; if([3,45,48].includes(n))return '☁'; if([51,53,55,56,57,61,63,65,66,67,80,81,82].includes(n))return '◒'; if([71,73,75,77,85,86].includes(n))return '❄'; if([95,96,99].includes(n))return 'ϟ'; return '•'; };
   const escapeHtml = (value) => String(value).replace(/[&<>'"]/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'})[c]);
 
-  function readTime() {
-    return document.querySelector('.wo-time')?.textContent?.trim() || '--:--:--';
-  }
+  function readTime() { return document.querySelector('.wo-time')?.textContent?.trim() || '--:--:--'; }
 
   function itemHtml(dateText) {
     const weatherMarkup = currentWeather
@@ -32,7 +30,6 @@
     ticker.classList.add('wslc-ticker');
     ticker.setAttribute('aria-label', 'Live clock, date and weather ticker');
     ticker.innerHTML = `<span class="wslc-clock"><span class="wslc-clock-live"><span class="wslc-dot"></span>LIVE</span><b class="wslc-clock-time">${escapeHtml(readTime())}</b></span><span class="wslc-window"><span class="wslc-track"><span class="wslc-group">${content}</span><span class="wslc-group" aria-hidden="true">${content}</span></span></span>`;
-    offset = 0;
     groupWidth = 0;
     requestAnimationFrame(() => measure(ticker));
   }
@@ -47,7 +44,7 @@
     const group = ticker.querySelector('.wslc-group');
     if (!group) return;
     groupWidth = group.getBoundingClientRect().width;
-    if (groupWidth > 0) offset %= groupWidth;
+    if (groupWidth > 0) offset = -groupWidth;
   }
 
   async function loadWeather() {
@@ -77,8 +74,8 @@
     const ticker = document.querySelector(SELECTOR);
     const track = ticker?.querySelector('.wslc-track');
     if (track && groupWidth > 0) {
-      offset -= (delta / 1000) * SPEED_PX_PER_SECOND;
-      if (offset <= -groupWidth) offset += groupWidth;
+      offset += (delta / 1000) * SPEED_PX_PER_SECOND;
+      if (offset >= 0) offset = -groupWidth;
       track.style.transform = `translate3d(${offset}px,0,0)`;
     }
     frameId = requestAnimationFrame(animate);
