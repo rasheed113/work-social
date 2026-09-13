@@ -1,0 +1,237 @@
+/* Worker Overview — Card 01 visual-only replacement.
+ * Data, queries, routes and business semantics remain in WorkerOverviewPage.
+ * This stylesheet turns the existing five real work signals into a mission-style
+ * trajectory/progress map without introducing synthetic progress values.
+ */
+.wo .wo-field {
+  min-height: 390px;
+  border-radius: 30px;
+  border: 1px solid rgba(103,232,249,.22);
+  background:
+    radial-gradient(circle at 50% 52%, rgba(34,211,238,.16), transparent 17%),
+    radial-gradient(circle at 15% 18%, rgba(59,130,246,.14), transparent 28%),
+    radial-gradient(circle at 88% 80%, rgba(124,58,237,.18), transparent 32%),
+    linear-gradient(145deg,#020713 0%,#071326 48%,#160b2b 100%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.14), 0 28px 70px rgba(0,0,0,.42);
+}
+
+.wo .wo-field::before {
+  inset:-30%;
+  background:
+    conic-gradient(from 20deg at 50% 50%, transparent 0 28deg, rgba(34,211,238,.08) 35deg 44deg, transparent 52deg 116deg, rgba(167,139,250,.08) 124deg 137deg, transparent 146deg 225deg, rgba(34,211,238,.06) 234deg 248deg, transparent 258deg);
+  animation: woMissionSweep 18s linear infinite;
+}
+
+.wo .wo-field::after {
+  background:
+    linear-gradient(rgba(103,232,249,.025) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(103,232,249,.025) 1px,transparent 1px),
+    radial-gradient(circle at 50% 50%,transparent 0 31%,rgba(1,5,16,.58) 78%);
+  background-size: 22px 22px,22px 22px,auto;
+  opacity:.85;
+}
+
+@keyframes woMissionSweep { to { transform:rotate(360deg); } }
+
+.wo .wo-field-grid {
+  opacity:.52;
+  background-size: 24px 24px;
+  mask-image: radial-gradient(ellipse at center,#000 0 52%,transparent 88%);
+}
+
+/* A luminous mission trajectory runs through the five real checkpoints. */
+.wo .wo-field-lines {
+  inset: 7% 8% 9%;
+  z-index:2;
+  opacity:.9;
+}
+
+.wo .wo-field-lines::before {
+  content:'';
+  position:absolute;
+  left:10%;
+  top:17%;
+  width:80%;
+  height:66%;
+  border:1px dashed rgba(103,232,249,.18);
+  border-radius:50% 44% 55% 42%;
+  transform:rotate(-11deg);
+  box-shadow:0 0 26px rgba(34,211,238,.05), inset 0 0 30px rgba(124,58,237,.04);
+}
+
+.wo .wo-field-lines::after {
+  content:'';
+  position:absolute;
+  left:12%;
+  right:12%;
+  top:50%;
+  height:2px;
+  background:linear-gradient(90deg,transparent,rgba(34,211,238,.18),rgba(103,232,249,.72),rgba(167,139,250,.5),transparent);
+  box-shadow:0 0 12px rgba(34,211,238,.3);
+  transform:rotate(-10deg);
+  opacity:.75;
+}
+
+.wo .wo-field-lines span {
+  height:2px;
+  border-radius:99px;
+  background:linear-gradient(90deg,rgba(34,211,238,.05),rgba(103,232,249,.82),rgba(167,139,250,.34),transparent);
+  box-shadow:0 0 9px rgba(103,232,249,.3);
+  opacity:.72;
+}
+
+.wo .wo-field-lines span:nth-child(1){width:30%;left:13%;top:70%;transform:rotate(-31deg)}
+.wo .wo-field-lines span:nth-child(2){width:27%;left:31%;top:55%;transform:rotate(-8deg)}
+.wo .wo-field-lines span:nth-child(3){width:25%;left:47%;top:49%;transform:rotate(21deg)}
+.wo .wo-field-lines span:nth-child(4){width:24%;left:60%;top:55%;transform:rotate(27deg)}
+.wo .wo-field-lines span:nth-child(5){width:22%;left:72%;top:67%;transform:rotate(18deg)}
+
+.wo .wo-field-core {
+  width:128px;
+  height:128px;
+  top:49%;
+  background:
+    radial-gradient(circle at 34% 27%,rgba(255,255,255,.38),rgba(34,211,238,.2) 13%,rgba(37,99,235,.13) 39%,rgba(124,58,237,.22) 68%,rgba(2,7,17,.94) 100%);
+  border:1px solid rgba(164,239,255,.42);
+  box-shadow:0 0 0 7px rgba(34,211,238,.025),0 0 42px rgba(34,211,238,.28),0 0 100px rgba(124,58,237,.2),inset 0 0 35px rgba(103,232,249,.16);
+}
+
+.wo .wo-field-core::before {
+  inset:-14px;
+  border:1px solid rgba(103,232,249,.2);
+  border-left-color:rgba(103,232,249,.7);
+  border-bottom-color:rgba(167,139,250,.55);
+}
+
+.wo .wo-field-core::after {
+  inset:-30px;
+  border:1px solid rgba(167,139,250,.1);
+}
+
+.wo .wo-field-core small::before {
+  content:'MISSION CONTROL · ';
+}
+
+.wo .wo-field-core small {
+  font-size:5px;
+}
+
+.wo .wo-field-core strong {
+  font-size:27px;
+}
+
+.wo .wo-field-core em::after {
+  content:' · LIVE';
+}
+
+.wo .wo-star-node {
+  width:116px;
+  min-height:70px;
+  padding:9px 10px 8px;
+  border-radius:15px;
+  background:linear-gradient(145deg,rgba(11,29,54,.88),rgba(5,12,27,.94) 62%,rgba(51,16,72,.78));
+  border:1px solid rgba(139,230,255,.2);
+  box-shadow:0 15px 32px rgba(0,0,0,.38), inset 0 1px 0 rgba(255,255,255,.12), 0 0 20px rgba(34,211,238,.04);
+  backdrop-filter:blur(16px);
+}
+
+.wo .wo-star-node::after {
+  content:'CHECKPOINT';
+  position:absolute;
+  left:10px;
+  bottom:7px;
+  color:#58708e;
+  font-size:4px;
+  font-weight:950;
+  letter-spacing:.18em;
+}
+
+.wo .wo-star-node i {
+  width:32px;
+  height:3px;
+  margin-bottom:8px;
+  background:linear-gradient(90deg,#22d3ee,#818cf8);
+  box-shadow:0 0 12px rgba(34,211,238,.42);
+}
+
+.wo .wo-star-node b {
+  font-size:16px;
+}
+
+.wo .wo-star-node small {
+  margin-top:5px;
+  font-size:5px;
+  max-width:92px;
+}
+
+/* Checkpoints are deliberately positioned as a route, not as random floating cards. */
+.wo .wo-star-node.n1 { left:6%; top:18%; transform:rotate(-3deg); }
+.wo .wo-star-node.n2 { left:27%; top:61%; right:auto; transform:rotate(2deg); }
+.wo .wo-star-node.n3 { left:48%; top:17%; transform:translateX(-50%) rotate(-1deg); }
+.wo .wo-star-node.n4 { right:7%; top:59%; transform:rotate(-2deg); }
+.wo .wo-star-node.n5 { left:auto; right:7%; bottom:12%; width:116px; transform:rotate(3deg); }
+
+.wo .wo-star-node.n1:hover,.wo .wo-star-node.n2:hover,.wo .wo-star-node.n4:hover,.wo .wo-star-node.n5:hover {
+  transform:translateY(-6px) scale(1.04) rotate(0);
+}
+.wo .wo-star-node.n3:hover {
+  transform:translateX(-50%) translateY(-6px) scale(1.04) rotate(0);
+}
+
+.wo .wo-field-label {
+  left:15px;
+  top:14px;
+  color:#68829f;
+  font-size:5px;
+  letter-spacing:.18em;
+}
+.wo .wo-field-status {
+  right:15px;
+  top:14px;
+  padding:4px 7px;
+  border:1px solid rgba(103,232,249,.18);
+  border-radius:999px;
+  background:rgba(34,211,238,.05);
+  color:#8defff;
+  font-size:5px;
+  letter-spacing:.13em;
+}
+
+.wo .wo-field-footer {
+  left:15px;
+  right:15px;
+  bottom:12px;
+  padding-top:7px;
+  border-top:1px solid rgba(255,255,255,.07);
+  font-size:5px;
+  letter-spacing:.1em;
+}
+
+@media (max-width:620px) {
+  .wo .wo-field { min-height:440px; }
+  .wo .wo-star-node { width:96px; min-height:66px; }
+  .wo .wo-star-node.n1 { left:3%; top:13%; }
+  .wo .wo-star-node.n2 { left:4%; top:61%; }
+  .wo .wo-star-node.n3 { left:50%; top:17%; }
+  .wo .wo-star-node.n4 { right:3%; top:60%; }
+  .wo .wo-star-node.n5 { right:4%; bottom:10%; }
+  .wo .wo-field-core { width:108px; height:108px; }
+  .wo .wo-field-core strong { font-size:22px; }
+}
+
+@media (max-width:400px) {
+  .wo .wo-field { min-height:420px; }
+  .wo .wo-star-node { width:82px; padding:7px 8px; }
+  .wo .wo-star-node b { font-size:13px; }
+  .wo .wo-star-node small { font-size:4px; max-width:76px; }
+  .wo .wo-star-node.n1 { left:2%; }
+  .wo .wo-star-node.n2 { left:2%; }
+  .wo .wo-star-node.n4 { right:2%; }
+  .wo .wo-star-node.n5 { right:2%; }
+  .wo .wo-field-core { width:94px; height:94px; }
+  .wo .wo-field-core strong { font-size:19px; }
+}
+
+@media (prefers-reduced-motion:reduce) {
+  .wo .wo-field::before { animation:none; }
+}
