@@ -12,8 +12,41 @@ interface WorkerWorkSummaryCardsProps {
 
 type Breakdown = { personal: WorkDecimal; team: WorkDecimal; total: WorkDecimal };
 
-function BreakdownRow({ code, label, value, total = false }: { code: string; label: string; value: WorkDecimal; total?: boolean }) {
-  return <span className={`worker-summary__row${total ? ' worker-summary__row--total' : ''}`}><span className="worker-summary__code">{code}</span><span className="worker-summary__row-label">{label}</span><span className="worker-summary__row-value">{formatWorkDecimal(value)}</span></span>;
+type RingProps = { personal: WorkDecimal; team: WorkDecimal; total: WorkDecimal; label: string; period: string };
+
+function WorkRing({ personal, team, total, label, period }: RingProps) {
+  const totalNumber = Math.max(0, Number(total) || 0);
+  const personalNumber = Math.max(0, Number(personal) || 0);
+  const teamNumber = Math.max(0, Number(team) || 0);
+  const radius = 46;
+  const circumference = 2 * Math.PI * radius;
+  const personalLength = totalNumber > 0 ? Math.min(circumference, circumference * (personalNumber / totalNumber)) : 0;
+  const teamLength = totalNumber > 0 ? Math.min(circumference - personalLength, circumference * (teamNumber / totalNumber)) : 0;
+
+  return (
+    <span className="worker-summary__ring-wrap" aria-hidden="true">
+      <svg className="worker-summary__ring" viewBox="0 0 112 112" role="presentation">
+        <circle className="worker-summary__ring-track" cx="56" cy="56" r={radius} />
+        {personalLength > 0 && <circle className="worker-summary__ring-personal" cx="56" cy="56" r={radius} strokeDasharray={`${personalLength} ${circumference - personalLength}`} />}
+        {teamLength > 0 && <circle className="worker-summary__ring-team" cx="56" cy="56" r={radius} strokeDasharray={`${teamLength} ${circumference - teamLength}`} strokeDashoffset={-personalLength} />}
+      </svg>
+      <span className="worker-summary__ring-core">
+        <span className="worker-summary__ring-label">{label}</span>
+        <strong>{formatWorkDecimal(total)}</strong>
+        <small>{period}</small>
+      </span>
+    </span>
+  );
+}
+
+function MiniMetric({ code, label, value, accent }: { code: string; label: string; value: WorkDecimal; accent: string }) {
+  return (
+    <span className="worker-summary__metric">
+      <span className={`worker-summary__metric-dot worker-summary__metric-dot--${accent}`} />
+      <span className="worker-summary__metric-copy"><b>{code}</b>{label}</span>
+      <strong>{formatWorkDecimal(value)}</strong>
+    </span>
+  );
 }
 
 export function WorkerWorkSummaryCards({ totals, periodLabels, onOpenHistory, cardOrder, hiddenCards = [] }: WorkerWorkSummaryCardsProps) {
@@ -28,83 +61,81 @@ export function WorkerWorkSummaryCards({ totals, periodLabels, onOpenHistory, ca
   return (
     <>
       <style>{`
-        .worker-summary{position:relative;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:10px;margin-top:2px;padding:12px;border:1px solid rgba(96,165,250,.20);border-radius:24px;background:radial-gradient(circle at 50% 0%,rgba(56,189,248,.10),transparent 34%),linear-gradient(145deg,rgba(248,250,255,.98),rgba(241,245,249,.98) 58%,rgba(247,245,255,.98));box-shadow:0 22px 44px rgba(15,23,42,.11),0 7px 16px rgba(37,99,235,.07),inset 0 1px 0 rgba(255,255,255,.98),inset 0 -1px 0 rgba(99,102,241,.08);overflow:hidden;isolation:isolate}
-        .worker-summary::before{content:'';position:absolute;inset:-35% 15% 42%;z-index:-2;background:radial-gradient(circle,rgba(34,211,238,.18),rgba(59,130,246,.08) 34%,transparent 68%);filter:blur(20px);pointer-events:none}
-        .worker-summary::after{content:'';position:absolute;top:0;left:22px;right:22px;height:1px;border-radius:999px;background:linear-gradient(90deg,transparent,rgba(125,211,252,.78),rgba(139,92,246,.52),transparent);box-shadow:0 0 12px rgba(56,189,248,.28);pointer-events:none}
-        .worker-summary__card{--accent:59,130,246;position:relative;display:block;min-width:0;border:1px solid rgba(var(--accent),.16);border-radius:17px;background:linear-gradient(145deg,rgba(255,255,255,.88),rgba(248,250,252,.72));box-shadow:0 10px 20px rgba(15,23,42,.055),inset 0 1px 0 rgba(255,255,255,.96),inset 0 -1px 0 rgba(var(--accent),.07);text-align:left;cursor:pointer;font:inherit;overflow:hidden;isolation:isolate;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}
-        .worker-summary__card::before{content:'';position:absolute;inset:auto -20% -45% 15%;height:80%;z-index:-1;background:radial-gradient(circle,rgba(var(--accent),.13),transparent 68%);filter:blur(13px);pointer-events:none}
-        .worker-summary__card::after{content:'';position:absolute;top:0;left:14px;right:14px;height:1px;background:linear-gradient(90deg,rgba(255,255,255,.95),rgba(var(--accent),.48),transparent);pointer-events:none}
-        .worker-summary__card:hover{transform:translateY(-2px);border-color:rgba(var(--accent),.28);box-shadow:0 16px 28px rgba(15,23,42,.09),0 5px 11px rgba(var(--accent),.08),inset 0 1px 0 rgba(255,255,255,1)}
+        .worker-summary{position:relative;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:11px;margin-top:2px;padding:12px;border:1px solid rgba(96,165,250,.22);border-radius:25px;background:radial-gradient(circle at 50% 15%,rgba(34,211,238,.12),transparent 34%),radial-gradient(circle at 88% 90%,rgba(139,92,246,.10),transparent 30%),linear-gradient(145deg,rgba(248,250,255,.98),rgba(241,245,249,.97) 55%,rgba(247,245,255,.98));box-shadow:0 24px 48px rgba(15,23,42,.12),0 8px 18px rgba(37,99,235,.08),inset 0 1px 0 rgba(255,255,255,.98);overflow:hidden;isolation:isolate}
+        .worker-summary::before{content:'';position:absolute;inset:-45% 10% 40%;z-index:-1;background:radial-gradient(circle,rgba(34,211,238,.18),rgba(99,102,241,.08) 35%,transparent 68%);filter:blur(25px);pointer-events:none}
+        .worker-summary::after{content:'';position:absolute;top:0;left:24px;right:24px;height:1px;background:linear-gradient(90deg,transparent,rgba(34,211,238,.75),rgba(139,92,246,.58),transparent);box-shadow:0 0 14px rgba(56,189,248,.28);pointer-events:none}
+        .worker-summary__card{position:relative;display:block;min-width:0;border:1px solid rgba(96,165,250,.17);border-radius:19px;background:linear-gradient(145deg,rgba(255,255,255,.88),rgba(248,250,252,.70));box-shadow:0 12px 23px rgba(15,23,42,.065),inset 0 1px 0 rgba(255,255,255,.98),inset 0 -1px 0 rgba(99,102,241,.07);text-align:left;cursor:pointer;font:inherit;overflow:hidden;isolation:isolate;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}
+        .worker-summary__card::after{content:'';position:absolute;top:0;left:15px;right:15px;height:1px;background:linear-gradient(90deg,rgba(255,255,255,.95),rgba(56,189,248,.42),transparent);pointer-events:none}
+        .worker-summary__card:hover{transform:translateY(-2px);border-color:rgba(56,189,248,.30);box-shadow:0 18px 31px rgba(15,23,42,.10),0 5px 14px rgba(56,189,248,.09),inset 0 1px 0 rgba(255,255,255,1)}
         .worker-summary__card:active{transform:translateY(1px)}
         .worker-summary__card:focus-visible{outline:2px solid rgba(56,189,248,.78);outline-offset:3px}
-        .worker-summary__card--today{grid-column:span 4;--accent:6,182,212;padding:13px}
-        .worker-summary__card--week{grid-column:span 8;--accent:59,130,246;min-height:242px;padding:18px 18px 17px;background:radial-gradient(circle at 50% 58%,rgba(34,211,238,.10),transparent 27%),linear-gradient(145deg,rgba(239,246,255,.98),rgba(255,255,255,.94) 46%,rgba(245,243,255,.96));border-color:rgba(59,130,246,.25);box-shadow:0 19px 36px rgba(15,23,42,.10),0 7px 18px rgba(37,99,235,.10),inset 0 1px 0 rgba(255,255,255,1),inset 0 -1px 0 rgba(99,102,241,.08)}
-        .worker-summary__card--month{grid-column:span 4;--accent:124,58,237;padding:13px}
+        .worker-summary__card--week{grid-column:span 8;min-height:255px;padding:16px 17px;--accent:59,130,246;background:radial-gradient(circle at 50% 58%,rgba(34,211,238,.12),transparent 29%),linear-gradient(145deg,rgba(239,246,255,.98),rgba(255,255,255,.93) 48%,rgba(245,243,255,.97));border-color:rgba(59,130,246,.25)}
+        .worker-summary__card--today{grid-column:span 4;padding:14px;--accent:6,182,212}
+        .worker-summary__card--month{grid-column:span 4;padding:14px;--accent:124,58,237}
         .worker-summary__head{display:flex;align-items:center;gap:8px;min-width:0}
-        .worker-summary__icon{display:grid;place-items:center;flex:0 0 29px;width:29px;height:29px;border:1px solid rgba(var(--accent),.20);border-radius:9px;background:linear-gradient(145deg,rgba(255,255,255,.98),rgba(var(--accent),.10));color:rgb(var(--accent));font-size:12px;font-weight:950;line-height:1;box-shadow:0 5px 10px rgba(15,23,42,.06),inset 0 1px 0 rgba(255,255,255,1);text-shadow:0 1px 0 rgba(255,255,255,.9)}
-        .worker-summary__label{display:block;min-width:0;color:#475569;font-size:9px;font-weight:950;letter-spacing:.11em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-        .worker-summary__value{display:block;margin-top:12px;color:#0f172a;font-size:clamp(22px,4vw,30px);line-height:1.02;font-weight:950;letter-spacing:-.06em;overflow-wrap:anywhere;text-shadow:0 1px 0 rgba(255,255,255,1),0 3px 8px rgba(15,23,42,.10)}
-        .worker-summary__period{display:block;margin-top:6px;color:#94a3b8;font-size:9px;font-weight:750;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-        .worker-summary__breakdown{display:grid;gap:5px;margin-top:10px}
-        .worker-summary__row{display:grid;grid-template-columns:28px minmax(0,1fr) auto;align-items:center;gap:5px;padding:5px 6px;border-radius:8px;background:rgba(248,250,252,.78);border:1px solid rgba(148,163,184,.09)}
-        .worker-summary__row--total{background:rgba(var(--accent),.065);border-color:rgba(var(--accent),.13)}
-        .worker-summary__code{font-size:9px;font-weight:950;color:rgb(var(--accent));letter-spacing:.04em}
-        .worker-summary__row-label{min-width:0;color:#64748b;font-size:9px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-        .worker-summary__row-value{color:#111827;font-size:12px;font-weight:950;white-space:nowrap}
-        .worker-summary__row--total .worker-summary__row-label,.worker-summary__row--total .worker-summary__row-value{color:#172033}
-        .worker-summary__week-orbit{position:absolute;inset:46px 20px 18px;display:grid;place-items:center;pointer-events:none}
-        .worker-summary__week-orbit::before,.worker-summary__week-orbit::after{content:'';position:absolute;border:1px solid rgba(59,130,246,.18);border-radius:50%;transform:rotate(-18deg)}
-        .worker-summary__week-orbit::before{width:min(205px,76%);aspect-ratio:1;border-right-color:rgba(34,211,238,.52);border-bottom-color:rgba(139,92,246,.28);box-shadow:0 0 24px rgba(56,189,248,.10),inset 0 0 20px rgba(59,130,246,.045)}
-        .worker-summary__week-orbit::after{width:min(154px,57%);aspect-ratio:1;border-left-color:rgba(139,92,246,.46);border-top-color:rgba(34,211,238,.30);transform:rotate(28deg);box-shadow:0 0 18px rgba(139,92,246,.08)}
-        .worker-summary__week-core{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;width:min(132px,48%);aspect-ratio:1;padding:12px;border:1px solid rgba(96,165,250,.28);border-radius:34%;box-sizing:border-box;background:radial-gradient(circle at 38% 26%,rgba(255,255,255,.96),rgba(239,246,255,.78) 48%,rgba(224,231,255,.68));box-shadow:0 16px 32px rgba(37,99,235,.13),0 4px 10px rgba(15,23,42,.08),inset 0 1px 0 rgba(255,255,255,1),inset 0 -1px 7px rgba(99,102,241,.10);text-align:center}
-        .worker-summary__week-core::before{content:'';position:absolute;inset:9px;border:1px solid rgba(34,211,238,.14);border-radius:28%;box-shadow:inset 0 0 16px rgba(59,130,246,.07);pointer-events:none}
-        .worker-summary__week-label{position:relative;z-index:1;color:#2563eb;font-size:9px;font-weight:950;letter-spacing:.16em;text-transform:uppercase}
-        .worker-summary__week-value{position:relative;z-index:1;margin-top:7px;color:#0f172a;font-size:clamp(30px,7vw,48px);line-height:.92;font-weight:950;letter-spacing:-.075em;overflow-wrap:anywhere;text-shadow:0 1px 0 #fff,0 4px 10px rgba(37,99,235,.13)}
-        .worker-summary__week-period{position:relative;z-index:1;margin-top:8px;color:#64748b;font-size:9px;font-weight:800;line-height:1.2;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-        .worker-summary__week-breakdown{position:absolute;left:50%;bottom:15px;z-index:3;display:flex;gap:6px;transform:translateX(-50%);max-width:90%;padding:5px 7px;border:1px solid rgba(96,165,250,.15);border-radius:999px;background:rgba(255,255,255,.70);box-shadow:0 6px 14px rgba(37,99,235,.07),inset 0 1px 0 rgba(255,255,255,.95);white-space:nowrap}
-        .worker-summary__week-breakdown span{color:#64748b;font-size:8px;font-weight:900}
-        .worker-summary__week-breakdown strong{color:#1e3a8a;font-weight:950}
-        .worker-summary__week-status{position:absolute;right:13px;top:13px;display:inline-flex;align-items:center;gap:5px;padding:5px 7px;border:1px solid rgba(34,197,94,.18);border-radius:999px;background:rgba(240,253,244,.72);color:#15803d;font-size:8px;font-weight:950;letter-spacing:.08em;text-transform:uppercase;box-shadow:inset 0 1px 0 rgba(255,255,255,.9)}
+        .worker-summary__icon{display:grid;place-items:center;flex:0 0 30px;width:30px;height:30px;border:1px solid rgba(var(--accent),.20);border-radius:10px;background:linear-gradient(145deg,rgba(255,255,255,.98),rgba(var(--accent),.11));color:rgb(var(--accent));font-size:12px;font-weight:950;box-shadow:0 5px 11px rgba(15,23,42,.06),inset 0 1px 0 rgba(255,255,255,1)}
+        .worker-summary__label{color:#475569;font-size:9px;font-weight:950;letter-spacing:.12em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .worker-summary__value{display:block;margin-top:12px;color:#0f172a;font-size:clamp(22px,4vw,31px);line-height:1;font-weight:950;letter-spacing:-.065em}
+        .worker-summary__period{display:block;margin-top:6px;color:#94a3b8;font-size:9px;font-weight:750;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .worker-summary__mini-bar{height:7px;margin-top:14px;border-radius:999px;background:rgba(148,163,184,.13);overflow:hidden;box-shadow:inset 0 1px 3px rgba(15,23,42,.06)}
+        .worker-summary__mini-fill{height:100%;width:var(--fill);border-radius:inherit;background:linear-gradient(90deg,rgba(34,211,238,.80),rgba(59,130,246,.85),rgba(139,92,246,.80));box-shadow:0 0 12px rgba(56,189,248,.18)}
+        .worker-summary__mini-meta{display:flex;justify-content:space-between;gap:8px;margin-top:7px;color:#64748b;font-size:8px;font-weight:850}
+        .worker-summary__week-caption{position:absolute;left:15px;top:14px;color:#64748b;font-size:8px;font-weight:950;letter-spacing:.13em;text-transform:uppercase}
+        .worker-summary__week-status{position:absolute;right:13px;top:12px;display:inline-flex;align-items:center;gap:5px;padding:5px 8px;border:1px solid rgba(34,197,94,.18);border-radius:999px;background:rgba(240,253,244,.76);color:#15803d;font-size:8px;font-weight:950;letter-spacing:.08em;text-transform:uppercase}
         .worker-summary__week-status::before{content:'';width:5px;height:5px;border-radius:50%;background:#22c55e;box-shadow:0 0 8px rgba(34,197,94,.45)}
-        .worker-summary__week-caption{position:absolute;left:14px;top:14px;color:#64748b;font-size:8px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}
-        .worker-summary__lifetime{grid-column:1 / -1;display:flex;align-items:center;justify-content:space-between;gap:16px;--accent:37,99,235;padding:13px 15px;border-color:rgba(37,99,235,.16);background:linear-gradient(110deg,rgba(239,246,255,.76),rgba(255,255,255,.80) 54%,rgba(245,243,255,.76))}
-        .worker-summary__lifetime .worker-summary__head{flex:1 1 auto}
-        .worker-summary__lifetime-label{display:block;color:#475569;font-size:8px;font-weight:950;letter-spacing:.12em;text-transform:uppercase}
-        .worker-summary__lifetime-value{display:block;margin-top:3px;color:#0f172a;font-size:clamp(20px,4vw,28px);line-height:1;font-weight:950;letter-spacing:-.055em;overflow-wrap:anywhere}
-        .worker-summary__lifetime-copy{flex:0 1 290px;color:#64748b;font-size:9px;line-height:1.4;font-weight:700;text-align:right}
-        @media (max-width:680px){.worker-summary{grid-template-columns:repeat(2,minmax(0,1fr));padding:10px;border-radius:21px}.worker-summary__card--week{grid-column:1 / -1;min-height:226px;order:-1}.worker-summary__card--today,.worker-summary__card--month{grid-column:span 1}.worker-summary__week-orbit{inset:44px 12px 13px}.worker-summary__week-breakdown{bottom:12px}.worker-summary__lifetime{grid-column:1 / -1;align-items:flex-start;flex-direction:column;gap:7px}.worker-summary__lifetime-copy{flex-basis:auto;text-align:left;max-width:none}}
-        @media (max-width:430px){.worker-summary{gap:8px;padding:9px;border-radius:19px}.worker-summary__card--week{min-height:208px;padding:15px}.worker-summary__week-orbit{inset:42px 8px 10px}.worker-summary__week-core{width:min(122px,48%)}.worker-summary__week-status{right:10px;top:10px}.worker-summary__week-caption{left:11px;top:11px}.worker-summary__week-breakdown{bottom:9px;gap:4px;padding:4px 6px}.worker-summary__week-breakdown span{font-size:7px}.worker-summary__card--today,.worker-summary__card--month{padding:12px}.worker-summary__value{font-size:clamp(21px,8vw,27px)}.worker-summary__period{font-size:8px}.worker-summary__row{grid-template-columns:26px minmax(0,1fr) auto;padding:4px 5px}.worker-summary__row-label{font-size:8px}.worker-summary__row-value{font-size:11px}}
+        .worker-summary__week-chart{position:absolute;inset:35px 18px 13px;display:grid;place-items:center;pointer-events:none}
+        .worker-summary__ring-wrap{position:relative;display:grid;place-items:center;width:min(184px,54%);aspect-ratio:1}
+        .worker-summary__ring{width:100%;height:100%;transform:rotate(-90deg);filter:drop-shadow(0 5px 9px rgba(37,99,235,.12))}
+        .worker-summary__ring circle{fill:none;stroke-width:9}
+        .worker-summary__ring-track{stroke:rgba(148,163,184,.14)}
+        .worker-summary__ring-personal{stroke:#06b6d4;stroke-linecap:round}
+        .worker-summary__ring-team{stroke:#8b5cf6;stroke-linecap:round}
+        .worker-summary__ring-core{position:absolute;display:flex;flex-direction:column;align-items:center;justify-content:center;width:57%;aspect-ratio:1;border:1px solid rgba(96,165,250,.25);border-radius:31%;background:radial-gradient(circle at 35% 25%,rgba(255,255,255,.98),rgba(239,246,255,.80) 48%,rgba(224,231,255,.68));box-shadow:0 15px 31px rgba(37,99,235,.13),inset 0 1px 0 rgba(255,255,255,1),inset 0 -1px 8px rgba(99,102,241,.10)}
+        .worker-summary__ring-label{color:#2563eb;font-size:8px;font-weight:950;letter-spacing:.14em;text-transform:uppercase}
+        .worker-summary__ring-core strong{margin-top:6px;color:#0f172a;font-size:clamp(28px,6vw,43px);line-height:.9;font-weight:950;letter-spacing:-.075em;text-shadow:0 1px 0 #fff,0 4px 10px rgba(37,99,235,.12)}
+        .worker-summary__ring-core small{margin-top:7px;max-width:90px;color:#64748b;font-size:8px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .worker-summary__legend{position:absolute;left:50%;bottom:2px;display:flex;gap:6px;transform:translateX(-50%);max-width:92%;padding:5px 8px;border:1px solid rgba(96,165,250,.15);border-radius:999px;background:rgba(255,255,255,.74);box-shadow:0 6px 14px rgba(37,99,235,.07);white-space:nowrap}
+        .worker-summary__legend span{color:#64748b;font-size:8px;font-weight:900}.worker-summary__legend b{color:#1e3a8a;font-weight:950}
+        .worker-summary__metrics{display:grid;gap:6px;margin-top:13px}
+        .worker-summary__metric{display:grid;grid-template-columns:7px minmax(0,1fr) auto;align-items:center;gap:7px;padding:7px 8px;border:1px solid rgba(148,163,184,.10);border-radius:10px;background:rgba(248,250,252,.68)}
+        .worker-summary__metric-dot{width:6px;height:6px;border-radius:50%;box-shadow:0 0 8px currentColor}.worker-summary__metric-dot--cyan{color:#06b6d4;background:#06b6d4}.worker-summary__metric-dot--violet{color:#8b5cf6;background:#8b5cf6}.worker-summary__metric-dot--blue{color:#3b82f6;background:#3b82f6}
+        .worker-summary__metric-copy{display:flex;gap:5px;min-width:0;color:#64748b;font-size:8px;font-weight:800}.worker-summary__metric-copy b{color:#475569;font-size:8px;font-weight:950}.worker-summary__metric strong{color:#111827;font-size:12px;font-weight:950;white-space:nowrap}
+        .worker-summary__lifetime{grid-column:1 / -1;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 15px;--accent:37,99,235;background:linear-gradient(110deg,rgba(239,246,255,.78),rgba(255,255,255,.82) 54%,rgba(245,243,255,.78))}
+        .worker-summary__lifetime-label{display:block;color:#475569;font-size:8px;font-weight:950;letter-spacing:.12em;text-transform:uppercase}.worker-summary__lifetime-value{display:block;margin-top:3px;color:#0f172a;font-size:clamp(20px,4vw,28px);line-height:1;font-weight:950;letter-spacing:-.055em}.worker-summary__lifetime-copy{flex:0 1 310px;color:#64748b;font-size:9px;line-height:1.4;font-weight:700;text-align:right}
+        @media (max-width:680px){.worker-summary{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;padding:10px;border-radius:21px}.worker-summary__card--week{grid-column:1 / -1;min-height:244px;order:-1}.worker-summary__card--today,.worker-summary__card--month{grid-column:span 1}.worker-summary__week-chart{inset:36px 10px 11px}.worker-summary__ring-wrap{width:min(176px,56%)}.worker-summary__lifetime{grid-column:1 / -1;align-items:flex-start;flex-direction:column;gap:7px}.worker-summary__lifetime-copy{flex-basis:auto;text-align:left;max-width:none}}
+        @media (max-width:430px){.worker-summary{gap:8px;padding:9px;border-radius:19px}.worker-summary__card--week{min-height:225px;padding:14px}.worker-summary__week-caption{left:11px;top:11px}.worker-summary__week-status{right:10px;top:10px}.worker-summary__week-chart{inset:35px 5px 9px}.worker-summary__ring-wrap{width:min(160px,57%)}.worker-summary__ring-core strong{font-size:clamp(26px,8vw,38px)}.worker-summary__metric{padding:6px}.worker-summary__metric-copy{font-size:7px}.worker-summary__metric strong{font-size:11px}.worker-summary__value{font-size:clamp(21px,8vw,27px)}.worker-summary__period{font-size:8px}}
         @media (prefers-reduced-motion: reduce){.worker-summary__card{transition:none}}
       `}</style>
       <section className="worker-summary" aria-label="Personal Work, Team Work and Total">
-        {orderedCards.filter(card => !hiddenCards.includes(card.id)).map(card => (
-          <button className={`worker-summary__card worker-summary__card--${card.tone}`} key={card.id} type="button" onClick={() => onOpenHistory(card.history)} aria-label={`${card.label}: Personal Work ${formatWorkDecimal(card.breakdown.personal)}, Team Work ${formatWorkDecimal(card.breakdown.team)}, Total ${formatWorkDecimal(card.breakdown.total)}`}>
-            {card.tone === 'week' ? (
-              <>
-                <span className="worker-summary__week-caption">Live work command core</span>
-                <span className="worker-summary__week-status">Active period</span>
-                <span className="worker-summary__week-orbit" aria-hidden="true">
-                  <span className="worker-summary__week-core">
-                    <span className="worker-summary__week-label">This Week</span>
-                    <span className="worker-summary__week-value">{formatWorkDecimal(card.breakdown.total)}</span>
-                    <span className="worker-summary__week-period">{card.period}</span>
-                  </span>
-                </span>
-                <span className="worker-summary__week-breakdown" aria-hidden="true"><span>PW <strong>{formatWorkDecimal(card.breakdown.personal)}</strong></span><span>TW <strong>{formatWorkDecimal(card.breakdown.team)}</strong></span></span>
-              </>
-            ) : (
-              <>
-                <span className="worker-summary__head"><span className="worker-summary__icon" aria-hidden="true">{card.icon}</span><span className="worker-summary__label">{card.label}</span></span>
-                <span className="worker-summary__value">{formatWorkDecimal(card.breakdown.total)}</span>
-                <span className="worker-summary__period">{card.period}</span>
-                <span className="worker-summary__breakdown"><BreakdownRow code="PW" label="Personal Work" value={card.breakdown.personal}/><BreakdownRow code="TW" label="Team Work" value={card.breakdown.team}/><BreakdownRow code="TL" label="Total" value={card.breakdown.total} total/></span>
-              </>
-            )}
-          </button>
-        ))}
+        {orderedCards.filter(card => !hiddenCards.includes(card.id)).map(card => {
+          const totalNumber = Math.max(0, Number(card.breakdown.total) || 0);
+          const personalNumber = Math.max(0, Number(card.breakdown.personal) || 0);
+          const teamNumber = Math.max(0, Number(card.breakdown.team) || 0);
+          const fill = totalNumber > 0 ? `${Math.min(100, Math.max(0, ((personalNumber + teamNumber) / totalNumber) * 100))}%` : '0%';
+          return (
+            <button className={`worker-summary__card worker-summary__card--${card.tone}`} key={card.id} type="button" onClick={() => onOpenHistory(card.history)} aria-label={`${card.label}: Personal Work ${formatWorkDecimal(card.breakdown.personal)}, Team Work ${formatWorkDecimal(card.breakdown.team)}, Total ${formatWorkDecimal(card.breakdown.total)}`}>
+              {card.tone === 'week' ? (
+                <>
+                  <span className="worker-summary__week-caption">Live work command chart</span>
+                  <span className="worker-summary__week-status">Active period</span>
+                  <span className="worker-summary__week-chart"><WorkRing personal={card.breakdown.personal} team={card.breakdown.team} total={card.breakdown.total} label="This Week" period={card.period} /><span className="worker-summary__legend"><span>PW <b>{formatWorkDecimal(card.breakdown.personal)}</b></span><span>TW <b>{formatWorkDecimal(card.breakdown.team)}</b></span></span></span>
+                </>
+              ) : (
+                <>
+                  <span className="worker-summary__head"><span className="worker-summary__icon" aria-hidden="true">{card.icon}</span><span className="worker-summary__label">{card.label}</span></span>
+                  <span className="worker-summary__value">{formatWorkDecimal(card.breakdown.total)}</span>
+                  <span className="worker-summary__period">{card.period}</span>
+                  <span className="worker-summary__mini-bar" aria-hidden="true"><span className="worker-summary__mini-fill" style={{ ['--fill' as string]: fill }} /></span>
+                  <span className="worker-summary__mini-meta"><span>PERSONAL {formatWorkDecimal(card.breakdown.personal)}</span><span>TEAM {formatWorkDecimal(card.breakdown.team)}</span></span>
+                  <span className="worker-summary__metrics"><MiniMetric code="PW" label="Personal Work" value={card.breakdown.personal} accent="cyan" /><MiniMetric code="TW" label="Team Work" value={card.breakdown.team} accent="violet" /><MiniMetric code="TL" label="Total" value={card.breakdown.total} accent="blue" /></span>
+                </>
+              )}
+            </button>
+          );
+        })}
         {!hiddenCards.includes('lifetime') && (
           <button className="worker-summary__card worker-summary__lifetime" type="button" onClick={() => onOpenHistory('lifetime')} aria-label="Open Work History">
-            <span className="worker-summary__head"><span className="worker-summary__icon" aria-hidden="true">∞</span><span><span className="worker-summary__lifetime-label">Lifetime / Grand Total</span><span className="worker-summary__lifetime-value">{formatWorkDecimal(totals.lifetime_total)}</span></span></span>
+            <span><span className="worker-summary__lifetime-label">Lifetime / Grand Total</span><span className="worker-summary__lifetime-value">{formatWorkDecimal(totals.lifetime_total)}</span></span>
             <span className="worker-summary__lifetime-copy">Cumulative total from persisted Work Entries. Tap to view Work History →</span>
           </button>
         )}
