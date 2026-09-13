@@ -22,9 +22,7 @@
     return Array.from(document.querySelectorAll('h1')).find((el) => /^Welcome back,/i.test((el.textContent || '').trim())) || null;
   }
 
-  function findClock() {
-    return document.querySelector('.wo-clock');
-  }
+  function findClock() { return document.querySelector('.wo-clock'); }
 
   function itemHtml(dateText) {
     const weatherMarkup = currentWeather
@@ -54,23 +52,18 @@
       ticker.className = 'wslc-context-ticker';
       ticker.innerHTML = `<span class="wslc-window"><span class="wslc-track"><span class="wslc-group"></span><span class="wslc-group" aria-hidden="true"></span></span></span>`;
       portal.appendChild(ticker);
-      hero.appendChild(portal);
+      hero.insertBefore(portal, progressTicker);
       portalHost = hero;
       renderTicker();
     }
+    syncClock();
     return portal;
   }
 
-  function positionPortal() {
+  function syncClock() {
+    if (!portal) return;
     const sourceClock = findClock();
-    const hero = sourceClock?.closest('.wo-hero');
-    if (!portal || !sourceClock || !hero || portalHost !== hero) return;
-    const clockRect = sourceClock.getBoundingClientRect();
-    const heroRect = hero.getBoundingClientRect();
-    portal.style.left = `${Math.round(clockRect.left - heroRect.left)}px`;
-    portal.style.top = `${Math.round(clockRect.top - heroRect.top - 4)}px`;
-    portal.style.width = `${Math.max(0, Math.round(heroRect.right - clockRect.left))}px`;
-    const sourceTime = sourceClock.querySelector('.wo-time')?.textContent?.trim();
+    const sourceTime = sourceClock?.querySelector('.wo-time')?.textContent?.trim();
     const clonedTime = portal.querySelector('.wo-time');
     if (sourceTime && clonedTime) clonedTime.textContent = sourceTime;
   }
@@ -118,7 +111,7 @@
     lastFrameTime = now;
     const current = ensurePortal();
     if (current) {
-      positionPortal();
+      syncClock();
       const track = current.querySelector('.wslc-track');
       if (track && groupWidth > 0) {
         offset += (delta / 1000) * SPEED_PX_PER_SECOND;
@@ -137,15 +130,11 @@
       if (!findWelcome() || !findClock()) return;
       window.clearInterval(wait);
       ensurePortal();
-      positionPortal();
       loadWeather();
       window.setInterval(loadWeather, WEATHER_REFRESH_MS);
       if (!frameId) frameId = requestAnimationFrame(animate);
     }, 120);
-    window.addEventListener('resize', () => {
-      positionPortal();
-      requestAnimationFrame(measure);
-    }, { passive:true });
+    window.addEventListener('resize', () => requestAnimationFrame(measure), { passive:true });
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once:true }); else boot();
