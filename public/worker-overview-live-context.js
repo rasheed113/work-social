@@ -1,6 +1,7 @@
 (() => {
   const PROGRESS_TICKER_SELECTOR = '.wo-ticker';
   const CONTEXT_TICKER_CLASS = 'wslc-context-ticker';
+  const CONTEXT_ROW_CLASS = 'wslc-context-row';
   const SPEED_PX_PER_SECOND = 54;
   const WEATHER_REFRESH_MS = 15 * 60 * 1000;
   let initialized = false;
@@ -21,28 +22,32 @@
 
   function ensureClock() {
     const clock = document.querySelector('.wo-clock');
-    const welcome = findWelcome();
-    if (!clock || !welcome || !welcome.parentElement) return clock;
+    if (!clock) return null;
     clock.classList.add('wslc-clock-banner');
-    if (clock.parentElement !== welcome.parentElement || clock.nextElementSibling !== welcome) {
-      welcome.parentElement.insertBefore(clock, welcome);
-    }
     return clock;
   }
 
   function ensureContextTicker() {
     const progressTicker = document.querySelector(PROGRESS_TICKER_SELECTOR);
     const welcome = findWelcome();
-    if (!progressTicker || !welcome || !welcome.parentElement) return null;
-    let ticker = welcome.parentElement.querySelector(`.${CONTEXT_TICKER_CLASS}`);
+    const clock = ensureClock();
+    if (!progressTicker || !welcome || !progressTicker.parentElement) return null;
+    let row = progressTicker.parentElement.querySelector(`.${CONTEXT_ROW_CLASS}`);
+    if (!row) {
+      row = document.createElement('div');
+      row.className = CONTEXT_ROW_CLASS;
+    }
+    let ticker = row.querySelector(`.${CONTEXT_TICKER_CLASS}`);
     if (!ticker) {
       ticker = document.createElement('div');
       ticker.className = CONTEXT_TICKER_CLASS;
       ticker.setAttribute('aria-label', 'Live date and weather');
     }
-    if (ticker.parentElement !== progressTicker.parentElement || ticker.nextElementSibling !== progressTicker) {
-      progressTicker.parentElement.insertBefore(ticker, progressTicker);
+    if (row.parentElement !== progressTicker.parentElement || row.nextElementSibling !== progressTicker) {
+      progressTicker.parentElement.insertBefore(row, progressTicker);
     }
+    if (clock && clock.parentElement !== row) row.insertBefore(clock, ticker);
+    if (ticker.parentElement !== row) row.appendChild(ticker);
     return ticker;
   }
 
