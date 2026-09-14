@@ -1,0 +1,14 @@
+name: Find loading UI
+on:
+  push:
+    branches:
+      - fix/worker-personal-finance-redesign
+jobs:
+  find:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Locate loading copy
+        run: |
+          set -x
+          grep -RniE "Opening|Checking approved|approved|loading" src --include='*.tsx' --include='*.ts' --include='*.css' | head -n 250 || true
