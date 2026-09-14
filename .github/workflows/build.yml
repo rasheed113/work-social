@@ -1,5 +1,6 @@
 name: build
 on:
+  workflow_dispatch:
   push:
     branches: [main, feat/ai-universal-eyes-phase-2, feat/contractor-overview-disco-pulse-ribbon]
   pull_request:
