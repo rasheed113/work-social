@@ -15,7 +15,8 @@ export interface FinanceReceivedRecord {
 export interface WorkerFinanceSummary {
   total_earnings: WorkDecimal;
   received: WorkDecimal;
-  remaining: WorkDecimal;
+  current_balance: WorkDecimal;
+  advance: WorkDecimal;
 }
 
 export type FinanceListEntry =
