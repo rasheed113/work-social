@@ -2,7 +2,7 @@ name: build
 on:
   workflow_dispatch:
   push:
-    branches: [main, feat/ai-universal-eyes-phase-2, feat/contractor-overview-disco-pulse-ribbon]
+    branches: [main, feat/ai-universal-eyes-phase-2, feat/contractor-overview-disco-pulse-ribbon, fix/worker-personal-finance-redesign]
   pull_request:
     branches: [main, feat/worker-work-entry-phase-3c]
 permissions:
