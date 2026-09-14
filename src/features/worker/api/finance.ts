@@ -11,16 +11,21 @@ function normalizeReceived(row: ReceivedRow): FinanceReceivedRecord { return { .
 async function resolveWorkerProfileId(profileId: string) { const workerResult = await getWorkerProfile(profileId); if (workerResult.error) return { data: null, error: workerResult.error }; const workerProfileId = workerResult.data?.id; return workerProfileId ? { data: workerProfileId, error: null } : { data: null, error: new Error('Set up Work Identity before using Finance.') }; }
 function scaled(value: string) { const [whole, fraction = ''] = canonicalizeWorkDecimal(value).split('.'); return BigInt(whole || '0') * 10000n + BigInt((fraction + '0000').slice(0, 4)); }
 function formatScaled(value: bigint) { const whole = value / 10000n; const fraction = (value % 10000n).toString().padStart(4, '0').replace(/0+$/, ''); return fraction ? `${whole}.${fraction}` : whole.toString(); }
-function balances(totalEarnings: string, received: string): WorkerFinanceSummary { const delta = scaled(totalEarnings) - scaled(received); return { total_earnings: canonicalizeWorkDecimal(totalEarnings), received: canonicalizeWorkDecimal(received), current_balance: formatScaled(delta > 0n ? delta : 0n), advance: formatScaled(delta < 0n ? -delta : 0n) }; }
+function balances(totalEarnings: string, received: string): WorkerFinanceSummary { const delta = scaled(totalEarnings) - scaled(received); const currentBalance = formatScaled(delta > 0n ? delta : 0n); const advance = formatScaled(delta < 0n ? -delta : 0n); return { total_earnings: canonicalizeWorkDecimal(totalEarnings), received: canonicalizeWorkDecimal(received), remaining: currentBalance, current_balance: currentBalance, advance }; }
 
-export async function listWorkerFinanceEarnings(period: WorkHistoryPeriod = 'lifetime', limit = 100, cursor: WorkHistoryCursor | null = null, bounds: WorkHistoryPeriodBounds | null = null): Promise<{ data: WorkEntry[]; count: number; error: Error | null }> { return listWorkerWorkEntries(limit, cursor, period, bounds); }
+export async function listWorkerFinanceEarnings(period: WorkHistoryPeriod = 'lifetime', limit = 100, cursor: WorkHistoryCursor | null = null, bounds: WorkHistoryPeriodBounds | null = null): Promise<{ data: WorkEntry[]; count: number; error: Error | null }> {
+  if (period !== 'lifetime' || cursor || bounds) return listWorkerWorkEntries(limit, cursor, period, bounds);
+  const entries: WorkEntry[] = []; let nextCursor: WorkHistoryCursor | null = null;
+  for (;;) { const result = await listWorkerWorkEntries(limit, nextCursor, 'lifetime'); if (result.error) return { data: [], count: 0, error: result.error }; entries.push(...result.data); if (result.data.length < limit) break; const last = result.data[result.data.length - 1]; nextCursor = { occurred_at: last.occurred_at, id: last.id }; }
+  return { data: entries, count: entries.length, error: null };
+}
 
-export async function getWorkerFinanceSummary(profileId: string): Promise<{ data: WorkerFinanceSummary | null; error: Error | null }> {
-  const workerResult = await resolveWorkerProfileId(profileId); if (workerResult.error || !workerResult.data) return { data: null, error: workerResult.error ?? new Error('Worker Identity is unavailable.') };
-  const [summaryResult, receivedResult] = await Promise.all([
-    supabase.rpc('get_worker_finance_summary'),
-    supabase.from('worker_finance_received').select('amount').eq('worker_profile_id', workerResult.data).is('deleted_at', null).returns<{ amount: string | number }[]>(),
-  ]);
+export async function getWorkerFinanceSummary(profileId?: string): Promise<{ data: WorkerFinanceSummary | null; error: Error | null }> {
+  const workerResult = profileId ? await resolveWorkerProfileId(profileId) : { data: null, error: null };
+  if (workerResult.error) return { data: null, error: workerResult.error };
+  const receivedQuery = supabase.from('worker_finance_received').select('amount').is('deleted_at', null);
+  const scopedReceivedQuery = workerResult.data ? receivedQuery.eq('worker_profile_id', workerResult.data) : receivedQuery;
+  const [summaryResult, receivedResult] = await Promise.all([supabase.rpc('get_worker_finance_summary'), scopedReceivedQuery.returns<{ amount: string | number }[]>()]);
   if (summaryResult.error) return { data: null, error: summaryResult.error };
   if (receivedResult.error) return { data: null, error: receivedResult.error };
   const row = Array.isArray(summaryResult.data) ? summaryResult.data[0] : summaryResult.data;
@@ -36,15 +41,13 @@ export interface FinanceHistoryBatch { earnings: WorkEntry[]; received: FinanceR
 
 export async function listWorkerFinanceHistoryBatch(profileId: string, filter: FinanceHistoryFilter, limit: number, cursors: FinanceHistoryCursors): Promise<{ data: FinanceHistoryBatch | null; error: Error | null }> {
   const workerResult = await resolveWorkerProfileId(profileId); if (workerResult.error || !workerResult.data) return { data: null, error: workerResult.error ?? new Error('Worker Identity is unavailable.') };
-  const includeEarnings = filter === 'all' || filter === 'earnings';
-  const includeReceived = filter === 'all' || filter === 'payments' || filter === 'advances' || filter === 'received';
+  const includeEarnings = filter === 'all' || filter === 'earnings'; const includeReceived = filter === 'all' || filter === 'payments' || filter === 'advances' || filter === 'received';
   const earningsPromise = includeEarnings ? listWorkerWorkEntries(limit, cursors.earnings, 'lifetime') : Promise.resolve({ data: [] as WorkEntry[], count: 0, error: null });
   let receivedQuery = supabase.from('worker_finance_received').select(RECEIVED_COLUMNS, { count: 'exact' }).eq('worker_profile_id', workerResult.data).is('deleted_at', null).order('received_at', { ascending: false }).order('id', { ascending: false }).limit(limit);
   if (filter === 'payments' || filter === 'advances') receivedQuery = receivedQuery.eq('entry_type', filter === 'payments' ? 'payment' : 'advance');
   if (cursors.received) receivedQuery = receivedQuery.or(`received_at.lt.${cursors.received.received_at},and(received_at.eq.${cursors.received.received_at},id.lt.${cursors.received.id})`);
   const receivedPromise = includeReceived ? receivedQuery.returns<ReceivedRow[]>() : Promise.resolve({ data: [] as ReceivedRow[], count: 0, error: null });
-  const [earningsResult, receivedResult] = await Promise.all([earningsPromise, receivedPromise]);
-  const firstError = earningsResult.error ?? receivedResult.error; if (firstError) return { data: null, error: firstError };
+  const [earningsResult, receivedResult] = await Promise.all([earningsPromise, receivedPromise]); const firstError = earningsResult.error ?? receivedResult.error; if (firstError) return { data: null, error: firstError };
   const earnings = earningsResult.data; const received = receivedResult.data?.map(normalizeReceived) ?? [];
   return { data: { earnings, received, nextCursors: { earnings: earnings.length ? { occurred_at: earnings[earnings.length - 1].occurred_at, id: earnings[earnings.length - 1].id } : cursors.earnings, received: received.length ? { received_at: received[received.length - 1].received_at, id: received[received.length - 1].id } : cursors.received }, hasMore: { earnings: earningsResult.count > earnings.length, received: (receivedResult.count ?? 0) > received.length } }, error: null };
 }
