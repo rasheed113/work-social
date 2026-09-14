@@ -1,3 +1,4 @@
+import { WorkSocialPremiumLoader } from '../components/WorkSocialPremiumLoader';
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase/client';
 
@@ -32,7 +33,7 @@ export function BlockedUsersPage() {
   return <main>
     <h1>Blocked Users</h1>
     <p>People you block cannot view your profile or posts, follow or friend you, message you, or interact with your content.</p>
-    {loading && <p>Loading blocked users…</p>}
+    {loading && <WorkSocialPremiumLoader title="Blocked Users" message="Loading blocked users…" />}
     {error && <p role="alert">{error}</p>}
     {!loading && !users.length && <section className="foundation-card"><p>No blocked users.</p></section>}
     {!loading && users.length > 0 && <section style={{ display: 'grid', gap: 10 }}>

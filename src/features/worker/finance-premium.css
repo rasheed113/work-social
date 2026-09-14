@@ -1,46 +1,434 @@
-/* Worker Finance only — compact physical presentation layer. No data, routing, or business logic. */
+/* Worker Personal Finance — presentation only. Data, routing, and business logic remain untouched. */
 main:has(> section[aria-label="Finance summary"]) {
-  --finance-ink:#172033;--finance-muted:#64748b;--finance-blue:#4f46e5;
+  --finance-bg-0: #050914;
+  --finance-bg-1: #0a1020;
+  --finance-surface: rgba(13, 21, 40, .78);
+  --finance-surface-strong: rgba(16, 25, 47, .9);
+  --finance-line: rgba(148, 163, 184, .14);
+  --finance-text: #f8fafc;
+  --finance-muted: #8b9ab3;
+  --finance-cyan: #67e8f9;
+  --finance-violet: #a78bfa;
+  --finance-blue: #60a5fa;
+  --finance-emerald: #34d399;
+  --finance-amber: #fbbf24;
+  position: relative;
+  overflow-x: clip;
+  isolation: isolate;
 }
-/* Page-local title only; global application header/footer are not targeted. */
-main:has(> section[aria-label="Finance summary"]) > header{margin-bottom:10px!important}
-main:has(> section[aria-label="Finance summary"]) > header h1{font-size:clamp(24px,6vw,32px)!important;line-height:1.04!important;font-weight:900!important;color:var(--finance-ink)!important;text-shadow:0 1px 0 #fff,0 2px 1px rgba(15,23,42,.06)!important;letter-spacing:-.035em!important}
-main:has(> section[aria-label="Finance summary"]) button,main:has(> section[aria-label="Finance summary"]) select,main:has(> section[aria-label="Finance summary"]) input{-webkit-tap-highlight-color:transparent}
-/* Compact raised controls */
-main:has(> section[aria-label="Finance summary"]) > header button{min-height:36px!important;border-radius:10px!important;border:1px solid rgba(148,163,184,.48)!important;background:linear-gradient(180deg,#fff,#f3f6fa)!important;color:#243044!important;box-shadow:inset 0 1px 0 #fff,inset 0 -1px 0 rgba(148,163,184,.16),0 2px 3px rgba(15,23,42,.08),0 7px 13px rgba(30,64,175,.07)!important;text-shadow:0 1px 0 #fff!important;transition:transform .15s,box-shadow .15s!important}
-main:has(> section[aria-label="Finance summary"]) > header button:last-child{border-color:rgba(79,70,229,.34)!important;background:linear-gradient(180deg,#6366f1,#4f46e5 58%,#4338ca)!important;color:#fff!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.35),inset 0 -2px 0 rgba(30,27,75,.2),0 2px 0 rgba(49,46,129,.24),0 6px 12px rgba(79,70,229,.15)!important;text-shadow:0 1px 1px rgba(30,27,75,.2)!important}
-main:has(> section[aria-label="Finance summary"]) > header button:hover{transform:translateY(-1px)!important}
-main:has(> section[aria-label="Finance summary"]) > header button:active{transform:translateY(1px) scale(.985)!important;box-shadow:inset 0 2px 4px rgba(15,23,42,.13),0 1px 2px rgba(15,23,42,.07)!important}
-/* Summary: intentionally short */
-main:has(> section[aria-label="Finance summary"]) section[aria-label="Finance summary"]{gap:8px!important;margin-bottom:11px!important}
-main:has(> section[aria-label="Finance summary"]) section[aria-label="Finance summary"]>section{position:relative;min-height:68px!important;padding:9px 11px!important;box-sizing:border-box;border:1px solid rgba(148,163,184,.25)!important;border-radius:13px!important;background:radial-gradient(circle at 12% 0%,#fff,transparent 44%),linear-gradient(145deg,#fff,#f7faff 60%,#eef5fb)!important;box-shadow:inset 0 1px 0 #fff,inset 0 -2px 0 rgba(148,163,184,.1),0 2px 3px rgba(15,23,42,.065),0 6px 10px rgba(15,23,42,.045),0 11px 19px rgba(30,64,175,.055)!important;transition:transform .16s,box-shadow .16s!important}
-main:has(> section[aria-label="Finance summary"]) section[aria-label="Finance summary"]>section:before{content:"";position:absolute;inset:1px 1px auto;height:32%;border-radius:12px 12px 50% 50%;background:linear-gradient(180deg,rgba(255,255,255,.76),transparent);pointer-events:none}
-main:has(> section[aria-label="Finance summary"]) section[aria-label="Finance summary"]>section:after,main:has(> section[aria-label="Finance summary"]) article:after{content:"";position:absolute;left:9px;right:9px;bottom:-3px;height:4px;border-radius:50%;background:rgba(30,64,175,.08);filter:blur(3px);z-index:-1}
-main:has(> section[aria-label="Finance summary"]) section[aria-label="Finance summary"]>section:hover{transform:translateY(-2px);box-shadow:inset 0 1px 0 #fff,inset 0 -2px 0 rgba(148,163,184,.1),0 3px 4px rgba(15,23,42,.07),0 8px 14px rgba(15,23,42,.06),0 14px 24px rgba(30,64,175,.08)!important}
-main:has(> section[aria-label="Finance summary"]) section[aria-label="Finance summary"]>section>div{position:relative;z-index:1}
-main:has(> section[aria-label="Finance summary"]) section[aria-label="Finance summary"]>section>div:first-child{color:#64748b!important;font-size:10px!important;font-weight:850!important;text-shadow:0 1px 0 #fff!important}
-main:has(> section[aria-label="Finance summary"]) section[aria-label="Finance summary"]>section>div:last-child{margin-top:2px!important;font-size:clamp(18px,4.8vw,23px)!important;line-height:1.05!important;font-weight:900!important;letter-spacing:-.025em!important;text-shadow:0 1px 0 rgba(255,255,255,.9),0 2px 2px rgba(15,23,42,.06)!important}
-/* Compact filter */
-main:has(> section[aria-label="Finance summary"]) section[aria-label="Finance filter"]{margin-bottom:10px!important;padding:7px 9px!important;border:1px solid rgba(148,163,184,.22)!important;border-radius:12px!important;background:linear-gradient(145deg,#fff,#f7faff)!important;box-shadow:inset 0 1px 0 #fff,inset 0 -1px 0 rgba(148,163,184,.1),0 2px 3px rgba(15,23,42,.055),0 7px 13px rgba(30,64,175,.045)!important}
-main:has(> section[aria-label="Finance summary"]) section[aria-label="Finance filter"] label{gap:4px!important;font-size:10px!important}
-main:has(> section[aria-label="Finance summary"]) section[aria-label="Finance filter"] select{min-height:36px!important;border-radius:9px!important;background:linear-gradient(180deg,#fff,#f4f7fb)!important;box-shadow:inset 0 1px 0 #fff,inset 0 -1px 0 rgba(148,163,184,.12),0 2px 4px rgba(15,23,42,.055)!important}
-main:has(> section[aria-label="Finance summary"]) h2{margin:0 0 7px!important;font-size:16px!important;line-height:1.15!important;font-weight:900!important;color:var(--finance-ink)!important;text-shadow:0 1px 0 #fff,0 2px 1px rgba(15,23,42,.05)!important}
-/* History: short physical rows */
-main:has(> section[aria-label="Finance summary"]) article{position:relative;padding:9px 10px!important;border:1px solid rgba(148,163,184,.23)!important;border-left-width:3px!important;border-radius:12px!important;background:radial-gradient(circle at 8% 0%,#fff,transparent 38%),linear-gradient(145deg,#fff,#f8fbff 62%,#eef5fa)!important;box-shadow:inset 0 1px 0 #fff,inset 0 -2px 0 rgba(148,163,184,.09),0 2px 3px rgba(15,23,42,.055),0 6px 10px rgba(15,23,42,.04),0 11px 19px rgba(30,64,175,.045)!important;transition:transform .15s,box-shadow .15s!important}
-main:has(> section[aria-label="Finance summary"]) article:before{content:"";position:absolute;left:4px;right:4px;top:1px;height:24%;border-radius:11px 11px 45% 45%;background:linear-gradient(180deg,rgba(255,255,255,.72),transparent);pointer-events:none}
-main:has(> section[aria-label="Finance summary"]) article:hover{transform:translateY(-1px);box-shadow:inset 0 1px 0 #fff,inset 0 -2px 0 rgba(148,163,184,.1),0 3px 4px rgba(15,23,42,.06),0 8px 13px rgba(15,23,42,.055),0 14px 23px rgba(30,64,175,.065)!important}
-main:has(> section[aria-label="Finance summary"]) article>div:first-child{position:relative;z-index:1}
-main:has(> section[aria-label="Finance summary"]) article>div:first-child>div:first-child{font-size:16px!important;line-height:1.1!important;font-weight:900!important;letter-spacing:-.015em!important;text-shadow:0 1px 0 rgba(255,255,255,.92),0 2px 2px rgba(15,23,42,.055)!important}
-main:has(> section[aria-label="Finance summary"]) article>div:first-child>div:nth-child(2){margin-top:1px!important;font-size:10px!important;font-weight:900!important}
-main:has(> section[aria-label="Finance summary"]) article>div:first-child span{padding:3px 6px!important;font-size:10px!important;line-height:1.1!important}
-main:has(> section[aria-label="Finance summary"]) article>div:nth-child(2){margin-top:5px!important;font-size:11px!important;line-height:1.25!important}
-/* All Finance action controls get tactile depth; details is deliberately small. */
-main:has(> section[aria-label="Finance summary"]) article button{min-height:32px!important;border-radius:8px!important;padding:0 9px!important;border:1px solid rgba(148,163,184,.42)!important;background:linear-gradient(180deg,#fff,#f2f5f9)!important;color:#334155!important;font-size:11px!important;font-weight:850!important;box-shadow:inset 0 1px 0 #fff,inset 0 -1px 0 rgba(148,163,184,.14),0 2px 3px rgba(15,23,42,.07),0 5px 9px rgba(30,64,175,.055)!important;text-shadow:0 1px 0 #fff!important;transition:transform .14s,box-shadow .14s!important}
-main:has(> section[aria-label="Finance summary"]) article button:hover{transform:translateY(-1px);box-shadow:inset 0 1px 0 #fff,inset 0 -1px 0 rgba(148,163,184,.14),0 3px 4px rgba(15,23,42,.07),0 7px 12px rgba(30,64,175,.07)!important}
-main:has(> section[aria-label="Finance summary"]) article button:active{transform:translateY(1px) scale(.98);box-shadow:inset 0 2px 3px rgba(15,23,42,.11),0 1px 2px rgba(15,23,42,.06)!important}
-main:has(> section[aria-label="Finance summary"]) article button:first-child{color:#4338ca!important}
-/* Preserve the semantic controls while giving keyboard users a visible physical focus. */
-main:has(> section[aria-label="Finance summary"]) button:focus-visible,main:has(> section[aria-label="Finance summary"]) select:focus-visible,main:has(> section[aria-label="Finance summary"]) input:focus-visible{outline:3px solid rgba(79,70,229,.22)!important;outline-offset:2px!important}
-@media(max-width:520px){main:has(> section[aria-label="Finance summary"]) section[aria-label="Finance summary"]{grid-template-columns:repeat(2,minmax(0,1fr))!important}main:has(> section[aria-label="Finance summary"]) section[aria-label="Finance summary"]>section:last-child{grid-column:1/-1} }
-@media(max-width:380px){main:has(> section[aria-label="Finance summary"])>header{gap:7px!important}main:has(> section[aria-label="Finance summary"])>header h1{font-size:24px!important}main:has(> section[aria-label="Finance summary"]) article{padding:8px 9px!important}main:has(> section[aria-label="Finance summary"]) article>div:first-child>div:first-child{font-size:15px!important}}
-@media(prefers-reduced-motion:reduce){main:has(> section[aria-label="Finance summary"]) *{transition-duration:.01ms!important;scroll-behavior:auto!important}}
+
+main:has(> section[aria-label="Finance summary"]):before {
+  content: "";
+  position: absolute;
+  inset: -80px -60px auto;
+  height: 340px;
+  background:
+    radial-gradient(circle at 18% 12%, rgba(124, 58, 237, .18), transparent 34%),
+    radial-gradient(circle at 82% 18%, rgba(6, 182, 212, .14), transparent 32%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+main:has(> section[aria-label="Finance summary"]) > header {
+  margin-bottom: 18px !important;
+  align-items: flex-end !important;
+}
+
+main:has(> section[aria-label="Finance summary"]) > header h1 {
+  color: var(--finance-text) !important;
+  font-size: clamp(28px, 7vw, 42px) !important;
+  line-height: .98 !important;
+  font-weight: 950 !important;
+  letter-spacing: -.045em !important;
+  text-shadow: 0 8px 28px rgba(0,0,0,.24) !important;
+}
+
+main:has(> section[aria-label="Finance summary"]) > header > div > div {
+  color: var(--finance-cyan) !important;
+  opacity: .88;
+}
+
+main:has(> section[aria-label="Finance summary"]) > header button {
+  min-height: 40px !important;
+  border-radius: 14px !important;
+  border: 1px solid rgba(103, 232, 249, .24) !important;
+  background: rgba(17, 27, 51, .82) !important;
+  color: #dbeafe !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 12px 26px rgba(2,6,23,.24) !important;
+  text-shadow: none !important;
+  transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease !important;
+}
+
+main:has(> section[aria-label="Finance summary"]) > header button:last-child {
+  min-height: 44px !important;
+  padding-inline: 16px !important;
+  border-color: rgba(103,232,249,.34) !important;
+  background: linear-gradient(135deg, rgba(79,70,229,.96), rgba(8,145,178,.9)) !important;
+  color: #fff !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.18), 0 0 0 1px rgba(103,232,249,.06), 0 14px 30px rgba(8,145,178,.2) !important;
+}
+
+main:has(> section[aria-label="Finance summary"]) > header button:hover {
+  transform: translateY(-1px);
+  border-color: rgba(103,232,249,.45) !important;
+}
+
+main:has(> section[aria-label="Finance summary"]) > header button:active {
+  transform: translateY(1px) scale(.985);
+}
+
+/* Saved / deleted / restored notice */
+main:has(> section[aria-label="Finance summary"]) > [role="status"] {
+  margin-bottom: 14px !important;
+  padding: 10px 12px !important;
+  border-radius: 15px !important;
+  border: 1px solid rgba(52,211,153,.2) !important;
+  background: linear-gradient(135deg, rgba(6,78,59,.48), rgba(10,38,34,.72)) !important;
+  color: #a7f3d0 !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 12px 26px rgba(2,6,23,.2), 0 0 24px rgba(16,185,129,.06) !important;
+}
+
+/* Four semantic finance cards */
+main:has(> section[aria-label="Finance summary"]) > section[aria-label="Finance summary"] {
+  gap: 10px !important;
+  margin-bottom: 16px !important;
+}
+
+main:has(> section[aria-label="Finance summary"]) > section[aria-label="Finance summary"] > section {
+  position: relative;
+  min-width: 0 !important;
+  min-height: 92px !important;
+  padding: 12px !important;
+  box-sizing: border-box;
+  overflow: hidden;
+  border-radius: 18px !important;
+  background: var(--finance-surface-strong) !important;
+  border: 1px solid var(--finance-line) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.07), 0 18px 44px rgba(2,6,23,.28) !important;
+  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease !important;
+}
+
+main:has(> section[aria-label="Finance summary"]) > section[aria-label="Finance summary"] > section:before {
+  content: "";
+  position: absolute;
+  width: 150px;
+  height: 150px;
+  right: -70px;
+  top: -78px;
+  border-radius: 50%;
+  filter: blur(4px);
+  pointer-events: none;
+}
+
+main:has(> section[aria-label="Finance summary"]) > section[aria-label="Finance summary"] > section:after {
+  content: "";
+  position: absolute;
+  inset: 1px 12px auto;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.13), transparent);
+  pointer-events: none;
+}
+
+/* Total Earnings — violet */
+main:has(> section[aria-label="Finance summary"]) > section[aria-label="Finance summary"] > section:nth-child(1) {
+  border-color: rgba(167,139,250,.22) !important;
+  background: linear-gradient(145deg, rgba(42,27,77,.82), rgba(13,19,39,.94)) !important;
+}
+main:has(> section[aria-label="Finance summary"]) > section[aria-label="Finance summary"] > section:nth-child(1):before { background: rgba(139,92,246,.18); }
+main:has(> section[aria-label="Finance summary"]) > section[aria-label="Finance summary"] > section:nth-child(1) > div:last-child { color: #c4b5fd !important; }
+
+/* Current Balance — blue/cyan */
+main:has(> section[aria-label="Finance summary"]) > section[aria-label="Finance summary"] > section:nth-child(2) {
+  border-color: rgba(96,165,250,.22) !important;
+  background: linear-gradient(145deg, rgba(16,42,78,.82), rgba(9,20,40,.95)) !important;
+}
+main:has(> section[aria-label="Finance summary"]) > section[aria-label="Finance summary"] > section:nth-child(2):before { background: rgba(14,165,233,.16); }
+main:has(> section[aria-label="Finance summary"]) > section[aria-label="Finance summary"] > section:nth-child(2) > div:last-child { color: #7dd3fc !important; }
+
+/* Advance — restrained amber */
+main:has(> section[aria-label="Finance summary"]) > section[aria-label="Finance summary"] > section:nth-child(3) {
+  border-color: rgba(251,191,36,.2) !important;
+  background: linear-gradient(145deg, rgba(67,48,18,.78), rgba(25,22,15,.95)) !important;
+}
+main:has(> section[aria-label="Finance summary"]) > section[aria-label="Finance summary"] > section:nth-child(3):before { background: rgba(245,158,11,.14); }
+main:has(> section[aria-label="Finance summary"]) > section[aria-label="Finance summary"] > section:nth-child(3) > div:last-child { color: #fcd34d !important; }
+
+/* Received — emerald/teal */
+main:has(> section[aria-label="Finance summary"]) > section[aria-label="Finance summary"] > section:nth-child(4) {
+  border-color: rgba(52,211,153,.22) !important;
+  background: linear-gradient(145deg, rgba(8,59,49,.78), rgba(8,29,31,.95)) !important;
+}
+main:has(> section[aria-label="Finance summary"]) > section[aria-label="Finance summary"] > section:nth-child(4):before { background: rgba(16,185,129,.15); }
+main:has(> section[aria-label="Finance summary"]) > section[aria-label="Finance summary"] > section:nth-child(4) > div:last-child { color: #6ee7b7 !important; }
+
+main:has(> section[aria-label="Finance summary"]) > section[aria-label="Finance summary"] > section:hover {
+  transform: translateY(-2px);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 22px 50px rgba(2,6,23,.34) !important;
+}
+
+main:has(> section[aria-label="Finance summary"]) > section[aria-label="Finance summary"] > section > div {
+  position: relative;
+  z-index: 1;
+}
+main:has(> section[aria-label="Finance summary"]) > section[aria-label="Finance summary"] > section > div:first-child span:first-child {
+  color: #91a0b8 !important;
+  font-size: 9px !important;
+  letter-spacing: .12em !important;
+  text-shadow: none !important;
+}
+main:has(> section[aria-label="Finance summary"]) > section[aria-label="Finance summary"] > section > div:first-child span:last-child {
+  color: #6ee7b7 !important;
+}
+main:has(> section[aria-label="Finance summary"]) > section[aria-label="Finance summary"] > section > div:last-child {
+  margin-top: 7px !important;
+  font-size: clamp(18px, 5vw, 27px) !important;
+  line-height: 1 !important;
+  font-weight: 950 !important;
+  letter-spacing: -.045em !important;
+  text-shadow: 0 6px 20px rgba(0,0,0,.2) !important;
+}
+
+/* Payments · Earnings command section */
+main:has(> section[aria-label="Finance summary"]) > section:nth-of-type(2) {
+  margin-bottom: 16px !important;
+  padding: 13px !important;
+  border-radius: 24px !important;
+  border: 1px solid rgba(99,102,241,.18) !important;
+  background: linear-gradient(145deg, rgba(20,28,55,.86), rgba(9,15,31,.94)) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.07), 0 20px 48px rgba(2,6,23,.3) !important;
+}
+
+main:has(> section[aria-label="Finance summary"]) > section:nth-of-type(2) > div:first-child {
+  padding: 3px !important;
+  gap: 6px !important;
+  margin-bottom: 11px !important;
+  border-radius: 15px;
+  background: rgba(2,6,23,.3);
+  border: 1px solid rgba(148,163,184,.08);
+}
+
+main:has(> section[aria-label="Finance summary"]) > section:nth-of-type(2) > div:first-child > button {
+  min-height: 40px !important;
+  border-radius: 12px !important;
+  border: 1px solid transparent !important;
+  background: transparent !important;
+  color: #7f8da5 !important;
+  box-shadow: none !important;
+}
+
+main:has(> section[aria-label="Finance summary"]) > section:nth-of-type(2) > div:first-child > button:first-child {
+  color: #f8fafc !important;
+  background: linear-gradient(135deg, rgba(79,70,229,.34), rgba(8,145,178,.22)) !important;
+  border-color: rgba(103,232,249,.18) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.07), 0 7px 20px rgba(8,145,178,.08) !important;
+}
+
+/* Daily / weekly / monthly segmented control */
+main:has(> section[aria-label="Finance summary"]) > section:nth-of-type(2) > div:nth-child(2) {
+  gap: 6px !important;
+  padding: 3px !important;
+  margin-bottom: 11px !important;
+  border-radius: 15px;
+  background: rgba(2,6,23,.32);
+  border: 1px solid rgba(148,163,184,.08);
+}
+main:has(> section[aria-label="Finance summary"]) > section:nth-of-type(2) > div:nth-child(2) > button {
+  min-height: 38px !important;
+  border-radius: 12px !important;
+  border: 1px solid transparent !important;
+  background: transparent !important;
+  color: #7f8da5 !important;
+  box-shadow: none !important;
+  text-transform: capitalize !important;
+  letter-spacing: .01em !important;
+}
+main:has(> section[aria-label="Finance summary"]) > section:nth-of-type(2) > div:nth-child(2) > button:hover {
+  color: #cbd5e1 !important;
+}
+
+/* Period navigation */
+main:has(> section[aria-label="Finance summary"]) > section:nth-of-type(2) > div:nth-child(3) {
+  padding: 4px !important;
+  border-radius: 17px;
+  background: rgba(2,6,23,.24);
+  border: 1px solid rgba(148,163,184,.07);
+}
+main:has(> section[aria-label="Finance summary"]) > section:nth-of-type(2) > div:nth-child(3) > button {
+  min-height: 40px !important;
+  border-radius: 12px !important;
+  background: rgba(17,27,51,.7) !important;
+  border-color: rgba(148,163,184,.1) !important;
+  color: #cbd5e1 !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.05) !important;
+}
+main:has(> section[aria-label="Finance summary"]) > section:nth-of-type(2) > div:nth-child(3) > div > div:first-child {
+  color: #71819a !important;
+}
+main:has(> section[aria-label="Finance summary"]) > section:nth-of-type(2) > div:nth-child(3) > div > div:last-child {
+  color: #f8fafc !important;
+  font-size: 16px !important;
+}
+
+/* Received ledger copy */
+main:has(> section[aria-label="Finance summary"]) > section:nth-of-type(2) > div:last-child {
+  padding: 9px !important;
+  border-radius: 14px;
+  background: rgba(2,6,23,.2);
+  border: 1px solid rgba(52,211,153,.08);
+}
+
+/* History heading / Work Entries only */
+main:has(> section[aria-label="Finance summary"]) > section:nth-of-type(3) {
+  min-width: 0;
+}
+main:has(> section[aria-label="Finance summary"]) > section:nth-of-type(3) > div:first-child {
+  margin-bottom: 11px !important;
+}
+main:has(> section[aria-label="Finance summary"]) > section:nth-of-type(3) > div:first-child > div > div:first-child {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 9px;
+  border-radius: 999px;
+  border: 1px solid rgba(103,232,249,.12);
+  background: rgba(8,145,178,.08);
+  color: #6b7b95 !important;
+}
+main:has(> section[aria-label="Finance summary"]) > section:nth-of-type(3) h2 {
+  margin-top: 5px !important;
+  color: #f8fafc !important;
+  font-size: 20px !important;
+  font-weight: 900 !important;
+}
+
+/* Individual earnings / received mini-cards */
+main:has(> section[aria-label="Finance summary"]) article {
+  position: relative;
+  overflow: hidden;
+  padding: 15px !important;
+  border-radius: 19px !important;
+  border: 1px solid rgba(148,163,184,.12) !important;
+  background: linear-gradient(145deg, rgba(16,26,47,.84), rgba(8,15,30,.94)) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.055), 0 13px 32px rgba(2,6,23,.24) !important;
+  transition: transform .17s ease, border-color .17s ease, box-shadow .17s ease !important;
+}
+main:has(> section[aria-label="Finance summary"]) article:after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(115deg, rgba(255,255,255,.025), transparent 34%);
+}
+main:has(> section[aria-label="Finance summary"]) article:hover {
+  transform: translateY(-2px);
+  border-color: rgba(103,232,249,.16) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.07), 0 18px 38px rgba(2,6,23,.3) !important;
+}
+main:has(> section[aria-label="Finance summary"]) article > div:first-child,
+main:has(> section[aria-label="Finance summary"]) article > div:nth-child(2),
+main:has(> section[aria-label="Finance summary"]) article > button {
+  position: relative;
+  z-index: 1;
+}
+main:has(> section[aria-label="Finance summary"]) article > div:first-child > div:first-child {
+  font-size: 18px !important;
+  font-weight: 950 !important;
+  letter-spacing: -.025em !important;
+  text-shadow: 0 6px 18px rgba(0,0,0,.2) !important;
+}
+main:has(> section[aria-label="Finance summary"]) article > div:first-child > div:nth-child(2) {
+  color: #f1f5f9 !important;
+  font-size: 13px !important;
+  font-weight: 850 !important;
+}
+main:has(> section[aria-label="Finance summary"]) article > div:first-child > div:last-child {
+  color: #71819a !important;
+}
+main:has(> section[aria-label="Finance summary"]) article > div:nth-child(2) {
+  color: #8fa0ba !important;
+  font-size: 11px !important;
+}
+main:has(> section[aria-label="Finance summary"]) article > button {
+  margin-top: 11px !important;
+  min-height: 34px !important;
+  padding: 0 10px !important;
+  border-radius: 10px !important;
+  border: 1px solid rgba(103,232,249,.13) !important;
+  background: rgba(8,145,178,.07) !important;
+  color: #a5b4fc !important;
+}
+
+/* Received edit/delete controls */
+main:has(> section[aria-label="Finance summary"]) article > div:last-child button {
+  min-height: 34px !important;
+  border-radius: 10px !important;
+  background: rgba(17,27,51,.78) !important;
+  border-color: rgba(148,163,184,.13) !important;
+  color: #cbd5e1 !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.05) !important;
+}
+main:has(> section[aria-label="Finance summary"]) article > div:last-child button:first-child {
+  color: #a5b4fc !important;
+  border-color: rgba(167,139,250,.18) !important;
+}
+main:has(> section[aria-label="Finance summary"]) article > div:last-child button:last-child {
+  color: #fda4af !important;
+  border-color: rgba(244,63,94,.16) !important;
+}
+
+/* Load more */
+main:has(> section[aria-label="Finance summary"]) > section:nth-of-type(3) > button:last-child {
+  min-height: 42px !important;
+  margin-top: 11px !important;
+  border-radius: 14px !important;
+  border-color: rgba(103,232,249,.14) !important;
+  background: rgba(17,27,51,.7) !important;
+  color: #cbd5e1 !important;
+}
+
+/* Accessible tactile focus */
+main:has(> section[aria-label="Finance summary"]) button:focus-visible,
+main:has(> section[aria-label="Finance summary"]) input:focus-visible,
+main:has(> section[aria-label="Finance summary"]) select:focus-visible {
+  outline: 2px solid rgba(103,232,249,.6) !important;
+  outline-offset: 2px !important;
+}
+
+@media (max-width: 560px) {
+  main:has(> section[aria-label="Finance summary"]) {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+  main:has(> section[aria-label="Finance summary"]) > section[aria-label="Finance summary"] > section {
+    min-height: 88px !important;
+  }
+}
+
+@media (max-width: 390px) {
+  main:has(> section[aria-label="Finance summary"]) > header {
+    align-items: flex-start !important;
+  }
+  main:has(> section[aria-label="Finance summary"]) > header h1 {
+    font-size: 26px !important;
+  }
+  main:has(> section[aria-label="Finance summary"]) > section[aria-label="Finance summary"] {
+    gap: 8px !important;
+  }
+  main:has(> section[aria-label="Finance summary"]) > section[aria-label="Finance summary"] > section {
+    min-height: 84px !important;
+    padding: 10px !important;
+  }
+  main:has(> section[aria-label="Finance summary"]) > section[aria-label="Finance summary"] > section > div:last-child {
+    font-size: 18px !important;
+  }
+  main:has(> section[aria-label="Finance summary"]) article {
+    padding: 13px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  main:has(> section[aria-label="Finance summary"]) * {
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -1,3 +1,4 @@
+import { WorkSocialPremiumLoader } from '../../../app/components/WorkSocialPremiumLoader';
 import { useEffect, useMemo, useState } from 'react';
 import { navigate } from '../../../app/Router';
 import { supabase } from '../../../lib/supabase/client';
@@ -131,7 +132,7 @@ export function WorkerTeamDashboardPage() {
     navigate('/work/team-work');
   };
 
-  if (loading) return <main className="team-dashboard-page"><div className="td-state"><strong>Opening Team Dashboard…</strong><p>Checking your approved membership for this team.</p></div></main>;
+  if (loading) return <WorkSocialPremiumLoader title="Worker Team Dashboard" message="Opening Team Dashboard…" />;
   if (error || !team) return <main className="team-dashboard-page"><div className="td-state td-error"><strong>Team Dashboard unavailable</strong><p>{error || 'This team could not be opened.'}</p><button type="button" onClick={() => navigate('/work/team-work')}>← Back to My Teams</button></div></main>;
 
   return (

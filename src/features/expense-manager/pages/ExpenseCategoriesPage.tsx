@@ -1,3 +1,4 @@
+import { WorkSocialPremiumLoader } from '../../../app/components/WorkSocialPremiumLoader';
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '../../../lib/supabase/client';
 import { archiveExpenseCategory, archiveExpenseSubcategory, createExpenseCategoryRecord, createExpenseSubcategory, deleteExpenseCategory, deleteExpenseSubcategory, loadExpenseCategories, loadExpenseCategoryUsage, loadExpenseSubcategories, restoreDefaultExpenseTaxonomy, restoreExpenseCategory, restoreExpenseSubcategory, updateExpenseCategoryRecord, updateExpenseSubcategory } from '../data/expenseManagerCategories';
@@ -55,7 +56,7 @@ export function ExpenseCategoriesPage({ onNavigate }: Props) {
   const deleteSubcategory = async (subcategory: ExpenseSubcategoryRecord) => { if (!window.confirm(`Delete “${subcategory.name}”? This permanently removes the subcategory. Transactions or budgets that reference it must be removed first.`)) return; setMutatingId(subcategory.id); setError(''); try { await deleteExpenseSubcategory(uid, subcategory.id); await load(); show('Subcategory deleted'); } catch (e) { setError(e instanceof Error ? e.message : 'Could not delete subcategory.'); } finally { setMutatingId(''); } };
 
   const grouped = useMemo(() => ({ expense: cats.filter((category) => category.type === 'expense'), income: cats.filter((category) => category.type === 'income') }), [cats]);
-  if (loading) return <section className="expense-categories"><div className="state">Loading your categories…</div></section>;
+  if (loading) return <section className="expense-categories"><WorkSocialPremiumLoader title="Expense Categories" message="Loading your categories…" /></section>;
   const visible = (category: ExpenseCategoryRecord) => showArchived || !category.is_archived;
 
   return <section className="expense-categories">

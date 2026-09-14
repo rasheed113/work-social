@@ -1,3 +1,4 @@
+import { WorkSocialPremiumLoader } from '../../../app/components/WorkSocialPremiumLoader';
 import { useEffect, useMemo, useState } from 'react';
 import { navigate } from '../../../app/Router';
 import { supabase } from '../../../lib/supabase/client';
@@ -102,7 +103,7 @@ export function WorkerTeamDashboardWorkPage() {
     if (result.error) setError(result.error.message); else { setVersions(result.data ?? []); setVersionEntry(id); }
   };
 
-  if (loading) return <main className="twd"><section className="twd-state"><strong>Opening Team Dashboard…</strong><p>Checking your approved membership and Team Work data.</p></section></main>;
+  if (loading) return <WorkSocialPremiumLoader title="Worker Team Dashboard Work" message="Opening Team Dashboard…" />;
   if (!context) return <main className="twd"><section className="twd-state twd-error"><strong>Team Dashboard unavailable</strong><p>{error || 'This Team Work workspace is unavailable.'}</p><button type="button" onClick={() => navigate('/work/team-work')}>← Back to My Teams</button></section></main>;
 
   const cards = [

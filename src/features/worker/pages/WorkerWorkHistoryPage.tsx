@@ -1,3 +1,4 @@
+import { WorkSocialPremiumLoader } from '../../../app/components/WorkSocialPremiumLoader';
 import { useEffect, useMemo, useState } from 'react';
 import { navigate } from '../../../app/Router';
 import { useCurrentWorkerProfileId } from '../hooks/useCurrentWorkerProfileId';
@@ -42,7 +43,7 @@ export function WorkerWorkHistoryPage() {
   const isCurrentDay = selectedPeriod.getTime() === currentDay.getTime(); const isCurrentWeek = selectedPeriod.getTime() === currentWeekStart.getTime(); const isCurrentMonth = selectedPeriod.getTime() === currentMonth.getTime(); const nextDisabled = isDay ? isCurrentDay : isWeek ? isCurrentWeek : isCurrentMonth;
   const editEntry = async (...args: Parameters<typeof history.editEntry>) => history.editEntry(...args); const trashEntry = async (entryId: string) => history.trashEntry(entryId);
 
-  if (session.loading) return <main className="worker-history"><section className="worker-history__state"><span className="worker-history__state-mark" aria-hidden="true">◌</span><p>Loading Work History…</p></section></main>;
+  if (session.loading) return <WorkSocialPremiumLoader title="Worker Work History" message="Loading Work History…" />;
   if (session.error || !session.profileId) return <main className="worker-history"><section className="worker-history__state worker-history__state--error"><span className="worker-history__state-mark" aria-hidden="true">!</span><p role="alert">{session.error ?? 'Authenticated profile is unavailable.'}</p></section></main>;
 
   let periodLabel = ''; if (isDay) periodLabel = formatDate(selectedPeriod); else if (isWeek) { const end = new Date(selectedPeriod); end.setDate(end.getDate() + 6); periodLabel = `${formatDate(selectedPeriod)} – ${formatDate(end)}`; } else if (isMonth) periodLabel = selectedPeriod.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
