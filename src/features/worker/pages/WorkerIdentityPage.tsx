@@ -17,6 +17,14 @@ export function WorkerIdentityPage({ profileId }: WorkerIdentityPageProps) {
   const [workerTypeOpen, setWorkerTypeOpen] = useState(false);
   const [pendingWorkerType, setPendingWorkerType] = useState<WorkerType | null>(null);
   if (loading) return <WorkSocialPremiumLoader title="Worker Identity" message="Loading Work Identity…" />;
+
+  const workerTypeLabel = (value: WorkerType) => value === 'salary_person' ? 'Salary Person' : 'Work per Job / Contract';
+
+  const changeWorkerType = async (value: WorkerType) => {
+    if (!workerProfile || value === workerProfile.worker_type) { setPendingWorkerType(null); return; }
+    setSwitchError(''); setSwitching(true);
+    const { error: updateError } = await setWorkerType(workerProfile.id, value);
+    setSwitching(false);
     if (updateError) { setSwitchError(updateError.message); return; }
     setPendingWorkerType(null);
     await reload();
