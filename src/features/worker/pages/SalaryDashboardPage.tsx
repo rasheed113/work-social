@@ -1,3 +1,4 @@
+import { WorkSocialPremiumLoader } from '../../../app/components/WorkSocialPremiumLoader';
 import { useEffect, useMemo, useState } from 'react';
 import { navigate } from '../../../app/Router';
 import { getFinalizedSalaryTotals, getSalaryMonthSummary, getSalaryPolicy, saveAttendance, saveOvertime } from '../api/salary';
@@ -51,7 +52,7 @@ export function SalaryDashboardPage({ profileId }: { profileId: string }) {
   };
   useEffect(() => { if (workerProfile) void refresh(); }, [workerProfile, month]);
 
-  if (loading) return <main style={{ padding: 24 }}>Loading Salary Dashboard…</main>;
+  if (loading) return <WorkSocialPremiumLoader title="Salary Dashboard" message="Loading Salary Dashboard…" />;
   if (!workerProfile) return <main style={{ padding: 24 }}>Worker profile unavailable.</main>;
 
   const currency = policy?.currency ?? 'PKR';

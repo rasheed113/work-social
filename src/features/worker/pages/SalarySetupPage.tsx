@@ -1,3 +1,4 @@
+import { WorkSocialPremiumLoader } from '../../../app/components/WorkSocialPremiumLoader';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { navigate } from '../../../app/Router';
 import { useWorkerProfile } from '../hooks/useWorkerProfile';
@@ -105,7 +106,7 @@ export function SalarySetupPage({ profileId }: { profileId: string }) {
     return () => window.clearTimeout(timer);
   }, [focusSalaryType, focusAllowances, privacyAccepted, loading, error, workerProfile]);
 
-  if (loading) return <main className="salary-setup-page" style={{ padding: 24 }}>Loading Salary Setup…</main>;
+  if (loading) return <WorkSocialPremiumLoader title="Salary Setup" message="Loading Salary Setup…" />;
   if (error || !workerProfile) return <main className="salary-setup-page" style={{ padding: 24 }}><p role="alert">{error ?? 'Worker profile unavailable.'}</p></main>;
 
   const submit = async (event: React.FormEvent) => {

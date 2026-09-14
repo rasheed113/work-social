@@ -1,3 +1,4 @@
+import { WorkSocialPremiumLoader } from '../../../app/components/WorkSocialPremiumLoader';
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 import { SalaryDashboardPage } from './SalaryDashboardPage';
 import { WorkerOverviewPage } from './WorkerOverviewPage';
@@ -20,7 +21,7 @@ class TeamDashboardWorkBoundary extends Component<{ children: ReactNode }, { has
 export function WorkerWorkHousePage() {
   const session = useCurrentWorkerProfileId();
   const profile = useWorkerProfile(session.profileId ?? '');
-  if (session.loading || profile.loading) return <main style={{ width: '100%', maxWidth: 900, margin: '0 auto', padding: '24px 14px 112px', boxSizing: 'border-box' }}><p style={{ color: '#64748b' }}>Loading Worker workspace…</p></main>;
+  if (session.loading || profile.loading) return <main style={{ width: '100%', maxWidth: 900, margin: '0 auto', padding: '24px 14px 112px', boxSizing: 'border-box' }}><WorkSocialPremiumLoader title="Worker Work House" message="Loading Worker workspace…" /></main>;
   if (session.error || !session.profileId) return <main style={{ width: '100%', maxWidth: 900, margin: '0 auto', padding: '24px 14px 112px', boxSizing: 'border-box' }}><p role="alert" style={{ color: '#b91c1c', fontWeight: 700 }}>{session.error ?? 'Authenticated profile is unavailable.'}</p></main>;
   if (profile.error) return <main style={{ width: '100%', maxWidth: 900, margin: '0 auto', padding: '24px 14px 112px', boxSizing: 'border-box' }}><p role="alert" style={{ color: '#b91c1c', fontWeight: 700 }}>{profile.error}</p></main>;
   const pathname = window.location.pathname;

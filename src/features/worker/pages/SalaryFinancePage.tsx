@@ -1,3 +1,4 @@
+import { WorkSocialPremiumLoader } from '../../../app/components/WorkSocialPremiumLoader';
 import { useEffect, useMemo, useState } from 'react';
 import { navigate } from '../../../app/Router';
 import { addSalaryFinanceRecord, getFinalizedSalaryTotals, getSalaryMonthSummary, getSalaryPolicy, listSalaryFinanceRecords, type SalaryFinanceRecord, type SalaryFinanceRecordType } from '../api/salary';
@@ -67,7 +68,7 @@ export function SalaryFinancePage({ profileId }: { profileId: string }) {
     setAmount(''); setAddOpen(false); setNotice('Finance record added.'); await load();
   };
 
-  if (profileLoading || loading) return <main style={shell}><p style={{ color: '#64748b' }}>Loading Salary Finance…</p></main>;
+  if (profileLoading || loading) return <main style={shell}><WorkSocialPremiumLoader title="Salary Finance" message="Loading Salary Finance…" /></main>;
   if (!workerProfile) return <main style={shell}><p>Worker profile unavailable.</p></main>;
 
   return <main style={{ ...shell, background: 'radial-gradient(circle at 8% 0%,rgba(99,102,241,.07),transparent 30%),radial-gradient(circle at 95% 18%,rgba(20,184,166,.06),transparent 30%)' }}>

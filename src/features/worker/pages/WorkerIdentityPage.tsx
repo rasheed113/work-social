@@ -1,3 +1,4 @@
+import { WorkSocialPremiumLoader } from '../../../app/components/WorkSocialPremiumLoader';
 import { useState } from 'react';
 import { navigate } from '../../../app/Router';
 import { WorkerIdentityForm } from '../components/WorkerIdentityForm';
@@ -15,15 +16,7 @@ export function WorkerIdentityPage({ profileId }: WorkerIdentityPageProps) {
   const [switchError, setSwitchError] = useState('');
   const [workerTypeOpen, setWorkerTypeOpen] = useState(false);
   const [pendingWorkerType, setPendingWorkerType] = useState<WorkerType | null>(null);
-  if (loading) return <main style={{ padding: 24 }}>Loading Work Identity…</main>;
-
-  const workerTypeLabel = (value: WorkerType) => value === 'salary_person' ? 'Salary Person' : 'Work per Job / Contract';
-
-  const changeWorkerType = async (value: WorkerType) => {
-    if (!workerProfile || value === workerProfile.worker_type) { setPendingWorkerType(null); return; }
-    setSwitchError(''); setSwitching(true);
-    const { error: updateError } = await setWorkerType(workerProfile.id, value);
-    setSwitching(false);
+  if (loading) return <WorkSocialPremiumLoader title="Worker Identity" message="Loading Work Identity…" />;
     if (updateError) { setSwitchError(updateError.message); return; }
     setPendingWorkerType(null);
     await reload();

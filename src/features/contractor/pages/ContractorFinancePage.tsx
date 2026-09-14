@@ -1,3 +1,4 @@
+import { WorkSocialPremiumLoader } from '../../../app/components/WorkSocialPremiumLoader';
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import { supabase } from '../../../lib/supabase/client';
 import { navigate } from '../../../app/Router';
@@ -24,7 +25,7 @@ export function ContractorFinancePage(){
  const openEdit=(p:Payment)=>{setDetail(null);setEditing(p);setEditAmount(String(p.amount));setEditPaidAt(dateTimeInput(p.paid_at));setEditNote(p.note??'');setEditError('')};
  const saveEdit=async()=>{const value=Number(editAmount);if(!Number.isFinite(value)||value<=0){setEditError('Please enter a valid received amount greater than zero.');return}if(!editPaidAt){setEditError('Please select the payment date and time.');return}setEditSaving(true);setEditError('');try{const result=await supabase.rpc('edit_contractor_stage2_payment',{p_payment_id:editing?.id,p_amount:value,p_paid_at:new Date(editPaidAt).toISOString(),p_note:editNote.trim()||null,p_team_id:teamId});if(result.error)throw new Error(result.error.message);setEditing(null);flash('Payment updated successfully.');await load()}catch(e){setEditError(e instanceof Error?e.message:'Unable to update payment.')}finally{setEditSaving(false)}};
  const confirmDelete=async()=>{if(!deleting)return;setDeleteSaving(true);setDeleteError('');try{const result=await supabase.rpc('delete_contractor_stage2_payment',{p_payment_id:deleting.id,p_team_id:teamId});if(result.error)throw new Error(result.error.message);setDeleting(null);flash('Payment deleted successfully.');await load()}catch(e){setDeleteError(e instanceof Error?e.message:'Unable to delete payment.')}finally{setDeleteSaving(false)}};
- if(loading)return <main style={shell}><section style={{...card,marginTop:18}}><strong>Loading Contractor Finance…</strong></section></main>;
+ if (loading) return <WorkSocialPremiumLoader title="Contractor Finance" message="Loading Contractor Finance…" />;
  if(error)return <main style={shell}><section style={{...card,marginTop:18}} role="alert"><strong>Contractor Finance could not be loaded</strong><p style={{color:'#64748b',fontSize:12}}>{error}</p><button type="button" onClick={()=>void load()}>Retry</button></section></main>;
  const s=summary??{total_payable:0,total_commission:0,total_received:0,paid_against_payable:0,due:0,advance_paid:0,payment_coverage:0};
  const teamTitle=teamName?`Team ${teamName} Finance`:teamNumber?`Team ${teamNumber} Finance`:'Finance';const teamEyebrow=teamNumber?`TEAM ${teamNumber} FINANCE`:'CONTRACTOR FINANCE';

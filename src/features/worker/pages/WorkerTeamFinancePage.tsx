@@ -1,3 +1,4 @@
+import { WorkSocialPremiumLoader } from '../../../app/components/WorkSocialPremiumLoader';
 import { useEffect, useMemo, useState } from 'react';
 import { navigate } from '../../../app/Router';
 import { supabase } from '../../../lib/supabase/client';
@@ -102,7 +103,7 @@ export function WorkerTeamFinancePage() {
   }, [earnings, paymentPeriod]);
   const paymentTotal = paymentItems.reduce((sum, item) => sum + Number(item.total || 0), 0);
 
-  if (loading) return <main className="wtf-page"><div className="wtf-state">Opening Team Finance…</div></main>;
+  if (loading) return <WorkSocialPremiumLoader title="Worker Team Finance" message="Opening Team Finance…" />;
   if (error || !context || !summary) return <main className="wtf-page"><div className="wtf-state wtf-error"><strong>Team Finance unavailable</strong><p>{error || 'Financial data could not be loaded.'}</p><button onClick={() => navigate(`/work/team-work/${teamNumber ?? ''}`)}>← Back to Team</button></div></main>;
 
   return (

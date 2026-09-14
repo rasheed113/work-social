@@ -1,3 +1,4 @@
+import { WorkSocialPremiumLoader } from '../../../app/components/WorkSocialPremiumLoader';
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '../../../lib/supabase/client';
 import { loadExpenseTransactionData } from '../data/expenseManagerTransactions';
@@ -53,7 +54,7 @@ export function ExpenseActivityPage({ onNavigate }: ExpenseActivityPageProps) {
     <header className="expense-activity__hero"><span className="expense-activity__eyebrow">Financial activity</span><h1 id="expense-activity-title">Activity</h1><p className="expense-activity__copy">Real persisted Expense Manager transactions for the selected period.</p></header>
     <div className="expense-activity__periods">{PERIODS.map((item) => <button type="button" className="expense-activity__period" data-active={period === item.id} key={item.id} onClick={() => selectPeriod(item.id)}><span>{item.label}</span><span>→</span></button>)}</div>
     <div className="expense-activity__summary"><div className="expense-activity__metric" data-type="income"><span>Income</span><strong>{rows.length ? money(totals.income, incomeCurrency) : '—'}</strong></div><div className="expense-activity__metric" data-type="expense"><span>Expenses</span><strong>{rows.length ? money(totals.expense, expenseCurrency) : '—'}</strong></div><div className="expense-activity__metric"><span>Transactions</span><strong>{rows.length}</strong></div></div>
-    {loading && <div className="expense-activity__empty">Loading persisted activity…</div>}
+    {loading && <WorkSocialPremiumLoader title="Expense Activity" message="Loading persisted activity…" />}
     {!loading && error && <div className="expense-activity__error" role="alert">{error}</div>}
     {!loading && !error && !rows.length && <div className="expense-activity__empty">No persisted transactions in this period.</div>}
     {!loading && !error && rows.length > 0 && <div className="expense-activity__list">{rows.map((row) => { const sign = row.type === 'income' ? '+' : row.type === 'expense' ? '−' : '↔'; return <div className="expense-activity__row" key={row.id}><span className="expense-activity__icon" aria-hidden="true">{row.category_name ? row.category_name.slice(0, 1).toUpperCase() : row.type === 'transfer' ? '↔' : '•'}</span><div className="expense-activity__main"><div className="expense-activity__name">{row.category_name || (row.type === 'transfer' ? 'Transfer' : 'Uncategorised')}</div><div className="expense-activity__meta">{row.date} · {row.account_name || 'Account'}{row.note ? ` · ${row.note}` : ''}</div></div><strong className="expense-activity__amount" data-type={row.type}>{sign} {money(row.amount, row.account_currency || 'PKR')}</strong></div>; })}</div>}
