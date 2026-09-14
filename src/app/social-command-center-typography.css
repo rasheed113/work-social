@@ -1,0 +1,133 @@
+/* Work Social — Phase 3.2 Social Command Center typography/instrumentation.
+   Presentation-only. Replaces generic pure-white Social text with the Master Theme's
+   ice-blue / blue-gray / cyan instrumentation hierarchy.
+   No data, routing, auth, API, Supabase, AI, or business logic. */
+
+body:has(.home-page-title) {
+  --ws-social-ink-primary: #d9efff;
+  --ws-social-ink-heading: #e5f6ff;
+  --ws-social-ink-secondary: #a9c4df;
+  --ws-social-ink-muted: #7894b1;
+  --ws-social-ink-meta: #78b9d8;
+  --ws-social-ink-cyan: #67e8f9;
+  --ws-social-ink-active: #45d9ff;
+  --ws-social-ink-disabled: #58718b;
+}
+
+/* Post/feed text: pure white is reserved for exceptional browser/UI states only. */
+body:has(.home-post-feed) .home-post-feed article {
+  color: var(--ws-social-ink-primary) !important;
+}
+
+body:has(.home-post-feed) .home-post-feed article strong {
+  color: var(--ws-social-ink-heading) !important;
+}
+
+body:has(.home-post-feed) .home-post-feed article p {
+  color: var(--ws-social-ink-primary) !important;
+}
+
+body:has(.home-post-feed) .home-post-feed article span,
+body:has(.home-post-feed) .home-post-feed article label {
+  color: var(--ws-social-ink-secondary) !important;
+}
+
+body:has(.home-post-feed) .home-post-feed article small {
+  color: var(--ws-social-ink-muted) !important;
+}
+
+/* Technical metadata and timestamps become instrumentation readouts. */
+body:has(.home-post-feed) .home-post-feed article time,
+body:has(.home-post-feed) .home-post-feed article [datetime] {
+  color: var(--ws-social-ink-meta) !important;
+}
+
+/* Headings and command labels use cool near-white rather than flat white. */
+body:has(.home-page-title) .home-page-title,
+body:has(.home-page-title) h1,
+body:has(.home-page-title) h2,
+body:has(.home-page-title) h3,
+body:has(.home-page-title) h4 {
+  color: var(--ws-social-ink-heading) !important;
+}
+
+/* Social navigation / tabs: inactive blue-gray, active cyan instrumentation. */
+body:has(.home-page-title) nav a,
+body:has(.home-page-title) nav button {
+  color: var(--ws-social-ink-secondary) !important;
+}
+
+body:has(.home-page-title) nav a[aria-current="page"],
+body:has(.home-page-title) nav button[aria-current="page"],
+body:has(.home-page-title) [role="tab"][aria-selected="true"] {
+  color: var(--ws-social-ink-active) !important;
+  text-shadow: 0 0 16px rgba(69, 217, 255, .16);
+}
+
+/* Buttons are cool blue-white at rest and cyan when active/hovered. */
+body:has(.home-post-feed) .home-post-feed article button {
+  color: var(--ws-social-ink-secondary) !important;
+}
+
+body:has(.home-post-feed) .home-post-feed article button:hover:not(:disabled),
+body:has(.home-post-feed) .home-post-feed article button:focus-visible {
+  color: var(--ws-social-ink-active) !important;
+}
+
+body:has(.home-post-feed) .home-post-feed article button:disabled {
+  color: var(--ws-social-ink-disabled) !important;
+}
+
+/* Reaction/action instrumentation: selected states glow cyan, not white. */
+body:has(.home-post-feed) .home-post-feed article [aria-pressed="true"],
+body:has(.home-post-feed) .home-post-feed article [data-active="true"] {
+  color: var(--ws-social-ink-cyan) !important;
+  text-shadow: 0 0 14px rgba(103, 232, 249, .18);
+}
+
+/* Inputs/composer text stay readable but intentionally blue-white. */
+body:has(.home-post-feed) .home-post-feed article input,
+body:has(.home-post-feed) .home-post-feed article textarea {
+  color: var(--ws-social-ink-primary) !important;
+}
+
+body:has(.home-post-feed) .home-post-feed article input::placeholder,
+body:has(.home-post-feed) .home-post-feed article textarea::placeholder {
+  color: var(--ws-social-ink-muted) !important;
+}
+
+/* Menus/dialogs inherit the same instrument hierarchy. */
+body:has(.home-post-feed) .home-post-feed article [role="menu"],
+body:has(.home-post-feed) .home-post-feed article [role="dialog"],
+body:has(.home-post-feed) .home-post-feed article [role="alertdialog"] {
+  color: var(--ws-social-ink-primary) !important;
+}
+
+body:has(.home-post-feed) .home-post-feed article [role="menu"] strong,
+body:has(.home-post-feed) .home-post-feed article [role="dialog"] h2,
+body:has(.home-post-feed) .home-post-feed article [role="alertdialog"] h2 {
+  color: var(--ws-social-ink-heading) !important;
+}
+
+body:has(.home-post-feed) .home-post-feed article [role="menu"] small,
+body:has(.home-post-feed) .home-post-feed article [role="dialog"] small,
+body:has(.home-post-feed) .home-post-feed article [role="alertdialog"] small {
+  color: var(--ws-social-ink-muted) !important;
+}
+
+/* Social-specific status language. */
+body:has(.home-page-title) [data-status="active"],
+body:has(.home-page-title) [data-state="active"] {
+  color: var(--ws-social-ink-cyan) !important;
+}
+
+body:has(.home-page-title) [data-status="inactive"],
+body:has(.home-page-title) [data-state="inactive"] {
+  color: var(--ws-social-ink-muted) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body:has(.home-page-title) * {
+    text-shadow: none !important;
+  }
+}
