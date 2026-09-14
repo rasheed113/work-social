@@ -91,7 +91,7 @@ export function HomePage({ profileId }: HomePageProps) {
   }, []);
 
   return (
-    <main style={{ width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box', padding: '18px 0 112px', overflowX: 'hidden' }}>
+    <main className="social-command-screen social-command-screen--home" style={{ width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box', padding: '18px 0 112px', overflowX: 'hidden' }}>
       <style>{`
         .home-page-title {
           margin: 0;
@@ -151,14 +151,26 @@ export function HomePage({ profileId }: HomePageProps) {
           .home-post-feed > section > h2 { margin-bottom: 10px; padding: 9px 11px; font-size: 16px; }
         }
       `}</style>
-      <div style={{ width: '100%', maxWidth: 900, minWidth: 0, margin: '0 auto', padding: '0 14px', boxSizing: 'border-box' }}>
-        <header style={{ marginBottom: 16, padding: '4px 4px 2px' }}>
-          <h1 className="home-page-title">Home</h1>
+      <div className="social-command-screen__frame" style={{ width: '100%', maxWidth: 900, minWidth: 0, margin: '0 auto', padding: '0 14px', boxSizing: 'border-box' }}>
+        <header className="social-command-screen__header">
+          <div className="social-command-screen__eyebrow">SOCIAL NETWORK // COMMAND INTERFACE</div>
+          <div className="social-command-screen__identity">
+            <div>
+              <h1 className="home-page-title">Home</h1>
+              <p className="social-command-screen__descriptor">Network operations and live social transmissions</p>
+            </div>
+          </div>
         </header>
-        <CreatePostForm profileId={profileId} onCreated={() => setRefreshKey((key) => key + 1)} />
-        <div className="home-post-feed" style={{ marginTop: 18 }}>
-          <PostFeed refreshKey={refreshKey} profileId={profileId} scope="public" />
-        </div>
+        <section className="social-command-screen__channel" aria-label="Social transmission console">
+          <div className="social-command-screen__channel-label">TRANSMISSION CONSOLE</div>
+          <CreatePostForm profileId={profileId} onCreated={() => setRefreshKey((key) => key + 1)} />
+        </section>
+        <section className="social-command-screen__data-channel" aria-label="Public social signal feed">
+          <div className="social-command-screen__channel-label">PUBLIC SIGNAL FEED</div>
+          <div className="home-post-feed" style={{ marginTop: 8 }}>
+            <PostFeed refreshKey={refreshKey} profileId={profileId} scope="public" />
+          </div>
+        </section>
       </div>
     </main>
   );
