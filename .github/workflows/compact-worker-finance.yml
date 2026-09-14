@@ -1,0 +1,50 @@
+name: Compact Worker Finance Cards
+
+on:
+  push:
+    branches: [fix/worker-personal-finance-redesign]
+
+permissions:
+  contents: write
+
+jobs:
+  compact:
+    if: ${{ !contains(github.event.head_commit.message, 'compact personal finance cards') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compact finance summary cards
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          p = Path('src/features/worker/finance-premium.css')
+          s = p.read_text()
+
+          selector = r'main:has\(> section\[aria-label="Finance summary"\]\) > section\[aria-label="Finance summary"\] > section \{'
+          m = re.search(selector + r'(.*?)\n\}', s, re.S)
+          if not m:
+              raise SystemExit('finance card block not found')
+          body = m.group(1)
+          body = body.replace('min-height: 116px !important;', 'min-height: 92px !important;')
+          body = body.replace('padding: 15px !important;', 'padding: 12px !important;')
+          body = body.replace('border-radius: 22px !important;', 'border-radius: 18px !important;')
+          s = s[:m.start(1)] + body + s[m.end(1):]
+
+          s = s.replace('margin-top: 10px !important;\n  font-size: clamp(20px, 5.6vw, 31px) !important;', 'margin-top: 7px !important;\n  font-size: clamp(18px, 5vw, 27px) !important;')
+          s = s.replace('min-height: 108px !important;', 'min-height: 88px !important;')
+          s = s.replace('min-height: 102px !important;\n    padding: 12px !important;', 'min-height: 84px !important;\n    padding: 10px !important;')
+          s = s.replace('font-size: 19px !important;', 'font-size: 18px !important;')
+
+          p.write_text(s)
+          PY
+          git diff --check
+          git diff -- src/features/worker/finance-premium.css
+      - name: Commit compact personal finance cards
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/features/worker/finance-premium.css
+          git commit -m "feat(worker): compact personal finance cards"
+          git push
