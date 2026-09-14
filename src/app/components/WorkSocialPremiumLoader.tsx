@@ -16,15 +16,15 @@ export function WorkSocialPremiumLoader({
     <main className="ws-page-loader" role="status" aria-live="polite" aria-busy="true">
       <section className="ws-page-loader-card" aria-label={`${title}. ${message}`}>
         <div className="ws-page-loader-mark-wrap" aria-hidden="true">
-          <div className="ws-page-loader-orbit" />
+          <div className="ws-page-loader-orbit ws-page-loader-orbit-a" />
+          <div className="ws-page-loader-orbit ws-page-loader-orbit-b" />
+          <div className="ws-page-loader-orbit ws-page-loader-orbit-c" />
+          <div className="ws-page-loader-core-glow" />
           <div className="ws-page-loader-mark">WS</div>
         </div>
         <div className="ws-page-loader-eyebrow">WORK SOCIAL</div>
         <h1 className="ws-page-loader-title">{title}</h1>
         <p className="ws-page-loader-copy">{message}</p>
-        <div className="ws-page-loader-track" aria-hidden="true">
-          <span />
-        </div>
         <div className="ws-page-loader-status">
           <i />
           <span>{status}</span>
