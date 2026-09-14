@@ -1,0 +1,83 @@
+name: Apply global premium loaders
+on:
+  push:
+    branches:
+      - fix/worker-personal-finance-redesign
+permissions:
+  contents: write
+jobs:
+  apply:
+    if: "${{ !contains(github.event.head_commit.message, 'feat(ui): apply global premium loaders') }}"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Replace page-level loading states
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+
+          root = Path('src')
+          page_dirs = [root / 'app' / 'pages'] + list((root / 'features').glob('*/pages'))
+          files = [p for d in page_dirs if d.exists() for p in d.glob('*.tsx')]
+
+          phrases = re.compile(r'(Loading(?:\s+[^<\n}]*)?|Opening(?:\s+[^<\n}]*)?|Checking(?:\s+[^<\n}]*)?|Preparing(?:\s+[^<\n}]*)?|Fetching(?:\s+[^<\n}]*)?)', re.I)
+          touched = []
+
+          def page_title(path: Path) -> str:
+              name = path.stem
+              name = re.sub(r'Page$', '', name)
+              name = re.sub(r'([a-z0-9])([A-Z])', r'\1 \2', name)
+              return name.replace('Dashboard', 'Dashboard').strip()
+
+          def message_for(text: str) -> str:
+              clean = re.sub(r'\s+', ' ', text).strip().rstrip('…').rstrip('.')
+              if clean:
+                  return clean + '…'
+              return 'Preparing your workspace…'
+
+          for path in files:
+              original = path.read_text()
+              content = original
+
+              # Full page early-return loaders: if (loading) return <main>...</main>;
+              early = re.compile(r'if\s*\(\s*([A-Za-z_$][\w$]*)\s*\)\s*return\s+([\s\S]*?);(?=\s*if\s*\(|\s*return\s+\()', re.M)
+              def replace_early(match):
+                  branch = match.group(2)
+                  if not phrases.search(branch):
+                      return match.group(0)
+                  phrase_match = phrases.search(branch)
+                  return f"if ({match.group(1)}) return <WorkSocialPremiumLoader title=\"{page_title(path)}\" message=\"{message_for(phrase_match.group(1))}\" />;"
+              content = early.sub(replace_early, content)
+
+              # Simple loading-only elements inside page markup.
+              simple = re.compile(r'<(div|section|p|span|strong)\b([^>]*)>\s*([^<\n{}]*?(?:Loading|Opening|Checking|Preparing|Fetching)[^<\n{}]*)\s*</\1>', re.I)
+              def replace_simple(match):
+                  text = match.group(3).strip()
+                  return f'<WorkSocialPremiumLoader title="{page_title(path)}" message="{message_for(text)}" />'
+              content = simple.sub(replace_simple, content)
+
+              if content != original and 'WorkSocialPremiumLoader' in content:
+                  if "import { WorkSocialPremiumLoader } from" not in content:
+                      if '/app/pages/' in str(path):
+                          imp = "import { WorkSocialPremiumLoader } from '../components/WorkSocialPremiumLoader';\n"
+                      else:
+                          imp = "import { WorkSocialPremiumLoader } from '../../../app/components/WorkSocialPremiumLoader';\n"
+                      content = imp + content
+                  path.write_text(content)
+                  touched.append(str(path))
+
+          print('Premium loader files updated:')
+          for item in touched:
+              print(item)
+
+          if not touched:
+              raise SystemExit('No page-level loading states were transformed.')
+      - name: Commit and remove temporary workflow
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          rm -f .github/workflows/global-premium-loader.yml
+          git add -A
+          git commit -m "feat(ui): apply global premium loaders"
+          git push
