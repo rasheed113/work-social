@@ -1,480 +1,550 @@
-/* Work Social — Phase 3 Social Command Center.
-   Presentation-only convergence for the existing Social experience.
-   No data, routing, auth, API, Supabase, AI, or business behavior. */
+/* Work Social — P3.2.1 Social Command Center / Supercomputer Instrumentation Structure.
+   Presentation-only. Existing data, behavior, routes and persistence remain authoritative.
+   This file owns composition and information hierarchy; P3.1 post-surface correction remains separate. */
 
-/* ---------- Social personality ---------- */
-body:has(.home-page-title),
+body:has(.social-command-screen),
 body:has(input[placeholder="Search people..."]),
 body:has(.premium-profile-page),
 body:has(.work-social-page-content > main > article) {
-  --ws-social-surface: linear-gradient(145deg, rgba(20, 50, 88, .76), rgba(7, 24, 49, .86));
-  --ws-social-surface-strong: linear-gradient(145deg, rgba(24, 58, 101, .86), rgba(8, 27, 55, .92));
-  --ws-social-surface-soft: rgba(10, 31, 58, .52);
-  --ws-social-line: rgba(104, 205, 255, .20);
-  --ws-social-line-strong: rgba(75, 204, 255, .38);
-  --ws-social-text: #eaf6ff;
-  --ws-social-soft: #a9c4df;
-  --ws-social-muted: #7894b1;
-  --ws-social-blue: #3b82f6;
-  --ws-social-cyan: #22d3ee;
-  --ws-social-violet: #7c83ff;
-  color: var(--ws-social-text);
+  --ws-command-bg: #030b18;
+  --ws-command-surface: rgba(7, 24, 48, .82);
+  --ws-command-surface-strong: rgba(10, 31, 59, .92);
+  --ws-command-surface-soft: rgba(8, 27, 53, .64);
+  --ws-command-line: rgba(103, 208, 255, .22);
+  --ws-command-line-strong: rgba(83, 213, 255, .46);
+  --ws-command-ice: #e8f7ff;
+  --ws-command-primary: #cfe9fb;
+  --ws-command-meta: #8eacc7;
+  --ws-command-muted: #6886a5;
+  --ws-command-cyan: #5ee7ff;
+  --ws-command-blue: #60a5fa;
+  --ws-command-violet: #8b8cff;
+  --ws-command-success: #69e3d0;
+  --ws-command-warning: #f4bd63;
+  --ws-command-danger: #ff8798;
+  color: var(--ws-command-primary);
+  font-variant-numeric: tabular-nums;
 }
 
-/* ---------- Social Home / feed ---------- */
-body:has(.home-page-title) .work-social-page-content {
+/* One continuous operating environment. */
+body:has(.social-command-screen) .work-social-page-content,
+body:has(input[placeholder="Search people..."]) .work-social-page-content,
+body:has(.premium-profile-page) .work-social-page-content {
   background: transparent !important;
 }
 
-body:has(.home-page-title) .work-social-page-content > main {
-  color: var(--ws-social-text) !important;
-  background: transparent !important;
+body:has(.social-command-screen) .work-social-page-content::before,
+body:has(input[placeholder="Search people..."]) .work-social-page-content::before,
+body:has(.premium-profile-page) .work-social-page-content::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  background:
+    radial-gradient(circle at 12% 12%, rgba(47, 131, 255, .11), transparent 28%),
+    radial-gradient(circle at 84% 22%, rgba(34, 211, 238, .07), transparent 25%),
+    radial-gradient(circle at 58% 88%, rgba(96, 72, 220, .08), transparent 32%);
 }
 
-body:has(.home-page-title) .home-page-title {
-  margin: 0 !important;
-  color: #eafcff !important;
-  font-size: clamp(28px, 5vw, 38px) !important;
-  letter-spacing: -.04em !important;
-  text-shadow: 0 0 24px rgba(34, 211, 238, .16) !important;
+/* ---------- Command screen: Home ---------- */
+.social-command-screen {
+  color: var(--ws-command-primary) !important;
 }
 
-body:has(.home-page-title) .home-page-title::after {
-  content: 'SOCIAL COMMAND CENTER';
-  display: block;
-  margin-top: 7px;
-  color: rgba(169, 196, 223, .78);
-  font-size: 9px;
-  line-height: 1;
-  font-weight: 800;
-  letter-spacing: .18em;
+.social-command-screen__frame {
+  position: relative;
+}
+
+.social-command-screen__header {
+  position: relative;
+  margin: 0 0 14px;
+  padding: 16px 16px 15px;
+  border: 1px solid var(--ws-command-line);
+  border-radius: 20px;
+  background: linear-gradient(145deg, rgba(10, 32, 62, .93), rgba(4, 17, 36, .96));
+  box-shadow: 0 20px 48px rgba(0, 6, 20, .34), inset 0 1px 0 rgba(190, 239, 255, .07);
+  backdrop-filter: blur(18px) saturate(125%);
+  -webkit-backdrop-filter: blur(18px) saturate(125%);
+}
+
+.social-command-screen__eyebrow,
+.social-command-screen__channel-label {
+  color: var(--ws-command-cyan);
+  font-size: 8px;
+  line-height: 1.2;
+  font-weight: 900;
+  letter-spacing: .19em;
   text-transform: uppercase;
 }
 
-body:has(.home-page-title) .home-post-feed > section > div:first-child {
-  border: 1px solid var(--ws-social-line) !important;
-  background: var(--ws-social-surface) !important;
-  color: var(--ws-social-text) !important;
-  box-shadow: 0 16px 42px rgba(0, 8, 24, .28), inset 0 1px 0 rgba(183, 239, 255, .08) !important;
-  backdrop-filter: blur(18px) saturate(125%);
-  -webkit-backdrop-filter: blur(18px) saturate(125%);
+.social-command-screen__identity {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 8px;
 }
 
-body:has(.home-page-title) .home-post-feed > section > div:first-child h2 {
-  color: var(--ws-social-text) !important;
+.social-command-screen__descriptor {
+  margin: 7px 0 0;
+  color: var(--ws-command-meta);
+  font-size: 11px;
+  line-height: 1.45;
 }
 
-body:has(.home-page-title) .home-post-feed > section > div:first-child span:first-child {
-  background: linear-gradient(180deg, var(--ws-social-cyan), var(--ws-social-blue), var(--ws-social-violet)) !important;
-  box-shadow: 0 0 14px rgba(34, 211, 238, .24) !important;
+.social-command-screen .home-page-title {
+  color: var(--ws-command-ice) !important;
+  background: none !important;
+  -webkit-text-fill-color: currentColor !important;
+  font-size: clamp(28px, 5vw, 40px) !important;
+  line-height: .98 !important;
+  letter-spacing: -.045em !important;
+  text-shadow: 0 0 28px rgba(94, 231, 255, .09) !important;
 }
 
-/* Create-post composer becomes the Social Transmission Console. */
-body:has(.home-page-title) .work-social-page-content main > div > section:first-of-type {
-  border: 1px solid var(--ws-social-line) !important;
-  background: var(--ws-social-surface-strong) !important;
-  box-shadow: 0 18px 46px rgba(0, 8, 24, .30), inset 0 1px 0 rgba(183, 239, 255, .09) !important;
-  backdrop-filter: blur(18px) saturate(125%);
-  -webkit-backdrop-filter: blur(18px) saturate(125%);
+.social-command-screen__channel,
+.social-command-screen__data-channel {
+  position: relative;
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid var(--ws-command-line);
+  border-radius: 18px;
+  background: rgba(4, 18, 38, .62);
+  box-shadow: 0 14px 34px rgba(0, 7, 22, .24), inset 0 1px 0 rgba(190, 239, 255, .045);
 }
 
-body:has(.home-page-title) .work-social-page-content main > div > section:first-of-type h2,
-body:has(.home-page-title) .work-social-page-content main > div > section:first-of-type small {
-  color: var(--ws-social-text) !important;
+.social-command-screen__channel > .social-command-screen__channel-label,
+.social-command-screen__data-channel > .social-command-screen__channel-label {
+  margin: 0 2px 9px;
+}
+
+/* Create-post console: real composer remains unchanged. */
+.social-command-screen__channel > section:first-of-type,
+body:has(.social-command-screen) .work-social-page-content main > div > section:first-of-type {
+  border: 1px solid var(--ws-command-line) !important;
+  border-radius: 16px !important;
+  background: linear-gradient(145deg, rgba(11, 35, 67, .92), rgba(5, 20, 42, .94)) !important;
+  box-shadow: inset 0 1px 0 rgba(190, 239, 255, .055), 0 12px 28px rgba(0, 7, 22, .20) !important;
+}
+
+.social-command-screen textarea,
+.social-command-screen input {
+  color: var(--ws-command-primary) !important;
+  background: rgba(2, 13, 29, .74) !important;
+  border-color: var(--ws-command-line) !important;
+}
+
+.social-command-screen textarea::placeholder,
+.social-command-screen input::placeholder {
+  color: rgba(142, 172, 199, .64) !important;
+}
+
+/* ---------- Post signal composition ---------- */
+body:has(.home-page-title) .home-post-feed {
+  display: block;
+}
+
+body:has(.home-page-title) .home-post-feed > section {
+  display: block;
+}
+
+body:has(.home-page-title) .home-post-feed > section > h2 {
+  margin: 0 0 9px !important;
+  padding: 9px 11px !important;
+  min-height: 34px !important;
+  border: 1px solid var(--ws-command-line) !important;
+  border-radius: 10px !important;
+  background: rgba(5, 21, 43, .72) !important;
+  color: var(--ws-command-ice) !important;
+  box-shadow: inset 0 1px 0 rgba(190, 239, 255, .04) !important;
+  font-size: 10px !important;
+  letter-spacing: .13em !important;
+  text-transform: uppercase;
   text-shadow: none !important;
 }
 
-body:has(.home-page-title) .work-social-page-content main > div > section:first-of-type small {
-  color: var(--ws-social-soft) !important;
+body:has(.home-page-title) .home-post-feed > section > h2::before {
+  width: 4px !important;
+  height: 17px !important;
+  flex-basis: 4px !important;
+  background: var(--ws-command-cyan) !important;
+  box-shadow: 0 0 12px rgba(94, 231, 255, .22) !important;
 }
 
-body:has(.home-page-title) .work-social-page-content main > div > section:first-of-type textarea {
-  color: var(--ws-social-text) !important;
-  background: rgba(5, 20, 42, .78) !important;
-  border-color: var(--ws-social-line) !important;
-  box-shadow: inset 0 1px 0 rgba(183, 239, 255, .05), 0 8px 22px rgba(0, 8, 24, .16) !important;
-}
-
-body:has(.home-page-title) .work-social-page-content main > div > section:first-of-type button {
-  color: var(--ws-social-text) !important;
-}
-
-body:has(.home-page-title) .work-social-page-content main > div > section:first-of-type button:last-child {
-  color: #effcff !important;
-  border-color: rgba(127, 236, 255, .34) !important;
-  background: linear-gradient(135deg, rgba(34, 211, 238, .92), rgba(59, 130, 246, .94) 56%, rgba(105, 116, 255, .92)) !important;
-  box-shadow: 0 9px 22px rgba(37, 99, 235, .25), inset 0 1px 0 rgba(255, 255, 255, .18) !important;
-}
-
-/* Posts are compact operational content surfaces. */
+/* The article becomes a command screen with explicit header/content/action zones.
+   Existing children are preserved; CSS changes their composition only. */
 body:has(.home-page-title) .home-post-feed article {
-  border: 1px solid var(--ws-social-line) !important;
-  background: var(--ws-social-surface) !important;
-  color: var(--ws-social-text) !important;
-  box-shadow: 0 16px 40px rgba(0, 8, 24, .27), inset 0 1px 0 rgba(183, 239, 255, .07) !important;
-  backdrop-filter: blur(17px) saturate(120%);
-  -webkit-backdrop-filter: blur(17px) saturate(120%);
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  grid-template-rows: auto auto auto auto auto !important;
+  gap: 0 !important;
+  padding: 0 !important;
+  margin-bottom: 12px !important;
+  border-radius: 18px !important;
+  overflow: visible !important;
 }
 
 body:has(.home-page-title) .home-post-feed article > header {
-  border-bottom-color: rgba(104, 205, 255, .13) !important;
+  grid-row: 1;
+  min-width: 0;
+  padding: 12px 13px 10px !important;
+  border-bottom: 1px solid var(--ws-command-line) !important;
+  background: rgba(4, 17, 35, .30);
 }
 
 body:has(.home-page-title) .home-post-feed article > header > div:first-child {
-  background: linear-gradient(145deg, rgba(183, 239, 255, .12), rgba(34, 211, 238, .035)) !important;
-  box-shadow: 0 0 0 1px rgba(104, 205, 255, .10), 0 6px 16px rgba(0, 8, 24, .18) !important;
+  border-radius: 10px !important;
+  padding: 2px !important;
 }
 
-body:has(.home-page-title) .home-post-feed article > header > div:first-child > div {
-  background: rgba(10, 31, 58, .84) !important;
-  color: var(--ws-social-soft) !important;
+body:has(.home-page-title) .home-post-feed article > header strong {
+  color: var(--ws-command-ice) !important;
+  font-size: 13px !important;
+  letter-spacing: -.01em;
 }
 
-body:has(.home-page-title) .home-post-feed article strong,
-body:has(.home-page-title) .home-post-feed article p,
-body:has(.home-page-title) .home-post-feed article small {
-  color: var(--ws-social-text) !important;
-}
-
-body:has(.home-page-title) .home-post-feed article small {
-  color: var(--ws-social-muted) !important;
+body:has(.home-page-title) .home-post-feed article > header small {
+  color: var(--ws-command-meta) !important;
+  font-size: 9px !important;
+  letter-spacing: .02em;
 }
 
 body:has(.home-page-title) .home-post-feed article > header > span {
-  color: var(--ws-social-soft) !important;
-  background: rgba(34, 211, 238, .07) !important;
-  border-color: var(--ws-social-line) !important;
+  color: var(--ws-command-cyan) !important;
+  background: rgba(94, 231, 255, .055) !important;
+  border-color: var(--ws-command-line) !important;
+  border-radius: 6px !important;
+  font-size: 7px !important;
+  letter-spacing: .06em;
+  text-transform: uppercase;
 }
 
-body:has(.home-page-title) .home-post-feed article footer {
-  border-top-color: rgba(104, 205, 255, .13) !important;
+body:has(.home-page-title) .home-post-feed article > header button {
+  border-radius: 7px !important;
 }
 
-/* Post / comment action controls converge on Phase 2 material. */
-body:has(.home-page-title) .home-post-feed article button {
-  color: var(--ws-social-text) !important;
-  border-color: var(--ws-social-line) !important;
-  background: linear-gradient(145deg, rgba(20, 49, 88, .72), rgba(7, 24, 48, .78)) !important;
-  box-shadow: inset 0 1px 0 rgba(183, 239, 255, .06), 0 7px 18px rgba(0, 8, 24, .14) !important;
+/* Human content is deliberately the brightest readable text channel. */
+body:has(.home-page-title) .home-post-feed article > p {
+  grid-row: 2;
+  margin: 0 !important;
+  padding: 15px 15px 13px !important;
+  color: var(--ws-command-ice) !important;
+  font-size: 15px !important;
+  line-height: 1.65 !important;
+  letter-spacing: 0 !important;
+  font-weight: 500 !important;
 }
 
-body:has(.home-page-title) .home-post-feed article button:hover:not(:disabled) {
-  border-color: var(--ws-social-line-strong) !important;
-  background: linear-gradient(145deg, rgba(26, 61, 105, .82), rgba(9, 30, 59, .84)) !important;
-  box-shadow: 0 0 22px rgba(34, 211, 238, .08), inset 0 1px 0 rgba(183, 239, 255, .09) !important;
+/* Attachments and location are real post data channels. */
+body:has(.home-page-title) .home-post-feed article > div:has(img, video) {
+  grid-row: 3;
+  margin: 0 !important;
+  padding: 0 13px 12px !important;
 }
 
-body:has(.home-page-title) .home-post-feed article input,
-body:has(.home-page-title) .home-post-feed article textarea {
-  color: var(--ws-social-text) !important;
-  background: rgba(5, 20, 42, .74) !important;
-  border-color: var(--ws-social-line) !important;
+body:has(.home-page-title) .home-post-feed article > div:has(> div[style*="inline-flex"]) {
+  grid-row: 4;
+  margin: 0 13px 11px !important;
 }
 
-body:has(.home-page-title) .home-post-feed article input::placeholder,
-body:has(.home-page-title) .work-social-page-content textarea::placeholder {
-  color: rgba(169, 196, 223, .62) !important;
+body:has(.home-page-title) .home-post-feed article > footer {
+  grid-row: 5;
+  margin: 0 !important;
+  padding: 10px 13px 13px !important;
+  border-top: 1px solid var(--ws-command-line) !important;
+  background: rgba(3, 15, 31, .40) !important;
 }
 
-/* Comment modules: darker secondary data layer, never white. */
-body:has(.home-page-title) .home-post-feed article footer > div:last-child,
-body:has(.home-page-title) .home-post-feed article footer > div:nth-last-child(2) {
-  color: var(--ws-social-text) !important;
+/* Footer is the signal/action bus. */
+body:has(.home-page-title) .home-post-feed article > footer > div:first-child {
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(103, 208, 255, .12);
 }
 
-body:has(.home-page-title) .home-post-feed article footer div[style*="linear-gradient(145deg,rgba(246,248,251"],
-body:has(.home-page-title) .home-post-feed article footer div[style*="linear-gradient(145deg,rgba(247,249,252"],
-body:has(.home-page-title) .home-post-feed article footer div[style*="linear-gradient(145deg,#f5f7fa"] {
-  background: rgba(7, 24, 48, .62) !important;
-  border-color: var(--ws-social-line) !important;
-  color: var(--ws-social-text) !important;
-  box-shadow: inset 0 1px 0 rgba(183, 239, 255, .04) !important;
+body:has(.home-page-title) .home-post-feed article > footer button {
+  min-height: 31px;
+  border-radius: 8px !important;
+  background: rgba(10, 32, 60, .74) !important;
+  border-color: var(--ws-command-line) !important;
+  box-shadow: inset 0 1px 0 rgba(190, 239, 255, .04) !important;
+  color: var(--ws-command-primary) !important;
+  font-size: 10px;
+  font-weight: 800;
 }
 
+body:has(.home-page-title) .home-post-feed article > footer button:hover:not(:disabled) {
+  border-color: var(--ws-command-line-strong) !important;
+  background: rgba(14, 45, 82, .86) !important;
+}
+
+/* Latest comment and full comment channel. */
+body:has(.home-page-title) .home-post-feed article > footer > div:nth-child(2),
+body:has(.home-page-title) .home-post-feed article > footer > div:nth-child(3) {
+  color: var(--ws-command-primary) !important;
+}
+
+body:has(.home-page-title) .home-post-feed article footer div[style*="rgba(246,248,251"],
+body:has(.home-page-title) .home-post-feed article footer div[style*="rgba(247,249,252"],
+body:has(.home-page-title) .home-post-feed article footer div[style*="#f5f7fa"] {
+  background: rgba(6, 23, 46, .72) !important;
+  border-color: var(--ws-command-line) !important;
+  color: var(--ws-command-primary) !important;
+}
+
+/* Comments are incoming data channels; nested human text stays readable. */
+body:has(.home-page-title) .home-post-feed article footer > div > div {
+  color: var(--ws-command-primary);
+}
+
+body:has(.home-page-title) .home-post-feed article footer strong {
+  color: var(--ws-command-ice) !important;
+}
+
+body:has(.home-page-title) .home-post-feed article footer small {
+  color: var(--ws-command-meta) !important;
+}
+
+body:has(.home-page-title) .home-post-feed article footer input {
+  min-height: 32px;
+  border-radius: 8px !important;
+  color: var(--ws-command-primary) !important;
+  background: rgba(2, 13, 29, .82) !important;
+}
+
+/* Reaction picker/menu/dialog remain command surfaces, never light surfaces. */
+body:has(.home-page-title) .home-post-feed article [role="group"],
 body:has(.home-page-title) .home-post-feed article [role="menu"],
-body:has(.home-page-title) .home-post-feed article [role="group"] {
-  background: linear-gradient(145deg, rgba(15, 39, 73, .97), rgba(7, 22, 45, .98)) !important;
-  border-color: var(--ws-social-line-strong) !important;
-  color: var(--ws-social-text) !important;
-  box-shadow: 0 24px 64px rgba(0, 5, 20, .42), 0 0 34px rgba(34, 211, 238, .06), inset 0 1px 0 rgba(188, 241, 255, .09) !important;
-  backdrop-filter: blur(22px) saturate(130%);
-  -webkit-backdrop-filter: blur(22px) saturate(130%);
+body:has(.home-page-title) .home-post-feed article [role="dialog"],
+body:has(.home-page-title) .home-post-feed article [role="alertdialog"] {
+  color: var(--ws-command-primary) !important;
+  background: linear-gradient(145deg, rgba(10, 32, 61, .98), rgba(3, 16, 34, .99)) !important;
+  border-color: var(--ws-command-line-strong) !important;
+  box-shadow: 0 24px 64px rgba(0, 4, 17, .50), inset 0 1px 0 rgba(190, 239, 255, .08) !important;
+  backdrop-filter: blur(20px) saturate(130%);
+  -webkit-backdrop-filter: blur(20px) saturate(130%);
 }
 
 body:has(.home-page-title) .home-post-feed article [role="menu"] button,
 body:has(.home-page-title) .home-post-feed article [role="group"] button {
-  color: var(--ws-social-text) !important;
-  background: rgba(20, 52, 92, .56) !important;
+  background: rgba(14, 43, 78, .74) !important;
+  color: var(--ws-command-primary) !important;
 }
 
-/* Any post-specific confirmation dialog remains a holographic command panel. */
-body:has(.home-page-title) .work-social-page-content [role="dialog"],
-body:has(.home-page-title) .work-social-page-content [role="alertdialog"] {
-  color: var(--ws-social-text) !important;
-  background: linear-gradient(145deg, rgba(15, 39, 73, .97), rgba(7, 22, 45, .98)) !important;
-  border-color: var(--ws-social-line-strong) !important;
-  box-shadow: 0 28px 72px rgba(0, 5, 20, .50), 0 0 38px rgba(34, 211, 238, .07), inset 0 1px 0 rgba(188, 241, 255, .09) !important;
-}
-
-/* ---------- Friends: Social Connection Command Panel ---------- */
+/* ---------- Friends / Network Control ---------- */
 body:has(input[placeholder="Search people..."]) .work-social-page-content > main {
-  color: var(--ws-social-text) !important;
-  background: transparent !important;
+  width: 100%;
+  color: var(--ws-command-primary) !important;
+}
+
+body:has(input[placeholder="Search people..."]) .work-social-page-content > main > div {
+  max-width: 920px !important;
+  margin-inline: auto !important;
 }
 
 body:has(input[placeholder="Search people..."]) .work-social-page-content > main > div > section {
-  border-color: var(--ws-social-line) !important;
-  background: var(--ws-social-surface) !important;
-  color: var(--ws-social-text) !important;
-  box-shadow: 0 16px 42px rgba(0, 8, 24, .27), inset 0 1px 0 rgba(183, 239, 255, .08) !important;
-  backdrop-filter: blur(17px) saturate(120%);
-  -webkit-backdrop-filter: blur(17px) saturate(120%);
+  border: 1px solid var(--ws-command-line) !important;
+  border-radius: 16px !important;
+  background: rgba(6, 23, 46, .72) !important;
+  color: var(--ws-command-primary) !important;
+  box-shadow: 0 14px 34px rgba(0, 7, 22, .24), inset 0 1px 0 rgba(190, 239, 255, .045) !important;
+  backdrop-filter: blur(16px) saturate(120%);
+  -webkit-backdrop-filter: blur(16px) saturate(120%);
 }
 
 body:has(input[placeholder="Search people..."]) .work-social-page-content > main > div > section:first-child {
-  background: linear-gradient(135deg, rgba(17, 44, 80, .88), rgba(9, 28, 57, .88) 62%, rgba(35, 39, 91, .84)) !important;
+  border-radius: 20px !important;
+  background: linear-gradient(145deg, rgba(10, 33, 63, .94), rgba(4, 17, 36, .96)) !important;
 }
 
-body:has(input[placeholder="Search people..."]) .work-social-page-content > main > div > section h1,
-body:has(input[placeholder="Search people..."]) .work-social-page-content > main > div > section h2,
-body:has(input[placeholder="Search people..."]) .work-social-page-content > main > div > section strong,
-body:has(input[placeholder="Search people..."]) .work-social-page-content > main > div > section span {
-  color: var(--ws-social-text) !important;
+body:has(input[placeholder="Search people..."]) .work-social-page-content > main > div > section:first-child > div {
+  color: var(--ws-command-cyan) !important;
 }
 
-body:has(input[placeholder="Search people..."]) .work-social-page-content > main > div > section p,
-body:has(input[placeholder="Search people..."]) .work-social-page-content > main > div > section small {
-  color: var(--ws-social-soft) !important;
+body:has(input[placeholder="Search people..."]) .work-social-page-content > main > div > section:first-child h1 {
+  color: var(--ws-command-ice) !important;
+  font-size: clamp(28px, 5vw, 38px) !important;
+  letter-spacing: -.045em !important;
 }
 
-body:has(input[placeholder="Search people..."]) .work-social-page-content > main > div > section input {
-  color: var(--ws-social-text) !important;
-  background: rgba(5, 20, 42, .70) !important;
-  border-color: var(--ws-social-line) !important;
+body:has(input[placeholder="Search people..."]) .work-social-page-content > main > div > section:first-child p {
+  color: var(--ws-command-meta) !important;
 }
 
-body:has(input[placeholder="Search people..."]) .work-social-page-content > main > div > section article {
-  background: rgba(8, 27, 54, .62) !important;
-  border-color: var(--ws-social-line) !important;
-  color: var(--ws-social-text) !important;
-  box-shadow: 0 9px 24px rgba(0, 8, 24, .20), inset 0 1px 0 rgba(183, 239, 255, .045) !important;
+body:has(input[placeholder="Search people..."]) input[placeholder="Search people..."] {
+  color: var(--ws-command-ice) !important;
+  background: rgba(2, 13, 29, .72) !important;
+  border-color: var(--ws-command-line) !important;
 }
 
-body:has(input[placeholder="Search people..."]) .work-social-page-content > main > div > section article > div:first-child > button {
-  background: transparent !important;
-  border-color: transparent !important;
-  box-shadow: none !important;
+body:has(input[placeholder="Search people..."]) .work-social-page-content article {
+  border: 1px solid rgba(103, 208, 255, .15) !important;
+  border-radius: 12px !important;
+  background: rgba(6, 23, 46, .54) !important;
+  color: var(--ws-command-primary) !important;
+  box-shadow: inset 0 1px 0 rgba(190, 239, 255, .035) !important;
 }
 
-body:has(input[placeholder="Search people..."]) .work-social-page-content > main > div > section article img {
-  border-color: rgba(104, 205, 255, .28) !important;
-  box-shadow: 0 0 0 4px rgba(34, 211, 238, .045), 0 8px 20px rgba(0, 8, 24, .22) !important;
+body:has(input[placeholder="Search people..."]) .work-social-page-content article strong {
+  color: var(--ws-command-ice) !important;
 }
 
-body:has(input[placeholder="Search people..."]) .work-social-page-content > main > div > section article button {
-  color: var(--ws-social-text) !important;
-  border-color: var(--ws-social-line) !important;
-  background: rgba(20, 49, 88, .70) !important;
+body:has(input[placeholder="Search people..."]) .work-social-page-content article span {
+  color: var(--ws-command-meta) !important;
 }
 
-body:has(input[placeholder="Search people..."]) .work-social-page-content > main > div > section article button:hover:not(:disabled) {
-  border-color: var(--ws-social-line-strong) !important;
-  box-shadow: 0 0 20px rgba(34, 211, 238, .08) !important;
+body:has(input[placeholder="Search people..."]) .work-social-page-content button {
+  border-radius: 8px !important;
 }
 
-/* Error and empty states stay inside the environment. */
-body:has(input[placeholder="Search people..."]) .work-social-page-content > main [role="alert"] {
-  color: #ffe7eb !important;
-  background: rgba(91, 24, 43, .72) !important;
-  border-color: rgba(251, 113, 133, .30) !important;
+/* ---------- Activity Monitor ---------- */
+body:has(.work-social-page-content > main > article) .work-social-page-content > main {
+  width: min(920px, 100%);
+  margin-inline: auto;
+  color: var(--ws-command-primary) !important;
+  padding: 18px 14px 112px;
+  box-sizing: border-box;
 }
 
-/* ---------- Profile: Social Identity Console ---------- */
-body:has(.premium-profile-page) .work-social-page-content > main {
-  color: var(--ws-social-text) !important;
-  background: transparent !important;
+body:has(.work-social-page-content > main > article) .work-social-page-content > main > div:first-of-type {
+  border-color: var(--ws-command-line) !important;
+}
+
+body:has(.work-social-page-content > main > article) .work-social-page-content > main h1 {
+  color: var(--ws-command-ice) !important;
+  background: none !important;
+  -webkit-text-fill-color: currentColor !important;
+  font-size: clamp(27px, 5vw, 38px) !important;
+  letter-spacing: -.045em !important;
+}
+
+body:has(.work-social-page-content > main > article) .work-social-page-content > main h1 + div {
+  border: 1px solid var(--ws-command-line) !important;
+  background: rgba(94, 231, 255, .055) !important;
+  color: var(--ws-command-cyan) !important;
+  border-radius: 7px !important;
+  font-size: 9px !important;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+body:has(.work-social-page-content > main > article) .work-social-page-content > main article {
+  border: 1px solid rgba(103, 208, 255, .16) !important;
+  border-radius: 13px !important;
+  background: rgba(6, 23, 46, .62) !important;
+  color: var(--ws-command-primary) !important;
+  box-shadow: 0 9px 24px rgba(0, 7, 22, .20), inset 0 1px 0 rgba(190, 239, 255, .035) !important;
+}
+
+body:has(.work-social-page-content > main > article) .work-social-page-content > main article strong {
+  color: var(--ws-command-ice) !important;
+}
+
+body:has(.work-social-page-content > main > article) .work-social-page-content > main article small,
+body:has(.work-social-page-content > main > article) .work-social-page-content > main article p {
+  color: var(--ws-command-meta) !important;
+}
+
+/* ---------- Identity System / Profile ---------- */
+body:has(.premium-profile-page) .premium-profile-page {
+  color: var(--ws-command-primary) !important;
+  padding-bottom: 112px;
 }
 
 body:has(.premium-profile-page) .premium-profile-page > h1 {
-  color: #eafcff !important;
-  background: linear-gradient(100deg, #e7fbff 0%, #8bdcff 44%, #b8baff 72%, #67e5f4 100%) !important;
-  -webkit-background-clip: text !important;
-  background-clip: text !important;
-  text-shadow: 0 0 22px rgba(34, 211, 238, .13) !important;
+  color: var(--ws-command-ice) !important;
+  background: none !important;
+  -webkit-text-fill-color: currentColor !important;
+  font-size: clamp(28px, 5vw, 40px) !important;
+  letter-spacing: -.045em !important;
 }
 
 body:has(.premium-profile-page) .premium-profile-page .foundation-card {
-  border-color: var(--ws-social-line) !important;
-  background: var(--ws-social-surface) !important;
-  color: var(--ws-social-text) !important;
-  box-shadow: 0 17px 44px rgba(0, 8, 24, .28), inset 0 1px 0 rgba(183, 239, 255, .08) !important;
+  border-color: var(--ws-command-line) !important;
+  border-radius: 18px !important;
+  background: linear-gradient(145deg, rgba(9, 31, 60, .90), rgba(4, 17, 36, .96)) !important;
+  color: var(--ws-command-primary) !important;
+  box-shadow: 0 16px 38px rgba(0, 7, 22, .27), inset 0 1px 0 rgba(190, 239, 255, .055) !important;
+}
+
+body:has(.premium-profile-page) .premium-profile-page h2 {
+  color: var(--ws-command-ice) !important;
+}
+
+body:has(.premium-profile-page) .premium-profile-page p,
+body:has(.premium-profile-page) .premium-profile-page small,
+body:has(.premium-profile-page) .premium-profile-page span {
+  color: var(--ws-command-meta) !important;
+}
+
+body:has(.premium-profile-page) .premium-profile-page button {
+  min-height: 34px !important;
+  border: 1px solid var(--ws-command-line) !important;
+  border-radius: 8px !important;
+  background: rgba(10, 32, 60, .76) !important;
+  color: var(--ws-command-primary) !important;
+  box-shadow: inset 0 1px 0 rgba(190, 239, 255, .045) !important;
+}
+
+body:has(.premium-profile-page) .premium-profile-page button:hover:not(:disabled) {
+  border-color: var(--ws-command-line-strong) !important;
+  background: rgba(14, 45, 82, .88) !important;
+}
+
+/* ---------- Navigation = command routing ---------- */
+.work-social-router-shell > nav[aria-label="Main navigation"] {
+  background: linear-gradient(145deg, rgba(4, 15, 31, .98), rgba(8, 25, 49, .97)) !important;
+  border: 1px solid var(--ws-command-line) !important;
+  border-bottom: 0 !important;
+  border-radius: 16px 16px 0 0 !important;
+  box-shadow: 0 -12px 32px rgba(0, 6, 20, .34), inset 0 1px 0 rgba(190, 239, 255, .05) !important;
   backdrop-filter: blur(18px) saturate(125%);
   -webkit-backdrop-filter: blur(18px) saturate(125%);
 }
 
-body:has(.premium-profile-page) .premium-profile-page .foundation-card h2,
-body:has(.premium-profile-page) .premium-profile-page .foundation-card p {
-  color: var(--ws-social-text) !important;
-}
-
-body:has(.premium-profile-page) .premium-profile-page .foundation-card p {
-  color: var(--ws-social-soft) !important;
-}
-
-body:has(.premium-profile-page) .premium-profile-page button {
-  color: var(--ws-social-text) !important;
-  border-color: var(--ws-social-line) !important;
-  background: rgba(20, 49, 88, .70) !important;
-  box-shadow: inset 0 1px 0 rgba(183, 239, 255, .06), 0 7px 18px rgba(0, 8, 24, .16) !important;
-}
-
-body:has(.premium-profile-page) .premium-profile-page button:hover:not(:disabled) {
-  border-color: var(--ws-social-line-strong) !important;
-  background: rgba(26, 61, 105, .80) !important;
-  box-shadow: 0 0 22px rgba(34, 211, 238, .08), inset 0 1px 0 rgba(183, 239, 255, .08) !important;
-}
-
-body:has(.premium-profile-page) .premium-profile-page > section > section.foundation-card[style*="text-align:center"] > img {
-  border-color: rgba(183, 239, 255, .26) !important;
-  outline-color: rgba(34, 211, 238, .20) !important;
-  box-shadow: 0 0 0 7px rgba(34, 211, 238, .045), 0 12px 30px rgba(0, 8, 24, .28) !important;
-}
-
-body:has(.premium-profile-page) .premium-profile-page > section.foundation-card[aria-label="Account"] {
-  background: var(--ws-social-surface) !important;
-}
-
-body:has(.premium-profile-page) .premium-profile-page > section.foundation-card[aria-label="Account"] button {
-  color: #ffe7eb !important;
-  background: linear-gradient(145deg, rgba(127, 29, 52, .50), rgba(62, 17, 31, .60)) !important;
-  border-color: rgba(251, 113, 133, .30) !important;
-}
-
-/* ---------- Activity / Notifications: Social Event Stream ---------- */
-body:has(.work-social-page-content > main > article) .work-social-page-content > main {
-  color: var(--ws-social-text) !important;
+.work-social-router-shell > nav[aria-label="Main navigation"] button {
+  border-radius: 9px !important;
+  color: var(--ws-command-muted) !important;
   background: transparent !important;
+  font-variant-numeric: tabular-nums;
 }
 
-body:has(.work-social-page-content > main > article) .work-social-page-content > main > div:first-of-type {
-  border-bottom-color: var(--ws-social-line) !important;
+.work-social-router-shell > nav[aria-label="Main navigation"] button[aria-current="page"] {
+  border-color: var(--ws-command-line-strong) !important;
+  background: rgba(50, 145, 205, .15) !important;
+  color: var(--ws-command-ice) !important;
+  box-shadow: inset 0 1px 0 rgba(190, 239, 255, .06), 0 0 18px rgba(94, 231, 255, .055) !important;
 }
 
-body:has(.work-social-page-content > main > article) .work-social-page-content > main > div:first-of-type h1 {
-  color: #eafcff !important;
-  background: linear-gradient(100deg, #e7fbff, #8bdcff 45%, #b8baff 74%, #67e5f4) !important;
-  -webkit-background-clip: text !important;
-  background-clip: text !important;
+.work-social-router-shell > nav[aria-label="Main navigation"] button span:last-of-type {
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  font-size: 8px !important;
 }
 
-body:has(.work-social-page-content > main > article) .work-social-page-content > main > div:first-of-type button {
-  color: var(--ws-social-text) !important;
-  background: rgba(20, 49, 88, .70) !important;
-  border-color: var(--ws-social-line) !important;
+/* ---------- Keyboard/focus/reduced motion ---------- */
+body:has(.social-command-screen) button:focus-visible,
+body:has(input[placeholder="Search people..."]) button:focus-visible,
+body:has(.premium-profile-page) button:focus-visible,
+body:has(.work-social-page-content > main > article) button:focus-visible,
+body:has(.social-command-screen) input:focus-visible,
+body:has(.social-command-screen) textarea:focus-visible,
+body:has(input[placeholder="Search people..."]) input:focus-visible {
+  outline: 2px solid rgba(94, 231, 255, .88) !important;
+  outline-offset: 2px !important;
 }
 
-body:has(.work-social-page-content > main > article) .work-social-page-content > main > article {
-  border-color: var(--ws-social-line) !important;
-  background: var(--ws-social-surface) !important;
-  color: var(--ws-social-text) !important;
-  box-shadow: 0 13px 34px rgba(0, 8, 24, .24), inset 0 1px 0 rgba(183, 239, 255, .07) !important;
-  backdrop-filter: blur(17px) saturate(120%);
-  -webkit-backdrop-filter: blur(17px) saturate(120%);
-}
-
-body:has(.work-social-page-content > main > article) .work-social-page-content > main > article strong,
-body:has(.work-social-page-content > main > article) .work-social-page-content > main > article p,
-body:has(.work-social-page-content > main > article) .work-social-page-content > main > article span,
-body:has(.work-social-page-content > main > article) .work-social-page-content > main > article small {
-  color: var(--ws-social-text) !important;
-}
-
-body:has(.work-social-page-content > main > article) .work-social-page-content > main > article button {
-  color: var(--ws-social-text) !important;
-  background: rgba(20, 49, 88, .70) !important;
-  border-color: var(--ws-social-line) !important;
-}
-
-body:has(.work-social-page-content > main > article) .work-social-page-content > main > article button:hover:not(:disabled) {
-  border-color: var(--ws-social-line-strong) !important;
-}
-
-body:has(.work-social-page-content > main > article) .team-invite-flash,
-body:has(.work-social-page-content > main > article) .report-flash {
-  color: var(--ws-social-text) !important;
-  background: linear-gradient(145deg, rgba(15, 39, 73, .97), rgba(7, 22, 45, .98)) !important;
-  border-color: var(--ws-social-line-strong) !important;
-  box-shadow: 0 24px 64px rgba(0, 5, 20, .46), 0 0 34px rgba(34, 211, 238, .06), inset 0 1px 0 rgba(188, 241, 255, .09) !important;
-}
-
-body:has(.work-social-page-content > main > article) .team-invite-flash-copy,
-body:has(.work-social-page-content > main > article) .report-flash-copy,
-body:has(.work-social-page-content > main > article) .report-flash-note {
-  color: var(--ws-social-soft) !important;
-  background: rgba(7, 24, 48, .54) !important;
-  border-color: var(--ws-social-line) !important;
-}
-
-body:has(.work-social-page-content > main > article) .team-invite-btn,
-body:has(.work-social-page-content > main > article) .report-btn {
-  color: var(--ws-social-text) !important;
-  border-color: var(--ws-social-line) !important;
-}
-
-/* ---------- Shared social accessibility / density ---------- */
-body:has(.home-page-title) :where(button, a, input, textarea, select):focus-visible,
-body:has(input[placeholder="Search people..."]) :where(button, a, input, textarea, select):focus-visible,
-body:has(.premium-profile-page) :where(button, a, input, textarea, select):focus-visible,
-body:has(.work-social-page-content > main > article) :where(button, a, input, textarea, select):focus-visible {
-  outline: none !important;
-  border-color: rgba(34, 211, 238, .60) !important;
-  box-shadow: 0 0 0 3px rgba(34, 211, 238, .14), 0 0 24px rgba(59, 130, 246, .12) !important;
-}
-
-@media (max-width: 767px) {
-  body:has(.home-page-title) .home-post-feed article {
-    margin-bottom: 11px !important;
-    padding: 12px !important;
-    border-radius: 17px !important;
-  }
-
-  body:has(.home-page-title) .home-post-feed article > header {
-    gap: 8px !important;
-    padding-bottom: 8px !important;
-  }
-
-  body:has(.home-page-title) .home-post-feed article > header > div:first-child img,
-  body:has(.home-page-title) .home-post-feed article > header > div:first-child > div {
-    width: 38px !important;
-    height: 38px !important;
-  }
-
-  body:has(.home-page-title) .home-post-feed article p {
-    font-size: 14px !important;
-  }
-
-  body:has(input[placeholder="Search people..."]) .work-social-page-content > main > div {
-    padding-inline: 12px !important;
-  }
-
-  body:has(input[placeholder="Search people..."]) .work-social-page-content > main > div > section {
-    border-radius: 19px !important;
-    padding: 13px !important;
-  }
-
-  body:has(.premium-profile-page) .premium-profile-page .foundation-card {
-    border-radius: 19px !important;
-  }
+@media (max-width: 720px) {
+  .social-command-screen__header { padding: 13px 12px; border-radius: 16px; }
+  .social-command-screen__channel,
+  .social-command-screen__data-channel { padding: 9px; border-radius: 15px; }
+  body:has(.home-page-title) .home-post-feed article > header { padding: 10px 10px 9px !important; }
+  body:has(.home-page-title) .home-post-feed article > p { padding: 12px 11px 11px !important; font-size: 14px !important; line-height: 1.6 !important; }
+  body:has(.home-page-title) .home-post-feed article > footer { padding: 8px 10px 10px !important; }
+  .work-social-router-shell > nav[aria-label="Main navigation"] { left: 6px !important; right: 6px !important; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  body:has(.home-page-title) *,
-  body:has(input[placeholder="Search people..."]) *,
-  body:has(.premium-profile-page) *,
-  body:has(.work-social-page-content > main > article) * {
-    scroll-behavior: auto !important;
-    animation-duration: .01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: .01ms !important;
-  }
+  .work-social-router-shell > nav[aria-label="Main navigation"] button,
+  body:has(.premium-profile-page) .premium-profile-page button { transition: none !important; }
 }
