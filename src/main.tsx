@@ -19,6 +19,7 @@ import './features/contractor/team-finance-progress.css';
 import './features/contractor/team-work-compact.css';
 import './features/contractor/contractor-overview-team-intelligence-premium.css';
 import './features/contractor/contractor-overview-colorful-premium.css';
+import './app/premium-visual-unification.css';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

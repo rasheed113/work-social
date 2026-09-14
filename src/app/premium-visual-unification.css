@@ -1,0 +1,181 @@
+/* Work Social — shared premium visual system.
+   Presentation only: no data, routing, auth, or business behavior is touched. */
+:root {
+  --ws-premium-blue: #2563eb;
+  --ws-premium-cyan: #06b6d4;
+  --ws-premium-violet: #7c3aed;
+  --ws-premium-indigo: #4f46e5;
+  --ws-premium-line: rgba(129, 140, 248, .18);
+  --ws-premium-radius: 20px;
+  --ws-premium-shadow: 0 18px 42px rgba(15, 23, 42, .075);
+}
+
+/* The application shell is the common operating frame. Page personalities
+   remain responsible for their own surfaces and color modes. */
+.work-social-router-shell {
+  background:
+    radial-gradient(circle at 8% 0, rgba(59, 130, 246, .055), transparent 25%),
+    radial-gradient(circle at 94% 8%, rgba(124, 58, 237, .05), transparent 24%),
+    #f5f7fb;
+}
+
+.work-social-page-content {
+  scrollbar-color: rgba(79, 70, 229, .28) transparent;
+  scrollbar-width: thin;
+}
+
+.work-social-page-content::-webkit-scrollbar { width: 7px; }
+.work-social-page-content::-webkit-scrollbar-track { background: transparent; }
+.work-social-page-content::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(6, 182, 212, .38), rgba(124, 58, 237, .38));
+}
+
+/* Shared Work Social header: keep the existing dark glass identity, but give
+   it the same cyan/blue/violet dimensional highlights used by Contractor. */
+.ws-main-header {
+  border-bottom-color: rgba(125, 211, 252, .16) !important;
+  box-shadow:
+    0 14px 34px rgba(15, 23, 42, .22),
+    0 0 34px rgba(79, 70, 229, .06),
+    inset 0 1px 0 rgba(255, 255, 255, .11) !important;
+}
+
+.ws-main-header__logo {
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, .42),
+    inset 0 -2px 4px rgba(30, 41, 59, .2),
+    0 8px 18px rgba(37, 99, 235, .28),
+    0 0 24px rgba(6, 182, 212, .08) !important;
+}
+
+.ws-main-header__chat {
+  background: linear-gradient(135deg, #06b6d4, #2563eb 52%, #7c3aed) !important;
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, .22),
+    0 9px 20px rgba(37, 99, 235, .22),
+    0 0 26px rgba(6, 182, 212, .08) !important;
+}
+
+/* Social Home — preserve its light/social personality while borrowing the
+   Contractor title treatment and dimensional section language. */
+.home-page-title {
+  background: linear-gradient(100deg, #172554 0%, #4f46e5 38%, #7c3aed 62%, #06b6d4 100%) !important;
+  text-shadow: 0 2px 0 rgba(255, 255, 255, .92), 0 8px 20px rgba(79, 70, 229, .14) !important;
+}
+
+.home-post-feed > section > h2 {
+  border-color: rgba(129, 140, 248, .18) !important;
+  background: linear-gradient(145deg, rgba(255, 255, 255, .98), rgba(239, 246, 255, .94) 58%, rgba(245, 243, 255, .94)) !important;
+  box-shadow: var(--ws-premium-shadow), inset 0 1px 0 #fff !important;
+}
+
+/* Contractor Overview remains the master reference. These are only shared
+   geometry/interaction refinements; its dedicated colorful premium CSS keeps
+   control of the actual palette and business-specific visuals. */
+.co5-shell { width: min(980px, 100%) !important; }
+.co5-section { margin-top: 18px !important; }
+.co5-card,
+.co5-hero {
+  box-shadow:
+    0 20px 46px rgba(15, 23, 42, .075),
+    0 5px 16px rgba(79, 70, 229, .035),
+    inset 0 1px 0 #fff !important;
+}
+.co5-card,
+.co5-summary article,
+.co5-team { transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
+.co5-card:hover,
+.co5-team:hover { transform: translateY(-2px); }
+
+/* Worker Overview — preserve its dark Personal Command Center personality,
+   while making its surfaces, accents and motion belong to the same OS. */
+.wo {
+  background:
+    radial-gradient(circle at 7% 0, rgba(6, 182, 212, .18), transparent 29%),
+    radial-gradient(circle at 96% 4%, rgba(124, 58, 237, .21), transparent 31%),
+    linear-gradient(180deg, #070b17, #0c1020) !important;
+}
+.wo-hero,
+.wo-card {
+  border-color: rgba(103, 232, 249, .13) !important;
+  box-shadow:
+    0 22px 55px rgba(0, 0, 0, .30),
+    0 0 30px rgba(79, 70, 229, .035),
+    inset 0 1px 0 rgba(255, 255, 255, .09) !important;
+}
+.wo-btn:hover,
+.wo-set:hover { border-color: rgba(103, 232, 249, .3) !important; }
+
+/* Worker Personal Finance — explicitly keep its premium dark financial core.
+   Only shared edge/glow treatment is added; its finance stylesheet remains the
+   authority for cards, figures, semantics and responsive behavior. */
+main:has(> section[aria-label="Finance summary"]) {
+  box-shadow: inset 0 1px 0 rgba(103, 232, 249, .025);
+}
+main:has(> section[aria-label="Finance summary"]) > header {
+  position: relative;
+}
+main:has(> section[aria-label="Finance summary"]) > header::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -9px;
+  width: min(220px, 44%);
+  height: 1px;
+  background: linear-gradient(90deg, rgba(34, 211, 238, .72), rgba(124, 58, 237, .45), transparent);
+  box-shadow: 0 0 12px rgba(34, 211, 238, .12);
+  pointer-events: none;
+}
+
+/* Expense Manager — the existing light Financial Command Core stays intact;
+   shared tokens tighten its visual relationship with Contractor without
+   replacing its established finance-specific styling. */
+.expense-manager-page {
+  background:
+    radial-gradient(circle at 10% 2%, rgba(59, 130, 246, .085), transparent 27%),
+    radial-gradient(circle at 94% 10%, rgba(124, 58, 237, .065), transparent 25%),
+    radial-gradient(circle at 48% 55%, rgba(6, 182, 212, .035), transparent 34%),
+    linear-gradient(180deg, #f8fbff 0%, #f1f5f9 100%) !important;
+}
+.expense-manager-page__hero {
+  position: relative;
+}
+.expense-manager-page__hero::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 42%;
+  max-width: 260px;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(6, 182, 212, .65), rgba(124, 58, 237, .42), transparent);
+  pointer-events: none;
+}
+.expense-manager-page__title {
+  background: linear-gradient(100deg, #172554 0%, #2563eb 42%, #7c3aed 72%, #0891b2 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent !important;
+  text-shadow: 0 2px 0 rgba(255, 255, 255, .92), 0 9px 20px rgba(37, 99, 235, .08);
+}
+
+/* Major system pages: a consistent glass treatment for the shared bottom
+   navigation, without forcing social/profile/settings into a single page skin. */
+.ws-bottom-nav,
+nav[aria-label="Worker navigation"] {
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+@media (max-width: 767px) {
+  .co5-section { margin-top: 15px !important; }
+  .co5-card:hover,
+  .co5-team:hover { transform: none; }
+  .expense-manager-page__title { letter-spacing: -.045em; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .co5-card,
+  .co5-team { transition: none !important; }
+}
