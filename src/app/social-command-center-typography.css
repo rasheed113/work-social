@@ -1,133 +1,96 @@
-/* Work Social — Phase 3.2 Social Command Center typography/instrumentation.
-   Presentation-only. Replaces generic pure-white Social text with the Master Theme's
-   ice-blue / blue-gray / cyan instrumentation hierarchy.
+/* Work Social — Phase 3.2 Social Command Center / Supercomputer Instrumentation Layer.
+   Presentation-only. Owns Social information hierarchy, instrumentation language,
+   data-readout treatment, status semantics, command controls, and responsive density.
    No data, routing, auth, API, Supabase, AI, or business logic. */
 
-body:has(.home-page-title) {
-  --ws-social-ink-primary: #d9efff;
-  --ws-social-ink-heading: #e5f6ff;
-  --ws-social-ink-secondary: #a9c4df;
-  --ws-social-ink-muted: #7894b1;
-  --ws-social-ink-meta: #78b9d8;
-  --ws-social-ink-cyan: #67e8f9;
-  --ws-social-ink-active: #45d9ff;
-  --ws-social-ink-disabled: #58718b;
+body:has(.home-page-title),body:has(input[placeholder="Search people..."]),body:has(.premium-profile-page),body:has(.work-social-page-content > main > article){
+  --ws-inst-ice:#e6f7ff;--ws-inst-primary:#cfeaff;--ws-inst-secondary:#9dbbd4;--ws-inst-muted:#6e8aa7;--ws-inst-meta:#70b7d8;--ws-inst-cyan:#5ee7ff;--ws-inst-active:#35d8ff;--ws-inst-success:#63e6d0;--ws-inst-warning:#f5b95b;--ws-inst-danger:#ff8b9a;--ws-inst-line:rgba(105,210,255,.20);--ws-inst-line-strong:rgba(77,207,255,.42);color:var(--ws-inst-primary);font-variant-numeric:tabular-nums;
 }
 
-/* Post/feed text: pure white is reserved for exceptional browser/UI states only. */
-body:has(.home-post-feed) .home-post-feed article {
-  color: var(--ws-social-ink-primary) !important;
-}
+/* COMMAND IDENTITY */
+body:has(.home-page-title) .home-page-title,body:has(.premium-profile-page) .premium-profile-page>h1,body:has(.work-social-page-content > main > article) .work-social-page-content>main>div:first-of-type h1{position:relative;color:var(--ws-inst-ice)!important;background:none!important;-webkit-text-fill-color:currentColor!important;font-size:clamp(25px,5vw,38px)!important;line-height:.98!important;font-weight:900!important;letter-spacing:-.045em!important;text-shadow:0 0 24px rgba(74,214,255,.10)!important}
+body:has(.home-page-title) .home-page-title::after{content:'SOCIAL // COMMAND CENTER';display:block;margin-top:9px;color:var(--ws-inst-cyan);font-size:9px;line-height:1;font-weight:850;letter-spacing:.19em;text-transform:uppercase;text-shadow:0 0 13px rgba(94,231,255,.15)}
+body:has(.premium-profile-page) .premium-profile-page>h1::after{content:'IDENTITY // PROFILE SYSTEM';display:block;margin-top:8px;color:var(--ws-inst-cyan);font-size:8px;line-height:1;font-weight:850;letter-spacing:.18em}
+body:has(.work-social-page-content > main > article) .work-social-page-content>main>div:first-of-type h1::after{content:'ACTIVITY // EVENT STREAM';display:block;margin-top:8px;color:var(--ws-inst-cyan);font-size:8px;line-height:1;font-weight:850;letter-spacing:.18em}
 
-body:has(.home-post-feed) .home-post-feed article strong {
-  color: var(--ws-social-ink-heading) !important;
-}
+/* FEED STREAM */
+body:has(.home-page-title) .home-post-feed>section>h2{display:flex;align-items:center;min-height:38px;gap:9px;color:var(--ws-inst-ice)!important;background:rgba(4,20,41,.58)!important;border-color:var(--ws-inst-line)!important;box-shadow:inset 0 1px 0 rgba(190,240,255,.05),0 10px 28px rgba(0,8,25,.20)!important;font-size:14px!important;font-weight:850!important;letter-spacing:.015em!important;text-shadow:none!important}
+body:has(.home-page-title) .home-post-feed>section>h2::before{content:'STREAM';width:auto!important;height:auto!important;flex:0 0 auto!important;padding:4px 6px;border-radius:5px;background:rgba(94,231,255,.08)!important;border:1px solid rgba(94,231,255,.18);color:var(--ws-inst-cyan);box-shadow:none!important;font-size:7px;font-weight:900;letter-spacing:.16em}
 
-body:has(.home-post-feed) .home-post-feed article p {
-  color: var(--ws-social-ink-primary) !important;
-}
+/* POST SIGNAL + HUMAN/DATA HIERARCHY */
+body:has(.home-page-title) .home-post-feed article{position:relative;overflow:hidden}
+body:has(.home-page-title) .home-post-feed article::before{content:'POST SIGNAL';position:absolute;top:9px;right:11px;z-index:2;padding:3px 5px;border:1px solid rgba(94,231,255,.16);border-radius:4px;background:rgba(3,18,37,.58);color:var(--ws-inst-meta);font-size:6px;line-height:1;font-weight:900;letter-spacing:.14em;pointer-events:none}
+body:has(.home-page-title) .home-post-feed article>header{padding-right:78px!important;border-bottom-color:var(--ws-inst-line)!important}
+body:has(.home-page-title) .home-post-feed article>header>span{color:var(--ws-inst-cyan)!important;background:rgba(94,231,255,.06)!important;border-color:var(--ws-inst-line)!important;font-size:7px!important;font-weight:850!important;letter-spacing:.08em}
+body:has(.home-page-title) .home-post-feed article strong{color:var(--ws-inst-ice)!important;font-weight:850!important;letter-spacing:-.01em}
+body:has(.home-page-title) .home-post-feed article p{color:var(--ws-inst-primary)!important;font-size:14px;line-height:1.55}
+body:has(.home-page-title) .home-post-feed article span,body:has(.home-page-title) .home-post-feed article label{color:var(--ws-inst-secondary)!important}
+body:has(.home-page-title) .home-post-feed article time,body:has(.home-page-title) .home-post-feed article [datetime],body:has(.home-page-title) .home-post-feed article small{color:var(--ws-inst-meta)!important;font-size:9px!important;font-weight:700;letter-spacing:.055em;font-variant-numeric:tabular-nums}
+body:has(.home-page-title) .home-post-feed article time::before,body:has(.home-page-title) .home-post-feed article [datetime]::before{content:'TIME // ';color:var(--ws-inst-muted);font-size:7px;letter-spacing:.12em}
+body:has(.home-page-title) .home-post-feed article footer{border-top-color:var(--ws-inst-line)!important}
+body:has(.home-page-title) .home-post-feed article footer button{font-size:10px!important;font-weight:800!important;letter-spacing:.02em}
+body:has(.home-page-title) .home-post-feed article [aria-pressed="true"],body:has(.home-page-title) .home-post-feed article [data-active="true"]{color:var(--ws-inst-active)!important;border-color:var(--ws-inst-line-strong)!important;text-shadow:0 0 14px rgba(53,216,255,.16)}
 
-body:has(.home-post-feed) .home-post-feed article span,
-body:has(.home-post-feed) .home-post-feed article label {
-  color: var(--ws-social-ink-secondary) !important;
-}
+/* COMMENT CHANNEL / REPLY SIGNAL */
+body:has(.home-page-title) .home-post-feed article footer>div{position:relative}
+body:has(.home-page-title) .home-post-feed article footer>div:not(:has(img,video)){background:transparent!important}
+body:has(.home-page-title) .home-post-feed article footer>div:last-child::before{content:'COMMENT CHANNEL';display:block;margin-bottom:6px;color:var(--ws-inst-muted);font-size:6px;font-weight:900;letter-spacing:.15em}
+body:has(.home-page-title) .home-post-feed article footer div[style*="linear-gradient(145deg,rgba(246,248,251"],body:has(.home-page-title) .home-post-feed article footer div[style*="linear-gradient(145deg,rgba(247,249,252"],body:has(.home-page-title) .home-post-feed article footer div[style*="linear-gradient(145deg,#f5f7fa"]{background:rgba(4,20,41,.56)!important;border-color:var(--ws-inst-line)!important;color:var(--ws-inst-primary)!important;box-shadow:inset 0 1px 0 rgba(190,240,255,.035)!important}
 
-body:has(.home-post-feed) .home-post-feed article small {
-  color: var(--ws-social-ink-muted) !important;
-}
+/* TRANSMISSION CONSOLE */
+body:has(.home-page-title) .work-social-page-content main>div>section:first-of-type{position:relative}
+body:has(.home-page-title) .work-social-page-content main>div>section:first-of-type::before{content:'TRANSMISSION CONSOLE';display:block;margin-bottom:9px;color:var(--ws-inst-cyan);font-size:7px;line-height:1;font-weight:900;letter-spacing:.18em}
+body:has(.home-page-title) .work-social-page-content main>div>section:first-of-type h2{color:var(--ws-inst-ice)!important;font-size:14px!important;letter-spacing:.01em}
+body:has(.home-page-title) .work-social-page-content main>div>section:first-of-type small{color:var(--ws-inst-muted)!important;font-size:8px!important;letter-spacing:.055em}
+body:has(.home-page-title) .work-social-page-content main>div>section:first-of-type textarea{color:var(--ws-inst-primary)!important;caret-color:var(--ws-inst-active)}
+body:has(.home-page-title) .work-social-page-content main>div>section:first-of-type textarea::placeholder{color:var(--ws-inst-muted)!important;letter-spacing:.025em}
 
-/* Technical metadata and timestamps become instrumentation readouts. */
-body:has(.home-post-feed) .home-post-feed article time,
-body:has(.home-post-feed) .home-post-feed article [datetime] {
-  color: var(--ws-social-ink-meta) !important;
-}
+/* NETWORK CONTROL */
+body:has(input[placeholder="Search people..."]) .work-social-page-content>main>div>section:first-child::before{content:'NETWORK CONTROL // LIVE';display:block;margin-bottom:7px;color:var(--ws-inst-cyan);font-size:7px;font-weight:900;letter-spacing:.18em}
+body:has(input[placeholder="Search people..."]) .work-social-page-content>main>div>section:first-child h1{color:var(--ws-inst-ice)!important;font-size:clamp(26px,6vw,34px)!important;letter-spacing:-.04em!important;background:none!important;-webkit-text-fill-color:currentColor!important}
+body:has(input[placeholder="Search people..."]) .work-social-page-content>main>div>section:first-child h1::after{content:'IDENTITY / CONNECTION / ACTION';display:block;margin-top:7px;color:var(--ws-inst-muted);font-size:7px;letter-spacing:.14em}
+body:has(input[placeholder="Search people..."]) .work-social-page-content>main>div>section:first-child p{color:var(--ws-inst-secondary)!important}
+body:has(input[placeholder="Search people..."]) .work-social-page-content>main>div>section:first-child input{color:var(--ws-inst-primary)!important;caret-color:var(--ws-inst-active)}
+body:has(input[placeholder="Search people..."]) .work-social-page-content>main>div>section:first-child input::placeholder{color:var(--ws-inst-muted)!important}
+body:has(input[placeholder="Search people..."]) .work-social-page-content>main>div>section:not(:first-child) h2{color:var(--ws-inst-ice)!important;font-size:12px!important;letter-spacing:.04em}
+body:has(input[placeholder="Search people..."]) .work-social-page-content>main>div>section:not(:first-child) h2::before{content:'NETWORK';margin-right:7px;color:var(--ws-inst-cyan);font-size:6px;letter-spacing:.15em;vertical-align:middle}
+body:has(input[placeholder="Search people..."]) .work-social-page-content>main>div>section article{color:var(--ws-inst-primary)!important}
+body:has(input[placeholder="Search people..."]) .work-social-page-content>main>div>section article strong{color:var(--ws-inst-ice)!important}
+body:has(input[placeholder="Search people..."]) .work-social-page-content>main>div>section article span{color:var(--ws-inst-muted)!important;font-size:9px}
 
-/* Headings and command labels use cool near-white rather than flat white. */
-body:has(.home-page-title) .home-page-title,
-body:has(.home-page-title) h1,
-body:has(.home-page-title) h2,
-body:has(.home-page-title) h3,
-body:has(.home-page-title) h4 {
-  color: var(--ws-social-ink-heading) !important;
-}
+/* ACTIVITY MONITOR */
+body:has(.work-social-page-content > main > article) .work-social-page-content>main>article{position:relative}
+body:has(.work-social-page-content > main > article) .work-social-page-content>main>article::before{content:'EVENT';position:absolute;top:10px;right:11px;padding:3px 5px;border:1px solid var(--ws-inst-line);border-radius:4px;color:var(--ws-inst-meta);background:rgba(3,18,37,.48);font-size:6px;font-weight:900;letter-spacing:.14em}
+body:has(.work-social-page-content > main > article) .work-social-page-content>main>article strong{color:var(--ws-inst-ice)!important;font-weight:850!important}
+body:has(.work-social-page-content > main > article) .work-social-page-content>main>article p{color:var(--ws-inst-primary)!important}
+body:has(.work-social-page-content > main > article) .work-social-page-content>main>article small,body:has(.work-social-page-content > main > article) .work-social-page-content>main>article time{color:var(--ws-inst-meta)!important;font-size:8px!important;letter-spacing:.06em}
+body:has(.work-social-page-content > main > article) .work-social-page-content>main>article time::before{content:'TIME // ';color:var(--ws-inst-muted);font-size:6px;letter-spacing:.12em}
 
-/* Social navigation / tabs: inactive blue-gray, active cyan instrumentation. */
-body:has(.home-page-title) nav a,
-body:has(.home-page-title) nav button {
-  color: var(--ws-social-ink-secondary) !important;
-}
+/* IDENTITY SYSTEM */
+body:has(.premium-profile-page) .premium-profile-page{color:var(--ws-inst-primary)!important}
+body:has(.premium-profile-page) .premium-profile-page .foundation-card{position:relative;color:var(--ws-inst-primary)!important}
+body:has(.premium-profile-page) .premium-profile-page .foundation-card h2{color:var(--ws-inst-ice)!important;font-size:12px!important;letter-spacing:.035em}
+body:has(.premium-profile-page) .premium-profile-page .foundation-card h2::before{content:'SYSTEM';display:inline-block;margin-right:7px;color:var(--ws-inst-cyan);font-size:6px;font-weight:900;letter-spacing:.15em;vertical-align:middle}
+body:has(.premium-profile-page) .premium-profile-page .foundation-card p{color:var(--ws-inst-secondary)!important}
 
-body:has(.home-page-title) nav a[aria-current="page"],
-body:has(.home-page-title) nav button[aria-current="page"],
-body:has(.home-page-title) [role="tab"][aria-selected="true"] {
-  color: var(--ws-social-ink-active) !important;
-  text-shadow: 0 0 16px rgba(69, 217, 255, .16);
-}
+/* SEARCH / FILTER / COMMAND STATES */
+body:has(.home-page-title) :where(input,textarea,select),body:has(input[placeholder="Search people..."]) :where(input,textarea,select),body:has(.premium-profile-page) :where(input,textarea,select),body:has(.work-social-page-content > main > article) :where(input,textarea,select){color:var(--ws-inst-primary)!important;caret-color:var(--ws-inst-active)}
+body:has(.home-page-title) :where(input,textarea,select)::placeholder,body:has(input[placeholder="Search people..."]) :where(input,textarea,select)::placeholder{color:var(--ws-inst-muted)!important}
+body:has(.home-page-title) :where(button,a,input,textarea,select):focus-visible,body:has(input[placeholder="Search people..."]) :where(button,a,input,textarea,select):focus-visible,body:has(.premium-profile-page) :where(button,a,input,textarea,select):focus-visible,body:has(.work-social-page-content > main > article) :where(button,a,input,textarea,select):focus-visible{outline:1px solid var(--ws-inst-active)!important;outline-offset:2px;border-color:var(--ws-inst-line-strong)!important;box-shadow:0 0 0 3px rgba(53,216,255,.12),0 0 22px rgba(53,216,255,.08)!important}
+body:has(.home-page-title) .home-post-feed article button:hover:not(:disabled),body:has(input[placeholder="Search people..."]) .work-social-page-content button:hover:not(:disabled),body:has(.premium-profile-page) .premium-profile-page button:hover:not(:disabled),body:has(.work-social-page-content > main > article) .work-social-page-content button:hover:not(:disabled){color:var(--ws-inst-active)!important;border-color:var(--ws-inst-line-strong)!important}
+body:has(.home-page-title) .home-post-feed article button:disabled,body:has(input[placeholder="Search people..."]) .work-social-page-content button:disabled,body:has(.premium-profile-page) .premium-profile-page button:disabled,body:has(.work-social-page-content > main > article) .work-social-page-content button:disabled{color:var(--ws-inst-muted)!important;opacity:.72}
 
-/* Buttons are cool blue-white at rest and cyan when active/hovered. */
-body:has(.home-post-feed) .home-post-feed article button {
-  color: var(--ws-social-ink-secondary) !important;
-}
+/* COMMAND RAIL */
+body:has(.home-page-title) nav a,body:has(.home-page-title) nav button{color:var(--ws-inst-secondary)!important;font-size:10px;font-weight:800;letter-spacing:.035em}
+body:has(.home-page-title) nav a[aria-current="page"],body:has(.home-page-title) nav button[aria-current="page"],body:has(.home-page-title) nav [role="tab"][aria-selected="true"]{position:relative;color:var(--ws-inst-active)!important;text-shadow:0 0 15px rgba(53,216,255,.16)}
+body:has(.home-page-title) nav a[aria-current="page"]::after,body:has(.home-page-title) nav button[aria-current="page"]::after,body:has(.home-page-title) nav [role="tab"][aria-selected="true"]::after{content:'';position:absolute;left:18%;right:18%;bottom:-2px;height:1px;background:var(--ws-inst-active);box-shadow:0 0 10px rgba(53,216,255,.32)}
 
-body:has(.home-post-feed) .home-post-feed article button:hover:not(:disabled),
-body:has(.home-post-feed) .home-post-feed article button:focus-visible {
-  color: var(--ws-social-ink-active) !important;
-}
+/* SEMANTIC STATUS */
+body:has(.home-page-title) [data-status="active"],body:has(.home-page-title) [data-state="active"],body:has(input[placeholder="Search people..."]) [data-status="active"],body:has(.premium-profile-page) [data-status="active"]{color:var(--ws-inst-success)!important}
+body:has(.home-page-title) [data-status="pending"],body:has(.home-page-title) [data-state="pending"],body:has(input[placeholder="Search people..."]) [data-status="pending"],body:has(.premium-profile-page) [data-status="pending"]{color:var(--ws-inst-warning)!important}
+body:has(.home-page-title) [data-status="offline"],body:has(.home-page-title) [data-state="inactive"],body:has(input[placeholder="Search people..."]) [data-status="offline"],body:has(.premium-profile-page) [data-status="offline"]{color:var(--ws-inst-muted)!important}
+body:has(.home-page-title) [data-status="error"],body:has(.home-page-title) [data-state="error"],body:has(input[placeholder="Search people..."]) [role="alert"],body:has(.premium-profile-page) [role="alert"]{color:var(--ws-inst-danger)!important}
 
-body:has(.home-post-feed) .home-post-feed article button:disabled {
-  color: var(--ws-social-ink-disabled) !important;
-}
+@media(max-width:767px){body:has(.home-page-title) .home-page-title,body:has(.premium-profile-page) .premium-profile-page>h1,body:has(.work-social-page-content > main > article) .work-social-page-content>main>div:first-of-type h1{font-size:clamp(24px,8vw,31px)!important}body:has(.home-page-title) .home-post-feed article::before{top:8px;right:9px;font-size:5px}body:has(.home-page-title) .home-post-feed article>header{padding-right:66px!important}body:has(.home-page-title) .home-post-feed article p{font-size:14px!important;line-height:1.52!important}body:has(input[placeholder="Search people..."]) .work-social-page-content>main>div>section{border-radius:18px!important}}
 
-/* Reaction/action instrumentation: selected states glow cyan, not white. */
-body:has(.home-post-feed) .home-post-feed article [aria-pressed="true"],
-body:has(.home-post-feed) .home-post-feed article [data-active="true"] {
-  color: var(--ws-social-ink-cyan) !important;
-  text-shadow: 0 0 14px rgba(103, 232, 249, .18);
-}
-
-/* Inputs/composer text stay readable but intentionally blue-white. */
-body:has(.home-post-feed) .home-post-feed article input,
-body:has(.home-post-feed) .home-post-feed article textarea {
-  color: var(--ws-social-ink-primary) !important;
-}
-
-body:has(.home-post-feed) .home-post-feed article input::placeholder,
-body:has(.home-post-feed) .home-post-feed article textarea::placeholder {
-  color: var(--ws-social-ink-muted) !important;
-}
-
-/* Menus/dialogs inherit the same instrument hierarchy. */
-body:has(.home-post-feed) .home-post-feed article [role="menu"],
-body:has(.home-post-feed) .home-post-feed article [role="dialog"],
-body:has(.home-post-feed) .home-post-feed article [role="alertdialog"] {
-  color: var(--ws-social-ink-primary) !important;
-}
-
-body:has(.home-post-feed) .home-post-feed article [role="menu"] strong,
-body:has(.home-post-feed) .home-post-feed article [role="dialog"] h2,
-body:has(.home-post-feed) .home-post-feed article [role="alertdialog"] h2 {
-  color: var(--ws-social-ink-heading) !important;
-}
-
-body:has(.home-post-feed) .home-post-feed article [role="menu"] small,
-body:has(.home-post-feed) .home-post-feed article [role="dialog"] small,
-body:has(.home-post-feed) .home-post-feed article [role="alertdialog"] small {
-  color: var(--ws-social-ink-muted) !important;
-}
-
-/* Social-specific status language. */
-body:has(.home-page-title) [data-status="active"],
-body:has(.home-page-title) [data-state="active"] {
-  color: var(--ws-social-ink-cyan) !important;
-}
-
-body:has(.home-page-title) [data-status="inactive"],
-body:has(.home-page-title) [data-state="inactive"] {
-  color: var(--ws-social-ink-muted) !important;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  body:has(.home-page-title) * {
-    text-shadow: none !important;
-  }
-}
+@media(prefers-reduced-motion:reduce){body:has(.home-page-title) *,body:has(input[placeholder="Search people..."]) *,body:has(.premium-profile-page) *,body:has(.work-social-page-content > main > article) *{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important;text-shadow:none!important}}
