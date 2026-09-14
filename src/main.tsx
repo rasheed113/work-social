@@ -23,7 +23,6 @@ import './app/premium-visual-unification.css';
 import './app/universal-components.css';
 import './app/social-command-center.css';
 import './app/social-command-center-post-fix.css';
-import './app/social-command-center-typography.css';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
