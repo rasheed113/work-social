@@ -3,12 +3,18 @@ on:
   push:
     branches:
       - fix/worker-personal-finance-redesign
+permissions:
+  contents: write
 jobs:
   find:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Locate loading copy
+      - name: Locate loading UI
         run: |
-          set -x
-          grep -RniE "Opening|Checking approved|approved|loading" src --include='*.tsx' --include='*.ts' --include='*.css' | head -n 250 || true
+          git grep -n -E "Opening|Checking approved|approved|loading" -- 'src/*.tsx' 'src/**/*.tsx' 'src/*.ts' 'src/**/*.ts' 'src/*.css' 'src/**/*.css' > docs/loading-ui-location.txt || true
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/loading-ui-location.txt
+          git commit -m "chore: record loading UI location"
+          git push
