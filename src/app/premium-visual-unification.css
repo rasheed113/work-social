@@ -1,181 +1,68 @@
-/* Work Social — shared premium visual system.
-   Presentation only: no data, routing, auth, or business behavior is touched. */
+/* Work Social — master futuristic visual DNA. Presentation only. */
 :root {
-  --ws-premium-blue: #2563eb;
-  --ws-premium-cyan: #06b6d4;
-  --ws-premium-violet: #7c3aed;
-  --ws-premium-indigo: #4f46e5;
-  --ws-premium-line: rgba(129, 140, 248, .18);
-  --ws-premium-radius: 20px;
-  --ws-premium-shadow: 0 18px 42px rgba(15, 23, 42, .075);
+  --ws-dna-bg-0:#07111f; --ws-dna-bg-1:#0a1730; --ws-dna-bg-2:#0c1d3b;
+  --ws-dna-surface:rgba(13,31,58,.72); --ws-dna-surface-strong:rgba(15,38,72,.9);
+  --ws-dna-line:rgba(104,205,255,.18); --ws-dna-line-strong:rgba(75,204,255,.34);
+  --ws-dna-blue:#3b82f6; --ws-dna-cyan:#22d3ee; --ws-dna-violet:#7c83ff;
+  --ws-dna-text:#eaf6ff; --ws-dna-text-soft:#a9c4df; --ws-dna-muted:#7894b1;
+  --ws-dna-r-sm:12px; --ws-dna-r-md:16px; --ws-dna-r-lg:22px;
+  --ws-dna-shadow:0 18px 48px rgba(0,8,24,.28); --ws-dna-shadow-soft:0 10px 30px rgba(0,10,28,.2);
+  --ws-dna-focus:0 0 0 3px rgba(34,211,238,.15),0 0 24px rgba(59,130,246,.12);
 }
 
-/* The application shell is the common operating frame. Page personalities
-   remain responsible for their own surfaces and color modes. */
-.work-social-router-shell {
-  background:
-    radial-gradient(circle at 8% 0, rgba(59, 130, 246, .055), transparent 25%),
-    radial-gradient(circle at 94% 8%, rgba(124, 58, 237, .05), transparent 24%),
-    #f5f7fb;
+html{color-scheme:dark}
+body{background:var(--ws-dna-bg-0);color:var(--ws-dna-text)}
+.app-shell:not(.auth-screen){background:var(--ws-dna-bg-0)}
+.work-social-router-shell{
+ position:relative;isolation:isolate;color:var(--ws-dna-text)!important;
+ background:radial-gradient(900px 520px at 8% -5%,rgba(34,211,238,.13),transparent 62%),radial-gradient(760px 500px at 96% 2%,rgba(59,130,246,.16),transparent 62%),radial-gradient(720px 620px at 52% 100%,rgba(124,131,255,.08),transparent 68%),linear-gradient(180deg,var(--ws-dna-bg-1),var(--ws-dna-bg-0) 58%,#081426)!important;
 }
+.work-social-router-shell::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.24;background:linear-gradient(rgba(105,211,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(105,211,255,.025) 1px,transparent 1px);background-size:44px 44px;mask-image:linear-gradient(to bottom,#000,transparent 88%)}
+.work-social-page-content{scrollbar-color:rgba(34,211,238,.3) transparent;scrollbar-width:thin;background:transparent}
+.work-social-page-content::-webkit-scrollbar{width:7px;height:7px}.work-social-page-content::-webkit-scrollbar-track{background:transparent}.work-social-page-content::-webkit-scrollbar-thumb{border-radius:999px;background:linear-gradient(180deg,rgba(34,211,238,.45),rgba(59,130,246,.4))}
 
-.work-social-page-content {
-  scrollbar-color: rgba(79, 70, 229, .28) transparent;
-  scrollbar-width: thin;
-}
+.work-social-router-shell :where(h1,h2,h3,h4,h5,h6){letter-spacing:-.018em}
+.work-social-router-shell :where(code,pre,[data-monospace],.mono,.metric,.stat,.amount,.balance,.total){font-variant-numeric:tabular-nums}
+.ws-dna-readout,.ws-lcd,[data-ws-readout]{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace;font-variant-numeric:tabular-nums;letter-spacing:.045em;text-shadow:0 0 18px rgba(34,211,238,.18)}
 
-.work-social-page-content::-webkit-scrollbar { width: 7px; }
-.work-social-page-content::-webkit-scrollbar-track { background: transparent; }
-.work-social-page-content::-webkit-scrollbar-thumb {
-  border-radius: 999px;
-  background: linear-gradient(180deg, rgba(6, 182, 212, .38), rgba(124, 58, 237, .38));
-}
+.work-social-router-shell>header,.work-social-router-shell>nav,.work-social-router-shell .ws-main-header,.work-social-router-shell .ws-bottom-nav{border-color:var(--ws-dna-line)!important;background:linear-gradient(180deg,rgba(11,30,57,.92),rgba(7,20,39,.88))!important;box-shadow:0 14px 36px rgba(0,8,24,.26),inset 0 1px 0 rgba(174,235,255,.09)!important;backdrop-filter:blur(22px) saturate(125%);-webkit-backdrop-filter:blur(22px) saturate(125%)}
+.ws-main-header__logo{border-color:rgba(103,232,249,.26)!important;box-shadow:inset 0 1px 1px rgba(255,255,255,.2),0 8px 22px rgba(37,99,235,.22),0 0 26px rgba(34,211,238,.08)!important}
+.ws-main-header__chat{background:linear-gradient(135deg,#22d3ee,#3b82f6 52%,#6974ff)!important;border-color:rgba(186,245,255,.3)!important;box-shadow:inset 0 1px 1px rgba(255,255,255,.2),0 9px 24px rgba(37,99,235,.28),0 0 24px rgba(34,211,238,.1)!important}
+.work-social-router-shell nav :where(a,button){border-radius:var(--ws-dna-r-md);transition:border-color .18s ease,background-color .18s ease,color .18s ease,box-shadow .18s ease,transform .18s ease}
+.work-social-router-shell nav :where(a:hover,button:hover){border-color:var(--ws-dna-line-strong)!important;box-shadow:0 0 22px rgba(34,211,238,.07)}
+.work-social-router-shell nav :where(a[aria-current="page"],button[aria-current="page"],.active,[data-active="true"]){color:#dffaff!important;border-color:rgba(34,211,238,.28)!important;background:linear-gradient(135deg,rgba(34,211,238,.13),rgba(59,130,246,.14))!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 0 24px rgba(34,211,238,.06)}
 
-/* Shared Work Social header: keep the existing dark glass identity, but give
-   it the same cyan/blue/violet dimensional highlights used by Contractor. */
-.ws-main-header {
-  border-bottom-color: rgba(125, 211, 252, .16) !important;
-  box-shadow:
-    0 14px 34px rgba(15, 23, 42, .22),
-    0 0 34px rgba(79, 70, 229, .06),
-    inset 0 1px 0 rgba(255, 255, 255, .11) !important;
-}
+.ws-dna-glass,.ws-glass,[data-ws-surface]{border:1px solid var(--ws-dna-line);border-radius:var(--ws-dna-r-lg);background:linear-gradient(145deg,rgba(22,51,91,.72),rgba(8,24,49,.78))!important;box-shadow:var(--ws-dna-shadow),inset 0 1px 0 rgba(183,239,255,.08);backdrop-filter:blur(18px) saturate(125%);-webkit-backdrop-filter:blur(18px) saturate(125%)}
+.work-social-router-shell :where([role="dialog"],[role="alertdialog"],[role="menu"],[role="listbox"],[role="tooltip"],.popover,.dropdown-menu,.modal,.drawer,.dialog,.popup){border-color:var(--ws-dna-line-strong)!important;background:linear-gradient(145deg,rgba(15,39,73,.96),rgba(7,22,45,.97))!important;color:var(--ws-dna-text);box-shadow:0 24px 64px rgba(0,5,20,.42),0 0 34px rgba(34,211,238,.06),inset 0 1px 0 rgba(188,241,255,.09)!important;backdrop-filter:blur(24px) saturate(135%);-webkit-backdrop-filter:blur(24px) saturate(135%)}
+.work-social-router-shell :where(.co5-card,.co5-hero,.wo-card,.wo-hero){border-color:var(--ws-dna-line)!important;box-shadow:var(--ws-dna-shadow),inset 0 1px 0 rgba(184,239,255,.08)!important}
 
-.ws-main-header__logo {
-  box-shadow:
-    inset 0 1px 1px rgba(255, 255, 255, .42),
-    inset 0 -2px 4px rgba(30, 41, 59, .2),
-    0 8px 18px rgba(37, 99, 235, .28),
-    0 0 24px rgba(6, 182, 212, .08) !important;
-}
+.work-social-router-shell :where(button,[role="button"],input[type="button"],input[type="submit"],input[type="reset"]){border-radius:var(--ws-dna-r-md);border-color:var(--ws-dna-line)!important;transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease,background .16s ease,filter .16s ease}
+.work-social-router-shell :where(button:hover,[role="button"]:hover,input[type="button"]:hover,input[type="submit"]:hover){border-color:var(--ws-dna-line-strong)!important;box-shadow:0 0 22px rgba(34,211,238,.09),inset 0 1px 0 rgba(255,255,255,.08)}
+.work-social-router-shell :where(button:active,[role="button"]:active){transform:translateY(1px)}
+.work-social-router-shell :where(input:not([type="checkbox"]):not([type="radio"]),textarea,select){min-height:42px;border-radius:var(--ws-dna-r-md)!important;border:1px solid var(--ws-dna-line)!important;background:rgba(7,24,48,.72)!important;color:var(--ws-dna-text)!important;box-shadow:inset 0 1px 0 rgba(174,235,255,.045),var(--ws-dna-shadow-soft)}
+.work-social-router-shell :where(input,textarea,select)::placeholder{color:rgba(169,196,223,.58)}
+.work-social-router-shell :where(input,textarea,select):focus-visible,.work-social-router-shell :where(button,[role="button"],a):focus-visible{outline:none;border-color:rgba(34,211,238,.48)!important;box-shadow:var(--ws-dna-focus)!important}
+.work-social-router-shell :where(input[type="checkbox"],input[type="radio"]){accent-color:var(--ws-dna-cyan)}
+.work-social-router-shell :where(option){background:#0b1d38;color:var(--ws-dna-text)}
+.work-social-router-shell :where([role="tab"][aria-selected="true"],.tab.active,.active-tab,[data-state="active"]){border-color:rgba(34,211,238,.34)!important;color:#e7fbff!important;background:linear-gradient(135deg,rgba(34,211,238,.12),rgba(59,130,246,.16))!important;box-shadow:inset 0 -1px 0 rgba(34,211,238,.4),0 0 22px rgba(34,211,238,.06)}
 
-.ws-main-header__chat {
-  background: linear-gradient(135deg, #06b6d4, #2563eb 52%, #7c3aed) !important;
-  box-shadow:
-    inset 0 1px 1px rgba(255, 255, 255, .22),
-    0 9px 20px rgba(37, 99, 235, .22),
-    0 0 26px rgba(6, 182, 212, .08) !important;
-}
+.ws-dna-status,.ws-status,[data-ws-status]{border:1px solid rgba(34,211,238,.24);border-radius:999px;background:rgba(34,211,238,.08);color:#bff7ff;box-shadow:0 0 18px rgba(34,211,238,.06)}
+.work-social-router-shell :where(table){border-color:var(--ws-dna-line)!important;border-collapse:separate;border-spacing:0;background:rgba(7,23,46,.34)}
+.work-social-router-shell :where(th){color:#a9c9e5!important;background:rgba(25,58,99,.48)!important;border-color:var(--ws-dna-line)!important;font-size:.76rem;letter-spacing:.055em;text-transform:uppercase}
+.work-social-router-shell :where(td){border-color:rgba(104,205,255,.1)!important}.work-social-router-shell :where(tbody tr:hover){background:rgba(34,211,238,.045)!important}
+.work-social-router-shell :where([role="search"],.search,.search-bar,.filter-bar,.filters) :where(input,select){background:rgba(7,24,48,.78)!important}
+.work-social-router-shell :where(label){color:var(--ws-dna-text-soft)}
+.work-social-router-shell :where([role="alert"],[role="status"],.toast,.notification,.notice){border-color:var(--ws-dna-line)!important;background:linear-gradient(145deg,rgba(15,39,73,.94),rgba(7,22,45,.95))!important;color:var(--ws-dna-text);box-shadow:0 18px 46px rgba(0,6,20,.36),0 0 24px rgba(34,211,238,.05),inset 0 1px 0 rgba(184,239,255,.08)!important;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+.ws-dna-empty,.ws-empty,[data-ws-empty]{border:1px dashed rgba(104,205,255,.2);border-radius:var(--ws-dna-r-lg);background:rgba(10,30,57,.36);color:var(--ws-dna-text-soft)}
 
-/* Social Home — preserve its light/social personality while borrowing the
-   Contractor title treatment and dimensional section language. */
-.home-page-title {
-  background: linear-gradient(100deg, #172554 0%, #4f46e5 38%, #7c3aed 62%, #06b6d4 100%) !important;
-  text-shadow: 0 2px 0 rgba(255, 255, 255, .92), 0 8px 20px rgba(79, 70, 229, .14) !important;
-}
+.home-page-title{background:linear-gradient(100deg,#dff9ff 0%,#9ccfff 42%,#b8b8ff 72%,#66e6f5 100%)!important;-webkit-background-clip:text;background-clip:text;color:transparent!important;text-shadow:0 0 22px rgba(34,211,238,.14)!important}
+.home-post-feed>section>h2{border-color:var(--ws-dna-line)!important;background:linear-gradient(145deg,rgba(20,50,88,.78),rgba(8,25,50,.84))!important;color:var(--ws-dna-text)!important;box-shadow:var(--ws-dna-shadow-soft),inset 0 1px 0 rgba(184,239,255,.07)!important}
+.wo{background:radial-gradient(circle at 7% 0,rgba(34,211,238,.16),transparent 30%),radial-gradient(circle at 96% 4%,rgba(59,130,246,.18),transparent 31%),linear-gradient(180deg,#071222,#09162b)!important}
+.expense-manager-page{color:var(--ws-dna-text)!important;background:radial-gradient(circle at 10% 0,rgba(34,211,238,.12),transparent 29%),radial-gradient(circle at 94% 4%,rgba(59,130,246,.14),transparent 30%),linear-gradient(180deg,#08182f,#071321)!important}
+.expense-manager-page :where(section,article,.card,.panel){border-color:var(--ws-dna-line)!important;box-shadow:var(--ws-dna-shadow-soft),inset 0 1px 0 rgba(184,239,255,.06)}
+.expense-manager-page__title{background:linear-gradient(100deg,#e7fbff 0%,#8bdcff 42%,#b8baff 72%,#67e5f4 100%);-webkit-background-clip:text;background-clip:text;color:transparent!important;text-shadow:0 0 22px rgba(34,211,238,.12)}
+.work-social-router-shell :where(.premium-chat-page,[class*="ai"],[class*="AI"]) :where(input,textarea){background:rgba(5,20,42,.82)!important}
+.work-social-router-shell :where(.premium-chat-page,.ai-assistant,.ai-launcher,.ws-ai-panel,.ws-ai-card){--ws-ai-line:var(--ws-dna-line)}
 
-.home-post-feed > section > h2 {
-  border-color: rgba(129, 140, 248, .18) !important;
-  background: linear-gradient(145deg, rgba(255, 255, 255, .98), rgba(239, 246, 255, .94) 58%, rgba(245, 243, 255, .94)) !important;
-  box-shadow: var(--ws-premium-shadow), inset 0 1px 0 #fff !important;
-}
-
-/* Contractor Overview remains the master reference. These are only shared
-   geometry/interaction refinements; its dedicated colorful premium CSS keeps
-   control of the actual palette and business-specific visuals. */
-.co5-shell { width: min(980px, 100%) !important; }
-.co5-section { margin-top: 18px !important; }
-.co5-card,
-.co5-hero {
-  box-shadow:
-    0 20px 46px rgba(15, 23, 42, .075),
-    0 5px 16px rgba(79, 70, 229, .035),
-    inset 0 1px 0 #fff !important;
-}
-.co5-card,
-.co5-summary article,
-.co5-team { transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
-.co5-card:hover,
-.co5-team:hover { transform: translateY(-2px); }
-
-/* Worker Overview — preserve its dark Personal Command Center personality,
-   while making its surfaces, accents and motion belong to the same OS. */
-.wo {
-  background:
-    radial-gradient(circle at 7% 0, rgba(6, 182, 212, .18), transparent 29%),
-    radial-gradient(circle at 96% 4%, rgba(124, 58, 237, .21), transparent 31%),
-    linear-gradient(180deg, #070b17, #0c1020) !important;
-}
-.wo-hero,
-.wo-card {
-  border-color: rgba(103, 232, 249, .13) !important;
-  box-shadow:
-    0 22px 55px rgba(0, 0, 0, .30),
-    0 0 30px rgba(79, 70, 229, .035),
-    inset 0 1px 0 rgba(255, 255, 255, .09) !important;
-}
-.wo-btn:hover,
-.wo-set:hover { border-color: rgba(103, 232, 249, .3) !important; }
-
-/* Worker Personal Finance — explicitly keep its premium dark financial core.
-   Only shared edge/glow treatment is added; its finance stylesheet remains the
-   authority for cards, figures, semantics and responsive behavior. */
-main:has(> section[aria-label="Finance summary"]) {
-  box-shadow: inset 0 1px 0 rgba(103, 232, 249, .025);
-}
-main:has(> section[aria-label="Finance summary"]) > header {
-  position: relative;
-}
-main:has(> section[aria-label="Finance summary"]) > header::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  bottom: -9px;
-  width: min(220px, 44%);
-  height: 1px;
-  background: linear-gradient(90deg, rgba(34, 211, 238, .72), rgba(124, 58, 237, .45), transparent);
-  box-shadow: 0 0 12px rgba(34, 211, 238, .12);
-  pointer-events: none;
-}
-
-/* Expense Manager — the existing light Financial Command Core stays intact;
-   shared tokens tighten its visual relationship with Contractor without
-   replacing its established finance-specific styling. */
-.expense-manager-page {
-  background:
-    radial-gradient(circle at 10% 2%, rgba(59, 130, 246, .085), transparent 27%),
-    radial-gradient(circle at 94% 10%, rgba(124, 58, 237, .065), transparent 25%),
-    radial-gradient(circle at 48% 55%, rgba(6, 182, 212, .035), transparent 34%),
-    linear-gradient(180deg, #f8fbff 0%, #f1f5f9 100%) !important;
-}
-.expense-manager-page__hero {
-  position: relative;
-}
-.expense-manager-page__hero::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 42%;
-  max-width: 260px;
-  height: 1px;
-  background: linear-gradient(90deg, rgba(6, 182, 212, .65), rgba(124, 58, 237, .42), transparent);
-  pointer-events: none;
-}
-.expense-manager-page__title {
-  background: linear-gradient(100deg, #172554 0%, #2563eb 42%, #7c3aed 72%, #0891b2 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent !important;
-  text-shadow: 0 2px 0 rgba(255, 255, 255, .92), 0 9px 20px rgba(37, 99, 235, .08);
-}
-
-/* Major system pages: a consistent glass treatment for the shared bottom
-   navigation, without forcing social/profile/settings into a single page skin. */
-.ws-bottom-nav,
-nav[aria-label="Worker navigation"] {
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-}
-
-@media (max-width: 767px) {
-  .co5-section { margin-top: 15px !important; }
-  .co5-card:hover,
-  .co5-team:hover { transform: none; }
-  .expense-manager-page__title { letter-spacing: -.045em; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .co5-card,
-  .co5-team { transition: none !important; }
-}
+@media(max-width:767px){:root{--ws-dna-r-md:15px}.work-social-router-shell::before{background-size:34px 34px;opacity:.2}.work-social-router-shell :where(input:not([type="checkbox"]):not([type="radio"]),textarea,select){font-size:16px;min-height:40px}.work-social-router-shell :where([role="dialog"],[role="alertdialog"],.modal,.drawer){border-radius:var(--ws-dna-r-lg)!important}.work-social-router-shell nav :where(a:hover,button:hover){box-shadow:none}}
+@media(prefers-reduced-motion:reduce){.work-social-router-shell :where(button,[role="button"],a,input){transition:none!important}}
