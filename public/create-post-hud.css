@@ -4,7 +4,8 @@ section.ws-glass-panel:has(> header h2.ws-heading.ws-cyan-text) {
   -webkit-text-fill-color: #cbd5e1 !important;
 }
 
-section.ws-glass-panel:has(> header h2.ws-heading.ws-cyan-text) > header h2.ws-heading.ws-cyan-text {
+section.ws-glass-panel:has(> header h2.ws-heading.ws-cyan-text) > header h2.ws-heading.ws-cyan-text,
+section.ws-glass-panel:has(> header h2.ws-heading.ws-cyan-text) > header h2.ws-heading.ws-cyan-text * {
   color: #00f0ff !important;
   -webkit-text-fill-color: #00f0ff !important;
   font-family: monospace, sans-serif !important;
@@ -12,32 +13,40 @@ section.ws-glass-panel:has(> header h2.ws-heading.ws-cyan-text) > header h2.ws-h
   text-shadow: 0 0 10px rgba(0, 240, 255, 0.65) !important;
 }
 
-section.ws-glass-panel:has(> header h2.ws-heading.ws-cyan-text) > header small.ws-muted-text {
+section.ws-glass-panel:has(> header h2.ws-heading.ws-cyan-text) > header small.ws-muted-text,
+section.ws-glass-panel:has(> header h2.ws-heading.ws-cyan-text) > header small.ws-muted-text * {
   color: #94a3b8 !important;
   -webkit-text-fill-color: #94a3b8 !important;
   font-family: monospace, sans-serif !important;
 }
 
-section.ws-glass-panel:has(> header h2.ws-heading.ws-cyan-text) > header span.ws-glow-cyan {
+section.ws-glass-panel:has(> header h2.ws-heading.ws-cyan-text) > header span.ws-glow-cyan,
+section.ws-glass-panel:has(> header h2.ws-heading.ws-cyan-text) > header span.ws-glow-cyan * {
   color: #00f0ff !important;
   -webkit-text-fill-color: #00f0ff !important;
   text-shadow: 0 0 9px rgba(0, 240, 255, 0.7) !important;
 }
 
-section.ws-glass-panel:has(> header h2.ws-heading.ws-cyan-text) > textarea {
+/* The composer writing area can be nested; never allow the default white text/placeholder to leak through. */
+section.ws-glass-panel:has(> header h2.ws-heading.ws-cyan-text) textarea,
+section.ws-glass-panel:has(> header h2.ws-heading.ws-cyan-text) textarea * {
   color: #cbd5e1 !important;
   -webkit-text-fill-color: #cbd5e1 !important;
   caret-color: #00f0ff !important;
+  font-family: monospace, sans-serif !important;
 }
 
-section.ws-glass-panel:has(> header h2.ws-heading.ws-cyan-text) > textarea::placeholder {
+section.ws-glass-panel:has(> header h2.ws-heading.ws-cyan-text) textarea::placeholder {
   color: #94a3b8 !important;
   -webkit-text-fill-color: #94a3b8 !important;
   opacity: 1 !important;
 }
 
+/* Catch text wrappers inside the exact composer, including the Post action label. */
 section.ws-glass-panel:has(> header h2.ws-heading.ws-cyan-text) button.ws-glass.ws-glow-cyan,
-section.ws-glass-panel:has(> header h2.ws-heading.ws-cyan-text) button.ws-glass.ws-glow-cyan * {
+section.ws-glass-panel:has(> header h2.ws-heading.ws-cyan-text) button.ws-glass.ws-glow-cyan *,
+section.ws-glass-panel:has(> header h2.ws-heading.ws-cyan-text) [role="button"],
+section.ws-glass-panel:has(> header h2.ws-heading.ws-cyan-text) [role="button"] * {
   color: #00f0ff !important;
   -webkit-text-fill-color: #00f0ff !important;
   font-family: monospace, sans-serif !important;
@@ -52,6 +61,8 @@ section.ws-glass-panel:has(> header h2.ws-heading.ws-cyan-text) button.ws-glass.
 }
 
 section.ws-glass-panel:has(> header h2.ws-heading.ws-cyan-text) > div > button:last-child {
+  color: #00f0ff !important;
+  -webkit-text-fill-color: #00f0ff !important;
   border-color: rgba(0, 240, 255, 0.55) !important;
   box-shadow: 0 0 12px rgba(0, 240, 255, 0.18) !important;
 }
