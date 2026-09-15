@@ -54,13 +54,7 @@ button, input, textarea, select { font: inherit; }
 .ws-glass { background: var(--ws-glass-bg); border: 1px solid var(--ws-glass-border); backdrop-filter: blur(var(--ws-glass-blur)); -webkit-backdrop-filter: blur(var(--ws-glass-blur)); }
 .ws-glass-panel { background: var(--ws-glass-bg); border: 1px solid var(--ws-glass-border); border-radius: var(--ws-radius-lg); backdrop-filter: blur(var(--ws-glass-blur)); -webkit-backdrop-filter: blur(var(--ws-glass-blur)); box-shadow: var(--ws-glow-cyan); transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease; }
 .ws-glass-panel:hover { border-color: rgba(0, 240, 255, 0.32); box-shadow: var(--ws-glow-cyan-hover); }
-.ws-hud-card {
-  background: rgba(10, 20, 38, 0.45) !important;
-  backdrop-filter: blur(16px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
-  border: 1px solid rgba(0, 240, 255, 0.25) !important;
-  box-shadow: 0 0 15px rgba(0, 240, 255, 0.08) !important;
-}
+.ws-hud-card { background: rgba(10, 20, 38, 0.45) !important; backdrop-filter: blur(16px) saturate(180%) !important; -webkit-backdrop-filter: blur(16px) saturate(180%) !important; border: 1px solid rgba(0, 240, 255, 0.25) !important; box-shadow: 0 0 15px rgba(0, 240, 255, 0.08) !important; }
 .ws-hud { position: relative; overflow: hidden; background: var(--ws-glass-bg); border: 1px solid var(--ws-glass-border); border-radius: var(--ws-radius-lg); backdrop-filter: blur(var(--ws-glass-blur)); -webkit-backdrop-filter: blur(var(--ws-glass-blur)); }
 .ws-hud::before { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(135deg, rgba(0, 240, 255, 0.035), transparent 35%); }
 .ws-glow-cyan { box-shadow: var(--ws-glow-cyan); }
@@ -79,104 +73,29 @@ button, input, textarea, select { font: inherit; }
 .ws-status-online { color: var(--ws-cyan); text-shadow: 0 0 8px rgba(0, 240, 255, 0.55); }
 .ws-status-alert { color: var(--ws-alert); text-shadow: 0 0 8px rgba(255, 51, 102, 0.55); }
 
-/* Social feed master HUD layout. */
-.work-social-page-content:has(.home-post-feed),
-.home-post-feed {
-  background-color: transparent !important;
-  background-image:
-    linear-gradient(to right, rgba(0, 240, 255, 0.05) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(0, 240, 255, 0.05) 1px, transparent 1px),
-    radial-gradient(ellipse at top, rgba(0, 240, 255, 0.075), transparent 52%) !important;
-  background-size: 30px 30px, 30px 30px, auto !important;
-  background-attachment: local;
-}
-.home-page-title,
-.home-post-feed > section > h2 {
-  font-family: 'Orbitron', 'Roboto Mono', monospace !important;
-  color: var(--ws-cyan) !important;
-  -webkit-text-fill-color: var(--ws-cyan) !important;
-  background: transparent !important;
-  text-shadow: 0 0 8px rgba(0, 240, 255, 0.45), 0 0 20px rgba(0, 240, 255, 0.18) !important;
-}
-.home-post-feed > section > h2 {
-  border: 1px solid var(--ws-glass-border) !important;
-  background: rgba(10, 20, 38, 0.45) !important;
-  backdrop-filter: blur(16px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
-  box-shadow: 0 0 15px rgba(0, 240, 255, 0.08) !important;
-}
+.work-social-page-content:has(.home-post-feed), .home-post-feed { background-color: transparent !important; background-image: linear-gradient(to right, rgba(0, 240, 255, 0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(0, 240, 255, 0.05) 1px, transparent 1px), radial-gradient(ellipse at top, rgba(0, 240, 255, 0.075), transparent 52%) !important; background-size: 30px 30px, 30px 30px, auto !important; background-attachment: local; }
+.home-page-title, .home-post-feed > section > h2 { font-family: 'Orbitron', 'Roboto Mono', monospace !important; color: var(--ws-cyan) !important; -webkit-text-fill-color: var(--ws-cyan) !important; background: transparent !important; text-shadow: 0 0 8px rgba(0, 240, 255, 0.45), 0 0 20px rgba(0, 240, 255, 0.18) !important; }
+.home-post-feed > section > h2 { border: 1px solid var(--ws-glass-border) !important; background: rgba(10, 20, 38, 0.45) !important; backdrop-filter: blur(16px) saturate(180%) !important; -webkit-backdrop-filter: blur(16px) saturate(180%) !important; box-shadow: 0 0 15px rgba(0, 240, 255, 0.08) !important; }
+.home-post-feed article, .home-post-feed article footer, .home-post-feed article [role='group'], .home-post-feed article [role='menu'], .home-post-feed article [role='dialog'], .home-post-feed article [role='alertdialog'] { background: rgba(10, 20, 38, 0.45) !important; border-color: rgba(0, 240, 255, 0.25) !important; backdrop-filter: blur(16px) saturate(180%) !important; -webkit-backdrop-filter: blur(16px) saturate(180%) !important; box-shadow: 0 0 15px rgba(0, 240, 255, 0.08) !important; color: var(--ws-text-primary) !important; }
+.home-post-feed article { border: 1px solid rgba(0, 240, 255, 0.25) !important; border-radius: var(--ws-radius-lg) !important; }
+.home-post-feed article input:not([type='file']), .home-post-feed article textarea { background: rgba(0, 0, 0, 0.40) !important; border: 1px solid rgba(0, 240, 255, 0.25) !important; color: var(--ws-cyan) !important; caret-color: var(--ws-cyan) !important; backdrop-filter: blur(10px) !important; -webkit-backdrop-filter: blur(10px) !important; }
+.home-post-feed article input:not([type='file']):focus, .home-post-feed article textarea:focus { outline: none !important; border-color: #22d3ee !important; box-shadow: 0 0 0 1px #22d3ee, 0 0 14px rgba(0, 240, 255, 0.24) !important; }
+.home-post-feed article input::placeholder, .home-post-feed article textarea::placeholder { color: var(--ws-text-muted) !important; }
+.home-post-feed article button { color: var(--ws-cyan) !important; background: rgba(10, 20, 38, 0.45) !important; border-color: rgba(0, 240, 255, 0.25) !important; box-shadow: 0 0 15px rgba(0, 240, 255, 0.08) !important; backdrop-filter: blur(10px) !important; -webkit-backdrop-filter: blur(10px) !important; }
+.home-post-feed article button:hover:not(:disabled), .home-post-feed article button:focus-visible { border-color: #22d3ee !important; box-shadow: 0 0 14px rgba(0, 240, 255, 0.24) !important; }
+.home-post-feed article small, .home-post-feed article p small { color: var(--ws-text-muted) !important; }
 
-/* Hard HUD override for every Social post wrapper and nested comment surface. */
-.home-post-feed article,
-.home-post-feed article footer,
-.home-post-feed article [role='group'],
+/* Social typography correction: names/titles are HUD cyan, content is soft silver-cyan. */
+.home-post-feed article strong { color: #00f0ff !important; font-family: 'Orbitron', 'Roboto Mono', monospace !important; font-weight: 700 !important; text-shadow: 0 0 8px rgba(0, 240, 255, 0.4) !important; }
+.home-post-feed article p:not([role='alert']), .home-post-feed article [data-post-content='true'], .home-post-feed article [data-comment-content='true'] { color: #cbd5e1 !important; }
+.home-post-feed article footer { color: #cbd5e1 !important; }
+.home-post-feed article footer strong { color: #22d3ee !important; }
+
+/* Privacy/comment option menus: no white/solid surfaces. */
 .home-post-feed article [role='menu'],
-.home-post-feed article [role='dialog'],
-.home-post-feed article [role='alertdialog'] {
-  background: rgba(10, 20, 38, 0.45) !important;
-  border-color: rgba(0, 240, 255, 0.25) !important;
-  backdrop-filter: blur(16px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
-  box-shadow: 0 0 15px rgba(0, 240, 255, 0.08) !important;
-  color: var(--ws-text-primary) !important;
-}
-.home-post-feed article {
-  border: 1px solid rgba(0, 240, 255, 0.25) !important;
-  border-radius: var(--ws-radius-lg) !important;
-}
-.home-post-feed article input:not([type='file']),
-.home-post-feed article textarea {
-  background: rgba(0, 0, 0, 0.40) !important;
-  border: 1px solid rgba(0, 240, 255, 0.25) !important;
-  color: var(--ws-cyan) !important;
-  caret-color: var(--ws-cyan) !important;
-  backdrop-filter: blur(10px) !important;
-  -webkit-backdrop-filter: blur(10px) !important;
-}
-.home-post-feed article input:not([type='file']):focus,
-.home-post-feed article textarea:focus {
-  outline: none !important;
-  border-color: #22d3ee !important;
-  box-shadow: 0 0 0 1px #22d3ee, 0 0 14px rgba(0, 240, 255, 0.24) !important;
-}
-.home-post-feed article input::placeholder,
-.home-post-feed article textarea::placeholder { color: var(--ws-text-muted) !important; }
-.home-post-feed article button {
-  color: var(--ws-cyan) !important;
-  background: rgba(10, 20, 38, 0.45) !important;
-  border-color: rgba(0, 240, 255, 0.25) !important;
-  box-shadow: 0 0 15px rgba(0, 240, 255, 0.08) !important;
-  backdrop-filter: blur(10px) !important;
-  -webkit-backdrop-filter: blur(10px) !important;
-}
-.home-post-feed article button:hover:not(:disabled),
-.home-post-feed article button:focus-visible { border-color: #22d3ee !important; box-shadow: 0 0 14px rgba(0, 240, 255, 0.24) !important; }
-.home-post-feed article small,
-.home-post-feed article p small { color: var(--ws-text-muted) !important; }
+.home-post-feed article [role='menu'] > button { background: rgba(10, 20, 38, 0.45) !important; color: #cbd5e1 !important; border: 1px solid rgba(0, 240, 255, 0.25) !important; backdrop-filter: blur(16px) saturate(180%) !important; -webkit-backdrop-filter: blur(16px) saturate(180%) !important; }
+.home-post-feed article [role='menu'] > button:hover, .home-post-feed article [role='menu'] > button:focus-visible { background: rgba(0, 240, 255, 0.10) !important; color: #67e8f9 !important; border-color: rgba(0, 240, 255, 0.45) !important; }
 
-/* Neutralize legacy light inline surfaces inside Social posts while keeping media untouched. */
-.home-post-feed article [style*='background: #fff'],
-.home-post-feed article [style*='background:#fff'],
-.home-post-feed article [style*='rgba(255,255,255'],
-.home-post-feed article [style*='rgba(255, 255, 255'],
-.home-post-feed article [style*='rgba(247,249,252'],
-.home-post-feed article [style*='rgba(247, 249, 252'],
-.home-post-feed article [style*='rgba(246,248,251'],
-.home-post-feed article [style*='rgba(246, 248, 251'],
-.home-post-feed article [style*='rgba(245,247,250'],
-.home-post-feed article [style*='rgba(245, 247, 250'],
-.home-post-feed article [style*='#ffffff'],
-.home-post-feed article [style*='#FFFFFF'],
-.home-post-feed article [style*='#f5f7fa'],
-.home-post-feed article [style*='#f7f9fc'] {
-  background: rgba(10, 20, 38, 0.45) !important;
-  border-color: rgba(0, 240, 255, 0.25) !important;
-  color: var(--ws-text-primary) !important;
-  backdrop-filter: blur(16px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
-}
+.home-post-feed article [style*='background: #fff'], .home-post-feed article [style*='background:#fff'], .home-post-feed article [style*='rgba(255,255,255'], .home-post-feed article [style*='rgba(255, 255, 255'], .home-post-feed article [style*='rgba(247,249,252'], .home-post-feed article [style*='rgba(247, 249, 252'], .home-post-feed article [style*='rgba(246,248,251'], .home-post-feed article [style*='rgba(246, 248, 251'], .home-post-feed article [style*='rgba(245,247,250'], .home-post-feed article [style*='rgba(245, 247, 250'], .home-post-feed article [style*='#ffffff'], .home-post-feed article [style*='#FFFFFF'], .home-post-feed article [style*='#f5f7fa'], .home-post-feed article [style*='#f7f9fc'] { background: rgba(10, 20, 38, 0.45) !important; border-color: rgba(0, 240, 255, 0.25) !important; color: #cbd5e1 !important; backdrop-filter: blur(16px) saturate(180%) !important; -webkit-backdrop-filter: blur(16px) saturate(180%) !important; }
 
-@media (prefers-reduced-motion: reduce) {
-  .home-post-feed article,
-  .home-post-feed article button { transition: none !important; }
-}
+@media (prefers-reduced-motion: reduce) { .home-post-feed article, .home-post-feed article button { transition: none !important; } }
