@@ -2,8 +2,8 @@
 
 :root {
   color-scheme: dark;
-  --ws-bg-start: #020617;
-  --ws-bg-end: #071326;
+  --ws-bg-start: #0a1b31;
+  --ws-bg-end: #123154;
   --ws-bg-gradient: linear-gradient(135deg, var(--ws-bg-start), var(--ws-bg-end));
   --ws-cyan: #00f0ff;
   --ws-blue: #0066ff;
@@ -30,12 +30,13 @@ body {
   min-height: 100vh;
   margin: 0;
   background:
-    linear-gradient(to right, rgba(0, 240, 255, 0.055) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(0, 240, 255, 0.055) 1px, transparent 1px),
-    radial-gradient(circle at 50% 0%, rgba(0, 240, 255, 0.14), transparent 38%),
-    radial-gradient(circle at 12% 12%, rgba(0, 102, 255, 0.08), transparent 30%),
+    linear-gradient(to right, rgba(0, 240, 255, 0.07) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 240, 255, 0.07) 1px, transparent 1px),
+    radial-gradient(circle at 50% 0%, rgba(0, 240, 255, 0.24), transparent 42%),
+    radial-gradient(circle at 15% 16%, rgba(0, 102, 255, 0.16), transparent 34%),
+    radial-gradient(circle at 85% 28%, rgba(0, 180, 255, 0.10), transparent 32%),
     var(--ws-bg-gradient) !important;
-  background-size: 32px 32px, 32px 32px, auto, auto, auto !important;
+  background-size: 32px 32px, 32px 32px, auto, auto, auto, auto !important;
   background-attachment: fixed;
   color: var(--ws-text-primary);
   font-family: 'JetBrains Mono', monospace;
@@ -76,7 +77,7 @@ button, input, textarea, select { font: inherit; }
 .ws-border-cyan-strong { border: 1px solid rgba(0, 240, 255, 0.55) !important; }
 .ws-border-blue { border: 1px solid rgba(0, 102, 255, 0.4) !important; }
 .ws-border-alert { border: 1px solid rgba(255, 51, 102, 0.4) !important; }
-.ws-grid { background-image: linear-gradient(rgba(0, 240, 255, 0.055) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 240, 255, 0.055) 1px, transparent 1px); background-size: 32px 32px; }
+.ws-grid { background-image: linear-gradient(rgba(0, 240, 255, 0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 240, 255, 0.07) 1px, transparent 1px); background-size: 32px 32px; }
 .ws-scrollbar { scrollbar-width: thin; scrollbar-color: rgba(0, 240, 255, 0.4) transparent; }
 .ws-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
 .ws-scrollbar::-webkit-scrollbar-track { background: transparent; }
@@ -136,7 +137,7 @@ button[type='submit']:disabled { opacity: 0.45 !important; box-shadow: none !imp
 
 .work-social-page-content:has(.home-post-feed), .home-post-feed {
   background-color: transparent !important;
-  background-image: linear-gradient(to right, rgba(0, 240, 255, 0.055) 1px, transparent 1px), linear-gradient(to bottom, rgba(0, 240, 255, 0.055) 1px, transparent 1px), radial-gradient(ellipse at top, rgba(0, 240, 255, 0.11), transparent 52%) !important;
+  background-image: linear-gradient(to right, rgba(0, 240, 255, 0.07) 1px, transparent 1px), linear-gradient(to bottom, rgba(0, 240, 255, 0.07) 1px, transparent 1px), radial-gradient(ellipse at top, rgba(0, 240, 255, 0.18), transparent 52%) !important;
   background-size: 32px 32px, 32px 32px, auto !important;
   background-attachment: local;
 }
