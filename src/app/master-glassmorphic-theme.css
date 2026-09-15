@@ -1,7 +1,7 @@
 /* Work Social — Master Glassmorphic Sci-Fi UI convergence.
    Presentation-only overrides. Business logic, data, routing, auth, AI and Supabase behavior are untouched. */
 
-/* Premium supercomputer canvas: deep space blue with electric cyan + restrained lime energy. */
+/* Premium supercomputer canvas: controlled blue-black depth with electric cyan energy and restrained lime telemetry. */
 html,
 body,
 #root {
@@ -10,17 +10,16 @@ body,
 
 :root {
   --ws-supercomputer-canvas:
-    radial-gradient(ellipse 92% 72% at 50% -6%, rgba(72, 238, 255, 0.28), transparent 58%),
-    radial-gradient(ellipse 58% 76% at 0% 24%, rgba(0, 132, 255, 0.32), transparent 70%),
-    radial-gradient(ellipse 58% 76% at 100% 28%, rgba(35, 186, 255, 0.24), transparent 70%),
-    radial-gradient(ellipse 52% 68% at 8% 92%, rgba(164, 255, 35, 0.18), transparent 72%),
-    radial-gradient(ellipse 52% 68% at 92% 92%, rgba(164, 255, 35, 0.14), transparent 72%),
-    radial-gradient(ellipse 72% 62% at 50% 52%, rgba(24, 104, 190, 0.20), transparent 74%),
-    linear-gradient(122deg, #071a33 0%, #0a2850 30%, #0d3560 52%, #0a2a50 74%, #06182f 100%);
+    radial-gradient(ellipse 88% 66% at 50% -8%, rgba(45, 210, 255, 0.20), transparent 60%),
+    radial-gradient(ellipse 54% 70% at 0% 24%, rgba(0, 112, 255, 0.25), transparent 72%),
+    radial-gradient(ellipse 54% 70% at 100% 28%, rgba(0, 196, 255, 0.18), transparent 72%),
+    radial-gradient(ellipse 48% 62% at 8% 92%, rgba(154, 255, 38, 0.10), transparent 74%),
+    radial-gradient(ellipse 48% 62% at 92% 92%, rgba(154, 255, 38, 0.08), transparent 74%),
+    linear-gradient(120deg, #07162b 0%, #0a2344 32%, #0c2d52 55%, #0a2341 76%, #061427 100%);
 }
 
 html {
-  background: #071a33 !important;
+  background: #07162b !important;
 }
 
 body {
@@ -30,24 +29,26 @@ body {
   color: var(--ws-text-primary) !important;
 }
 
-/* Keep the actual scrolling canvas on the exact same environment as the viewport. */
-.work-social-page-content {
+/* Home uses the exact same canvas as the global/notification environment while scrolling. */
+.work-social-page-content,
+body:has(.home-post-feed) .app-shell,
+body:has(.home-post-feed) .work-social-page-content,
+body:has(.home-post-feed) .home-post-feed {
   background-color: transparent !important;
   background-image:
-    linear-gradient(rgba(150, 245, 255, 0.045) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(150, 245, 255, 0.045) 1px, transparent 1px),
+    linear-gradient(rgba(130, 235, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(130, 235, 255, 0.035) 1px, transparent 1px),
     var(--ws-supercomputer-canvas) !important;
   background-size: 32px 32px, 32px 32px, cover !important;
   background-attachment: scroll, scroll, fixed !important;
 }
 
 .app-shell,
-.home-post-feed,
 .premium-profile-panel {
   background-color: transparent !important;
   background-image:
-    linear-gradient(rgba(150, 245, 255, 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(150, 245, 255, 0.035) 1px, transparent 1px) !important;
+    linear-gradient(rgba(130, 235, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(130, 235, 255, 0.025) 1px, transparent 1px) !important;
   background-size: 32px 32px !important;
 }
 
