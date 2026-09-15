@@ -1,0 +1,40 @@
+/* Social post cards: the entire post surface is transparent blue holographic glass. */
+body:has(.home-post-feed) .home-post-feed article {
+  background: linear-gradient(135deg, rgba(35, 145, 220, 0.24), rgba(0, 102, 255, 0.12), rgba(0, 200, 255, 0.10)) !important;
+  background-color: rgba(8, 72, 120, 0.20) !important;
+  backdrop-filter: blur(18px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(180%) !important;
+  border: 1px solid rgba(0, 220, 255, 0.48) !important;
+  box-shadow: 0 0 20px rgba(0, 180, 255, 0.18), inset 0 0 16px rgba(0, 220, 255, 0.07) !important;
+}
+
+/* Keep the whole post interior transparent so no dark rectangular layer remains inside the card. */
+body:has(.home-post-feed) .home-post-feed article > div,
+body:has(.home-post-feed) .home-post-feed article > section,
+body:has(.home-post-feed) .home-post-feed article > footer {
+  background: rgba(8, 72, 120, 0.10) !important;
+  backdrop-filter: blur(14px) saturate(175%) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(175%) !important;
+}
+
+/* Comment/reaction strips stay part of the same glass card language. */
+body:has(.home-post-feed) .home-post-feed article [role='group'] {
+  background: rgba(0, 150, 220, 0.10) !important;
+  border-color: rgba(0, 220, 255, 0.24) !important;
+}
+
+body:has(.home-post-feed) .home-post-feed article footer {
+  border-top: 1px solid rgba(0, 220, 255, 0.20) !important;
+}
+
+/* Do not make actual media transparent. */
+body:has(.home-post-feed) .home-post-feed article img,
+body:has(.home-post-feed) .home-post-feed article video {
+  background: initial !important;
+}
+
+@media (max-width: 720px) {
+  body:has(.home-post-feed) .home-post-feed article {
+    box-shadow: 0 0 16px rgba(0, 180, 255, 0.16), inset 0 0 12px rgba(0, 220, 255, 0.06) !important;
+  }
+}
