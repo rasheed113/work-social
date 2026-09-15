@@ -85,20 +85,17 @@ button, input, textarea, select { font: inherit; }
 .home-post-feed article button:hover:not(:disabled), .home-post-feed article button:focus-visible { border-color: #22d3ee !important; box-shadow: 0 0 14px rgba(0, 240, 255, 0.24) !important; }
 .home-post-feed article small, .home-post-feed article p small { color: var(--ws-text-muted) !important; }
 
-/* Social typography correction: names/titles are HUD cyan, content is soft silver-cyan. */
 .home-post-feed article strong { color: #00f0ff !important; font-family: 'Orbitron', 'Roboto Mono', monospace !important; font-weight: 700 !important; text-shadow: 0 0 8px rgba(0, 240, 255, 0.4) !important; }
 .home-post-feed article p:not([role='alert']), .home-post-feed article [data-post-content='true'], .home-post-feed article [data-comment-content='true'] { color: #cbd5e1 !important; }
 .home-post-feed article footer { color: #cbd5e1 !important; }
 .home-post-feed article footer strong { color: #22d3ee !important; }
 
-/* Privacy/comment option menus: no white/solid surfaces. */
 .home-post-feed article [role='menu'],
 .home-post-feed article [role='menu'] > button { background: rgba(10, 20, 38, 0.45) !important; color: #cbd5e1 !important; border: 1px solid rgba(0, 240, 255, 0.25) !important; backdrop-filter: blur(16px) saturate(180%) !important; -webkit-backdrop-filter: blur(16px) saturate(180%) !important; }
 .home-post-feed article [role='menu'] > button:hover, .home-post-feed article [role='menu'] > button:focus-visible { background: rgba(0, 240, 255, 0.10) !important; color: #67e8f9 !important; border-color: rgba(0, 240, 255, 0.45) !important; }
 
 .home-post-feed article [style*='background: #fff'], .home-post-feed article [style*='background:#fff'], .home-post-feed article [style*='rgba(255,255,255'], .home-post-feed article [style*='rgba(255, 255, 255'], .home-post-feed article [style*='rgba(247,249,252'], .home-post-feed article [style*='rgba(247, 249, 252'], .home-post-feed article [style*='rgba(246,248,251'], .home-post-feed article [style*='rgba(246, 248, 251'], .home-post-feed article [style*='rgba(245,247,250'], .home-post-feed article [style*='rgba(245, 247, 250'], .home-post-feed article [style*='#ffffff'], .home-post-feed article [style*='#FFFFFF'], .home-post-feed article [style*='#f5f7fa'], .home-post-feed article [style*='#f7f9fc'] { background: rgba(10, 20, 38, 0.45) !important; border-color: rgba(0, 240, 255, 0.25) !important; color: #cbd5e1 !important; backdrop-filter: blur(16px) saturate(180%) !important; -webkit-backdrop-filter: blur(16px) saturate(180%) !important; }
 
-/* Direct HUD replacement for the current feed implementation. The requested feed component paths do not exist in this branch; PostFeed owns these nodes. */
 .home-post-feed article,
 .home-post-feed article[style] {
   background: rgba(10, 20, 38, 0.45) !important;
@@ -122,7 +119,6 @@ button, input, textarea, select { font: inherit; }
   color: #38bdf8 !important;
 }
 
-/* Header navbar: remove any white/light surface and enforce the requested glass HUD treatment. */
 .ws-master-header,
 .ws-master-header__panel {
   background: rgba(2, 6, 23, 0.60) !important;
@@ -133,5 +129,31 @@ button, input, textarea, select { font: inherit; }
 }
 .ws-master-header__panel { border: 0 !important; border-bottom: 1px solid rgba(0, 240, 255, 0.20) !important; }
 .ws-master-profile strong { color: #00f0ff !important; }
+
+/* Master Glass & Typography Overrides */
+body {
+  background-color: #030712 !important;
+  background-image: radial-gradient(rgba(0, 240, 255, 0.15) 1px, transparent 1px) !important;
+  background-size: 24px 24px !important;
+}
+
+.ws-username, [class*="username"], h1, h2, h3, h4 {
+  color: #00f0ff !important;
+  text-shadow: 0 0 8px rgba(0, 240, 255, 0.5) !important;
+}
+
+.ws-card, [class*="card"], [class*="Post"], [class*="Comment"] {
+  background: rgba(10, 20, 38, 0.55) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border: 1px solid rgba(0, 240, 255, 0.25) !important;
+  box-shadow: 0 0 15px rgba(0, 240, 255, 0.08) !important;
+}
+
+input, textarea {
+  background: rgba(5, 10, 20, 0.7) !important;
+  color: #00f0ff !important;
+  border: 1px solid rgba(0, 240, 255, 0.4) !important;
+}
 
 @media (prefers-reduced-motion: reduce) { .home-post-feed article, .home-post-feed article button { transition: none !important; } }
