@@ -31,8 +31,8 @@ main:has(> div > div > h1) article:has(.report-decline) .report-view:hover:not(:
 main:has(> div > div > h1) article:has(.report-decline) .report-decline:hover:not(:disabled) { background:rgba(190,40,80,.24) !important; }
 main:has(> div > div > h1) .report-flash-note { color:#ffb6d0 !important; background:rgba(255,55,120,.12) !important; background-color:rgba(255,55,120,.12) !important; border:1px solid rgba(255,90,145,.30) !important; text-shadow:0 0 9px rgba(255,80,145,.22) !important; }
 
-/* Exact Notifications header action: the first button in the header's right-side action group. */
-main:has(> div > div > h1) > div:first-of-type > div:first-of-type > button[type="button"] {
+/* Robust Notifications header action: target the header container by its h1 child, not DOM position. */
+main:has(> div > div > h1) > div:has(> div > h1) > button[type="button"] {
   appearance:none !important;
   -webkit-appearance:none !important;
   display:inline-flex !important;
@@ -58,8 +58,8 @@ main:has(> div > div > h1) > div:first-of-type > div:first-of-type > button[type
   transition:border-color 160ms ease,box-shadow 160ms ease,transform 160ms ease,background 160ms ease,filter 160ms ease !important;
 }
 
-main:has(> div > div > h1) > div:first-of-type > div:first-of-type > button[type="button"]:hover:not(:disabled),
-main:has(> div > div > h1) > div:first-of-type > div:first-of-type > button[type="button"]:focus-visible {
+main:has(> div > div > h1) > div:has(> div > h1) > button[type="button"]:hover:not(:disabled),
+main:has(> div > div > h1) > div:has(> div > h1) > button[type="button"]:focus-visible {
   border-color:#8fffff !important;
   background:linear-gradient(135deg,rgba(0,240,255,.40),rgba(0,128,255,.32) 52%,rgba(8,31,64,.98)) !important;
   box-shadow:0 0 22px rgba(0,240,255,.42),0 0 42px rgba(0,126,255,.18),inset 0 1px 0 rgba(235,255,255,.28) !important;
@@ -68,9 +68,9 @@ main:has(> div > div > h1) > div:first-of-type > div:first-of-type > button[type
   outline:none !important;
 }
 
-main:has(> div > div > h1) > div:first-of-type > div:first-of-type > button[type="button"]:active:not(:disabled) { transform:translateY(0) scale(.98) !important; }
-main:has(> div > div > h1) > div:first-of-type > div:first-of-type > button[type="button"]:disabled { cursor:not-allowed !important; opacity:.55 !important; filter:saturate(.55) !important; box-shadow:0 0 8px rgba(0,240,255,.08),inset 0 1px 0 rgba(180,255,255,.08) !important; }
+main:has(> div > div > h1) > div:has(> div > h1) > button[type="button"]:active:not(:disabled) { transform:translateY(0) scale(.98) !important; }
+main:has(> div > div > h1) > div:has(> div > h1) > button[type="button"]:disabled { cursor:not-allowed !important; opacity:.55 !important; filter:saturate(.55) !important; box-shadow:0 0 8px rgba(0,240,255,.08),inset 0 1px 0 rgba(180,255,255,.08) !important; }
 
 @media (max-width:640px) {
-  main:has(> div > div > h1) > div:first-of-type > div:first-of-type > button[type="button"] { min-width:132px !important; min-height:37px !important; padding:8px 12px !important; font-size:9px !important; letter-spacing:.08em !important; }
+  main:has(> div > div > h1) > div:has(> div > h1) > button[type="button"] { min-width:132px !important; min-height:37px !important; padding:8px 12px !important; font-size:9px !important; letter-spacing:.08em !important; }
 }
