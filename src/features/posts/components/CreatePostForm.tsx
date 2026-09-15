@@ -62,10 +62,10 @@ export function CreatePostForm({ profileId, onCreated }: CreatePostFormProps) {
     />
     <input ref={mediaInputRef} type="file" accept="image/*,video/*" multiple hidden onChange={onMedia} />
     <input ref={fileInputRef} type="file" hidden onChange={(event) => addFiles(event, 'file')} />
-    <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap', margin: '6px 0 0' }}>
-      <button type="button" className="ws-glass ws-glow-cyan" onClick={chooseMedia} disabled={saving}>📷 Photo / Video</button>
-      <button type="button" className="ws-glass ws-glow-cyan" onClick={chooseFile} disabled={saving}>📎 File</button>
-      <button type="button" className="ws-glass ws-glow-cyan" onClick={getLocation} disabled={saving || locationLoading}>📍 {locationLoading ? 'Getting location…' : 'Location'}</button>
+    <div className="create-post-attachment-actions" style={{ display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap', margin: '6px 0 0' }}>
+      <button type="button" className="ws-glass ws-glow-cyan create-post-attachment-btn create-post-attachment-media" onClick={chooseMedia} disabled={saving}>📷 Photo / Video</button>
+      <button type="button" className="ws-glass ws-glow-cyan create-post-attachment-btn create-post-attachment-file" onClick={chooseFile} disabled={saving}>📎 File</button>
+      <button type="button" className="ws-glass ws-glow-cyan create-post-attachment-btn create-post-attachment-location" onClick={getLocation} disabled={saving || locationLoading}>📍 {locationLoading ? 'Getting location…' : 'Location'}</button>
       <button type="button" className="ws-glass ws-glow-cyan" onClick={() => void submit()} disabled={saving || !canPost} style={{ marginLeft: 'auto' }}>{saving ? 'Posting…' : 'Post'}</button>
     </div>
     {selectedFiles.length > 0 && <div className="ws-glass" style={{ display: 'grid', gap: 6, marginTop: 7, marginBottom: 7, padding: 6 }}>
@@ -76,5 +76,52 @@ export function CreatePostForm({ profileId, onCreated }: CreatePostFormProps) {
     </div>}
     {location && <p className="ws-glass" style={{ margin: '6px 0 0', padding: '7px 9px', fontSize: 11, fontWeight: 700 }}>📍 Location attached ({location.latitude.toFixed(5)}, {location.longitude.toFixed(5)}) <button type="button" className="ws-glass ws-glow-cyan" onClick={() => setLocation(null)} disabled={saving} style={{ marginLeft: 5 }}>Remove</button></p>}
     {error && <p role="alert" className="ws-glass" style={{ margin: '6px 0 0', padding: '7px 9px', fontSize: 11, fontWeight: 700 }}>{error}</p>}
+    <style>{`
+      .create-post-attachment-actions .create-post-attachment-btn {
+        min-height: 34px !important;
+        padding: 0 11px !important;
+        border: 1px solid rgba(66, 226, 255, .34) !important;
+        border-radius: 10px !important;
+        background: linear-gradient(135deg, rgba(7, 25, 43, .92), rgba(8, 55, 82, .72)) !important;
+        color: #bffbff !important;
+        -webkit-text-fill-color: #bffbff !important;
+        font-family: monospace, sans-serif !important;
+        font-size: 10px !important;
+        font-weight: 800 !important;
+        letter-spacing: .015em !important;
+        text-shadow: 0 0 8px rgba(76, 235, 255, .48) !important;
+        box-shadow: 0 0 10px rgba(0, 195, 255, .12), inset 0 1px 0 rgba(255,255,255,.08) !important;
+        transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease, background .16s ease !important;
+      }
+      .create-post-attachment-actions .create-post-attachment-media {
+        border-color: rgba(91, 238, 255, .58) !important;
+        background: linear-gradient(135deg, rgba(5, 42, 62, .96), rgba(7, 91, 118, .78)) !important;
+        box-shadow: 0 0 14px rgba(42, 224, 255, .22), inset 0 1px 0 rgba(255,255,255,.1) !important;
+      }
+      .create-post-attachment-actions .create-post-attachment-file {
+        border-color: rgba(62, 165, 255, .52) !important;
+        background: linear-gradient(135deg, rgba(7, 28, 56, .96), rgba(13, 67, 119, .76)) !important;
+        box-shadow: 0 0 13px rgba(50, 145, 255, .18), inset 0 1px 0 rgba(255,255,255,.08) !important;
+      }
+      .create-post-attachment-actions .create-post-attachment-location {
+        border-color: rgba(76, 211, 255, .5) !important;
+        background: linear-gradient(135deg, rgba(5, 35, 57, .96), rgba(8, 78, 104, .74)) !important;
+        box-shadow: 0 0 13px rgba(53, 202, 255, .18), inset 0 1px 0 rgba(255,255,255,.08) !important;
+      }
+      .create-post-attachment-actions .create-post-attachment-btn:hover:not(:disabled) {
+        transform: translateY(-1px);
+        border-color: rgba(126, 247, 255, .92) !important;
+        background: linear-gradient(135deg, rgba(8, 48, 70, .98), rgba(10, 105, 135, .86)) !important;
+        box-shadow: 0 0 20px rgba(58, 224, 255, .3), inset 0 1px 0 rgba(255,255,255,.14) !important;
+      }
+      .create-post-attachment-actions .create-post-attachment-btn:active:not(:disabled) {
+        transform: translateY(0) scale(.98);
+      }
+      .create-post-attachment-actions .create-post-attachment-btn:disabled {
+        opacity: .5 !important;
+        filter: saturate(.55);
+        box-shadow: none !important;
+      }
+    `}</style>
   </section>;
 }
