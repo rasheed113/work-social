@@ -95,6 +95,35 @@ header [class*="Logo"] > * {
   -webkit-text-fill-color: #00f0ff !important;
 }
 
+/* CreatePost action controls: override browser/button component defaults explicitly */
+[class*="CreatePost"] button,
+[class*="CreatePost"] button *,
+[class*="CreatePost"] [role="button"],
+[class*="CreatePost"] [role="button"] *,
+.home-post-feed > section:first-child button,
+.home-post-feed > section:first-child button * {
+  color: #00f0ff !important;
+  -webkit-text-fill-color: #00f0ff !important;
+  text-shadow: 0 0 7px rgba(0, 240, 255, 0.45) !important;
+}
+
+/* Media / file / location controls — keep both text and icons in the HUD palette */
+[class*="CreatePost"] button[aria-label*="Photo"],
+[class*="CreatePost"] button[aria-label*="File"],
+[class*="CreatePost"] button[aria-label*="Location"],
+[class*="CreatePost"] button[title*="Photo"],
+[class*="CreatePost"] button[title*="File"],
+[class*="CreatePost"] button[title*="Location"] {
+  color: #00f0ff !important;
+  -webkit-text-fill-color: #00f0ff !important;
+}
+
+.home-post-feed > section:first-child svg,
+.home-post-feed > section:first-child svg * {
+  color: #00f0ff !important;
+  stroke: #00f0ff !important;
+}
+
 /* Subtitles, timestamps and muted metadata */
 .home-post-feed time,
 .home-post-feed small,
