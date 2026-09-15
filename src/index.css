@@ -190,3 +190,50 @@ button[type='submit']:disabled { opacity: 0.45 !important; box-shadow: none !imp
 /* Universal HUD text fallback: remove legacy white card copy without changing semantic accents. */
 .home-post-feed article > div, .home-post-feed article > div *, .home-post-feed article > footer, .home-post-feed article > footer * { color: #c7f7ff !important; -webkit-text-fill-color: #c7f7ff !important; }
 .home-post-feed article strong { color: #00f0ff !important; -webkit-text-fill-color: #00f0ff !important; text-shadow: 0 0 8px rgba(0, 240, 255, 0.7) !important; }
+
+/* Notifications: force the real Team Work report-row actions into the master neon HUD language. */
+article[style*='rgba(255,79,216,.34)'] button:nth-of-type(1) {
+  min-height: 34px !important;
+  padding: 0 14px !important;
+  border: 1px solid rgba(88,246,255,.9) !important;
+  border-radius: 9px !important;
+  background: linear-gradient(135deg, rgba(3,34,49,.98), rgba(0,137,166,.96)) !important;
+  color: #b9fbff !important;
+  -webkit-text-fill-color: #b9fbff !important;
+  font-size: 9px !important;
+  font-weight: 950 !important;
+  letter-spacing: .04em !important;
+  text-shadow: 0 0 8px rgba(88,246,255,.8) !important;
+  box-shadow: 0 0 8px rgba(88,246,255,.28), 0 0 18px rgba(88,246,255,.18), inset 0 1px 0 rgba(255,255,255,.16) !important;
+  cursor: pointer !important;
+}
+article[style*='rgba(255,79,216,.34)'] button:nth-of-type(2) {
+  min-height: 34px !important;
+  padding: 0 14px !important;
+  border: 1px solid rgba(255,79,216,.88) !important;
+  border-radius: 9px !important;
+  background: linear-gradient(135deg, rgba(48,10,43,.98), rgba(139,19,91,.96)) !important;
+  color: #ffb2f0 !important;
+  -webkit-text-fill-color: #ffb2f0 !important;
+  font-size: 9px !important;
+  font-weight: 950 !important;
+  letter-spacing: .04em !important;
+  text-shadow: 0 0 8px rgba(255,79,216,.75) !important;
+  box-shadow: 0 0 8px rgba(255,79,216,.26), 0 0 18px rgba(255,79,216,.16), inset 0 1px 0 rgba(255,255,255,.12) !important;
+  cursor: pointer !important;
+}
+article[style*='rgba(255,79,216,.34)'] button:nth-of-type(1):hover:not(:disabled) {
+  background: linear-gradient(135deg, rgba(5,55,72,1), rgba(0,181,210,1)) !important;
+  box-shadow: 0 0 12px rgba(88,246,255,.55), 0 0 26px rgba(88,246,255,.24), inset 0 1px 0 rgba(255,255,255,.2) !important;
+  transform: translateY(-1px) !important;
+}
+article[style*='rgba(255,79,216,.34)'] button:nth-of-type(2):hover:not(:disabled) {
+  background: linear-gradient(135deg, rgba(74,12,64,1), rgba(184,24,116,1)) !important;
+  box-shadow: 0 0 12px rgba(255,79,216,.52), 0 0 26px rgba(255,79,216,.22), inset 0 1px 0 rgba(255,255,255,.16) !important;
+  transform: translateY(-1px) !important;
+}
+article[style*='rgba(255,79,216,.34)'] button:disabled {
+  opacity: .5 !important;
+  cursor: not-allowed !important;
+  filter: saturate(.6) !important;
+}
