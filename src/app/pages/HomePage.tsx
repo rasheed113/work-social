@@ -91,7 +91,7 @@ export function HomePage({ profileId }: HomePageProps) {
   }, []);
 
   return (
-    <main className="social-command-screen social-command-screen--home" style={{ width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box', padding: '18px 0 112px', overflowX: 'hidden' }}>
+    <main className="social-command-screen social-command-screen--home" style={{ width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box', padding: '18px 0 112px', overflowX: 'hidden', background: 'transparent', color: '#cfe9fb' }}>
       <style>{`
         .home-page-title {
           margin: 0;
@@ -99,12 +99,10 @@ export function HomePage({ profileId }: HomePageProps) {
           line-height: 1.05;
           font-weight: 900;
           letter-spacing: -.035em;
-          color: transparent;
-          background: linear-gradient(135deg, #6d5dfc 0%, #22c1dc 48%, #ff5ca8 100%);
-          -webkit-background-clip: text;
-          background-clip: text;
-          -webkit-text-fill-color: transparent;
-          text-shadow: 0 3px 0 rgba(255,255,255,.8), 0 7px 18px rgba(79,70,229,.16);
+          color: #e8f7ff;
+          background: none;
+          -webkit-text-fill-color: currentColor;
+          text-shadow: 0 0 28px rgba(94,231,255,.09);
         }
         .home-post-feed > section > h2 {
           position: relative;
@@ -115,16 +113,17 @@ export function HomePage({ profileId }: HomePageProps) {
           padding: 10px 13px;
           min-height: 42px;
           box-sizing: border-box;
-          border: 1px solid rgba(99,102,241,.14);
+          border: 1px solid rgba(103,208,255,.22);
           border-radius: 15px;
-          background: linear-gradient(145deg, rgba(255,255,255,.98), rgba(241,245,255,.94));
-          color: #17202a;
+          background: rgba(5,21,43,.72);
+          color: #e8f7ff;
           font-size: 17px;
           line-height: 1;
           font-weight: 900;
-          letter-spacing: -.02em;
-          text-shadow: 0 1px 0 rgba(255,255,255,.95), 0 3px 9px rgba(23,32,42,.08);
-          box-shadow: 0 7px 18px rgba(15,23,42,.07), inset 0 1px 0 rgba(255,255,255,.95);
+          letter-spacing: .04em;
+          text-transform: uppercase;
+          text-shadow: none;
+          box-shadow: inset 0 1px 0 rgba(190,239,255,.04);
           overflow: hidden;
         }
         .home-post-feed > section > h2::before {
@@ -133,8 +132,8 @@ export function HomePage({ profileId }: HomePageProps) {
           height: 27px;
           flex: 0 0 7px;
           border-radius: 999px;
-          background: linear-gradient(180deg, #22c1dc, #6d5dfc, #ff5ca8);
-          box-shadow: 0 4px 10px rgba(109,93,252,.24);
+          background: linear-gradient(180deg, #5ee7ff, #60a5fa, #8b8cff);
+          box-shadow: 0 0 12px rgba(94,231,255,.22);
         }
         .home-post-feed > section > h2::after {
           content: '';
@@ -144,7 +143,7 @@ export function HomePage({ profileId }: HomePageProps) {
           right: -55px;
           top: -48px;
           border-radius: 50%;
-          background: radial-gradient(circle, rgba(109,93,252,.13), rgba(34,193,220,0));
+          background: radial-gradient(circle, rgba(94,231,255,.08), rgba(34,193,220,0));
           pointer-events: none;
         }
         @media (max-width: 767px) {
