@@ -98,4 +98,40 @@ button, input, textarea, select { font: inherit; }
 
 .home-post-feed article [style*='background: #fff'], .home-post-feed article [style*='background:#fff'], .home-post-feed article [style*='rgba(255,255,255'], .home-post-feed article [style*='rgba(255, 255, 255'], .home-post-feed article [style*='rgba(247,249,252'], .home-post-feed article [style*='rgba(247, 249, 252'], .home-post-feed article [style*='rgba(246,248,251'], .home-post-feed article [style*='rgba(246, 248, 251'], .home-post-feed article [style*='rgba(245,247,250'], .home-post-feed article [style*='rgba(245, 247, 250'], .home-post-feed article [style*='#ffffff'], .home-post-feed article [style*='#FFFFFF'], .home-post-feed article [style*='#f5f7fa'], .home-post-feed article [style*='#f7f9fc'] { background: rgba(10, 20, 38, 0.45) !important; border-color: rgba(0, 240, 255, 0.25) !important; color: #cbd5e1 !important; backdrop-filter: blur(16px) saturate(180%) !important; -webkit-backdrop-filter: blur(16px) saturate(180%) !important; }
 
+/* Direct HUD replacement for the current feed implementation. The requested feed component paths do not exist in this branch; PostFeed owns these nodes. */
+.home-post-feed article,
+.home-post-feed article[style] {
+  background: rgba(10, 20, 38, 0.45) !important;
+  background-image: none !important;
+  backdrop-filter: blur(16px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+  border: 1px solid rgba(0, 240, 255, 0.25) !important;
+  box-shadow: 0 0 15px rgba(0, 240, 255, 0.08) !important;
+}
+.home-post-feed article strong,
+.home-post-feed article h1,
+.home-post-feed article h2 {
+  color: #00f0ff !important;
+  font-weight: 600 !important;
+  font-family: 'Orbitron', 'Roboto Mono', monospace !important;
+  text-shadow: 0 0 8px rgba(0, 240, 255, 0.4) !important;
+}
+.home-post-feed article p,
+.home-post-feed article [data-post-content='true'],
+.home-post-feed article [data-comment-content='true'] {
+  color: #38bdf8 !important;
+}
+
+/* Header navbar: remove any white/light surface and enforce the requested glass HUD treatment. */
+.ws-master-header,
+.ws-master-header__panel {
+  background: rgba(2, 6, 23, 0.60) !important;
+  background-image: none !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border-bottom: 1px solid rgba(0, 240, 255, 0.20) !important;
+}
+.ws-master-header__panel { border: 0 !important; border-bottom: 1px solid rgba(0, 240, 255, 0.20) !important; }
+.ws-master-profile strong { color: #00f0ff !important; }
+
 @media (prefers-reduced-motion: reduce) { .home-post-feed article, .home-post-feed article button { transition: none !important; } }
