@@ -21,12 +21,12 @@ body[data-ws-page="profile"] .premium-profile-panel .edit-profile-card {
   box-shadow:
     0 14px 34px rgba(15,23,42,.07),
     0 2px 10px rgba(79,70,229,.055),
-    inset 0 1px 0 rgba(255,255,255,.48) !important;
+    inset 0 1px 0 rgba(255,255,255,.16) !important;
   backdrop-filter: blur(14px) saturate(125%) !important;
   -webkit-backdrop-filter: blur(14px) saturate(125%) !important;
 }
 
-/* Same subtle Hero highlight, but transparent enough to preserve the new glass look. */
+/* Keep only a very faint Hero-style top highlight so the glass stays transparent. */
 body[data-ws-page="profile"] .premium-profile-panel .profile-state-card::after,
 body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap > section > div:first-child::after,
 body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article::after,
@@ -36,7 +36,7 @@ body[data-ws-page="profile"] .premium-profile-panel .edit-profile-card::after {
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: linear-gradient(180deg, rgba(255,255,255,.18), transparent 36%);
+  background: linear-gradient(180deg, rgba(255,255,255,.07), transparent 30%);
   pointer-events: none;
   z-index: 0;
 }
@@ -81,7 +81,7 @@ body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article f
     rgba(220,237,255,.12) 58%,
     rgba(240,248,255,.18)) !important;
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.32),
+    inset 0 1px 0 rgba(255,255,255,.12),
     0 7px 18px rgba(15,23,42,.045) !important;
   backdrop-filter: blur(11px) saturate(120%) !important;
   -webkit-backdrop-filter: blur(11px) saturate(120%) !important;
@@ -110,7 +110,7 @@ body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article f
   border-color: rgba(99,102,241,.13) !important;
   background: rgba(255,255,255,.24) !important;
   color: #334155 !important;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.28) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.16) !important;
 }
 
 @media (max-width:767px) {
