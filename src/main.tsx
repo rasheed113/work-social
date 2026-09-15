@@ -23,8 +23,7 @@ import './app/premium-visual-unification.css';
 import './app/universal-components.css';
 import './app/social-command-center.css';
 import './app/social-command-center-post-fix.css';
-import './app/social-command-center-post-identity-final.css';
-import './app/social-command-center-post-identity-instrument.css';
+import './app/social-command-center-post-clean-identity.css';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
