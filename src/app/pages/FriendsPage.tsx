@@ -8,16 +8,16 @@ const styles = {
     width: '100%', maxWidth: 920, margin: '0 auto', padding: '18px 16px 96px', boxSizing: 'border-box', color: '#f7f8ff',
   } as React.CSSProperties,
   hero: {
-    position: 'relative', overflow: 'hidden', borderRadius: 26, padding: '24px 22px', marginBottom: 18,
-    background: 'linear-gradient(135deg, #171a3a 0%, #20265c 48%, #5d2ca8 100%)',
-    boxShadow: '0 20px 55px rgba(31, 25, 91, .32), inset 0 1px 0 rgba(255,255,255,.14)',
-    border: '1px solid rgba(255,255,255,.12)',
+    position: 'relative', overflow: 'hidden', borderRadius: 26, padding: '20px', marginBottom: 18,
+    background: 'linear-gradient(145deg, rgba(3,13,29,.98) 0%, rgba(5,25,48,.96) 52%, rgba(7,17,38,.98) 100%)',
+    boxShadow: '0 22px 60px rgba(0,0,0,.38), inset 0 1px 0 rgba(141,231,255,.14), 0 0 0 1px rgba(70,220,255,.08)',
+    border: '1px solid rgba(70,220,255,.26)',
   } as React.CSSProperties,
-  glow: { position: 'absolute', width: 180, height: 180, borderRadius: '50%', right: -70, top: -80, background: 'rgba(89, 211, 255, .22)', filter: 'blur(18px)', pointerEvents: 'none' } as React.CSSProperties,
-  title: { margin: 0, fontSize: 30, lineHeight: 1.05, fontWeight: 900, letterSpacing: '-.04em', textShadow: '0 3px 14px rgba(0,0,0,.28)' } as React.CSSProperties,
-  subtitle: { margin: '8px 0 0', color: 'rgba(255,255,255,.72)', fontSize: 14 } as React.CSSProperties,
-  searchWrap: { display: 'flex', alignItems: 'center', gap: 10, marginTop: 18, padding: '11px 14px', borderRadius: 17, background: 'rgba(255,255,255,.1)', border: '1px solid rgba(255,255,255,.14)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,.08)' } as React.CSSProperties,
-  search: { flex: 1, minWidth: 0, border: 0, outline: 0, background: 'transparent', color: '#fff', fontSize: 15 } as React.CSSProperties,
+  glow: { position: 'absolute', width: 260, height: 260, borderRadius: '50%', right: -110, top: -130, background: 'rgba(52, 211, 255, .12)', filter: 'blur(28px)', pointerEvents: 'none' } as React.CSSProperties,
+  title: { margin: 0, fontSize: 30, lineHeight: 1.05, fontWeight: 900, letterSpacing: '.02em', color: '#effcff', textShadow: '0 0 18px rgba(75,220,255,.24)' } as React.CSSProperties,
+  subtitle: { margin: '7px 0 0', color: 'rgba(207,239,249,.72)', fontSize: 13 } as React.CSSProperties,
+  searchWrap: { display: 'flex', alignItems: 'center', gap: 10, marginTop: 16, padding: '11px 13px', borderRadius: 14, background: 'rgba(1,10,23,.72)', border: '1px solid rgba(91,224,255,.3)', boxShadow: 'inset 0 0 18px rgba(21,157,196,.08), 0 0 18px rgba(21,157,196,.08)' } as React.CSSProperties,
+  search: { flex: 1, minWidth: 0, border: 0, outline: 0, background: 'transparent', color: '#ecfbff', fontSize: 14, fontFamily: 'inherit' } as React.CSSProperties,
   section: { marginTop: 16, padding: 16, borderRadius: 22, background: 'linear-gradient(180deg, rgba(255,255,255,.98), rgba(246,247,255,.98))', color: '#17182b', border: '1px solid rgba(99,102,241,.12)', boxShadow: '0 14px 36px rgba(24,25,60,.12)' } as React.CSSProperties,
   sectionTitle: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, margin: '0 0 12px', fontSize: 17, fontWeight: 850 } as React.CSSProperties,
   row: { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: 7, padding: 11, marginTop: 8, borderRadius: 17, background: '#fff', border: '1px solid rgba(30,35,80,.08)', boxShadow: '0 7px 20px rgba(30,35,80,.07)', transition: 'transform .18s ease, box-shadow .18s ease' } as React.CSSProperties,
@@ -81,7 +81,39 @@ export function FriendsPage() {
   return (
     <main style={{ minWidth: 0, width: '100%', boxSizing: 'border-box' }}>
       <div style={styles.page}>
-        <section style={styles.hero}><div style={styles.glow} /><div style={{ position: 'relative', zIndex: 1 }}><div style={{ fontSize: 12, fontWeight: 900, letterSpacing: '.16em', textTransform: 'uppercase', color: '#8de7ff' }}>WORK SOCIAL</div><h1 style={styles.title}>Friends</h1><p style={styles.subtitle}>Connect with people, manage requests and build your circle.</p><div style={styles.searchWrap}><span aria-hidden="true" style={{ fontSize: 18 }}>⌕</span><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search people..." aria-label="Search people" style={styles.search} />{search && <button type="button" onClick={() => setSearch('')} aria-label="Clear search" style={{ border: 0, background: 'rgba(255,255,255,.12)', color: '#fff', borderRadius: 9, width: 30, height: 30, cursor: 'pointer' }}>×</button>}</div></div></section>
+        <section style={styles.hero}>
+          <div style={styles.glow} />
+          <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', opacity: .42, background: 'repeating-linear-gradient(0deg, rgba(101,224,255,.035) 0px, rgba(101,224,255,.035) 1px, transparent 1px, transparent 5px)' }} />
+          <div style={{ position: 'relative', zIndex: 1 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 14 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#66e7ff', boxShadow: '0 0 12px rgba(102,231,255,.9)', flexShrink: 0 }} />
+                <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '.2em', textTransform: 'uppercase', color: '#8de7ff' }}>SOCIAL COMMAND CENTER</span>
+              </div>
+              <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: '.14em', color: 'rgba(176,231,244,.58)', whiteSpace: 'nowrap' }}>SYS / FRIENDS</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 16 }}>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '.16em', color: 'rgba(160,226,239,.55)', textTransform: 'uppercase', marginBottom: 7 }}>NETWORK DIRECTORY</div>
+                <h1 style={styles.title}>Friends</h1>
+                <p style={styles.subtitle}>Connect with people, manage requests and build your circle.</p>
+              </div>
+              <div aria-hidden="true" style={{ display: 'grid', gap: 5, minWidth: 92, flexShrink: 0, textAlign: 'right' }}>
+                <span style={{ fontSize: 9, letterSpacing: '.13em', color: 'rgba(141,231,255,.52)' }}>LINK STATUS</span>
+                <strong style={{ fontSize: 11, letterSpacing: '.1em', color: '#9af0ff' }}>ONLINE</strong>
+              </div>
+            </div>
+            <div style={styles.searchWrap}>
+              <span aria-hidden="true" style={{ fontSize: 18, lineHeight: 1, color: '#78e8ff', textShadow: '0 0 10px rgba(120,232,255,.5)' }}>⌕</span>
+              <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search people..." aria-label="Search people" style={styles.search} />
+              {search && <button type="button" onClick={() => setSearch('')} aria-label="Clear search" style={{ border: '1px solid rgba(120,232,255,.2)', background: 'rgba(100,220,255,.08)', color: '#bff6ff', borderRadius: 9, width: 30, height: 30, cursor: 'pointer' }}>×</button>}
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, marginTop: 10, fontSize: 9, letterSpacing: '.1em', textTransform: 'uppercase', color: 'rgba(157,218,232,.48)' }}>
+              <span>DIRECTORY ACCESS // READY</span>
+              <span>QUERY: {search.trim() ? 'ACTIVE' : 'IDLE'}</span>
+            </div>
+          </div>
+        </section>
         {error && <p role="alert" style={styles.alert}>{error}</p>}
         {loading && <section style={styles.section}><WorkSocialPremiumLoader title="Friends" message="Loading your social circle…" /></section>}
         {!loading && requests.length > 0 && <section style={styles.section}><h2 style={styles.sectionTitle}><span>🤝 Friend Requests</span><span style={{ fontSize: 12, padding: '5px 9px', borderRadius: 999, background: '#eeeaff', color: '#5b42c7' }}>{requests.length}</span></h2>{requests.map((request) => { const sender = profiles.find((p) => p.id === request.sender_id); return <article key={request.id} style={styles.row}><div style={styles.identity}>{sender?.avatar_url ? <img src={sender.avatar_url} alt="" style={styles.avatar} /> : <div aria-hidden="true" style={styles.avatarFallback}>👤</div>}<div style={{ flex: 1, minWidth: 0 }}><strong style={{ display: 'block', fontSize: 15 }}>{sender?.display_name ?? 'User'}</strong><span style={{ color: '#85899a', fontSize: 12 }}>wants to connect with you</span></div></div><div style={styles.actions}><button type="button" onClick={() => void respond(request, 'accepted')} style={{ ...styles.buttonBase, ...styles.accept }}>Accept</button><button type="button" onClick={() => void respond(request, 'rejected')} style={{ ...styles.buttonBase, ...styles.reject }}>Reject</button></div></article>; })}</section>}
