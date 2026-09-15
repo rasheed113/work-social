@@ -1,0 +1,109 @@
+/* Work Social — Social Command Center post identity typography correction.
+   Presentation-only. No data, routing, auth, API, Supabase, AI, or business behavior. */
+
+body:has(.home-post-feed) .home-post-feed .social-post-identity .social-identity-name,
+body:has(.home-post-feed) .home-post-feed .social-post-identity strong.social-identity-name {
+  color: #d9efff !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  letter-spacing: .015em !important;
+  line-height: 1.25 !important;
+  text-shadow: 0 0 10px rgba(69, 217, 255, .10) !important;
+}
+
+body:has(.home-post-feed) .home-post-feed .social-post-identity .social-identity-time,
+body:has(.home-post-feed) .home-post-feed .social-post-identity small.social-identity-time {
+  color: #78b9d8 !important;
+  opacity: 1 !important;
+  font-size: 9px !important;
+  font-weight: 600 !important;
+  letter-spacing: .055em !important;
+  line-height: 1.25 !important;
+  font-variant-numeric: tabular-nums !important;
+}
+
+body:has(.home-post-feed) .home-post-feed .social-post-identity .social-privacy {
+  color: #67e8f9 !important;
+  opacity: 1 !important;
+  background: rgba(20, 74, 105, .28) !important;
+  border-color: rgba(91, 224, 255, .22) !important;
+  font-size: 8px !important;
+  letter-spacing: .06em !important;
+}
+
+body:has(.home-post-feed) .home-post-feed .social-post-content {
+  color: #cfeaff !important;
+  font-weight: 450 !important;
+  letter-spacing: .005em !important;
+}
+
+body:has(.home-post-feed) .home-post-feed .social-post-location {
+  color: #78b9d8 !important;
+  background: rgba(11, 38, 67, .58) !important;
+  border-color: rgba(91, 224, 255, .18) !important;
+}
+
+body:has(.home-post-feed) .home-post-feed .social-comment-channel .social-comment-identity-line .social-identity-name,
+body:has(.home-post-feed) .home-post-feed .social-comment-channel strong.social-identity-name {
+  color: #bfeaff !important;
+  opacity: 1 !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  letter-spacing: .02em !important;
+  line-height: 1.25 !important;
+  text-shadow: 0 0 8px rgba(69, 217, 255, .08) !important;
+}
+
+body:has(.home-post-feed) .home-post-feed .social-comment-channel .social-identity-time,
+body:has(.home-post-feed) .home-post-feed .social-comment-channel small.social-identity-time {
+  color: #70b7d8 !important;
+  opacity: 1 !important;
+  font-size: 8px !important;
+  font-weight: 600 !important;
+  letter-spacing: .045em !important;
+  font-variant-numeric: tabular-nums !important;
+}
+
+body:has(.home-post-feed) .home-post-feed .social-comment-channel .social-comment-content {
+  color: #9dbbd4 !important;
+  opacity: 1 !important;
+  font-size: 11px !important;
+  font-weight: 450 !important;
+  line-height: 1.45 !important;
+}
+
+body:has(.home-post-feed) .home-post-feed .social-latest-comment .social-comment-content {
+  color: #9dbbd4 !important;
+  opacity: 1 !important;
+}
+
+body:has(.home-post-feed) .home-post-feed .social-comment-channel {
+  color: #9dbbd4 !important;
+}
+
+body:has(.home-post-feed) .home-post-feed .social-comment-channel .social-comment-actions button,
+body:has(.home-post-feed) .home-post-feed .social-comment-channel .social-comment-reply button,
+body:has(.home-post-feed) .home-post-feed .social-comment-channel .social-comment-edit button {
+  color: #78b9d8 !important;
+}
+
+body:has(.home-post-feed) .home-post-feed .social-comment-channel input,
+body:has(.home-post-feed) .home-post-feed .social-comment-channel textarea,
+body:has(.home-post-feed) .home-post-feed .social-comment-composer input,
+body:has(.home-post-feed) .home-post-feed .social-comment-composer textarea {
+  color: #cfeaff !important;
+  caret-color: #67e8f9 !important;
+}
+
+@media (max-width: 640px) {
+  body:has(.home-post-feed) .home-post-feed .social-post-identity .social-identity-name { font-size: 12px !important; }
+  body:has(.home-post-feed) .home-post-feed .social-post-identity .social-identity-time { font-size: 8px !important; }
+  body:has(.home-post-feed) .home-post-feed .social-comment-channel .social-identity-name { font-size: 9px !important; }
+  body:has(.home-post-feed) .home-post-feed .social-comment-channel .social-identity-time { font-size: 7px !important; }
+  body:has(.home-post-feed) .home-post-feed .social-comment-channel .social-comment-content { font-size: 10px !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body:has(.home-post-feed) .home-post-feed .social-post-identity .social-identity-name,
+  body:has(.home-post-feed) .home-post-feed .social-comment-channel .social-identity-name { text-shadow: none !important; }
+}
