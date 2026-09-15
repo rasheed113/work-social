@@ -1,0 +1,110 @@
+/* Work Social — Social Command Center identity instrumentation.
+   Presentation-only. Real names remain human-readable; visual treatment becomes technical.
+   No data, routing, auth, API, Supabase, AI, or business behavior. */
+
+body:has(.home-post-feed) .home-post-feed .social-post-identity .social-identity-name {
+  display: inline-block !important;
+  color: #d9efff !important;
+  font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace !important;
+  font-size: 11px !important;
+  font-weight: 650 !important;
+  letter-spacing: .095em !important;
+  line-height: 1.2 !important;
+  text-transform: uppercase !important;
+  font-variant-numeric: tabular-nums !important;
+  text-shadow: 0 0 12px rgba(53,216,255,.12) !important;
+}
+
+body:has(.home-post-feed) .home-post-feed .social-post-identity .social-identity-name::before {
+  content: "ID //";
+  display: inline-block;
+  margin-right: 7px;
+  color: #45d9ff !important;
+  font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace !important;
+  font-size: 7px !important;
+  font-weight: 700 !important;
+  letter-spacing: .12em !important;
+  vertical-align: 1px;
+}
+
+body:has(.home-post-feed) .home-post-feed .social-post-identity .social-identity-time {
+  display: block !important;
+  margin-top: 3px !important;
+  color: #78b9d8 !important;
+  font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace !important;
+  font-size: 7px !important;
+  font-weight: 600 !important;
+  letter-spacing: .105em !important;
+  line-height: 1.2 !important;
+  text-transform: uppercase !important;
+  font-variant-numeric: tabular-nums !important;
+}
+
+body:has(.home-post-feed) .home-post-feed .social-post-identity .social-identity-time::before {
+  content: "TRANSMISSION // ";
+  color: #4fdcff !important;
+}
+
+body:has(.home-post-feed) .home-post-feed .social-comment-channel .social-comment-identity-line .social-identity-name {
+  display: inline-block !important;
+  color: #bfeaff !important;
+  font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace !important;
+  font-size: 8px !important;
+  font-weight: 650 !important;
+  letter-spacing: .085em !important;
+  line-height: 1.2 !important;
+  text-transform: uppercase !important;
+  font-variant-numeric: tabular-nums !important;
+}
+
+body:has(.home-post-feed) .home-post-feed .social-comment-channel .social-comment-identity-line .social-identity-name::before {
+  content: "NODE //";
+  display: inline-block;
+  margin-right: 6px;
+  color: #45d9ff !important;
+  font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace !important;
+  font-size: 6px !important;
+  font-weight: 700 !important;
+  letter-spacing: .1em !important;
+  vertical-align: 1px;
+}
+
+body:has(.home-post-feed) .home-post-feed .social-comment-channel .social-identity-time {
+  display: block !important;
+  margin-top: 2px !important;
+  color: #70b7d8 !important;
+  font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace !important;
+  font-size: 6px !important;
+  font-weight: 600 !important;
+  letter-spacing: .09em !important;
+  line-height: 1.2 !important;
+  text-transform: uppercase !important;
+  font-variant-numeric: tabular-nums !important;
+}
+
+body:has(.home-post-feed) .home-post-feed .social-comment-channel .social-identity-time::before {
+  content: "T // ";
+  color: #45d9ff !important;
+}
+
+body:has(.home-post-feed) .home-post-feed .social-comment-channel .social-comment-content {
+  color: #9dbbd4 !important;
+  font-family: Inter, system-ui, sans-serif !important;
+  font-size: 10px !important;
+  font-weight: 450 !important;
+  letter-spacing: .01em !important;
+  line-height: 1.45 !important;
+}
+
+@media (max-width: 640px) {
+  body:has(.home-post-feed) .home-post-feed .social-post-identity .social-identity-name { font-size: 10px !important; letter-spacing: .08em !important; }
+  body:has(.home-post-feed) .home-post-feed .social-post-identity .social-identity-name::before { font-size: 6px !important; margin-right: 5px; }
+  body:has(.home-post-feed) .home-post-feed .social-post-identity .social-identity-time { font-size: 6px !important; }
+  body:has(.home-post-feed) .home-post-feed .social-comment-channel .social-identity-name { font-size: 7px !important; }
+  body:has(.home-post-feed) .home-post-feed .social-comment-channel .social-identity-name::before { font-size: 5px !important; }
+  body:has(.home-post-feed) .home-post-feed .social-comment-channel .social-identity-time { font-size: 5px !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body:has(.home-post-feed) .home-post-feed .social-post-identity .social-identity-name { text-shadow: none !important; }
+}
