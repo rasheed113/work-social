@@ -73,7 +73,9 @@ body:has(.home-post-feed) .home-post-feed article footer > div:not(:has(img, vid
 /* Inputs and comment composers are dark instrument panels, never light fields. */
 body:has(.home-post-feed) .home-post-feed article input,
 body:has(.home-post-feed) .home-post-feed article textarea {
-  color: var(--ws-social-post-text) !important;
+  color: #a9c4df !important;
+  -webkit-text-fill-color: #a9c4df !important;
+  caret-color: #00f0ff !important;
   background: rgba(4, 18, 38, .82) !important;
   border-color: var(--ws-social-post-line) !important;
   box-shadow: inset 0 1px 0 rgba(183, 239, 255, .05), 0 6px 18px rgba(0, 8, 24, .14) !important;
@@ -81,7 +83,9 @@ body:has(.home-post-feed) .home-post-feed article textarea {
 
 body:has(.home-post-feed) .home-post-feed article input::placeholder,
 body:has(.home-post-feed) .home-post-feed article textarea::placeholder {
-  color: rgba(169, 196, 223, .62) !important;
+  color: #7dd3fc !important;
+  -webkit-text-fill-color: #7dd3fc !important;
+  opacity: 1 !important;
 }
 
 /* Reaction groups, action clusters and compact controls. */
@@ -93,7 +97,8 @@ body:has(.home-post-feed) .home-post-feed article [aria-label*="reaction" i] {
 }
 
 body:has(.home-post-feed) .home-post-feed article button {
-  color: var(--ws-social-post-text) !important;
+  color: #a9c4df !important;
+  -webkit-text-fill-color: #a9c4df !important;
   border-color: var(--ws-social-post-line) !important;
   background: linear-gradient(145deg, rgba(20, 50, 88, .72), rgba(6, 23, 47, .84)) !important;
   box-shadow: inset 0 1px 0 rgba(183, 239, 255, .06), 0 6px 16px rgba(0, 8, 24, .14) !important;
@@ -102,6 +107,58 @@ body:has(.home-post-feed) .home-post-feed article button {
 body:has(.home-post-feed) .home-post-feed article button:hover:not(:disabled) {
   border-color: var(--ws-social-post-line-strong) !important;
   background: linear-gradient(145deg, rgba(27, 63, 108, .82), rgba(8, 29, 57, .88)) !important;
+}
+
+/* Privacy labels/options are HUD controls, not white text. */
+body:has(.home-post-feed) .home-post-feed article [role="menu"] button,
+body:has(.home-post-feed) .home-post-feed article [aria-label*="privacy" i],
+body:has(.home-post-feed) .home-post-feed article [title*="privacy" i] {
+  color: #67e8f9 !important;
+  -webkit-text-fill-color: #67e8f9 !important;
+  text-shadow: 0 0 7px rgba(0, 240, 255, .28) !important;
+}
+
+/* Posted content: intentionally slate/cyan, never near-white. */
+body:has(.home-post-feed) .home-post-feed article p {
+  color: #a9c4df !important;
+  -webkit-text-fill-color: #a9c4df !important;
+}
+
+body:has(.home-post-feed) .home-post-feed article p:not(:has(img, video)) {
+  text-shadow: 0 0 5px rgba(74, 190, 255, .08) !important;
+}
+
+/* Text hierarchy: names/labels can glow cyan; timestamps stay muted blue. */
+body:has(.home-post-feed) .home-post-feed article strong {
+  color: #00f0ff !important;
+  -webkit-text-fill-color: #00f0ff !important;
+  text-shadow: 0 0 8px rgba(0, 240, 255, .42) !important;
+}
+
+body:has(.home-post-feed) .home-post-feed article span,
+body:has(.home-post-feed) .home-post-feed article label {
+  color: #a9c4df !important;
+  -webkit-text-fill-color: #a9c4df !important;
+}
+
+body:has(.home-post-feed) .home-post-feed article small {
+  color: #7dd3fc !important;
+  -webkit-text-fill-color: #7dd3fc !important;
+}
+
+/* Community-feed heading/subheading inside the post-feed surface. */
+body:has(.home-post-feed) .home-post-feed > header,
+body:has(.home-post-feed) .home-post-feed > header h1,
+body:has(.home-post-feed) .home-post-feed > header h2,
+body:has(.home-post-feed) .home-post-feed > header p,
+body:has(.home-post-feed) .home-post-feed > header small,
+body:has(.home-post-feed) .home-post-feed > section > header,
+body:has(.home-post-feed) .home-post-feed > section > header h1,
+body:has(.home-post-feed) .home-post-feed > section > header h2,
+body:has(.home-post-feed) .home-post-feed > section > header p,
+body:has(.home-post-feed) .home-post-feed > section > header small {
+  color: #67e8f9 !important;
+  -webkit-text-fill-color: #67e8f9 !important;
 }
 
 /* Menus and delete/edit command surfaces. */
@@ -120,19 +177,8 @@ body:has(.home-post-feed) .home-post-feed article [role="menu"] button,
 body:has(.home-post-feed) .home-post-feed article [role="dialog"] button,
 body:has(.home-post-feed) .home-post-feed article [role="alertdialog"] button {
   background: rgba(20, 52, 92, .58) !important;
-  color: var(--ws-social-post-text) !important;
-}
-
-/* Text hierarchy must remain readable on every corrected surface. */
-body:has(.home-post-feed) .home-post-feed article strong,
-body:has(.home-post-feed) .home-post-feed article p,
-body:has(.home-post-feed) .home-post-feed article span,
-body:has(.home-post-feed) .home-post-feed article label {
-  color: var(--ws-social-post-text) !important;
-}
-
-body:has(.home-post-feed) .home-post-feed article small {
-  color: var(--ws-social-post-soft) !important;
+  color: #67e8f9 !important;
+  -webkit-text-fill-color: #67e8f9 !important;
 }
 
 /* Preserve actual media/image/video appearance and geometry. */
