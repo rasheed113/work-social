@@ -33,8 +33,8 @@ body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article s
   color: #bfefff !important;
 }
 
-/* The two nested white surfaces inside the post card: latest comment preview + composer. */
-body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article footer > div[style*="rgba(246,248,251"] {
+/* Exact rendered inline-style fallbacks for the two nested white surfaces. */
+body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article footer > div[style*="246, 248, 251"] {
   background: rgba(7, 20, 38, .46) !important;
   border: 1px solid rgba(102, 232, 255, .14) !important;
   box-shadow: inset 0 1px 0 rgba(191, 239, 255, .04) !important;
@@ -42,7 +42,7 @@ body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article f
   -webkit-backdrop-filter: blur(12px) !important;
 }
 
-body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article footer > div[style*="linear-gradient(145deg,#f5f7fa"] {
+body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article footer > div[style*="245, 247, 250"] {
   background: rgba(7, 20, 38, .46) !important;
   border: 1px solid rgba(102, 232, 255, .14) !important;
   box-shadow: inset 0 1px 0 rgba(191, 239, 255, .04) !important;
@@ -50,8 +50,25 @@ body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article f
   -webkit-backdrop-filter: blur(12px) !important;
 }
 
-body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article footer > div[style*="rgba(246,248,251"] button,
-body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article footer > div[style*="linear-gradient(145deg,#f5f7fa"] button {
+/* Extra structural fallbacks: the composer always owns the comment input. */
+body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article footer > div:has(input[placeholder="Write a comment..."]) {
+  background: rgba(7, 20, 38, .46) !important;
+  border: 1px solid rgba(102, 232, 255, .14) !important;
+  box-shadow: inset 0 1px 0 rgba(191, 239, 255, .04) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+}
+
+body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article footer > div:has(input[placeholder="Write a comment..."]) input {
+  background: transparent !important;
+  color: #bfefff !important;
+  -webkit-text-fill-color: #bfefff !important;
+  border-color: rgba(102, 232, 255, .16) !important;
+}
+
+body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article footer > div[style*="246, 248, 251"] button,
+body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article footer > div[style*="245, 247, 250"] button,
+body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article footer > div:has(input[placeholder="Write a comment..."]) button {
   border-color: rgba(102, 232, 255, .16) !important;
   background: rgba(102, 232, 255, .07) !important;
   color: #bfefff !important;
