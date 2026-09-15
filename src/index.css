@@ -117,3 +117,74 @@ input, textarea { background: rgba(5, 10, 20, 0.7) !important; color: #00f0ff !i
 .home-post-feed article textarea::placeholder { color: #8a99ad !important; -webkit-text-fill-color: #8a99ad !important; }
 .home-post-feed article p,
 .home-post-feed article p[style] { color: #38bdf8 !important; }
+
+/* Cyber Grid & Ambient Glow Background */
+body, #root, main {
+  background-color: #020617 !important;
+  background-image: 
+    radial-gradient(circle at 50% 0%, rgba(0, 240, 255, 0.18) 0%, transparent 60%),
+    linear-gradient(to right, rgba(0, 240, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 240, 255, 0.05) 1px, transparent 1px) !important;
+  background-size: 100% 100%, 28px 28px, 28px 28px !important;
+  color: #e2e8f0 !important;
+}
+
+/* Force All Card Containers to Real Glassmorphism */
+.ws-card, [class*="PostCard"], [class*="CreatePost"], [class*="Card"], [class*="Comment"] {
+  background: rgba(8, 15, 30, 0.60) !important;
+  backdrop-filter: blur(16px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+  border: 1px solid rgba(0, 240, 255, 0.35) !important;
+  box-shadow: 0 0 18px rgba(0, 240, 255, 0.12), inset 0 0 12px rgba(0, 240, 255, 0.04) !important;
+  border-radius: 12px !important;
+}
+
+/* Force All Inputs & Textareas */
+input, textarea {
+  background: rgba(4, 9, 20, 0.75) !important;
+  color: #00f0ff !important;
+  border: 1px solid rgba(0, 240, 255, 0.4) !important;
+  border-radius: 8px !important;
+}
+input:focus, textarea:focus {
+  border-color: #00f0ff !important;
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.4) !important;
+}
+
+/* Typography */
+h1, h2, h3, h4, .ws-username, [class*="username"], [class*="author"] {
+  color: #00f0ff !important;
+  text-shadow: 0 0 8px rgba(0, 240, 255, 0.5) !important;
+  font-family: monospace, sans-serif !important;
+}
+p, span, div {
+  color: #cbd5e1;
+}
+
+/* Header / Navigation */
+header, nav, [class*="Header"], [class*="Navbar"] {
+  background: rgba(2, 6, 23, 0.8) !important;
+  backdrop-filter: blur(12px) !important;
+  border-bottom: 1px solid rgba(0, 240, 255, 0.3) !important;
+}
+
+/* Buttons */
+button[type="submit"], .btn-primary, [class*="post-btn"], [class*="comment-btn"] {
+  background: linear-gradient(135deg, #00f0ff 0%, #3b82f6 100%) !important;
+  color: #020617 !important;
+  font-weight: 700 !important;
+  border: none !important;
+  box-shadow: 0 0 14px rgba(0, 240, 255, 0.4) !important;
+  transition: all 0.2s ease-in-out !important;
+}
+
+button:hover {
+  filter: brightness(1.2) !important;
+  box-shadow: 0 0 20px rgba(0, 240, 255, 0.7) !important;
+}
+
+[class*="action-btn"], [class*="Share"], [class*="Like"] {
+  background: rgba(0, 240, 255, 0.1) !important;
+  color: #00f0ff !important;
+  border: 1px solid rgba(0, 240, 255, 0.3) !important;
+}
