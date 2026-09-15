@@ -1,0 +1,128 @@
+/* Work Social — Friends Command Header / Search HUD */
+
+main:has(input[placeholder="Search people..."]) > div > section:first-of-type {
+  position: relative !important;
+  overflow: hidden !important;
+  border-radius: 26px !important;
+  padding: 26px 24px !important;
+  margin-bottom: 20px !important;
+  background:
+    radial-gradient(circle at 88% 8%, rgba(44, 224, 255, .20), transparent 30%),
+    radial-gradient(circle at 8% 100%, rgba(0, 115, 255, .16), transparent 34%),
+    linear-gradient(135deg, rgba(7, 24, 48, .96), rgba(8, 39, 70, .94) 55%, rgba(7, 27, 52, .96)) !important;
+  border: 1px solid rgba(79, 222, 255, .30) !important;
+  box-shadow:
+    0 20px 55px rgba(0, 110, 190, .22),
+    inset 0 1px 0 rgba(255,255,255,.10),
+    inset 0 0 34px rgba(31, 205, 255, .05) !important;
+}
+
+main:has(input[placeholder="Search people..."]) > div > section:first-of-type::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 !important;
+  pointer-events: none !important;
+  background:
+    linear-gradient(rgba(116, 231, 255, .035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(116, 231, 255, .035) 1px, transparent 1px) !important;
+  background-size: 30px 30px !important;
+  mask-image: linear-gradient(to bottom, rgba(0,0,0,.9), transparent 92%) !important;
+}
+
+main:has(input[placeholder="Search people..."]) > div > section:first-of-type > div:last-child > div:first-child {
+  color: #86eaff !important;
+  text-shadow: 0 0 14px rgba(56, 220, 255, .30) !important;
+}
+
+main:has(input[placeholder="Search people..."]) > div > section:first-of-type h1 {
+  margin-top: 5px !important;
+  font-family: Orbitron, Inter, system-ui, sans-serif !important;
+  font-size: clamp(30px, 5vw, 38px) !important;
+  line-height: 1 !important;
+  font-weight: 900 !important;
+  letter-spacing: -.035em !important;
+  color: #f4fdff !important;
+  text-shadow:
+    0 0 8px rgba(255,255,255,.30),
+    0 0 24px rgba(47, 218, 255, .42) !important;
+}
+
+main:has(input[placeholder="Search people..."]) > div > section:first-of-type p {
+  margin-top: 9px !important;
+  color: rgba(224, 247, 255, .78) !important;
+  font-size: 14px !important;
+  line-height: 1.55 !important;
+  max-width: 620px !important;
+}
+
+main:has(input[placeholder="Search people..."]) > div > section:first-of-type input[placeholder="Search people..."] {
+  min-height: 22px !important;
+  color: #f3fdff !important;
+  caret-color: #63e7ff !important;
+  font-size: 15px !important;
+  font-weight: 650 !important;
+}
+
+main:has(input[placeholder="Search people..."]) > div > section:first-of-type input[placeholder="Search people..."]::placeholder {
+  color: rgba(183, 224, 238, .62) !important;
+}
+
+main:has(input[placeholder="Search people..."]) > div > section:first-of-type div:has(> input[placeholder="Search people..."]) {
+  position: relative !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 11px !important;
+  margin-top: 20px !important;
+  min-height: 50px !important;
+  padding: 8px 10px 8px 15px !important;
+  border-radius: 16px !important;
+  background: rgba(2, 13, 29, .72) !important;
+  border: 1px solid rgba(68, 220, 255, .34) !important;
+  box-shadow:
+    0 0 0 1px rgba(28, 172, 255, .05),
+    0 10px 28px rgba(0, 11, 29, .32),
+    inset 0 1px 0 rgba(255,255,255,.07),
+    inset 0 0 20px rgba(32, 203, 255, .035) !important;
+  transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease !important;
+}
+
+main:has(input[placeholder="Search people..."]) > div > section:first-of-type div:has(> input[placeholder="Search people..."]):focus-within {
+  border-color: rgba(76, 229, 255, .72) !important;
+  box-shadow:
+    0 0 0 2px rgba(46, 215, 255, .10),
+    0 0 24px rgba(25, 203, 255, .18),
+    0 10px 30px rgba(0, 11, 29, .34),
+    inset 0 1px 0 rgba(255,255,255,.08) !important;
+  transform: translateY(-1px) !important;
+}
+
+main:has(input[placeholder="Search people..."]) > div > section:first-of-type div:has(> input[placeholder="Search people..."]) > span:first-child {
+  color: #62e7ff !important;
+  font-size: 21px !important;
+  line-height: 1 !important;
+  text-shadow: 0 0 12px rgba(58, 224, 255, .62) !important;
+}
+
+main:has(input[placeholder="Search people..."]) > div > section:first-of-type div:has(> input[placeholder="Search people..."]) button[aria-label="Clear search"] {
+  background: rgba(72, 218, 255, .10) !important;
+  border: 1px solid rgba(82, 225, 255, .28) !important;
+  color: #d9faff !important;
+  box-shadow: 0 0 12px rgba(39, 211, 255, .10) !important;
+}
+
+main:has(input[placeholder="Search people..."]) > div > section:first-of-type div:has(> input[placeholder="Search people..."]) button[aria-label="Clear search"]:hover {
+  background: rgba(72, 218, 255, .18) !important;
+  border-color: rgba(82, 225, 255, .52) !important;
+}
+
+@media (max-width: 640px) {
+  main:has(input[placeholder="Search people..."]) > div > section:first-of-type {
+    padding: 22px 17px !important;
+    border-radius: 22px !important;
+  }
+
+  main:has(input[placeholder="Search people..."]) > div > section:first-of-type div:has(> input[placeholder="Search people..."]) {
+    min-height: 48px !important;
+    margin-top: 17px !important;
+  }
+}
