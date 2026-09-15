@@ -110,3 +110,65 @@ body:has(.home-post-feed) .home-post-feed,
 body:has(.home-post-feed) .home-post-feed > section {
   background: transparent !important;
 }
+
+/* Comment submit action: explicit command-button treatment, without changing comment logic. */
+body:has(.home-post-feed) .home-post-feed article footer div:has(> input) > button,
+body:has(.home-post-feed) .home-post-feed article footer div:has(> textarea) > button {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 36px !important;
+  min-width: 92px !important;
+  padding: 8px 16px !important;
+  margin-left: 8px !important;
+  border: 1px solid rgba(0, 240, 255, 0.72) !important;
+  border-radius: 10px !important;
+  background: linear-gradient(135deg, rgba(0, 92, 128, 0.42), rgba(8, 25, 52, 0.88)) !important;
+  color: #e9feff !important;
+  -webkit-text-fill-color: #e9feff !important;
+  font-family: var(--ws-font-hud, 'Space Grotesk', 'Segoe UI', sans-serif) !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+  text-shadow: 0 0 8px rgba(0, 240, 255, 0.34) !important;
+  box-shadow: 0 0 12px rgba(0, 240, 255, 0.18), inset 0 1px 0 rgba(180, 255, 255, 0.14) !important;
+  cursor: pointer !important;
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease, background 160ms ease !important;
+}
+
+body:has(.home-post-feed) .home-post-feed article footer div:has(> input) > button:hover:not(:disabled),
+body:has(.home-post-feed) .home-post-feed article footer div:has(> textarea) > button:hover:not(:disabled) {
+  border-color: #00f0ff !important;
+  background: linear-gradient(135deg, rgba(0, 132, 166, 0.56), rgba(8, 32, 62, 0.94)) !important;
+  box-shadow: 0 0 18px rgba(0, 240, 255, 0.34), inset 0 1px 0 rgba(220, 255, 255, 0.2) !important;
+  transform: translateY(-1px) !important;
+}
+
+body:has(.home-post-feed) .home-post-feed article footer div:has(> input) > button:active:not(:disabled),
+body:has(.home-post-feed) .home-post-feed article footer div:has(> textarea) > button:active:not(:disabled) {
+  transform: translateY(0) scale(0.98) !important;
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.22) !important;
+}
+
+body:has(.home-post-feed) .home-post-feed article footer div:has(> input) > button:focus-visible,
+body:has(.home-post-feed) .home-post-feed article footer div:has(> textarea) > button:focus-visible {
+  outline: 2px solid rgba(0, 240, 255, 0.34) !important;
+  outline-offset: 2px !important;
+  border-color: #00f0ff !important;
+  box-shadow: 0 0 18px rgba(0, 240, 255, 0.36) !important;
+}
+
+@media (max-width: 640px) {
+  body:has(.home-post-feed) .home-post-feed article footer div:has(> input) > button,
+  body:has(.home-post-feed) .home-post-feed article footer div:has(> textarea) > button {
+    min-width: 78px !important;
+    min-height: 34px !important;
+    padding: 7px 12px !important;
+    margin-left: 6px !important;
+    font-size: 10px !important;
+    letter-spacing: 0.09em !important;
+  }
+}
