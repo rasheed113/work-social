@@ -21,6 +21,9 @@ main:has(> div > div > h1) article strong { color:#effeff !important; }
 main:has(> div > div > h1) article span,main:has(> div > div > h1) article small,main:has(> div > div > h1) article time { color:#78cbd8 !important; font-family:"JetBrains Mono",ui-monospace,monospace !important; font-size:9px !important; }
 main:has(> div > div > h1) article p { color:#bdebf2 !important; font-family:"JetBrains Mono",ui-monospace,monospace !important; font-size:10px !important; line-height:1.55 !important; }
 
+/* Sender/display name — intentionally stronger than the action text */
+main:has(> div > div > h1) article > div:nth-child(2) > div:first-child > :first-child { color:#72f4ff !important; font-weight:850 !important; text-shadow:0 0 10px rgba(0,240,255,.22) !important; }
+
 /* Avatar + notification-type badge */
 main:has(> div > div > h1) article > div:first-child img,main:has(> div > div > h1) article > div:first-child > div { border-color:rgba(0,240,255,.32) !important; box-shadow:0 0 16px rgba(0,240,255,.10) !important; }
 main:has(> div > div > h1) article > div:first-child span { background:rgba(4,23,48,.94) !important; border:1px solid rgba(0,240,255,.30) !important; box-shadow:0 0 12px rgba(0,240,255,.12) !important; }
