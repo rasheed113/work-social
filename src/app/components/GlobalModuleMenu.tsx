@@ -41,9 +41,7 @@ export function GlobalModuleMenu({ onNavigate }: GlobalModuleMenuProps) {
   useEffect(() => { if (open) void syncAccount(); }, [open]);
   useEffect(() => {
     if (!open && !accountOpen) return;
-    const close = (event: PointerEvent) => {
-      if (!rootRef.current?.contains(event.target as Node)) { setOpen(false); setAccountOpen(false); }
-    };
+    const close = (event: PointerEvent) => { if (!rootRef.current?.contains(event.target as Node)) { setOpen(false); setAccountOpen(false); } };
     document.addEventListener('pointerdown', close);
     return () => document.removeEventListener('pointerdown', close);
   }, [open, accountOpen]);
@@ -56,13 +54,26 @@ export function GlobalModuleMenu({ onNavigate }: GlobalModuleMenuProps) {
     if (account.id === profileId) { closeAll(); return; }
     setSwitching(true);
 
-    const freshTarget = await refreshRegisteredAccount(account);
-    if (!freshTarget) { setSwitching(false); return; }
-
-    const { data, error } = await supabase.auth.setSession({
-      access_token: freshTarget.access_token,
-      refresh_token: freshTarget.refresh_token,
+    // First try the stored target session directly. Supabase can refresh an expired
+    // access token from its stored refresh token during setSession, and this avoids
+    // making the account switch depend on a separate inspection client.
+    let { data, error } = await supabase.auth.setSession({
+      access_token: account.session.access_token,
+      refresh_token: account.session.refresh_token,
     });
+
+    // If the direct hand-off fails, refresh the stored account in isolation and retry
+    // once with the fresh token pair. This keeps the real multi-account connection intact.
+    if (error || !data.session) {
+      const freshTarget = await refreshRegisteredAccount(account);
+      if (freshTarget) {
+        ({ data, error } = await supabase.auth.setSession({
+          access_token: freshTarget.access_token,
+          refresh_token: freshTarget.refresh_token,
+        }));
+      }
+    }
+
     if (error || !data.session) { setSwitching(false); return; }
 
     registerAccount({ ...account, session: data.session });
