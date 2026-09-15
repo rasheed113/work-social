@@ -1,80 +1,32 @@
 /* Global Work Social header: transparent blue holographic glass, including chat and switcher. */
-body .work-social-router-shell > header.ws-main-header,
-body .ws-main-header {
-  background: linear-gradient(135deg, rgba(0,126,190,.42), rgba(0,76,170,.28) 48%, rgba(0,205,255,.18)) !important;
-  background-color: rgba(4,58,105,.34) !important;
-  background-blend-mode: screen, normal !important;
-  backdrop-filter: blur(22px) saturate(190%) !important;
-  -webkit-backdrop-filter: blur(22px) saturate(190%) !important;
-  border: 1px solid rgba(0,235,255,.52) !important;
-  border-top-color: rgba(0,245,255,.62) !important;
-  border-bottom-color: rgba(0,220,255,.46) !important;
-  box-shadow: 0 0 28px rgba(0,180,255,.24), inset 0 0 22px rgba(0,220,255,.10), inset 0 1px 0 rgba(150,245,255,.18) !important;
-  color: #c7f7ff !important;
-}
-body .ws-main-header::before { background: linear-gradient(110deg, rgba(0,240,255,.15), rgba(0,130,255,.06) 42%, rgba(0,210,255,.10) 72%, transparent) !important; }
-body .ws-main-header__brand { background: rgba(0,120,200,.08) !important; color: #00f0ff !important; }
-body .ws-main-header__brand:hover { background: rgba(0,190,255,.14) !important; }
-body .ws-main-header__logo { border-color: rgba(0,240,255,.60) !important; background: linear-gradient(145deg, rgba(0,240,255,.76), rgba(0,102,255,.62) 48%, rgba(72,65,225,.52)) !important; box-shadow: inset 0 1px 1px rgba(190,252,255,.35), 0 0 18px rgba(0,210,255,.28) !important; color: #001a2b !important; -webkit-text-fill-color: #001a2b !important; }
-body .ws-main-header__title { color: #00f0ff !important; -webkit-text-fill-color: #00f0ff !important; font-family: 'JetBrains Mono', monospace !important; text-shadow: 0 0 9px rgba(0,240,255,.70) !important; }
-body .ws-main-header__tagline { color: #94a3b8 !important; -webkit-text-fill-color: #94a3b8 !important; font-family: 'JetBrains Mono', monospace !important; text-shadow: 0 0 6px rgba(0,180,255,.22) !important; }
+html body #root .work-social-router-shell > header.ws-main-header,
+html body #root .ws-main-header { background:linear-gradient(135deg,rgba(0,126,190,.42),rgba(0,76,170,.28) 48%,rgba(0,205,255,.18))!important; background-color:rgba(4,58,105,.34)!important; background-blend-mode:screen,normal!important; backdrop-filter:blur(22px) saturate(190%)!important; -webkit-backdrop-filter:blur(22px) saturate(190%)!important; border:1px solid rgba(0,235,255,.52)!important; border-top-color:rgba(0,245,255,.62)!important; border-bottom-color:rgba(0,220,255,.46)!important; box-shadow:0 0 28px rgba(0,180,255,.24),inset 0 0 22px rgba(0,220,255,.10),inset 0 1px 0 rgba(150,245,255,.18)!important; color:#c7f7ff!important; }
+html body #root .ws-main-header::before { background:linear-gradient(110deg,rgba(0,240,255,.15),rgba(0,130,255,.06) 42%,rgba(0,210,255,.10) 72%,transparent)!important; }
+html body #root .ws-main-header__brand { background:rgba(0,120,200,.08)!important; color:#00f0ff!important; }
+html body #root .ws-main-header__logo { border-color:rgba(0,240,255,.60)!important; background:linear-gradient(145deg,rgba(0,240,255,.76),rgba(0,102,255,.62) 48%,rgba(72,65,225,.52))!important; box-shadow:inset 0 1px 1px rgba(190,252,255,.35),0 0 18px rgba(0,210,255,.28)!important; color:#001a2b!important; -webkit-text-fill-color:#001a2b!important; }
+html body #root .ws-main-header__title { color:#00f0ff!important; -webkit-text-fill-color:#00f0ff!important; font-family:'JetBrains Mono',monospace!important; text-shadow:0 0 9px rgba(0,240,255,.70)!important; }
+html body #root .ws-main-header__tagline { color:#94a3b8!important; -webkit-text-fill-color:#94a3b8!important; font-family:'JetBrains Mono',monospace!important; text-shadow:0 0 6px rgba(0,180,255,.22)!important; }
 
-/* Premium Chat control: transparent blue glass, never white. */
-body .ws-main-header__chat,
-body .ws-main-header__chat:is(button,a) {
-  appearance: none !important;
-  -webkit-appearance: none !important;
-  background: linear-gradient(135deg, rgba(0,240,255,.30), rgba(0,126,255,.26) 52%, rgba(72,65,225,.22)) !important;
-  background-color: rgba(0,110,190,.18) !important;
-  background-image: linear-gradient(135deg, rgba(0,240,255,.30), rgba(0,126,255,.26) 52%, rgba(72,65,225,.22)) !important;
-  color: #00f0ff !important;
-  -webkit-text-fill-color: #00f0ff !important;
-  border: 1px solid rgba(0,240,255,.62) !important;
-  border-radius: 13px !important;
-  backdrop-filter: blur(18px) saturate(190%) !important;
-  -webkit-backdrop-filter: blur(18px) saturate(190%) !important;
-  box-shadow: 0 0 20px rgba(0,210,255,.24), inset 0 0 14px rgba(0,240,255,.10), inset 0 1px 0 rgba(170,250,255,.18) !important;
-  text-shadow: 0 0 8px rgba(0,240,255,.52) !important;
-}
-body .ws-main-header__chat *,
-body .ws-main-header__chat svg,
-body .ws-main-header__chat span {
-  color: #00f0ff !important;
-  -webkit-text-fill-color: #00f0ff !important;
-  fill: none !important;
-  stroke: currentColor !important;
-}
-body .ws-main-header__chat:hover,
-body .ws-main-header__chat:focus-visible {
-  background: linear-gradient(135deg, rgba(0,240,255,.38), rgba(0,126,255,.32) 52%, rgba(72,65,225,.28)) !important;
-  border-color: rgba(0,250,255,.82) !important;
-  box-shadow: 0 0 28px rgba(0,240,255,.34), inset 0 0 16px rgba(0,240,255,.14) !important;
-}
-body .ws-main-header__chat:active { transform: translateY(1px); }
-body .ws-main-header__badge { background: rgba(0,90,160,.22) !important; border-color: rgba(0,240,255,.36) !important; color: #00f0ff !important; -webkit-text-fill-color: #00f0ff !important; }
+/* Chat navigation: highest-specificity glass rule so the component's local style cannot turn it white. */
+html body #root .work-social-router-shell > header.ws-main-header > button.ws-main-header__chat,
+html body #root .ws-main-header__chat,
+html body #root .ws-main-header__chat:is(button,a) { appearance:none!important; -webkit-appearance:none!important; background:linear-gradient(135deg,rgba(0,240,255,.34),rgba(0,126,255,.30) 52%,rgba(72,65,225,.26))!important; background-color:rgba(0,110,190,.22)!important; background-image:linear-gradient(135deg,rgba(0,240,255,.34),rgba(0,126,255,.30) 52%,rgba(72,65,225,.26))!important; color:#00f0ff!important; -webkit-text-fill-color:#00f0ff!important; border:1px solid rgba(0,240,255,.68)!important; border-radius:13px!important; backdrop-filter:blur(18px) saturate(190%)!important; -webkit-backdrop-filter:blur(18px) saturate(190%)!important; box-shadow:0 0 22px rgba(0,210,255,.28),inset 0 0 14px rgba(0,240,255,.12),inset 0 1px 0 rgba(170,250,255,.18)!important; text-shadow:0 0 8px rgba(0,240,255,.52)!important; }
+html body #root .ws-main-header__chat *, html body #root .ws-main-header__chat svg, html body #root .ws-main-header__chat span, html body #root .ws-main-header__chat b { color:#00f0ff!important; -webkit-text-fill-color:#00f0ff!important; fill:none!important; stroke:currentColor!important; }
+html body #root .ws-main-header__chat:hover, html body #root .ws-main-header__chat:focus-visible { background:linear-gradient(135deg,rgba(0,240,255,.42),rgba(0,126,255,.36) 52%,rgba(72,65,225,.32))!important; border-color:rgba(0,250,255,.88)!important; box-shadow:0 0 30px rgba(0,240,255,.38),inset 0 0 16px rgba(0,240,255,.15)!important; }
+html body #root .ws-main-header__chat:active { transform:translateY(1px); }
+html body #root .ws-main-header__badge { background:rgba(0,90,160,.22)!important; border-color:rgba(0,240,255,.36)!important; color:#00f0ff!important; -webkit-text-fill-color:#00f0ff!important; }
 
 /* Three-line menu trigger. */
-body .ws-global-menu-wrap .ws-menu-trigger { background: linear-gradient(135deg, rgba(0,205,255,.28), rgba(0,102,255,.23), rgba(65,70,220,.18)) !important; background-color: rgba(0,100,180,.18) !important; backdrop-filter: blur(16px) saturate(185%) !important; -webkit-backdrop-filter: blur(16px) saturate(185%) !important; border: 1px solid rgba(0,240,255,.48) !important; color: #00f0ff !important; box-shadow: 0 0 18px rgba(0,210,255,.20), inset 0 0 12px rgba(0,240,255,.08) !important; }
-body .ws-global-menu-wrap .ws-menu-trigger svg { color: #00f0ff !important; stroke: currentColor !important; }
+html body #root .ws-global-menu-wrap .ws-menu-trigger { background:linear-gradient(135deg,rgba(0,205,255,.28),rgba(0,102,255,.23),rgba(65,70,220,.18))!important; background-color:rgba(0,100,180,.18)!important; backdrop-filter:blur(16px) saturate(185%)!important; -webkit-backdrop-filter:blur(16px) saturate(185%)!important; border:1px solid rgba(0,240,255,.48)!important; color:#00f0ff!important; box-shadow:0 0 18px rgba(0,210,255,.20),inset 0 0 12px rgba(0,240,255,.08)!important; }
+html body #root .ws-global-menu-wrap .ws-menu-trigger svg { color:#00f0ff!important; stroke:currentColor!important; }
 
 /* Popup windows and account rows use the same glass material. */
-body .ws-global-menu-wrap .ws-workspace-panel,
-body .ws-global-menu-wrap .ws-account-panel { background: linear-gradient(135deg, rgba(0,93,155,.54), rgba(0,55,125,.42) 52%, rgba(0,180,235,.20)) !important; background-color: rgba(4,45,82,.48) !important; backdrop-filter: blur(24px) saturate(195%) !important; -webkit-backdrop-filter: blur(24px) saturate(195%) !important; border: 1px solid rgba(0,230,255,.46) !important; box-shadow: 0 0 30px rgba(0,175,255,.22), inset 0 0 20px rgba(0,220,255,.09) !important; }
-body .ws-global-menu-wrap .ws-title,
-body .ws-global-menu-wrap .ws-label,
-body .ws-global-menu-wrap .ws-name,
-body .ws-global-menu-wrap .ws-check,
-body .ws-global-menu-wrap .ws-arrow,
-body .ws-global-menu-wrap .ws-pill,
-body .ws-global-menu-wrap .ws-close { color: #00f0ff !important; -webkit-text-fill-color: #00f0ff !important; font-family: 'JetBrains Mono', monospace !important; text-shadow: 0 0 8px rgba(0,240,255,.50) !important; }
-body .ws-global-menu-wrap .ws-sub,
-body .ws-global-menu-wrap .ws-email { color: #94a3b8 !important; -webkit-text-fill-color: #94a3b8 !important; font-family: 'JetBrains Mono', monospace !important; }
-body .ws-global-menu-wrap .ws-divider { background: rgba(0,220,255,.22) !important; }
-body .ws-global-menu-wrap .ws-module,
-body .ws-global-menu-wrap .ws-account { background: rgba(0,125,205,.10) !important; border-color: rgba(0,220,255,.20) !important; color: #c7f7ff !important; box-shadow: inset 0 0 10px rgba(0,220,255,.03) !important; }
-body .ws-global-menu-wrap .ws-module:hover,
-body .ws-global-menu-wrap .ws-account:hover,
-body .ws-global-menu-wrap .ws-module[data-active='true'] { background: rgba(0,190,255,.18) !important; border-color: rgba(0,240,255,.32) !important; box-shadow: inset 0 0 12px rgba(0,220,255,.07) !important; }
-body .ws-global-menu-wrap .ws-icon { background: rgba(0,130,205,.14) !important; border-color: rgba(0,220,255,.24) !important; color: #00f0ff !important; }
-body .ws-global-menu-wrap .ws-avatar { background: linear-gradient(145deg, rgba(0,220,255,.22), rgba(0,102,255,.20)) !important; border-color: rgba(0,220,255,.25) !important; }
-body .ws-global-menu-wrap .ws-switching { color: #94a3b8 !important; }
+html body #root .ws-global-menu-wrap .ws-workspace-panel, html body #root .ws-global-menu-wrap .ws-account-panel { background:linear-gradient(135deg,rgba(0,93,155,.54),rgba(0,55,125,.42) 52%,rgba(0,180,235,.20))!important; background-color:rgba(4,45,82,.48)!important; backdrop-filter:blur(24px) saturate(195%)!important; -webkit-backdrop-filter:blur(24px) saturate(195%)!important; border:1px solid rgba(0,230,255,.46)!important; box-shadow:0 0 30px rgba(0,175,255,.22),inset 0 0 20px rgba(0,220,255,.09)!important; }
+html body #root .ws-global-menu-wrap .ws-title, html body #root .ws-global-menu-wrap .ws-label, html body #root .ws-global-menu-wrap .ws-name, html body #root .ws-global-menu-wrap .ws-check, html body #root .ws-global-menu-wrap .ws-arrow, html body #root .ws-global-menu-wrap .ws-pill, html body #root .ws-global-menu-wrap .ws-close { color:#00f0ff!important; -webkit-text-fill-color:#00f0ff!important; font-family:'JetBrains Mono',monospace!important; text-shadow:0 0 8px rgba(0,240,255,.50)!important; }
+html body #root .ws-global-menu-wrap .ws-sub, html body #root .ws-global-menu-wrap .ws-email { color:#94a3b8!important; -webkit-text-fill-color:#94a3b8!important; font-family:'JetBrains Mono',monospace!important; }
+html body #root .ws-global-menu-wrap .ws-divider { background:rgba(0,220,255,.22)!important; }
+html body #root .ws-global-menu-wrap .ws-module, html body #root .ws-global-menu-wrap .ws-account { background:rgba(0,125,205,.10)!important; border-color:rgba(0,220,255,.20)!important; color:#c7f7ff!important; box-shadow:inset 0 0 10px rgba(0,220,255,.03)!important; }
+html body #root .ws-global-menu-wrap .ws-module:hover, html body #root .ws-global-menu-wrap .ws-account:hover, html body #root .ws-global-menu-wrap .ws-module[data-active='true'] { background:rgba(0,190,255,.18)!important; border-color:rgba(0,240,255,.32)!important; box-shadow:inset 0 0 12px rgba(0,220,255,.07)!important; }
+html body #root .ws-global-menu-wrap .ws-icon { background:rgba(0,130,205,.14)!important; border-color:rgba(0,220,255,.24)!important; color:#00f0ff!important; }
+html body #root .ws-global-menu-wrap .ws-avatar { background:linear-gradient(145deg,rgba(0,220,255,.22),rgba(0,102,255,.20))!important; border-color:rgba(0,220,255,.25)!important; }
+html body #root .ws-global-menu-wrap .ws-switching { color:#94a3b8!important; }
