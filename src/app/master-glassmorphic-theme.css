@@ -1,7 +1,7 @@
 /* Work Social — Master Glassmorphic Sci-Fi UI convergence.
    Presentation-only overrides. Business logic, data, routing, auth, AI and Supabase behavior are untouched. */
 
-/* Global electric-blue × electric-lime cinematic canvas. */
+/* Premium supercomputer canvas: deep space blue with electric cyan + restrained lime energy. */
 html,
 body,
 #root {
@@ -9,51 +9,46 @@ body,
 }
 
 :root {
-  --ws-electric-canvas:
-    radial-gradient(ellipse 90% 75% at 50% 0%, rgba(245, 255, 255, 0.62), transparent 58%),
-    radial-gradient(ellipse 62% 82% at 0% 28%, rgba(0, 170, 255, 0.62), transparent 68%),
-    radial-gradient(ellipse 62% 82% at 100% 30%, rgba(0, 225, 255, 0.54), transparent 68%),
-    radial-gradient(ellipse 58% 72% at 8% 82%, rgba(183, 255, 24, 0.58), transparent 68%),
-    radial-gradient(ellipse 58% 72% at 92% 82%, rgba(183, 255, 24, 0.52), transparent 68%),
-    radial-gradient(ellipse 80% 65% at 50% 52%, rgba(75, 220, 255, 0.38), transparent 70%),
-    linear-gradient(120deg, #2386c5 0%, #2e9cda 30%, #42b4e1 54%, #2fa0d4 74%, #2589c4 100%);
+  --ws-supercomputer-canvas:
+    radial-gradient(ellipse 92% 72% at 50% -6%, rgba(72, 238, 255, 0.28), transparent 58%),
+    radial-gradient(ellipse 58% 76% at 0% 24%, rgba(0, 132, 255, 0.32), transparent 70%),
+    radial-gradient(ellipse 58% 76% at 100% 28%, rgba(35, 186, 255, 0.24), transparent 70%),
+    radial-gradient(ellipse 52% 68% at 8% 92%, rgba(164, 255, 35, 0.18), transparent 72%),
+    radial-gradient(ellipse 52% 68% at 92% 92%, rgba(164, 255, 35, 0.14), transparent 72%),
+    radial-gradient(ellipse 72% 62% at 50% 52%, rgba(24, 104, 190, 0.20), transparent 74%),
+    linear-gradient(122deg, #071a33 0%, #0a2850 30%, #0d3560 52%, #0a2a50 74%, #06182f 100%);
 }
 
 html {
-  background: #2386c5 !important;
+  background: #071a33 !important;
 }
 
 body {
-  background: var(--ws-electric-canvas) !important;
+  background: var(--ws-supercomputer-canvas) !important;
   background-attachment: fixed !important;
+  background-size: cover !important;
+  color: var(--ws-text-primary) !important;
 }
 
-/* Keep the actual scrolling page canvas on the same cinematic environment as the viewport.
-   The HUD grid is layered above the shared canvas so the scroll area does not fall back to a
-   darker/transparent surface while content extends below the initial viewport. */
-.work-social-page-content,
-.app-shell {
+/* Keep the actual scrolling canvas on the exact same environment as the viewport. */
+.work-social-page-content {
   background-color: transparent !important;
   background-image:
-    linear-gradient(rgba(220, 255, 255, 0.075) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(220, 255, 255, 0.075) 1px, transparent 1px),
-    var(--ws-electric-canvas) !important;
+    linear-gradient(rgba(150, 245, 255, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(150, 245, 255, 0.045) 1px, transparent 1px),
+    var(--ws-supercomputer-canvas) !important;
   background-size: 32px 32px, 32px 32px, cover !important;
-  background-position: 0 0, 0 0, center top !important;
   background-attachment: scroll, scroll, fixed !important;
 }
 
-/* Major content surfaces stay transparent so the shared canvas remains visible through them. */
+.app-shell,
 .home-post-feed,
 .premium-profile-panel {
   background-color: transparent !important;
   background-image:
-    linear-gradient(rgba(220, 255, 255, 0.075) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(220, 255, 255, 0.075) 1px, transparent 1px),
-    var(--ws-electric-canvas) !important;
-  background-size: 32px 32px, 32px 32px, cover !important;
-  background-position: 0 0, 0 0, center top !important;
-  background-attachment: scroll, scroll, fixed !important;
+    linear-gradient(rgba(150, 245, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(150, 245, 255, 0.035) 1px, transparent 1px) !important;
+  background-size: 32px 32px !important;
 }
 
 /* Posts: use the shared glass material instead of legacy solid cards. */
@@ -71,7 +66,6 @@ body {
   box-shadow: var(--ws-glow-cyan-hover) !important;
 }
 
-/* Comments, reaction clusters and post controls inherit the same HUD material. */
 .home-post-feed article [role="group"],
 .home-post-feed article [role="menu"],
 .home-post-feed article [role="dialog"],
