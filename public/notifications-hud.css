@@ -16,9 +16,10 @@ main:has(> div > div > h1) article:hover { border-color:rgba(0,240,255,.44) !imp
 main:has(> div > div > h1) article > div:nth-child(2) > div:first-child { color:#8cefff !important; font-family:"JetBrains Mono",ui-monospace,monospace !important; font-size:11px !important; line-height:1.55 !important; letter-spacing:.018em !important; text-shadow:0 0 8px rgba(0,240,255,.12) !important; }
 main:has(> div > div > h1) article > div:nth-child(2) > div:first-child strong { color:#f2feff !important; font-weight:850 !important; }
 /* Timestamp: e.g. "9/15/2026, 8:17:01 AM" */
-main:has(> div > div > h1) article > div:nth-child(2) > div:nth-child(2) { color:#c8ff66 !important; font-family:"JetBrains Mono",ui-monospace,monospace !important; font-size:9px !important; line-height:1.45 !important; letter-spacing:.04em !important; margin-top:4px !important; text-shadow:0 0 8px rgba(170,255,70,.16) !important; }
+main:has(> div > div > h1) article > div:nth-child(2) > div:nth-child(2) { color:#c8ff66 !important; font-family:"JetBrains Mono",ui-monospace,monospace !important; font-size:9px !important; line-height:1.45 !important; letter-spacing:.04em !important; margin-top:4px !important; text-shadow:0 0 8px rgba(170,255,70,.22) !important; }
+main:has(> div > div > h1) article > div:nth-child(2) > div:nth-child(2) * { color:#c8ff66 !important; text-shadow:0 0 8px rgba(170,255,70,.22) !important; }
 main:has(> div > div > h1) article strong { color:#effeff !important; }
-main:has(> div > div > h1) article span,main:has(> div > div > h1) article small,main:has(> div > div > h1) article time { color:#c8ff66 !important; font-family:"JetBrains Mono",ui-monospace,monospace !important; font-size:9px !important; text-shadow:0 0 6px rgba(170,255,70,.12) !important; }
+main:has(> div > div > h1) article span,main:has(> div > div > h1) article small,main:has(> div > div > h1) article time { color:#c8ff66 !important; font-family:"JetBrains Mono",ui-monospace,monospace !important; font-size:9px !important; text-shadow:0 0 6px rgba(170,255,70,.18) !important; }
 main:has(> div > div > h1) article p { color:#bdebf2 !important; font-family:"JetBrains Mono",ui-monospace,monospace !important; font-size:10px !important; line-height:1.55 !important; }
 
 /* Sender/display name — intentionally stronger than the action text */
@@ -32,11 +33,15 @@ main:has(> div > div > h1) article > div:first-child span { background:rgba(4,23
 main:has(> div > div > h1) article button { border-color:rgba(0,240,255,.30) !important; background:rgba(0,126,255,.16) !important; color:#bffaff !important; box-shadow:inset 0 1px 0 rgba(255,255,255,.08) !important; }
 main:has(> div > div > h1) article button:hover:not(:disabled) { border-color:rgba(0,240,255,.65) !important; background:rgba(0,240,255,.20) !important; }
 
-/* Report notification detail */
-main:has(> div > div > h1) article:has(.report-view) p { color:#d9ff9a !important; background:rgba(170,255,70,.08) !important; border:1px solid rgba(170,255,70,.20) !important; border-radius:10px !important; padding:6px 9px !important; text-shadow:0 0 7px rgba(170,255,70,.12) !important; }
-main:has(> div > div > h1) article:has(.report-view) .report-view { color:#dfff9b !important; background:linear-gradient(135deg,rgba(170,255,70,.18),rgba(0,240,255,.18)) !important; border:1px solid rgba(170,255,70,.42) !important; box-shadow:0 0 16px rgba(170,255,70,.10),inset 0 1px 0 rgba(255,255,255,.08) !important; font-weight:800 !important; text-shadow:0 0 7px rgba(170,255,70,.18) !important; }
+/* Report notification detail — pink/red telemetry, never lime/white */
+main:has(> div > div > h1) article:has(.report-view) p,
+main:has(> div > div > h1) article:has(.report-view) p * { color:#ffb6c8 !important; font-family:"JetBrains Mono",ui-monospace,monospace !important; text-shadow:0 0 8px rgba(255,80,135,.18) !important; }
+main:has(> div > div > h1) article:has(.report-view) p { background:rgba(255,55,120,.10) !important; background-color:rgba(255,55,120,.10) !important; border:1px solid rgba(255,90,145,.28) !important; border-radius:10px !important; padding:7px 10px !important; box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 0 14px rgba(255,55,120,.07) !important; }
+main:has(> div > div > h1) article:has(.report-view) p[style],
+main:has(> div > div > h1) article:has(.report-view) p[style*="background"] { background:rgba(255,55,120,.10) !important; background-color:rgba(255,55,120,.10) !important; color:#ffb6c8 !important; }
+main:has(> div > div > h1) article:has(.report-view) .report-view { color:#dffeff !important; background:linear-gradient(135deg,rgba(0,240,255,.30),rgba(0,126,255,.30)) !important; border:1px solid rgba(0,240,255,.52) !important; box-shadow:0 0 16px rgba(0,240,255,.10),inset 0 1px 0 rgba(255,255,255,.08) !important; font-weight:800 !important; text-shadow:0 0 7px rgba(0,240,255,.16) !important; }
 main:has(> div > div > h1) article:has(.report-view) .report-decline { color:#ffb8c4 !important; background:rgba(190,40,80,.14) !important; border:1px solid rgba(255,90,130,.34) !important; box-shadow:0 0 14px rgba(255,90,130,.08),inset 0 1px 0 rgba(255,255,255,.06) !important; font-weight:800 !important; text-shadow:0 0 6px rgba(255,90,130,.14) !important; }
-main:has(> div > div > h1) article:has(.report-view) .report-view:hover:not(:disabled) { border-color:rgba(200,255,100,.72) !important; background:rgba(170,255,70,.24) !important; }
+main:has(> div > div > h1) article:has(.report-view) .report-view:hover:not(:disabled) { border-color:rgba(0,240,255,.72) !important; background:rgba(0,240,255,.24) !important; }
 main:has(> div > div > h1) article:has(.report-view) .report-decline:hover:not(:disabled) { border-color:rgba(255,90,130,.60) !important; background:rgba(190,40,80,.22) !important; }
 
 /* Empty state */
