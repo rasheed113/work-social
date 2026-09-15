@@ -1,113 +1,97 @@
-/* Profile page — Posts / Community Feed supercomputer glass pass. Visual-only, scoped to Profile. */
-body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap > section > div:first-child {
-  background: rgba(10, 40, 72, .10) !important;
-  border: 1px solid rgba(102, 232, 255, .20) !important;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, .10), inset 0 1px 0 rgba(191, 239, 255, .08) !important;
-  backdrop-filter: blur(5px) !important;
-  -webkit-backdrop-filter: blur(5px) !important;
-}
-body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap > section > div:first-child h2 { color: #66e8ff !important; text-shadow: 0 0 12px rgba(102, 232, 255, .30) !important; }
-body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap > section > div:first-child span { color: #bfefff !important; }
-body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article {
-  background: rgba(10, 42, 76, .08) !important;
-  border: 1px solid rgba(102, 232, 255, .18) !important;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, .12), inset 0 1px 0 rgba(191, 239, 255, .08) !important;
-  backdrop-filter: blur(4px) !important;
-  -webkit-backdrop-filter: blur(4px) !important;
-}
-body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article header { border-bottom-color: rgba(102, 232, 255, .14) !important; }
-body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article small,
-body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article span { color: #bfefff !important; }
+/* Profile — unified current transparent-glass card system.
+   Visual-only and scoped to Profile. Hero card remains authoritative; every other
+   Profile surface follows its radius, border, depth, highlight and glow language
+   without restoring the older opaque white fill. */
 
-/* Nested comment surfaces stay glassy rather than becoming opaque blocks. */
-body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article footer > div[style*="246, 248, 251"],
-body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article footer > div[style*="245, 247, 250"],
-body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article footer > div:has(input[placeholder="Write a comment..."]) {
-  background: rgba(10, 42, 76, .055) !important;
-  border: 1px solid rgba(102, 232, 255, .15) !important;
-  box-shadow: inset 0 1px 0 rgba(191, 239, 255, .06), 0 5px 14px rgba(0, 0, 0, .07) !important;
-  backdrop-filter: blur(3px) !important;
-  -webkit-backdrop-filter: blur(3px) !important;
-}
-
-/* Expanded "Comments (n) / Close" window: same clear blue shed-glass treatment. */
-body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article footer > div:has(strong):has(button) {
-  background: rgba(10, 42, 76, .045) !important;
-  border: 1px solid rgba(102, 232, 255, .16) !important;
-  box-shadow: inset 0 1px 0 rgba(191, 239, 255, .07), 0 7px 18px rgba(0, 0, 0, .08) !important;
-  backdrop-filter: blur(4px) !important;
-  -webkit-backdrop-filter: blur(4px) !important;
-  color: #bfefff !important;
-}
-body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article footer > div:has(strong):has(button) strong { color: #66e8ff !important; text-shadow: 0 0 10px rgba(102, 232, 255, .24) !important; }
-body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article footer > div:has(strong):has(button) small { color: #bfefff !important; }
-body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article footer > div:has(strong):has(button) button { border-color: rgba(102, 232, 255, .16) !important; background: rgba(102, 232, 255, .045) !important; color: #bfefff !important; }
-body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article footer > div:has(strong):has(button) input,
-body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article footer > div:has(strong):has(button) textarea { background: transparent !important; color: #bfefff !important; -webkit-text-fill-color: #bfefff !important; }
-body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article footer > div:has(input[placeholder="Write a comment..."]) input { background: transparent !important; color: #bfefff !important; -webkit-text-fill-color: #bfefff !important; }
-body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article footer > div[style*="246, 248, 251"] button,
-body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article footer > div[style*="245, 247, 250"] button,
-body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article footer > div:has(input[placeholder="Write a comment..."]) button { border-color: rgba(102, 232, 255, .16) !important; background: rgba(102, 232, 255, .045) !important; color: #bfefff !important; }
-body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article button { border-color: rgba(102, 232, 255, .16) !important; }
-
-/* Hero-card parity: every major Profile surface now uses the same light frosted card DNA as the loved Profile hero. */
 body[data-ws-page="profile"] .premium-profile-panel .profile-state-card,
 body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap > section > div:first-child,
 body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article,
 body[data-ws-page="profile"] .premium-profile-panel .profile-joined-card,
 body[data-ws-page="profile"] .premium-profile-panel .edit-profile-card {
-  border: 1px solid rgba(99,102,241,.15) !important;
+  position: relative;
+  min-width: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+  border: 1px solid rgba(99,102,241,.18) !important;
   border-radius: 22px !important;
-  background: linear-gradient(145deg,rgba(255,255,255,.985),rgba(242,245,255,.94) 58%,rgba(248,250,252,.96)) !important;
-  box-shadow: 0 14px 34px rgba(15,23,42,.075),0 2px 8px rgba(79,70,229,.045),inset 0 1px 0 rgba(255,255,255,.98) !important;
-  backdrop-filter: blur(8px) !important;
-  -webkit-backdrop-filter: blur(8px) !important;
+  background: linear-gradient(145deg,
+    rgba(255,255,255,.34),
+    rgba(224,239,255,.18) 58%,
+    rgba(240,248,255,.25)) !important;
+  box-shadow:
+    0 14px 34px rgba(15,23,42,.07),
+    0 2px 10px rgba(79,70,229,.055),
+    inset 0 1px 0 rgba(255,255,255,.48) !important;
+  backdrop-filter: blur(14px) saturate(125%) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(125%) !important;
 }
 
-/* Keep the hero itself untouched; its existing CSS remains the authoritative visual reference. */
-body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap > section > div:first-child,
-body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article {
-  position: relative;
-  overflow: hidden;
-}
+/* Same subtle Hero highlight, but transparent enough to preserve the new glass look. */
+body[data-ws-page="profile"] .premium-profile-panel .profile-state-card::after,
 body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap > section > div:first-child::after,
 body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article::after,
-body[data-ws-page="profile"] .premium-profile-panel .profile-state-card::after,
 body[data-ws-page="profile"] .premium-profile-panel .profile-joined-card::after,
 body[data-ws-page="profile"] .premium-profile-panel .edit-profile-card::after {
   content: '';
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: linear-gradient(180deg,rgba(255,255,255,.25),transparent 34%);
+  background: linear-gradient(180deg, rgba(255,255,255,.18), transparent 36%);
   pointer-events: none;
+  z-index: 0;
 }
 
-/* Text stays crisp over the hero-style frosted surfaces. */
-body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article small,
-body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article span { color: #64748b !important; }
-body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article strong { color: #111827 !important; }
-body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap > section > div:first-child h2 { color: #111827 !important; text-shadow: 0 2px 8px rgba(15,23,42,.09) !important; }
-body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap > section > div:first-child span { color: #64748b !important; }
+body[data-ws-page="profile"] .premium-profile-panel .profile-state-card > *,
+body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap > section > div:first-child > *,
+body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article > *,
+body[data-ws-page="profile"] .premium-profile-panel .profile-joined-card > *,
+body[data-ws-page="profile"] .premium-profile-panel .edit-profile-card > * {
+  position: relative;
+  z-index: 1;
+}
 
-/* Inner comments remain lighter than the parent card, matching the hero's layered frosted depth. */
+/* Posts / Community Feed typography stays crisp over transparent glass. */
+body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap > section > div:first-child h2 {
+  color: #17202a !important;
+  text-shadow: 0 2px 8px rgba(15,23,42,.08) !important;
+}
+body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap > section > div:first-child span,
+body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article small,
+body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article span,
+body[data-ws-page="profile"] .premium-profile-panel .profile-joined-card p {
+  color: #52657a !important;
+}
+body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article strong {
+  color: #17202a !important;
+}
+body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article header {
+  border-bottom-color: rgba(99,102,241,.13) !important;
+}
+
+/* Nested comments use the same glass DNA at a lighter/deeper layer, never opaque. */
 body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article footer > div[style*="246, 248, 251"],
 body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article footer > div[style*="245, 247, 250"],
 body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article footer > div:has(input[placeholder="Write a comment..."]),
 body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article footer > div:has(strong):has(button) {
-  background: linear-gradient(145deg,rgba(255,255,255,.72),rgba(242,245,255,.60)) !important;
-  border: 1px solid rgba(99,102,241,.10) !important;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.72),0 7px 18px rgba(15,23,42,.045) !important;
-  backdrop-filter: blur(6px) !important;
-  -webkit-backdrop-filter: blur(6px) !important;
+  position: relative;
+  border: 1px solid rgba(99,102,241,.13) !important;
+  border-radius: 17px !important;
+  background: linear-gradient(145deg,
+    rgba(255,255,255,.22),
+    rgba(220,237,255,.12) 58%,
+    rgba(240,248,255,.18)) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.32),
+    0 7px 18px rgba(15,23,42,.045) !important;
+  backdrop-filter: blur(11px) saturate(120%) !important;
+  -webkit-backdrop-filter: blur(11px) saturate(120%) !important;
 }
-body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article footer > div:has(strong):has(button) strong { color: #111827 !important; text-shadow: 0 2px 8px rgba(15,23,42,.06) !important; }
-body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article footer > div:has(strong):has(button) small { color: #64748b !important; }
-body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article footer > div:has(strong):has(button) button,
-body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article footer > div:has(input[placeholder="Write a comment..."]) button {
-  border-color: rgba(99,102,241,.12) !important;
-  background: rgba(255,255,255,.62) !important;
-  color: #334155 !important;
+
+body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article footer > div:has(strong):has(button) strong {
+  color: #17202a !important;
+}
+body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article footer > div:has(strong):has(button) small {
+  color: #64748b !important;
 }
 body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article footer > div:has(input[placeholder="Write a comment..."]) input,
 body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article footer > div:has(strong):has(button) input,
@@ -117,10 +101,24 @@ body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article f
   -webkit-text-fill-color: #334155 !important;
 }
 
+/* Comment controls remain translucent too. */
+body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article button {
+  border-color: rgba(99,102,241,.14) !important;
+}
+body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article footer > div:has(strong):has(button) button,
+body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article footer > div:has(input[placeholder="Write a comment..."]) button {
+  border-color: rgba(99,102,241,.13) !important;
+  background: rgba(255,255,255,.24) !important;
+  color: #334155 !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.28) !important;
+}
+
 @media (max-width:767px) {
   body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap > section > div:first-child,
   body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article,
   body[data-ws-page="profile"] .premium-profile-panel .profile-state-card,
   body[data-ws-page="profile"] .premium-profile-panel .profile-joined-card,
-  body[data-ws-page="profile"] .premium-profile-panel .edit-profile-card { border-radius:19px !important; }
+  body[data-ws-page="profile"] .premium-profile-panel .edit-profile-card {
+    border-radius: 19px !important;
+  }
 }
