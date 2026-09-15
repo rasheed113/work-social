@@ -1,0 +1,112 @@
+/* Work Social — forced HUD surface correction for Social chrome/feed. */
+
+/* Top navigation: never render a white/light container. */
+.ws-main-header {
+  background: rgba(10, 20, 40, 0.6) !important;
+  border: 1px solid rgba(0, 240, 255, 0.2) !important;
+  border-top-color: rgba(0, 240, 255, 0.28) !important;
+  box-shadow: 0 0 22px rgba(0, 240, 255, 0.08), inset 0 1px 0 rgba(0, 240, 255, 0.08) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+}
+
+.ws-main-header__title,
+.ws-main-header__tagline,
+.ws-main-header__brand,
+.ws-main-header__chat {
+  color: var(--ws-text-primary, #fff) !important;
+}
+
+.ws-main-header__brand:hover {
+  background: rgba(10, 20, 40, 0.42) !important;
+}
+
+.ws-main-header__chat {
+  background: rgba(10, 20, 40, 0.72) !important;
+  border-color: rgba(0, 240, 255, 0.28) !important;
+  box-shadow: 0 0 14px rgba(0, 240, 255, 0.12), inset 0 1px 0 rgba(0, 240, 255, 0.08) !important;
+}
+
+/* Public feed/post cards: translucent HUD panels, never opaque light cards. */
+body:has(.home-post-feed) .home-post-feed article {
+  background: rgba(10, 20, 40, 0.6) !important;
+  border: 1px solid rgba(0, 240, 255, 0.2) !important;
+  box-shadow: 0 0 18px rgba(0, 240, 255, 0.07), inset 0 1px 0 rgba(0, 240, 255, 0.06) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+}
+
+body:has(.home-post-feed) .home-post-feed article input,
+body:has(.home-post-feed) .home-post-feed article textarea {
+  background: rgba(10, 20, 40, 0.6) !important;
+  color: var(--ws-text-primary, #fff) !important;
+  border: 1px solid rgba(0, 240, 255, 0.2) !important;
+  box-shadow: none !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+}
+
+body:has(.home-post-feed) .home-post-feed article input:focus,
+body:has(.home-post-feed) .home-post-feed article textarea:focus {
+  border-color: var(--ws-cyan, #00f0ff) !important;
+  box-shadow: 0 0 12px rgba(0, 240, 255, 0.22) !important;
+  outline: none !important;
+}
+
+/* Comment composer wrappers. */
+body:has(.home-post-feed) .home-post-feed article footer div:has(> input),
+body:has(.home-post-feed) .home-post-feed article footer div:has(> textarea) {
+  background: rgba(10, 20, 40, 0.6) !important;
+  border-color: rgba(0, 240, 255, 0.2) !important;
+  box-shadow: inset 0 1px 0 rgba(0, 240, 255, 0.05) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+}
+
+/* Feed controls: cyan HUD treatment with muted secondary text. */
+body:has(.home-post-feed) .home-post-feed article button {
+  background: rgba(10, 20, 40, 0.6) !important;
+  color: var(--ws-cyan, #00f0ff) !important;
+  border-color: rgba(0, 240, 255, 0.2) !important;
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.08) !important;
+}
+
+body:has(.home-post-feed) .home-post-feed article button:hover:not(:disabled),
+body:has(.home-post-feed) .home-post-feed article button:focus-visible {
+  border-color: var(--ws-cyan, #00f0ff) !important;
+  box-shadow: 0 0 14px rgba(0, 240, 255, 0.2) !important;
+}
+
+body:has(.home-post-feed) .home-post-feed article small,
+body:has(.home-post-feed) .home-post-feed article [data-muted="true"] {
+  color: var(--ws-text-muted, #8a99ad) !important;
+}
+
+/* Post/feed section heading uses the HUD typography system. */
+body:has(.home-post-feed) .home-post-feed > section > h2 {
+  background: rgba(10, 20, 40, 0.6) !important;
+  color: var(--ws-cyan, #00f0ff) !important;
+  border-color: rgba(0, 240, 255, 0.2) !important;
+  box-shadow: 0 0 14px rgba(0, 240, 255, 0.06) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  font-family: var(--ws-font-hud, 'Space Grotesk', 'Segoe UI', sans-serif) !important;
+  text-shadow: 0 0 10px rgba(0, 240, 255, 0.22) !important;
+}
+
+/* Menus/dialogs must also stay in the same dark glass material. */
+body:has(.home-post-feed) .home-post-feed article [role="menu"],
+body:has(.home-post-feed) .home-post-feed article [role="dialog"],
+body:has(.home-post-feed) .home-post-feed article [role="alertdialog"],
+body:has(.home-post-feed) .home-post-feed article [role="group"] {
+  background: rgba(10, 20, 40, 0.82) !important;
+  border-color: rgba(0, 240, 255, 0.2) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+}
+
+/* Keep the global grid visible through transparent social surfaces. */
+body:has(.home-post-feed) .home-post-feed,
+body:has(.home-post-feed) .home-post-feed > section {
+  background: transparent !important;
+}
