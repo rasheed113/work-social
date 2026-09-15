@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Work Social — a real social web platform." />
-    <style>html,body,#root{background:#050914}</style>
+    <style>html,body,#root{background:#071426}</style>
     <link rel="stylesheet" href="/team-finance-premium.css" />
     <link rel="stylesheet" href="/contractor-overview-3d.css" />
     <link rel="stylesheet" href="/worker-overview-volume.css" />
@@ -12,12 +12,53 @@
     <link rel="stylesheet" href="/worker-card-01-progress-map.css" />
     <link rel="stylesheet" href="/worker-overview-live-ticker.css" />
     <link rel="stylesheet" href="/worker-overview-live-context.css" />
+    <link rel="stylesheet" href="/cyber-hud-remaining-fixes.css" />
+    <link rel="stylesheet" href="/create-post-hud.css" />
+    <link rel="stylesheet" href="/social-command-center-post-glass.css" />
+    <link rel="stylesheet" href="/global-header-glass.css" />
+    <link rel="stylesheet" href="/chat-navigation-hud.css" />
+    <link rel="stylesheet" href="/notifications-hud.css" />
+    <link rel="stylesheet" href="/notifications-hud-force.css" />
     <title>Work Social</title>
   </head>
   <body>
     <div id="root"></div>
+    <style id="ws-supercomputer-atmosphere">
+      html, body, #root { background-color: #071426 !important; }
+      body {
+        background:
+          radial-gradient(ellipse 90% 65% at 50% -8%, rgba(0, 229, 255, 0.32), transparent 58%),
+          radial-gradient(ellipse 55% 60% at 8% 25%, rgba(0, 119, 255, 0.25), transparent 68%),
+          radial-gradient(ellipse 55% 60% at 92% 32%, rgba(77, 73, 255, 0.18), transparent 70%),
+          radial-gradient(ellipse 75% 70% at 50% 100%, rgba(0, 166, 255, 0.16), transparent 72%),
+          linear-gradient(115deg, #08172b 0%, #0b2340 42%, #102b4d 68%, #09182d 100%) !important;
+        background-attachment: fixed !important;
+        background-size: auto !important;
+      }
+      #root { background: transparent !important; }
+
+      /* Page atmospheres: one Work Social universe, different cinematic energy per surface. */
+      body[data-ws-page="social"] { --ws-page-a: rgba(0, 229, 255, .28); --ws-page-b: rgba(0, 119, 255, .20); --ws-page-c: rgba(77, 73, 255, .12); }
+      body[data-ws-page="friends"] { --ws-page-a: rgba(82, 125, 255, .27); --ws-page-b: rgba(130, 75, 255, .22); --ws-page-c: rgba(0, 220, 255, .10); }
+      body[data-ws-page="notifications"] { --ws-page-a: rgba(0, 229, 255, .25); --ws-page-b: rgba(255, 79, 216, .13); --ws-page-c: rgba(0, 119, 255, .18); }
+      body[data-ws-page="chat"] { --ws-page-a: rgba(0, 180, 255, .28); --ws-page-b: rgba(54, 88, 255, .23); --ws-page-c: rgba(0, 229, 255, .11); }
+      body[data-ws-page="profile"] { --ws-page-a: rgba(82, 155, 255, .27); --ws-page-b: rgba(108, 82, 255, .20); --ws-page-c: rgba(0, 229, 255, .10); }
+      body[data-ws-page="settings"] { --ws-page-a: rgba(0, 229, 255, .22); --ws-page-b: rgba(0, 102, 255, .22); --ws-page-c: rgba(110, 130, 255, .13); }
+      body[data-ws-page="finance"] { --ws-page-a: rgba(0, 229, 255, .23); --ws-page-b: rgba(0, 205, 150, .16); --ws-page-c: rgba(0, 119, 255, .17); }
+      body[data-ws-page="expense-manager"] { --ws-page-a: rgba(0, 220, 180, .22); --ws-page-b: rgba(0, 119, 255, .20); --ws-page-c: rgba(0, 229, 255, .12); }
+      body[data-ws-page="contractor"] { --ws-page-a: rgba(0, 180, 255, .25); --ws-page-b: rgba(100, 90, 255, .20); --ws-page-c: rgba(0, 229, 255, .10); }
+      body[data-ws-page] {
+        background:
+          radial-gradient(ellipse 82% 62% at 50% -6%, var(--ws-page-a), transparent 60%),
+          radial-gradient(ellipse 58% 62% at 6% 28%, var(--ws-page-b), transparent 70%),
+          radial-gradient(ellipse 58% 62% at 94% 30%, var(--ws-page-c), transparent 70%),
+          radial-gradient(ellipse 72% 70% at 50% 100%, rgba(0, 166, 255, .13), transparent 74%),
+          linear-gradient(115deg, #08172b 0%, #0b2340 42%, #102b4d 68%, #09182d 100%) !important;
+      }
+    </style>
     <script type="module" src="/src/main.tsx"></script>
     <script src="/worker-overview-live-ticker.js" defer></script>
     <script src="/worker-overview-live-context.js" defer></script>
+    <script src="/notifications-hud-runtime.js" defer></script>
   </body>
 </html>
