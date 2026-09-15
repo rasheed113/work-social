@@ -91,7 +91,7 @@ export function HomePage({ profileId }: HomePageProps) {
   }, []);
 
   return (
-    <main className="social-command-screen social-command-screen--home" style={{ width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box', padding: '18px 0 112px', overflowX: 'hidden', background: 'transparent', color: '#cfe9fb' }}>
+    <main style={{ width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box', padding: '18px 0 112px', overflowX: 'hidden' }}>
       <style>{`
         .home-page-title {
           margin: 0;
@@ -99,10 +99,12 @@ export function HomePage({ profileId }: HomePageProps) {
           line-height: 1.05;
           font-weight: 900;
           letter-spacing: -.035em;
-          color: #e8f7ff;
-          background: none;
-          -webkit-text-fill-color: currentColor;
-          text-shadow: 0 0 28px rgba(94,231,255,.09);
+          color: transparent;
+          background: linear-gradient(135deg, #6d5dfc 0%, #22c1dc 48%, #ff5ca8 100%);
+          -webkit-background-clip: text;
+          background-clip: text;
+          -webkit-text-fill-color: transparent;
+          text-shadow: 0 3px 0 rgba(255,255,255,.8), 0 7px 18px rgba(79,70,229,.16);
         }
         .home-post-feed > section > h2 {
           position: relative;
@@ -113,17 +115,16 @@ export function HomePage({ profileId }: HomePageProps) {
           padding: 10px 13px;
           min-height: 42px;
           box-sizing: border-box;
-          border: 1px solid rgba(103,208,255,.22);
+          border: 1px solid rgba(99,102,241,.14);
           border-radius: 15px;
-          background: rgba(5,21,43,.72);
-          color: #e8f7ff;
+          background: linear-gradient(145deg, rgba(255,255,255,.98), rgba(241,245,255,.94));
+          color: #17202a;
           font-size: 17px;
           line-height: 1;
           font-weight: 900;
-          letter-spacing: .04em;
-          text-transform: uppercase;
-          text-shadow: none;
-          box-shadow: inset 0 1px 0 rgba(190,239,255,.04);
+          letter-spacing: -.02em;
+          text-shadow: 0 1px 0 rgba(255,255,255,.95), 0 3px 9px rgba(23,32,42,.08);
+          box-shadow: 0 7px 18px rgba(15,23,42,.07), inset 0 1px 0 rgba(255,255,255,.95);
           overflow: hidden;
         }
         .home-post-feed > section > h2::before {
@@ -132,8 +133,8 @@ export function HomePage({ profileId }: HomePageProps) {
           height: 27px;
           flex: 0 0 7px;
           border-radius: 999px;
-          background: linear-gradient(180deg, #5ee7ff, #60a5fa, #8b8cff);
-          box-shadow: 0 0 12px rgba(94,231,255,.22);
+          background: linear-gradient(180deg, #22c1dc, #6d5dfc, #ff5ca8);
+          box-shadow: 0 4px 10px rgba(109,93,252,.24);
         }
         .home-post-feed > section > h2::after {
           content: '';
@@ -143,33 +144,21 @@ export function HomePage({ profileId }: HomePageProps) {
           right: -55px;
           top: -48px;
           border-radius: 50%;
-          background: radial-gradient(circle, rgba(94,231,255,.08), rgba(34,193,220,0));
+          background: radial-gradient(circle, rgba(109,93,252,.13), rgba(34,193,220,0));
           pointer-events: none;
         }
         @media (max-width: 767px) {
           .home-post-feed > section > h2 { margin-bottom: 10px; padding: 9px 11px; font-size: 16px; }
         }
       `}</style>
-      <div className="social-command-screen__frame" style={{ width: '100%', maxWidth: 900, minWidth: 0, margin: '0 auto', padding: '0 14px', boxSizing: 'border-box' }}>
-        <header className="social-command-screen__header">
-          <div className="social-command-screen__eyebrow">SOCIAL NETWORK // COMMAND INTERFACE</div>
-          <div className="social-command-screen__identity">
-            <div>
-              <h1 className="home-page-title">Home</h1>
-              <p className="social-command-screen__descriptor">Network operations and live social transmissions</p>
-            </div>
-          </div>
+      <div style={{ width: '100%', maxWidth: 900, minWidth: 0, margin: '0 auto', padding: '0 14px', boxSizing: 'border-box' }}>
+        <header style={{ marginBottom: 16, padding: '4px 4px 2px' }}>
+          <h1 className="home-page-title">Home</h1>
         </header>
-        <section className="social-command-screen__channel" aria-label="Social transmission console">
-          <div className="social-command-screen__channel-label">TRANSMISSION CONSOLE</div>
-          <CreatePostForm profileId={profileId} onCreated={() => setRefreshKey((key) => key + 1)} />
-        </section>
-        <section className="social-command-screen__data-channel" aria-label="Public social signal feed">
-          <div className="social-command-screen__channel-label">PUBLIC SIGNAL FEED</div>
-          <div className="home-post-feed" style={{ marginTop: 8 }}>
-            <PostFeed refreshKey={refreshKey} profileId={profileId} scope="public" />
-          </div>
-        </section>
+        <CreatePostForm profileId={profileId} onCreated={() => setRefreshKey((key) => key + 1)} />
+        <div className="home-post-feed" style={{ marginTop: 18 }}>
+          <PostFeed refreshKey={refreshKey} profileId={profileId} scope="public" />
+        </div>
       </div>
     </main>
   );
