@@ -1,140 +1,43 @@
 /* Work Social — Notifications / Activity Master HUD DNA */
+main:has(> div > div > h1) { color:#d9f7ff !important; }
+main:has(> div > div > h1) > div:first-of-type { border-bottom-color:rgba(0,240,255,.18) !important; }
+main:has(> div > div > h1) h1 { font-family:"JetBrains Mono",ui-monospace,monospace !important; letter-spacing:.08em !important; text-transform:uppercase !important; background:linear-gradient(135deg,#e8fdff,#66efff 48%,#8ca7ff) !important; -webkit-background-clip:text !important; background-clip:text !important; -webkit-text-fill-color:transparent !important; text-shadow:0 0 22px rgba(0,240,255,.22) !important; }
+main:has(> div > div > h1) h1 + div { border:1px solid rgba(0,240,255,.22) !important; background:rgba(0,126,255,.13) !important; color:#7ff6ff !important; box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 0 18px rgba(0,240,255,.08) !important; font-family:"JetBrains Mono",ui-monospace,monospace !important; letter-spacing:.04em !important; }
+main:has(> div > div > h1) h1 + div[style*="rgba(34,197,94"] { background:rgba(0,240,255,.08) !important; color:#9efaff !important; }
+main:has(> div > div > h1) button { font-family:"JetBrains Mono",ui-monospace,monospace !important; letter-spacing:.03em !important; }
+main:has(> div > div > h1) > div:first-of-type button { border:1px solid rgba(0,240,255,.42) !important; background:linear-gradient(135deg,rgba(0,240,255,.22),rgba(0,126,255,.24) 55%,rgba(72,65,225,.20)) !important; color:#bffaff !important; box-shadow:0 0 18px rgba(0,240,255,.10),inset 0 1px 0 rgba(255,255,255,.10) !important; }
+main:has(> div > div > h1) > div:first-of-type button:not(:disabled):hover { border-color:rgba(0,240,255,.75) !important; box-shadow:0 0 24px rgba(0,240,255,.20),inset 0 1px 0 rgba(255,255,255,.14) !important; transform:translateY(-1px); }
 
-main:has(> div > div > h1) {
-  color: #d9f7ff !important;
-}
+/* Individual notification cards */
+main:has(> div > div > h1) article { border:1px solid rgba(0,240,255,.20) !important; border-radius:18px !important; background:linear-gradient(135deg,rgba(8,52,92,.48),rgba(8,36,70,.40) 55%,rgba(26,31,86,.34)) !important; box-shadow:0 14px 34px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.08),0 0 18px rgba(0,240,255,.055) !important; backdrop-filter:blur(14px) saturate(135%) !important; -webkit-backdrop-filter:blur(14px) saturate(135%) !important; color:#d9f7ff !important; transition:border-color .18s ease,box-shadow .18s ease,transform .18s ease !important; }
+main:has(> div > div > h1) article:hover { border-color:rgba(0,240,255,.44) !important; box-shadow:0 18px 42px rgba(0,0,0,.26),inset 0 1px 0 rgba(255,255,255,.10),0 0 28px rgba(0,240,255,.10) !important; transform:translateY(-1px); }
 
-main:has(> div > div > h1) > div:first-of-type {
-  border-bottom-color: rgba(0, 240, 255, .18) !important;
-}
+/* The actual notification sentence: e.g. "Rasheed commented on your post" */
+main:has(> div > div > h1) article > div:nth-child(2) > div:first-child { color:#d9f7ff !important; font-family:"JetBrains Mono",ui-monospace,monospace !important; font-size:11px !important; line-height:1.55 !important; letter-spacing:.01em !important; }
+main:has(> div > div > h1) article > div:nth-child(2) > div:first-child strong { color:#f2feff !important; font-weight:850 !important; }
+/* Timestamp: e.g. "9/15/2026, 8:17:01 AM" */
+main:has(> div > div > h1) article > div:nth-child(2) > div:nth-child(2) { color:#73c9d8 !important; font-family:"JetBrains Mono",ui-monospace,monospace !important; font-size:9px !important; line-height:1.45 !important; letter-spacing:.025em !important; margin-top:4px !important; }
+main:has(> div > div > h1) article strong { color:#effeff !important; }
+main:has(> div > div > h1) article span,main:has(> div > div > h1) article small,main:has(> div > div > h1) article time { color:#78cbd8 !important; font-family:"JetBrains Mono",ui-monospace,monospace !important; font-size:9px !important; }
+main:has(> div > div > h1) article p { color:#bdebf2 !important; font-family:"JetBrains Mono",ui-monospace,monospace !important; font-size:10px !important; line-height:1.55 !important; }
 
-main:has(> div > div > h1) h1 {
-  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace !important;
-  letter-spacing: .08em !important;
-  text-transform: uppercase !important;
-  background: linear-gradient(135deg, #e8fdff 0%, #66efff 48%, #8ca7ff 100%) !important;
-  -webkit-background-clip: text !important;
-  background-clip: text !important;
-  -webkit-text-fill-color: transparent !important;
-  text-shadow: 0 0 22px rgba(0, 240, 255, .22) !important;
-}
+/* Avatar + notification-type badge */
+main:has(> div > div > h1) article > div:first-child img,main:has(> div > div > h1) article > div:first-child > div { border-color:rgba(0,240,255,.32) !important; box-shadow:0 0 16px rgba(0,240,255,.10) !important; }
+main:has(> div > div > h1) article > div:first-child span { background:rgba(4,23,48,.94) !important; border:1px solid rgba(0,240,255,.30) !important; box-shadow:0 0 12px rgba(0,240,255,.12) !important; }
 
-main:has(> div > div > h1) h1 + div {
-  border: 1px solid rgba(0, 240, 255, .22) !important;
-  background: rgba(0, 126, 255, .13) !important;
-  color: #7ff6ff !important;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 0 18px rgba(0, 240, 255, .08) !important;
-  font-family: "JetBrains Mono", ui-monospace, monospace !important;
-  letter-spacing: .04em !important;
-}
+/* Report / invitation controls inside cards */
+main:has(> div > div > h1) article button { border-color:rgba(0,240,255,.30) !important; background:rgba(0,126,255,.16) !important; color:#bffaff !important; box-shadow:inset 0 1px 0 rgba(255,255,255,.08) !important; }
+main:has(> div > div > h1) article button:hover:not(:disabled) { border-color:rgba(0,240,255,.65) !important; background:rgba(0,240,255,.20) !important; }
 
-main:has(> div > div > h1) h1 + div[style*="rgba(34,197,94"] {
-  background: rgba(0, 240, 255, .08) !important;
-  color: #9efaff !important;
-}
+/* Empty state */
+main:has(> div > div > h1) > div[style*="text-align:center"] { border:1px solid rgba(0,240,255,.22) !important; border-radius:20px !important; background:linear-gradient(135deg,rgba(8,52,92,.50),rgba(8,36,70,.38),rgba(26,31,86,.34)) !important; box-shadow:0 16px 38px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.08),0 0 24px rgba(0,240,255,.07) !important; color:#bdebf2 !important; backdrop-filter:blur(14px) !important; }
 
-main:has(> div > div > h1) button {
-  font-family: "JetBrains Mono", ui-monospace, monospace !important;
-  letter-spacing: .03em !important;
-}
+/* Live notification popups */
+main:has(> div > div > h1) .team-invite-flash,main:has(> div > div > h1) .report-flash { border:1px solid rgba(0,240,255,.42) !important; background:linear-gradient(135deg,rgba(8,52,92,.94),rgba(8,36,70,.92) 55%,rgba(26,31,86,.90)) !important; box-shadow:0 28px 75px rgba(0,0,0,.42),inset 0 1px 0 rgba(255,255,255,.10),0 0 30px rgba(0,240,255,.13) !important; color:#d9f7ff !important; backdrop-filter:blur(18px) saturate(145%) !important; }
+main:has(> div > div > h1) .team-invite-flash-title,main:has(> div > div > h1) .report-flash-title { color:#72f4ff !important; }
+main:has(> div > div > h1) .team-invite-flash-copy,main:has(> div > div > h1) .report-flash-copy,main:has(> div > div > h1) .report-flash-note { color:#bdebf2 !important; }
+main:has(> div > div > h1) .report-flash-note { background:rgba(0,126,255,.13) !important; }
+main:has(> div > div > h1) .team-invite-accept,main:has(> div > div > h1) .report-view { color:#dffeff !important; background:linear-gradient(135deg,rgba(0,240,255,.36),rgba(0,126,255,.34)) !important; border-color:rgba(0,240,255,.52) !important; }
+main:has(> div > div > h1) .team-invite-decline,main:has(> div > div > h1) .report-decline { color:#ffb8c4 !important; background:rgba(190,40,80,.13) !important; border-color:rgba(255,90,130,.28) !important; }
 
-main:has(> div > div > h1) > div:first-of-type button {
-  border: 1px solid rgba(0, 240, 255, .42) !important;
-  background: linear-gradient(135deg, rgba(0,240,255,.22), rgba(0,126,255,.24) 55%, rgba(72,65,225,.20)) !important;
-  color: #bffaff !important;
-  box-shadow: 0 0 18px rgba(0,240,255,.10), inset 0 1px 0 rgba(255,255,255,.10) !important;
-}
-
-main:has(> div > div > h1) > div:first-of-type button:not(:disabled):hover {
-  border-color: rgba(0, 240, 255, .75) !important;
-  box-shadow: 0 0 24px rgba(0,240,255,.20), inset 0 1px 0 rgba(255,255,255,.14) !important;
-  transform: translateY(-1px);
-}
-
-main:has(> div > div > h1) > div:not(:first-of-type) {
-  color: #d9f7ff !important;
-}
-
-main:has(> div > div > h1) article {
-  border: 1px solid rgba(0, 240, 255, .20) !important;
-  border-radius: 18px !important;
-  background: linear-gradient(135deg, rgba(8,52,92,.48), rgba(8,36,70,.40) 55%, rgba(26,31,86,.34)) !important;
-  box-shadow: 0 14px 34px rgba(0, 0, 0, .22), inset 0 1px 0 rgba(255,255,255,.08), 0 0 18px rgba(0, 240, 255, .055) !important;
-  backdrop-filter: blur(14px) saturate(135%) !important;
-  -webkit-backdrop-filter: blur(14px) saturate(135%) !important;
-  color: #d9f7ff !important;
-  transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease, background .18s ease !important;
-}
-
-main:has(> div > div > h1) article:hover {
-  border-color: rgba(0, 240, 255, .44) !important;
-  box-shadow: 0 18px 42px rgba(0,0,0,.26), inset 0 1px 0 rgba(255,255,255,.10), 0 0 28px rgba(0,240,255,.10) !important;
-  transform: translateY(-1px);
-}
-
-main:has(> div > div > h1) article > div:first-child img,
-main:has(> div > div > h1) article > div:first-child > div {
-  border-color: rgba(0, 240, 255, .28) !important;
-  box-shadow: 0 0 16px rgba(0, 240, 255, .10) !important;
-}
-
-main:has(> div > div > h1) article strong {
-  color: #effeff !important;
-}
-
-main:has(> div > div > h1) article span,
-main:has(> div > div > h1) article small,
-main:has(> div > div > h1) article time {
-  color: #8fd7e5 !important;
-}
-
-main:has(> div > div > h1) article p {
-  color: #bdebf2 !important;
-}
-
-main:has(> div > div > h1) article button {
-  border-color: rgba(0, 240, 255, .30) !important;
-  background: rgba(0, 126, 255, .16) !important;
-  color: #bffaff !important;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.08) !important;
-}
-
-main:has(> div > div > h1) article button:hover:not(:disabled) {
-  border-color: rgba(0, 240, 255, .65) !important;
-  background: rgba(0, 240, 255, .20) !important;
-}
-
-main:has(> div > div > h1) > div[style*="text-align:center"] {
-  border: 1px solid rgba(0, 240, 255, .22) !important;
-  border-radius: 20px !important;
-  background: linear-gradient(135deg, rgba(8,52,92,.50), rgba(8,36,70,.38), rgba(26,31,86,.34)) !important;
-  box-shadow: 0 16px 38px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.08), 0 0 24px rgba(0,240,255,.07) !important;
-  color: #bdebf2 !important;
-  backdrop-filter: blur(14px) !important;
-}
-
-main:has(> div > div > h1) .team-invite-flash,
-main:has(> div > div > h1) .report-flash {
-  border: 1px solid rgba(0, 240, 255, .42) !important;
-  background: linear-gradient(135deg, rgba(8,52,92,.94), rgba(8,36,70,.92) 55%, rgba(26,31,86,.90)) !important;
-  box-shadow: 0 28px 75px rgba(0,0,0,.42), inset 0 1px 0 rgba(255,255,255,.10), 0 0 30px rgba(0,240,255,.13) !important;
-  color: #d9f7ff !important;
-  backdrop-filter: blur(18px) saturate(145%) !important;
-}
-
-main:has(> div > div > h1) .team-invite-flash-title,
-main:has(> div > div > h1) .report-flash-title { color: #72f4ff !important; }
-main:has(> div > div > h1) .team-invite-flash-copy,
-main:has(> div > div > h1) .report-flash-copy,
-main:has(> div > div > h1) .report-flash-note { color: #bdebf2 !important; }
-main:has(> div > div > h1) .report-flash-note { background: rgba(0,126,255,.13) !important; }
-main:has(> div > div > h1) .team-invite-accept,
-main:has(> div > div > h1) .report-view { color: #dffeff !important; background: linear-gradient(135deg, rgba(0,240,255,.36), rgba(0,126,255,.34)) !important; border-color: rgba(0,240,255,.52) !important; }
-main:has(> div > div > h1) .team-invite-decline,
-main:has(> div > div > h1) .report-decline { color: #ffb8c4 !important; background: rgba(190,40,80,.13) !important; border-color: rgba(255,90,130,.28) !important; }
-
-@media (max-width: 640px) {
-  main:has(> div > div > h1) > div:first-of-type { align-items: flex-start !important; }
-  main:has(> div > div > h1) article { padding: 12px !important; border-radius: 16px !important; }
-  main:has(> div > div > h1) article:hover { transform: none; }
-}
+@media (max-width:640px) { main:has(> div > div > h1) > div:first-of-type { align-items:flex-start !important; } main:has(> div > div > h1) article { padding:12px !important; border-radius:16px !important; } main:has(> div > div > h1) article:hover { transform:none; } }
