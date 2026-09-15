@@ -1,11 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Orbitron:wght@500;600;700;800&family=Roboto+Mono:wght@400;500;600&display=swap');
 
-/* =========================================================
-   WORK SOCIAL — PHASE 1 MASTER SCI-FI / HUD DESIGN SYSTEM
-   Central visual tokens. Components should consume these tokens
-   instead of introducing page-specific theme values.
-   ========================================================= */
-
 :root {
   color-scheme: dark;
   --ws-bg-start: #050811;
@@ -32,49 +26,27 @@
 }
 
 html { min-height: 100%; background: var(--ws-bg-start); }
-
 body {
   min-height: 100vh;
   margin: 0;
-  background:
-    radial-gradient(circle at 15% 10%, rgba(0, 240, 255, 0.045), transparent 30%),
-    radial-gradient(circle at 85% 20%, rgba(0, 102, 255, 0.055), transparent 30%),
-    var(--ws-bg-gradient);
+  background: radial-gradient(circle at 15% 10%, rgba(0, 240, 255, 0.045), transparent 30%), radial-gradient(circle at 85% 20%, rgba(0, 102, 255, 0.055), transparent 30%), var(--ws-bg-gradient);
   background-attachment: fixed;
   color: var(--ws-text-primary);
   font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
-
 *, *::before, *::after { box-sizing: border-box; }
 button, input, textarea, select { font: inherit; }
 ::selection { color: var(--ws-text-primary); background: rgba(0, 240, 255, 0.22); }
-
 .ws-heading { font-family: 'Orbitron', 'Roboto Mono', monospace; font-weight: 700; letter-spacing: 0.04em; }
 .ws-mono { font-family: 'Roboto Mono', monospace; }
 .ws-font-hud { font-family: 'Orbitron', 'Roboto Mono', monospace; }
 .ws-cyan-text { color: var(--ws-text-cyan); text-shadow: 0 0 8px rgba(0, 240, 255, 0.45), 0 0 20px rgba(0, 240, 255, 0.18); }
 .ws-muted-text { color: var(--ws-text-muted); }
-
-.ws-glass {
-  background: var(--ws-glass-bg);
-  border: 1px solid var(--ws-glass-border);
-  backdrop-filter: blur(var(--ws-glass-blur));
-  -webkit-backdrop-filter: blur(var(--ws-glass-blur));
-}
-
-.ws-glass-panel {
-  background: var(--ws-glass-bg);
-  border: 1px solid var(--ws-glass-border);
-  border-radius: var(--ws-radius-lg);
-  backdrop-filter: blur(var(--ws-glass-blur));
-  -webkit-backdrop-filter: blur(var(--ws-glass-blur));
-  box-shadow: var(--ws-glow-cyan);
-  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
-}
+.ws-glass { background: var(--ws-glass-bg); border: 1px solid var(--ws-glass-border); backdrop-filter: blur(var(--ws-glass-blur)); -webkit-backdrop-filter: blur(var(--ws-glass-blur)); }
+.ws-glass-panel { background: var(--ws-glass-bg); border: 1px solid var(--ws-glass-border); border-radius: var(--ws-radius-lg); backdrop-filter: blur(var(--ws-glass-blur)); -webkit-backdrop-filter: blur(var(--ws-glass-blur)); box-shadow: var(--ws-glow-cyan); transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease; }
 .ws-glass-panel:hover { border-color: rgba(0, 240, 255, 0.32); box-shadow: var(--ws-glow-cyan-hover); }
-
 .ws-hud { position: relative; overflow: hidden; background: var(--ws-glass-bg); border: 1px solid var(--ws-glass-border); border-radius: var(--ws-radius-lg); backdrop-filter: blur(var(--ws-glass-blur)); -webkit-backdrop-filter: blur(var(--ws-glass-blur)); }
 .ws-hud::before { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(135deg, rgba(0, 240, 255, 0.035), transparent 35%); }
 .ws-glow-cyan { box-shadow: var(--ws-glow-cyan); }
@@ -92,3 +64,67 @@ button, input, textarea, select { font: inherit; }
 .ws-scrollbar::-webkit-scrollbar-thumb { background: rgba(0, 240, 255, 0.32); border-radius: 999px; }
 .ws-status-online { color: var(--ws-cyan); text-shadow: 0 0 8px rgba(0, 240, 255, 0.55); }
 .ws-status-alert { color: var(--ws-alert); text-shadow: 0 0 8px rgba(255, 51, 102, 0.55); }
+
+/* Social feed master HUD layout: translucent cards, visible cyber grid, cyan actions. */
+.work-social-page-content:has(.home-post-feed) {
+  background: radial-gradient(ellipse at top, rgba(0, 240, 255, 0.075), transparent 52%), linear-gradient(rgba(0, 240, 255, 0.028) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 240, 255, 0.028) 1px, transparent 1px), var(--ws-bg-gradient);
+  background-size: auto, 32px 32px, 32px 32px, auto;
+  background-attachment: local;
+}
+.home-page-title,
+.home-post-feed > section > h2 {
+  font-family: 'Orbitron', 'Roboto Mono', monospace !important;
+  color: var(--ws-cyan) !important;
+  -webkit-text-fill-color: var(--ws-cyan) !important;
+  background: transparent !important;
+  text-shadow: 0 0 8px rgba(0, 240, 255, 0.45), 0 0 20px rgba(0, 240, 255, 0.18) !important;
+}
+.home-post-feed > section > h2 {
+  border: 1px solid var(--ws-glass-border) !important;
+  background: var(--ws-glass-bg) !important;
+  backdrop-filter: blur(var(--ws-glass-blur)) !important;
+  -webkit-backdrop-filter: blur(var(--ws-glass-blur)) !important;
+  box-shadow: var(--ws-glow-cyan) !important;
+}
+.home-post-feed article {
+  background: var(--ws-glass-bg) !important;
+  border: 1px solid var(--ws-glass-border) !important;
+  border-radius: var(--ws-radius-lg) !important;
+  backdrop-filter: blur(var(--ws-glass-blur)) !important;
+  -webkit-backdrop-filter: blur(var(--ws-glass-blur)) !important;
+  box-shadow: var(--ws-glow-cyan) !important;
+  color: var(--ws-text-primary) !important;
+}
+.home-post-feed article textarea,
+.home-post-feed article input:not([type='file']) {
+  background: rgba(10, 20, 40, 0.58) !important;
+  border: 1px solid var(--ws-glass-border) !important;
+  color: var(--ws-text-primary) !important;
+  backdrop-filter: blur(var(--ws-glass-blur)) !important;
+  -webkit-backdrop-filter: blur(var(--ws-glass-blur)) !important;
+  box-shadow: none !important;
+}
+.home-post-feed article textarea:focus,
+.home-post-feed article input:not([type='file']):focus { outline: none !important; border-color: rgba(0, 240, 255, 0.65) !important; box-shadow: var(--ws-glow-cyan) !important; }
+.home-post-feed article button {
+  color: var(--ws-cyan) !important;
+  background: rgba(10, 20, 40, 0.55) !important;
+  border-color: var(--ws-glass-border) !important;
+  box-shadow: var(--ws-glow-cyan) !important;
+  backdrop-filter: blur(var(--ws-glass-blur));
+  -webkit-backdrop-filter: blur(var(--ws-glass-blur));
+}
+.home-post-feed article button:hover,
+.home-post-feed article button:focus-visible { border-color: rgba(0, 240, 255, 0.5) !important; box-shadow: var(--ws-glow-cyan-hover) !important; }
+.home-post-feed article small,
+.home-post-feed article p small { color: var(--ws-text-muted) !important; }
+.home-post-feed article [style*='background: #fff'],
+.home-post-feed article [style*='background:#fff'],
+.home-post-feed article [style*='rgba(255,255,255'],
+.home-post-feed article [style*='linear-gradient(145deg,#fff'],
+.home-post-feed article [style*='linear-gradient(145deg, #fff'] {
+  background: var(--ws-glass-bg) !important;
+  border-color: var(--ws-glass-border) !important;
+  backdrop-filter: blur(var(--ws-glass-blur)) !important;
+  -webkit-backdrop-filter: blur(var(--ws-glass-blur)) !important;
+}
