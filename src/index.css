@@ -1,0 +1,173 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Orbitron:wght@500;600;700;800&family=Roboto+Mono:wght@400;500;600&display=swap');
+
+/* =========================================================
+   WORK SOCIAL — PHASE 1 MASTER SCI-FI / HUD DESIGN SYSTEM
+   Central visual tokens. Components should consume these tokens
+   instead of introducing page-specific theme values.
+   ========================================================= */
+
+:root {
+  color-scheme: dark;
+
+  /* Background */
+  --ws-bg-start: #050811;
+  --ws-bg-end: #0a0f1d;
+  --ws-bg-gradient: linear-gradient(135deg, var(--ws-bg-start), var(--ws-bg-end));
+
+  /* Neon accents */
+  --ws-cyan: #00f0ff;
+  --ws-blue: #0066ff;
+  --ws-alert: #ff3366;
+  --ws-orange: #ff7a18;
+
+  /* Text */
+  --ws-text-primary: #ffffff;
+  --ws-text-cyan: var(--ws-cyan);
+  --ws-text-muted: #8a99ad;
+
+  /* Glass */
+  --ws-glass-bg: rgba(10, 20, 40, 0.6);
+  --ws-glass-border: rgba(0, 240, 255, 0.2);
+  --ws-glass-blur: 12px;
+
+  /* Glow */
+  --ws-glow-cyan: 0 0 12px rgba(0, 240, 255, 0.22), 0 0 30px rgba(0, 240, 255, 0.08);
+  --ws-glow-cyan-hover: 0 0 12px rgba(0, 240, 255, 0.3), 0 0 32px rgba(0, 240, 255, 0.12);
+  --ws-glow-blue: 0 0 12px rgba(0, 102, 255, 0.24), 0 0 30px rgba(0, 102, 255, 0.08);
+  --ws-glow-alert: 0 0 12px rgba(255, 51, 102, 0.24), 0 0 30px rgba(255, 51, 102, 0.08);
+
+  /* Shape */
+  --ws-radius-sm: 10px;
+  --ws-radius-md: 15px;
+  --ws-radius-lg: 22px;
+  --ws-radius-xl: 26px;
+}
+
+html {
+  min-height: 100%;
+  background: var(--ws-bg-start);
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  background:
+    radial-gradient(circle at 15% 10%, rgba(0, 240, 255, 0.045), transparent 30%),
+    radial-gradient(circle at 85% 20%, rgba(0, 102, 255, 0.055), transparent 30%),
+    var(--ws-bg-gradient);
+  background-attachment: fixed;
+  color: var(--ws-text-primary);
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+::selection {
+  color: var(--ws-text-primary);
+  background: rgba(0, 240, 255, 0.22);
+}
+
+/* Reusable typography */
+.ws-heading {
+  font-family: 'Orbitron', 'Roboto Mono', monospace;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.ws-mono {
+  font-family: 'Roboto Mono', monospace;
+}
+
+.ws-cyan-text {
+  color: var(--ws-text-cyan);
+  text-shadow: 0 0 8px rgba(0, 240, 255, 0.45), 0 0 20px rgba(0, 240, 255, 0.18);
+}
+
+.ws-muted-text {
+  color: var(--ws-text-muted);
+}
+
+/* Glass / HUD surfaces */
+.ws-glass {
+  background: var(--ws-glass-bg);
+  border: 1px solid var(--ws-glass-border);
+  backdrop-filter: blur(var(--ws-glass-blur));
+  -webkit-backdrop-filter: blur(var(--ws-glass-blur));
+}
+
+.ws-glass-panel {
+  background: var(--ws-glass-bg);
+  border: 1px solid var(--ws-glass-border);
+  border-radius: var(--ws-radius-lg);
+  backdrop-filter: blur(var(--ws-glass-blur));
+  -webkit-backdrop-filter: blur(var(--ws-glass-blur));
+  box-shadow: var(--ws-glow-cyan);
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.ws-glass-panel:hover {
+  border-color: rgba(0, 240, 255, 0.32);
+  box-shadow: var(--ws-glow-cyan-hover);
+}
+
+.ws-hud {
+  position: relative;
+  overflow: hidden;
+  background: var(--ws-glass-bg);
+  border: 1px solid var(--ws-glass-border);
+  border-radius: var(--ws-radius-lg);
+  backdrop-filter: blur(var(--ws-glass-blur));
+  -webkit-backdrop-filter: blur(var(--ws-glass-blur));
+}
+
+.ws-hud::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(135deg, rgba(0, 240, 255, 0.035), transparent 35%);
+}
+
+/* Glow utilities */
+.ws-glow-cyan { box-shadow: var(--ws-glow-cyan); }
+.ws-glow-cyan-hover:hover { box-shadow: var(--ws-glow-cyan-hover); }
+.ws-glow-blue { box-shadow: var(--ws-glow-blue); }
+.ws-glow-alert { box-shadow: var(--ws-glow-alert); }
+
+/* Border utilities */
+.ws-border-cyan { border: 1px solid var(--ws-glass-border); }
+.ws-border-cyan-strong { border: 1px solid rgba(0, 240, 255, 0.45); }
+.ws-border-blue { border: 1px solid rgba(0, 102, 255, 0.35); }
+.ws-border-alert { border: 1px solid rgba(255, 51, 102, 0.35); }
+
+/* HUD grid utility */
+.ws-grid {
+  background-image:
+    linear-gradient(rgba(0, 240, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 240, 255, 0.035) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+/* Status utilities */
+.ws-status-online {
+  color: var(--ws-cyan);
+  text-shadow: 0 0 8px rgba(0, 240, 255, 0.55);
+}
+
+.ws-status-alert {
+  color: var(--ws-alert);
+  text-shadow: 0 0 8px rgba(255, 51, 102, 0.55);
+}
