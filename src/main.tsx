@@ -24,6 +24,7 @@ import './app/universal-components.css';
 import './app/social-command-center.css';
 import './app/social-command-center-post-fix.css';
 import './index.css';
+import './app/master-glassmorphic-theme.css';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
