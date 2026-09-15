@@ -20,7 +20,6 @@
     <link rel="stylesheet" href="/notifications-hud.css" />
     <link rel="stylesheet" href="/notifications-hud-force.css" />
     <link rel="stylesheet" href="/friends-header-text-fix.css" />
-    <link rel="stylesheet" href="/profile-posts-supercomputer.css" />
     <title>Work Social</title>
   </head>
   <body>
@@ -46,7 +45,7 @@
       body[data-ws-page="settings"] { --ws-page-a: rgba(0, 229, 255, .22); --ws-page-b: rgba(0, 102, 255, .22); --ws-page-c: rgba(110, 130, 255, .13); }
       body[data-ws-page="finance"] { --ws-page-a: rgba(0, 229, 255, .23); --ws-page-b: rgba(0, 205, 150, .16); --ws-page-c: rgba(0, 119, 255, .17); }
       body[data-ws-page="expense-manager"] { --ws-page-a: rgba(0, 220, 180, .22); --ws-page-b: rgba(0, 119, 255, .20); --ws-page-c: rgba(0, 229, 255, .12); }
-      body[data-ws-page="contractor"] { --ws-page-a: rgba(0, 180, 255, .25); --ws-page-b: rgba(100, 90, 255, .20); --ws-page-c: rgba(0, 229, 255, .10); }
+      body[data-ws-page="contractor"] { --ws-page-a: rgba(0, 180, 255, .25); --ws-page-b: rgba(100, 90, 255, .20); --ws-page-c: rgba(0, 229,255,.10); }
       body[data-ws-page] {
         background:
           radial-gradient(ellipse 82% 62% at 50% -6%, var(--ws-page-a), transparent 60%),
@@ -57,6 +56,7 @@
       }
     </style>
     <script type="module" src="/src/main.tsx"></script>
+    <link rel="stylesheet" href="/profile-posts-supercomputer.css" />
     <script src="/worker-overview-live-ticker.js" defer></script>
     <script src="/worker-overview-live-context.js" defer></script>
     <script src="/notifications-hud-runtime.js" defer></script>
