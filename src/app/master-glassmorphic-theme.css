@@ -8,32 +8,52 @@ body,
   min-height: 100%;
 }
 
-html {
-  background: #2386c5 !important;
-}
-
-body {
-  background:
+:root {
+  --ws-electric-canvas:
     radial-gradient(ellipse 90% 75% at 50% 0%, rgba(245, 255, 255, 0.62), transparent 58%),
     radial-gradient(ellipse 62% 82% at 0% 28%, rgba(0, 170, 255, 0.62), transparent 68%),
     radial-gradient(ellipse 62% 82% at 100% 30%, rgba(0, 225, 255, 0.54), transparent 68%),
     radial-gradient(ellipse 58% 72% at 8% 82%, rgba(183, 255, 24, 0.58), transparent 68%),
     radial-gradient(ellipse 58% 72% at 92% 82%, rgba(183, 255, 24, 0.52), transparent 68%),
     radial-gradient(ellipse 80% 65% at 50% 52%, rgba(75, 220, 255, 0.38), transparent 70%),
-    linear-gradient(120deg, #2386c5 0%, #2e9cda 30%, #42b4e1 54%, #2fa0d4 74%, #2589c4 100%) !important;
+    linear-gradient(120deg, #2386c5 0%, #2e9cda 30%, #42b4e1 54%, #2fa0d4 74%, #2589c4 100%);
+}
+
+html {
+  background: #2386c5 !important;
+}
+
+body {
+  background: var(--ws-electric-canvas) !important;
   background-attachment: fixed !important;
 }
 
-/* Any major application viewport gets the HUD telemetry grid without changing layout. */
+/* Keep the actual scrolling page canvas on the same cinematic environment as the viewport.
+   The HUD grid is layered above the shared canvas so the scroll area does not fall back to a
+   darker/transparent surface while content extends below the initial viewport. */
 .work-social-page-content,
-.app-shell,
+.app-shell {
+  background-color: transparent !important;
+  background-image:
+    linear-gradient(rgba(220, 255, 255, 0.075) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(220, 255, 255, 0.075) 1px, transparent 1px),
+    var(--ws-electric-canvas) !important;
+  background-size: 32px 32px, 32px 32px, cover !important;
+  background-position: 0 0, 0 0, center top !important;
+  background-attachment: scroll, scroll, fixed !important;
+}
+
+/* Major content surfaces stay transparent so the shared canvas remains visible through them. */
 .home-post-feed,
 .premium-profile-panel {
   background-color: transparent !important;
   background-image:
     linear-gradient(rgba(220, 255, 255, 0.075) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(220, 255, 255, 0.075) 1px, transparent 1px) !important;
-  background-size: 32px 32px !important;
+    linear-gradient(90deg, rgba(220, 255, 255, 0.075) 1px, transparent 1px),
+    var(--ws-electric-canvas) !important;
+  background-size: 32px 32px, 32px 32px, cover !important;
+  background-position: 0 0, 0 0, center top !important;
+  background-attachment: scroll, scroll, fixed !important;
 }
 
 /* Posts: use the shared glass material instead of legacy solid cards. */
