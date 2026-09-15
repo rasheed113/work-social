@@ -72,49 +72,68 @@ main:has(> div > div > h1) .report-flash-note {
   text-shadow:0 0 9px rgba(255,80,145,.22) !important;
 }
 
-/* Notifications page — explicit HUD command-button treatment for the bulk read action. */
+/* Notifications header — explicit futuristic HUD command-button treatment for Mark all read. */
 main:has(> div > div > h1) > div > div > h1 + div button {
   appearance:none !important;
   -webkit-appearance:none !important;
   display:inline-flex !important;
   align-items:center !important;
   justify-content:center !important;
-  min-height:38px !important;
-  min-width:148px !important;
-  padding:9px 16px !important;
-  border:1px solid rgba(0,240,255,.68) !important;
-  border-radius:11px !important;
-  background:linear-gradient(135deg,rgba(0,92,128,.42),rgba(8,25,52,.9)) !important;
-  color:#e9feff !important;
-  -webkit-text-fill-color:#e9feff !important;
+  min-height:40px !important;
+  min-width:154px !important;
+  padding:9px 18px !important;
+  border:1px solid rgba(0,240,255,.78) !important;
+  border-radius:12px !important;
+  background:
+    linear-gradient(135deg,rgba(0,205,255,.24),rgba(0,91,180,.20) 48%,rgba(8,24,52,.94)) !important;
+  color:#f0ffff !important;
+  -webkit-text-fill-color:#f0ffff !important;
   font-family:"Orbitron","Space Grotesk","Segoe UI",sans-serif !important;
   font-size:10px !important;
-  font-weight:800 !important;
-  letter-spacing:.1em !important;
+  font-weight:900 !important;
+  letter-spacing:.11em !important;
+  line-height:1 !important;
   text-transform:uppercase !important;
-  text-shadow:0 0 8px rgba(0,240,255,.34) !important;
-  box-shadow:0 0 14px rgba(0,240,255,.18),inset 0 1px 0 rgba(180,255,255,.14) !important;
+  text-shadow:0 0 9px rgba(0,240,255,.46) !important;
+  box-shadow:
+    0 0 18px rgba(0,240,255,.22),
+    0 0 34px rgba(0,126,255,.10),
+    inset 0 1px 0 rgba(220,255,255,.20),
+    inset 0 -8px 18px rgba(0,70,140,.12) !important;
   cursor:pointer !important;
-  transition:border-color 160ms ease,box-shadow 160ms ease,transform 160ms ease,background 160ms ease !important;
+  transition:border-color 160ms ease,box-shadow 160ms ease,transform 160ms ease,background 160ms ease,filter 160ms ease !important;
 }
 
 main:has(> div > div > h1) > div > div > h1 + div button:hover:not(:disabled),
 main:has(> div > div > h1) > div > div > h1 + div button:focus-visible {
-  border-color:#00f0ff !important;
-  background:linear-gradient(135deg,rgba(0,132,166,.56),rgba(8,32,62,.96)) !important;
-  box-shadow:0 0 20px rgba(0,240,255,.34),inset 0 1px 0 rgba(220,255,255,.2) !important;
+  border-color:#8fffff !important;
+  background:
+    linear-gradient(135deg,rgba(0,240,255,.38),rgba(0,128,255,.30) 52%,rgba(8,31,64,.96)) !important;
+  box-shadow:
+    0 0 22px rgba(0,240,255,.40),
+    0 0 42px rgba(0,126,255,.16),
+    inset 0 1px 0 rgba(235,255,255,.28) !important;
+  filter:saturate(1.12) brightness(1.08) !important;
   transform:translateY(-1px) !important;
   outline:none !important;
 }
 
 main:has(> div > div > h1) > div > div > h1 + div button:active:not(:disabled) {
+  box-shadow:0 0 14px rgba(0,240,255,.24),inset 0 2px 8px rgba(0,20,45,.34) !important;
   transform:translateY(0) scale(.98) !important;
+}
+
+main:has(> div > div > h1) > div > div > h1 + div button:disabled {
+  cursor:not-allowed !important;
+  opacity:.55 !important;
+  filter:saturate(.55) !important;
+  box-shadow:0 0 8px rgba(0,240,255,.08),inset 0 1px 0 rgba(180,255,255,.08) !important;
 }
 
 @media (max-width:640px) {
   main:has(> div > div > h1) > div > div > h1 + div button {
     min-width:132px !important;
-    min-height:36px !important;
+    min-height:37px !important;
     padding:8px 12px !important;
     font-size:9px !important;
     letter-spacing:.08em !important;
