@@ -45,6 +45,56 @@ header [class*="Logo"] > * {
   text-shadow: 0 0 10px rgba(0, 240, 255, 0.6) !important;
 }
 
+/* Home Create Post card: force all inherited white typography into HUD palette */
+.home-post-feed > section:first-child,
+.home-post-feed > section:first-child p,
+.home-post-feed > section:first-child span,
+.home-post-feed > section:first-child label,
+.home-post-feed > section:first-child div {
+  color: #cbd5e1 !important;
+  -webkit-text-fill-color: #cbd5e1 !important;
+}
+
+.home-post-feed > section:first-child h1,
+.home-post-feed > section:first-child h2,
+.home-post-feed > section:first-child h3,
+.home-post-feed > section:first-child h4,
+.home-post-feed > section:first-child [class*="title"],
+.home-post-feed > section:first-child [class*="Title"] {
+  font-family: monospace, sans-serif !important;
+  color: #00f0ff !important;
+  -webkit-text-fill-color: #00f0ff !important;
+  text-shadow: 0 0 10px rgba(0, 240, 255, 0.6) !important;
+}
+
+.home-post-feed > section:first-child p,
+.home-post-feed > section:first-child [class*="subtitle"],
+.home-post-feed > section:first-child [class*="Subtitle"],
+.home-post-feed > section:first-child time,
+.home-post-feed > section:first-child small {
+  color: #94a3b8 !important;
+  -webkit-text-fill-color: #94a3b8 !important;
+}
+
+.home-post-feed > section:first-child textarea,
+.home-post-feed > section:first-child input {
+  color: #cbd5e1 !important;
+  -webkit-text-fill-color: #cbd5e1 !important;
+}
+
+.home-post-feed > section:first-child textarea::placeholder,
+.home-post-feed > section:first-child input::placeholder {
+  color: #94a3b8 !important;
+  -webkit-text-fill-color: #94a3b8 !important;
+  opacity: 1 !important;
+}
+
+.home-post-feed > section:first-child button,
+.home-post-feed > section:first-child button span {
+  color: #00f0ff !important;
+  -webkit-text-fill-color: #00f0ff !important;
+}
+
 /* Subtitles, timestamps and muted metadata */
 .home-post-feed time,
 .home-post-feed small,
