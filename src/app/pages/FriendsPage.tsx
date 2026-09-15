@@ -8,16 +8,16 @@ const styles = {
     width: '100%', maxWidth: 920, margin: '0 auto', padding: '18px 16px 96px', boxSizing: 'border-box', color: '#f7f8ff',
   } as React.CSSProperties,
   hero: {
-    position: 'relative', overflow: 'hidden', borderRadius: 26, padding: '24px 22px', marginBottom: 18,
-    background: 'linear-gradient(135deg, #171a3a 0%, #20265c 48%, #5d2ca8 100%)',
-    boxShadow: '0 20px 55px rgba(31, 25, 91, .32), inset 0 1px 0 rgba(255,255,255,.14)',
-    border: '1px solid rgba(255,255,255,.12)',
+    position: 'relative', overflow: 'hidden', borderRadius: 24, padding: '22px 20px', marginBottom: 18,
+    background: 'linear-gradient(145deg, rgba(3,12,29,.98) 0%, rgba(5,25,49,.98) 55%, rgba(7,43,65,.98) 100%)',
+    boxShadow: '0 22px 60px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.08), 0 0 34px rgba(39,221,255,.08)',
+    border: '1px solid rgba(91,225,255,.28)',
   } as React.CSSProperties,
-  glow: { position: 'absolute', width: 180, height: 180, borderRadius: '50%', right: -70, top: -80, background: 'rgba(89, 211, 255, .22)', filter: 'blur(18px)', pointerEvents: 'none' } as React.CSSProperties,
-  title: { margin: 0, fontSize: 30, lineHeight: 1.05, fontWeight: 900, letterSpacing: '-.04em', textShadow: '0 3px 14px rgba(0,0,0,.28)' } as React.CSSProperties,
-  subtitle: { margin: '8px 0 0', color: 'rgba(255,255,255,.72)', fontSize: 14 } as React.CSSProperties,
-  searchWrap: { display: 'flex', alignItems: 'center', gap: 10, marginTop: 18, padding: '11px 14px', borderRadius: 17, background: 'rgba(255,255,255,.1)', border: '1px solid rgba(255,255,255,.14)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,.08)' } as React.CSSProperties,
-  search: { flex: 1, minWidth: 0, border: 0, outline: 0, background: 'transparent', color: '#fff', fontSize: 15 } as React.CSSProperties,
+  glow: { position: 'absolute', width: 240, height: 240, borderRadius: '50%', right: -90, top: -120, background: 'rgba(33,219,255,.12)', filter: 'blur(28px)', pointerEvents: 'none' } as React.CSSProperties,
+  title: { margin: 0, fontSize: 32, lineHeight: 1.05, fontWeight: 950, letterSpacing: '-.035em', color: '#effcff', textShadow: '0 0 18px rgba(73,224,255,.24)' } as React.CSSProperties,
+  subtitle: { margin: '7px 0 0', color: 'rgba(211,244,255,.72)', fontSize: 13 } as React.CSSProperties,
+  searchWrap: { display: 'flex', alignItems: 'center', gap: 10, marginTop: 18, padding: '11px 13px', borderRadius: 14, background: 'rgba(2,15,31,.76)', border: '1px solid rgba(76,220,255,.34)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,.05), 0 0 20px rgba(21,201,255,.07)' } as React.CSSProperties,
+  search: { flex: 1, minWidth: 0, border: 0, outline: 0, background: 'transparent', color: '#effcff', fontSize: 14, fontWeight: 650 } as React.CSSProperties,
   section: { marginTop: 16, padding: 16, borderRadius: 22, background: 'linear-gradient(180deg, rgba(255,255,255,.98), rgba(246,247,255,.98))', color: '#17182b', border: '1px solid rgba(99,102,241,.12)', boxShadow: '0 14px 36px rgba(24,25,60,.12)' } as React.CSSProperties,
   sectionTitle: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, margin: '0 0 12px', fontSize: 17, fontWeight: 850 } as React.CSSProperties,
   row: { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: 7, padding: 11, marginTop: 8, borderRadius: 17, background: '#fff', border: '1px solid rgba(30,35,80,.08)', boxShadow: '0 7px 20px rgba(30,35,80,.07)', transition: 'transform .18s ease, box-shadow .18s ease' } as React.CSSProperties,
@@ -81,7 +81,35 @@ export function FriendsPage() {
   return (
     <main style={{ minWidth: 0, width: '100%', boxSizing: 'border-box' }}>
       <div style={styles.page}>
-        <section style={styles.hero}><div style={styles.glow} /><div style={{ position: 'relative', zIndex: 1 }}><div style={{ fontSize: 12, fontWeight: 900, letterSpacing: '.16em', textTransform: 'uppercase', color: '#8de7ff' }}>WORK SOCIAL</div><h1 style={styles.title}>Friends</h1><p style={styles.subtitle}>Connect with people, manage requests and build your circle.</p><div style={styles.searchWrap}><span aria-hidden="true" style={{ fontSize: 18 }}>⌕</span><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search people..." aria-label="Search people" style={styles.search} />{search && <button type="button" onClick={() => setSearch('')} aria-label="Clear search" style={{ border: 0, background: 'rgba(255,255,255,.12)', color: '#fff', borderRadius: 9, width: 30, height: 30, cursor: 'pointer' }}>×</button>}</div></div></section>
+        <section style={styles.hero} aria-label="Friends social command center">
+          <div style={styles.glow} />
+          <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', backgroundImage: 'linear-gradient(rgba(75,220,255,.045) 1px, transparent 1px), linear-gradient(90deg, rgba(75,220,255,.045) 1px, transparent 1px)', backgroundSize: '24px 24px', maskImage: 'linear-gradient(to bottom, black, transparent 88%)' }} />
+          <div style={{ position: 'absolute', left: 0, top: 0, width: 54, height: 2, background: '#5be7ff', boxShadow: '0 0 12px rgba(91,231,255,.8)' }} />
+          <div style={{ position: 'absolute', right: 0, bottom: 0, width: 82, height: 2, background: '#8cffbd', boxShadow: '0 0 12px rgba(140,255,189,.55)' }} />
+          <div style={{ position: 'relative', zIndex: 1 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 14 }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 10, fontWeight: 950, letterSpacing: '.18em', textTransform: 'uppercase', color: '#77eaff' }}>
+                <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#71f7b5', boxShadow: '0 0 10px rgba(113,247,181,.9)' }} />
+                SOCIAL COMMAND // ONLINE
+              </div>
+              <div style={{ fontSize: 9, fontWeight: 850, letterSpacing: '.14em', color: 'rgba(184,235,255,.52)', textTransform: 'uppercase' }}>SYS-04 • FRIENDS</div>
+            </div>
+            <div style={{ borderLeft: '2px solid rgba(91,231,255,.65)', paddingLeft: 12 }}>
+              <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: '.15em', textTransform: 'uppercase', color: '#8de7ff', marginBottom: 4 }}>WORK SOCIAL / NETWORK</div>
+              <h1 style={styles.title}>Friends</h1>
+              <p style={styles.subtitle}>Connect with people, manage requests and build your circle.</p>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 7, marginTop: 15 }}>
+              {[['NODE', 'SOCIAL'], ['MODE', 'CONNECT'], ['LINK', 'LIVE']].map(([label, value]) => <div key={label} style={{ padding: '7px 9px', borderRadius: 9, background: 'rgba(3,18,35,.62)', border: '1px solid rgba(79,211,255,.16)' }}><div style={{ fontSize: 8, fontWeight: 900, letterSpacing: '.13em', color: 'rgba(174,226,242,.48)' }}>{label}</div><div style={{ marginTop: 2, fontSize: 10, fontWeight: 900, letterSpacing: '.08em', color: '#bff5ff' }}>{value}</div></div>)}
+            </div>
+            <div style={styles.searchWrap}>
+              <span aria-hidden="true" style={{ fontSize: 19, color: '#67eaff', lineHeight: 1 }}>⌕</span>
+              <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search people..." aria-label="Search people" style={styles.search} />
+              {search && <button type="button" onClick={() => setSearch('')} aria-label="Clear search" style={{ border: '1px solid rgba(105,225,255,.22)', background: 'rgba(91,225,255,.08)', color: '#a9efff', borderRadius: 8, width: 30, height: 30, cursor: 'pointer', fontWeight: 900 }}>×</button>}
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, marginTop: 8, fontSize: 9, letterSpacing: '.08em', color: 'rgba(166,224,240,.45)', textTransform: 'uppercase' }}><span>Directory scan ready</span><span>Input channel: PEOPLE</span></div>
+          </div>
+        </section>
         {error && <p role="alert" style={styles.alert}>{error}</p>}
         {loading && <section style={styles.section}><WorkSocialPremiumLoader title="Friends" message="Loading your social circle…" /></section>}
         {!loading && requests.length > 0 && <section style={styles.section}><h2 style={styles.sectionTitle}><span>🤝 Friend Requests</span><span style={{ fontSize: 12, padding: '5px 9px', borderRadius: 999, background: '#eeeaff', color: '#5b42c7' }}>{requests.length}</span></h2>{requests.map((request) => { const sender = profiles.find((p) => p.id === request.sender_id); return <article key={request.id} style={styles.row}><div style={styles.identity}>{sender?.avatar_url ? <img src={sender.avatar_url} alt="" style={styles.avatar} /> : <div aria-hidden="true" style={styles.avatarFallback}>👤</div>}<div style={{ flex: 1, minWidth: 0 }}><strong style={{ display: 'block', fontSize: 15 }}>{sender?.display_name ?? 'User'}</strong><span style={{ color: '#85899a', fontSize: 12 }}>wants to connect with you</span></div></div><div style={styles.actions}><button type="button" onClick={() => void respond(request, 'accepted')} style={{ ...styles.buttonBase, ...styles.accept }}>Accept</button><button type="button" onClick={() => void respond(request, 'rejected')} style={{ ...styles.buttonBase, ...styles.reject }}>Reject</button></div></article>; })}</section>}
