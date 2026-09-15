@@ -1,0 +1,189 @@
+/* Work Social — Master Glassmorphic Sci-Fi UI convergence.
+   Presentation-only overrides. Business logic, data, routing, auth, AI and Supabase behavior are untouched. */
+
+/* Global deep-space command-center canvas. */
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  background:
+    radial-gradient(circle at 12% 12%, rgba(0, 240, 255, 0.09), transparent 28%),
+    radial-gradient(circle at 88% 18%, rgba(0, 102, 255, 0.10), transparent 30%),
+    radial-gradient(circle at 50% 100%, rgba(0, 240, 255, 0.045), transparent 34%),
+    var(--ws-bg-gradient) !important;
+}
+
+/* Any major application viewport gets the HUD telemetry grid without changing layout. */
+.work-social-page-content,
+.app-shell,
+.home-post-feed,
+.premium-profile-panel {
+  background-color: transparent !important;
+  background-image:
+    linear-gradient(rgba(0, 240, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 240, 255, 0.025) 1px, transparent 1px) !important;
+  background-size: 32px 32px !important;
+}
+
+/* Posts: use the shared glass material instead of legacy solid cards. */
+.home-post-feed article,
+.home-post-feed article footer {
+  background: var(--ws-glass-bg) !important;
+  border: 1px solid var(--ws-glass-border) !important;
+  backdrop-filter: blur(var(--ws-glass-blur)) !important;
+  -webkit-backdrop-filter: blur(var(--ws-glass-blur)) !important;
+  box-shadow: var(--ws-glow-cyan) !important;
+}
+
+.home-post-feed article:hover {
+  border-color: rgba(0, 240, 255, 0.32) !important;
+  box-shadow: var(--ws-glow-cyan-hover) !important;
+}
+
+/* Comments, reaction clusters and post controls inherit the same HUD material. */
+.home-post-feed article [role="group"],
+.home-post-feed article [role="menu"],
+.home-post-feed article [role="dialog"],
+.home-post-feed article [role="alertdialog"] {
+  background: var(--ws-glass-bg) !important;
+  border-color: var(--ws-glass-border) !important;
+  backdrop-filter: blur(var(--ws-glass-blur)) !important;
+  -webkit-backdrop-filter: blur(var(--ws-glass-blur)) !important;
+}
+
+.home-post-feed article input,
+.home-post-feed article textarea {
+  background: rgba(10, 20, 40, 0.42) !important;
+  border-color: var(--ws-glass-border) !important;
+  color: var(--ws-text-primary) !important;
+}
+
+.home-post-feed article input:focus,
+.home-post-feed article textarea:focus {
+  outline: none !important;
+  border-color: rgba(0, 240, 255, 0.55) !important;
+  box-shadow: var(--ws-glow-cyan) !important;
+}
+
+.home-post-feed article button {
+  border-color: var(--ws-glass-border) !important;
+}
+
+.home-post-feed article button:hover:not(:disabled) {
+  border-color: rgba(0, 240, 255, 0.45) !important;
+  box-shadow: var(--ws-glow-cyan-hover) !important;
+}
+
+/* Profile cards: converge the existing premium profile surface to the master material. */
+.premium-profile-panel .profile-state-card,
+.premium-profile-panel .profile-hero-card,
+.premium-profile-panel .profile-joined-card,
+.premium-profile-panel .edit-profile-card {
+  background: var(--ws-glass-bg) !important;
+  border: 1px solid var(--ws-glass-border) !important;
+  color: var(--ws-text-primary) !important;
+  backdrop-filter: blur(var(--ws-glass-blur)) !important;
+  -webkit-backdrop-filter: blur(var(--ws-glass-blur)) !important;
+  box-shadow: var(--ws-glow-cyan) !important;
+}
+
+.premium-profile-panel .profile-name,
+.premium-profile-panel .edit-profile-heading,
+.premium-profile-panel h2 {
+  font-family: 'Orbitron', 'Roboto Mono', monospace !important;
+  color: var(--ws-cyan) !important;
+  text-shadow: 0 0 8px rgba(0, 240, 255, 0.28) !important;
+}
+
+.premium-profile-panel .profile-handle,
+.premium-profile-panel .profile-bio,
+.premium-profile-panel .profile-location,
+.premium-profile-panel .profile-joined-card p,
+.premium-profile-panel .profile-state-card p {
+  color: var(--ws-text-muted) !important;
+}
+
+.premium-profile-panel .profile-action-button,
+.premium-profile-panel .profile-state-card button {
+  background: var(--ws-glass-bg) !important;
+  color: var(--ws-text-primary) !important;
+  border: 1px solid var(--ws-glass-border) !important;
+}
+
+.premium-profile-panel .profile-action-button.primary {
+  background: rgba(0, 240, 255, 0.10) !important;
+  color: var(--ws-cyan) !important;
+  border-color: rgba(0, 240, 255, 0.42) !important;
+  box-shadow: var(--ws-glow-cyan) !important;
+}
+
+/* Shared HUD typography. */
+.home-post-feed article h1,
+.home-post-feed article h2,
+.home-post-feed article h3,
+.home-post-feed article strong,
+.premium-profile-panel h1,
+.premium-profile-panel h2,
+.premium-profile-panel h3 {
+  font-family: 'Orbitron', 'Roboto Mono', monospace !important;
+}
+
+.home-post-feed article a,
+.home-post-feed article [data-accent="true"],
+.premium-profile-panel .profile-name {
+  color: var(--ws-cyan) !important;
+}
+
+/* Social bottom navigation: glass dock + neon active state. */
+nav[aria-label="Main navigation"] {
+  background: var(--ws-glass-bg) !important;
+  border: 1px solid var(--ws-glass-border) !important;
+  backdrop-filter: blur(var(--ws-glass-blur)) !important;
+  -webkit-backdrop-filter: blur(var(--ws-glass-blur)) !important;
+}
+
+nav[aria-label="Main navigation"] > button[aria-current="page"],
+nav[aria-label="Main navigation"] > button[data-active="true"] {
+  color: var(--ws-cyan) !important;
+  border-color: rgba(0, 240, 255, 0.45) !important;
+  box-shadow: var(--ws-glow-cyan) !important;
+  background: rgba(0, 240, 255, 0.08) !important;
+}
+
+nav[aria-label="Main navigation"] > button:hover {
+  border-color: rgba(0, 240, 255, 0.32) !important;
+  box-shadow: var(--ws-glow-cyan) !important;
+}
+
+/* Generic notification/dialog surfaces used by Social UI. */
+[role="dialog"],
+[role="alertdialog"] {
+  background: var(--ws-glass-bg) !important;
+  border-color: var(--ws-glass-border) !important;
+  color: var(--ws-text-primary) !important;
+  backdrop-filter: blur(var(--ws-glass-blur)) !important;
+  -webkit-backdrop-filter: blur(var(--ws-glass-blur)) !important;
+  box-shadow: var(--ws-glow-cyan-hover) !important;
+}
+
+[role="dialog"] h1,
+[role="dialog"] h2,
+[role="dialog"] h3,
+[role="alertdialog"] h1,
+[role="alertdialog"] h2,
+[role="alertdialog"] h3 {
+  font-family: 'Orbitron', 'Roboto Mono', monospace !important;
+  color: var(--ws-cyan) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-post-feed article,
+  .premium-profile-panel .profile-state-card,
+  .premium-profile-panel .profile-hero-card,
+  nav[aria-label="Main navigation"] > button {
+    transition: none !important;
+  }
+}
