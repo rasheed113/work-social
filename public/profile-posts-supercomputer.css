@@ -1,0 +1,43 @@
+/* Profile page — Posts / Community Feed supercomputer glass pass. Visual-only, scoped to Profile. */
+body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap > section > div:first-child {
+  background: rgba(7, 20, 38, .48) !important;
+  border: 1px solid rgba(102, 232, 255, .18) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .24), inset 0 1px 0 rgba(191, 239, 255, .06) !important;
+  backdrop-filter: blur(14px) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
+}
+
+body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap > section > div:first-child h2 {
+  color: #66e8ff !important;
+  text-shadow: 0 0 12px rgba(102, 232, 255, .28) !important;
+}
+
+body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap > section > div:first-child span {
+  color: #bfefff !important;
+}
+
+body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article {
+  background: rgba(7, 20, 38, .52) !important;
+  border: 1px solid rgba(102, 232, 255, .16) !important;
+  box-shadow: 0 16px 38px rgba(0, 0, 0, .28), inset 0 1px 0 rgba(191, 239, 255, .055) !important;
+  backdrop-filter: blur(15px) !important;
+  -webkit-backdrop-filter: blur(15px) !important;
+}
+
+body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article header {
+  border-bottom-color: rgba(102, 232, 255, .13) !important;
+}
+
+body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article small,
+body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article span {
+  color: #bfefff !important;
+}
+
+body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article [style*="background: 'rgba(255,255,255,.72)'"] {
+  background: rgba(102, 232, 255, .08) !important;
+  border-color: rgba(102, 232, 255, .15) !important;
+}
+
+body[data-ws-page="profile"] .premium-profile-panel .profile-feed-wrap article button {
+  border-color: rgba(102, 232, 255, .16) !important;
+}
