@@ -1,18 +1,22 @@
 /* Notifications — ONLY the full notification cards/rows.
    Do not style the Notifications heading, toolbar, or the small emoji badge as the primary surface. */
 
-main.notifications-page article {
+/* The notification-card class is the exact full-row surface target. */
+main.notifications-page article.notification-card {
   position: relative !important;
   overflow: hidden !important;
   box-sizing: border-box !important;
-  border: 1px solid rgba(120, 210, 255, .24) !important;
+  border: 1px solid rgba(120, 220, 255, .30) !important;
   border-radius: 22px !important;
-  background: rgba(255, 255, 255, .045) !important;
+  background: linear-gradient(135deg,
+    rgba(45, 150, 255, .16),
+    rgba(255, 255, 255, .035) 48%,
+    rgba(80, 200, 255, .10)) !important;
+  background-color: rgba(20, 110, 210, .08) !important;
   background-image: linear-gradient(135deg,
-    rgba(80, 190, 255, .12),
-    rgba(255, 255, 255, .025) 48%,
-    rgba(80, 170, 255, .07)) !important;
-  background-color: rgba(255, 255, 255, .045) !important;
+    rgba(45, 150, 255, .16),
+    rgba(255, 255, 255, .035) 48%,
+    rgba(80, 200, 255, .10)) !important;
   box-shadow:
     0 14px 34px rgba(0, 70, 150, .12),
     inset 0 1px 0 rgba(210, 245, 255, .16) !important;
@@ -21,7 +25,7 @@ main.notifications-page article {
 }
 
 /* Subtle glass reflection across the WHOLE notification card. */
-main.notifications-page article::after {
+main.notifications-page article.notification-card::after {
   content: '' !important;
   position: absolute !important;
   inset: 0 !important;
@@ -34,39 +38,42 @@ main.notifications-page article::after {
   z-index: 0 !important;
 }
 
-main.notifications-page article > * {
+main.notifications-page article.notification-card > * {
   position: relative !important;
   z-index: 1 !important;
 }
 
-main.notifications-page article:hover {
-  border-color: rgba(125, 220, 255, .38) !important;
+main.notifications-page article.notification-card:hover {
+  border-color: rgba(125, 220, 255, .42) !important;
   box-shadow:
     0 16px 38px rgba(0, 70, 155, .15),
-    0 0 22px rgba(50, 175, 255, .07),
+    0 0 22px rgba(50, 175, 255, .09),
     inset 0 1px 0 rgba(215, 248, 255, .22) !important;
 }
 
-main.notifications-page article[data-unread='true'] {
-  border-color: rgba(120, 220, 255, .32) !important;
+main.notifications-page article.notification-card[data-unread='true'] {
+  border-color: rgba(120, 225, 255, .34) !important;
 }
 
-/* Override the older report-card dark surface only on the full notification card. */
-main.notifications-page article:has(.report-decline) {
-  border-color: rgba(120, 210, 255, .24) !important;
-  background: rgba(255, 255, 255, .045) !important;
+/* Report notifications use the same transparent glass surface — never an opaque dark card. */
+main.notifications-page article.notification-card:has(.report-decline) {
+  border-color: rgba(120, 220, 255, .30) !important;
+  background: linear-gradient(135deg,
+    rgba(45, 150, 255, .16),
+    rgba(255, 255, 255, .035) 48%,
+    rgba(80, 200, 255, .10)) !important;
+  background-color: rgba(20, 110, 210, .08) !important;
   background-image: linear-gradient(135deg,
-    rgba(80, 190, 255, .12),
-    rgba(255, 255, 255, .025) 48%,
-    rgba(80, 170, 255, .07)) !important;
-  background-color: rgba(255, 255, 255, .045) !important;
+    rgba(45, 150, 255, .16),
+    rgba(255, 255, 255, .035) 48%,
+    rgba(80, 200, 255, .10)) !important;
   box-shadow:
     0 14px 34px rgba(0, 70, 150, .12),
     inset 0 1px 0 rgba(210, 245, 255, .16) !important;
 }
 
-main.notifications-page article:has(.report-decline):hover {
-  border-color: rgba(125, 220, 255, .38) !important;
+main.notifications-page article.notification-card:has(.report-decline):hover {
+  border-color: rgba(125, 220, 255, .42) !important;
 }
 
 /* Small emoji/icon badge remains separate; it is NOT the large notification card. */
@@ -79,7 +86,7 @@ main.notifications-page article:has(.report-decline):hover {
 }
 
 @media (max-width: 767px) {
-  main.notifications-page article {
+  main.notifications-page article.notification-card {
     border-radius: 19px !important;
   }
 }
