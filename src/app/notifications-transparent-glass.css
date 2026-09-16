@@ -2,9 +2,8 @@
    Heading, toolbar, and the small emoji badge are intentionally separate. */
 
 /*
- * The article has inline light-surface styles in NotificationsPage.tsx.
- * Keep the layout inline, but force the actual card surface to be genuinely
- * translucent so the page background remains visible through every card.
+ * The notification article itself must have ZERO filled surface.
+ * The page/background behind it must remain visible through the card.
  */
 main.notifications-page article.notification-card {
   position: relative !important;
@@ -12,31 +11,26 @@ main.notifications-page article.notification-card {
   box-sizing: border-box !important;
   border: 1px solid rgba(96, 225, 255, .30) !important;
   border-radius: 22px !important;
-  background: rgba(0, 125, 205, .045) !important;
-  background-image: linear-gradient(135deg,
-    rgba(0, 190, 255, .085),
-    rgba(0, 91, 180, .025) 50%,
-    rgba(0, 225, 255, .065)) !important;
+
+  /* ZERO CARD DARKNESS / ZERO CARD FILL */
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+
+  /* Edge/highlight only — no filled shadow */
   box-shadow:
-    0 14px 36px rgba(0, 58, 140, .13),
-    inset 0 1px 0 rgba(225, 252, 255, .20),
-    inset 0 -1px 0 rgba(0, 205, 255, .08) !important;
-  backdrop-filter: blur(20px) saturate(165%) !important;
-  -webkit-backdrop-filter: blur(20px) saturate(165%) !important;
+    0 8px 24px rgba(0, 58, 140, .08),
+    inset 0 1px 0 rgba(225, 252, 255, .18) !important;
+
+  backdrop-filter: blur(18px) saturate(145%) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(145%) !important;
 }
 
-/* Full-card mirror sheen; intentionally very low alpha to preserve transparency. */
+/* Absolutely no full-card pseudo-element surface/overlay. */
 main.notifications-page article.notification-card::after {
-  content: '' !important;
-  position: absolute !important;
-  inset: 0 !important;
-  border-radius: inherit !important;
-  background: linear-gradient(180deg,
-    rgba(220, 250, 255, .075),
-    rgba(60, 190, 255, .018) 44%,
-    transparent 78%) !important;
-  pointer-events: none !important;
-  z-index: 0 !important;
+  content: none !important;
+  display: none !important;
+  background: none !important;
 }
 
 main.notifications-page article.notification-card > * {
@@ -45,33 +39,29 @@ main.notifications-page article.notification-card > * {
 }
 
 main.notifications-page article.notification-card:hover {
-  border-color: rgba(105, 235, 255, .44) !important;
+  border-color: rgba(105, 235, 255, .42) !important;
   box-shadow:
-    0 16px 40px rgba(0, 58, 145, .16),
-    0 0 24px rgba(0, 205, 255, .08),
-    inset 0 1px 0 rgba(225, 252, 255, .24) !important;
+    0 10px 28px rgba(0, 58, 145, .10),
+    inset 0 1px 0 rgba(225, 252, 255, .22) !important;
 }
 
 main.notifications-page article.notification-card[data-unread='true'] {
   border-color: rgba(100, 230, 255, .36) !important;
 }
 
-/* Report rows use the same genuinely translucent glass surface. */
+/* Report rows use the exact same ZERO-SURFACE treatment. */
 main.notifications-page article.notification-card:has(.report-decline) {
   border-color: rgba(96, 225, 255, .30) !important;
-  background: rgba(0, 125, 205, .045) !important;
-  background-image: linear-gradient(135deg,
-    rgba(0, 190, 255, .085),
-    rgba(0, 91, 180, .025) 50%,
-    rgba(0, 225, 255, .065)) !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
   box-shadow:
-    0 14px 36px rgba(0, 58, 140, .13),
-    inset 0 1px 0 rgba(225, 252, 255, .20),
-    inset 0 -1px 0 rgba(0, 205, 255, .08) !important;
+    0 8px 24px rgba(0, 58, 140, .08),
+    inset 0 1px 0 rgba(225, 252, 255, .18) !important;
 }
 
 main.notifications-page article.notification-card:has(.report-decline):hover {
-  border-color: rgba(105, 235, 255, .44) !important;
+  border-color: rgba(105, 235, 255, .42) !important;
 }
 
 /* Small emoji/icon badge remains separate from the full card surface. */
