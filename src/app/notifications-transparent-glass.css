@@ -1,9 +1,6 @@
-/* Notifications — transparent blue/cyan glass cards only.
-   Scoped to .notifications-page so other routes remain untouched. */
-
-.notifications-page {
-  color: #dff8ff;
-}
+/* Notifications — Profile card glass treatment.
+   Scoped to .notifications-page so other routes remain untouched.
+   Surface values intentionally mirror ProfilePanel's authoritative card treatment. */
 
 .notifications-page .notification-card,
 .notifications-page .notification-empty,
@@ -11,17 +8,18 @@
   position: relative;
   overflow: hidden;
   box-sizing: border-box;
-  border: 1px solid rgba(0, 220, 255, .18) !important;
+  border: 1px solid rgba(99, 102, 241, .15) !important;
+  border-radius: 22px !important;
   background: linear-gradient(145deg,
-    rgba(8, 45, 78, .13),
-    rgba(18, 72, 116, .10) 58%,
-    rgba(15, 92, 140, .12)) !important;
+    rgba(255, 255, 255, .985),
+    rgba(242, 245, 255, .94) 58%,
+    rgba(248, 250, 252, .96)) !important;
   box-shadow:
-    0 14px 34px rgba(0, 20, 45, .16),
-    0 2px 10px rgba(0, 220, 255, .035),
-    inset 0 1px 0 rgba(255, 255, 255, .004) !important;
-  backdrop-filter: blur(14px) saturate(135%) !important;
-  -webkit-backdrop-filter: blur(14px) saturate(135%) !important;
+    0 14px 34px rgba(15, 23, 42, .075),
+    0 2px 8px rgba(79, 70, 229, .045),
+    inset 0 1px 0 rgba(255, 255, 255, .98) !important;
+  backdrop-filter: blur(14px) saturate(125%) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(125%) !important;
 }
 
 .notifications-page .notification-card::after,
@@ -31,7 +29,7 @@
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: linear-gradient(180deg, rgba(255, 255, 255, .004), transparent 16%);
+  background: linear-gradient(180deg, rgba(255, 255, 255, .25), transparent 34%);
   pointer-events: none;
   z-index: 0;
 }
@@ -44,113 +42,120 @@
 }
 
 .notifications-page .notification-card {
-  border-radius: 17px !important;
   cursor: pointer;
   transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
 }
 
 .notifications-page .notification-card:hover {
   transform: translateY(-1px);
-  border-color: rgba(0, 220, 255, .28) !important;
+  border-color: rgba(109, 93, 252, .30) !important;
   box-shadow:
-    0 16px 38px rgba(0, 20, 45, .18),
-    0 0 18px rgba(0, 220, 255, .045),
-    inset 0 1px 0 rgba(255, 255, 255, .006) !important;
+    0 10px 21px rgba(79, 70, 229, .12),
+    inset 0 1px 0 rgba(255, 255, 255, .98) !important;
 }
 
 .notifications-page .notification-card[data-unread='true'] {
-  border-color: rgba(88, 246, 255, .28) !important;
-  background: linear-gradient(145deg,
-    rgba(7, 53, 82, .17),
-    rgba(16, 82, 122, .13) 58%,
-    rgba(15, 104, 145, .15)) !important;
+  border-color: rgba(109, 93, 252, .22) !important;
 }
 
 .notifications-page .notification-card[data-report='true'] {
-  border-color: rgba(255, 79, 216, .30) !important;
+  border-color: rgba(99, 102, 241, .15) !important;
   background: linear-gradient(145deg,
-    rgba(34, 17, 55, .14),
-    rgba(52, 24, 72, .12) 58%,
-    rgba(17, 43, 68, .13)) !important;
+    rgba(255, 255, 255, .985),
+    rgba(242, 245, 255, .94) 58%,
+    rgba(248, 250, 252, .96)) !important;
+  box-shadow:
+    0 14px 34px rgba(15, 23, 42, .075),
+    0 2px 8px rgba(79, 70, 229, .045),
+    inset 0 1px 0 rgba(255, 255, 255, .98) !important;
 }
 
 .notifications-page .notification-card[data-report='true']:hover {
-  border-color: rgba(255, 79, 216, .42) !important;
+  border-color: rgba(109, 93, 252, .30) !important;
   box-shadow:
-    0 16px 38px rgba(0, 20, 45, .18),
-    0 0 18px rgba(255, 79, 216, .06),
-    inset 0 1px 0 rgba(255, 255, 255, .006) !important;
+    0 10px 21px rgba(79, 70, 229, .12),
+    inset 0 1px 0 rgba(255, 255, 255, .98) !important;
 }
 
 .notifications-page .notification-card strong {
-  color: #e4faff !important;
-  text-shadow: 0 0 8px rgba(0, 220, 255, .10) !important;
+  color: #111827 !important;
+  text-shadow: 0 2px 8px rgba(15, 23, 42, .09) !important;
+}
+
+.notifications-page .notification-card,
+.notifications-page .notification-card > div {
+  color: #334155;
 }
 
 .notifications-page .notification-card small {
-  color: #9ec9dc !important;
+  color: #64748b !important;
 }
 
 .notifications-page .notification-card .notification-note {
-  border: 1px solid rgba(0, 220, 255, .12) !important;
+  border: 1px solid rgba(99, 102, 241, .12) !important;
   border-radius: 12px !important;
-  background: linear-gradient(145deg,
-    rgba(8, 45, 78, .09),
-    rgba(18, 72, 116, .07) 58%,
-    rgba(15, 92, 140, .08)) !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .003) !important;
-  backdrop-filter: blur(10px) saturate(125%) !important;
-  -webkit-backdrop-filter: blur(10px) saturate(125%) !important;
+  background: rgba(255, 255, 255, .72) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .98) !important;
+  backdrop-filter: blur(10px) saturate(120%) !important;
+  -webkit-backdrop-filter: blur(10px) saturate(120%) !important;
 }
 
 .notifications-page .notification-card button {
   position: relative;
   z-index: 2;
-  backdrop-filter: blur(9px) saturate(125%) !important;
-  -webkit-backdrop-filter: blur(9px) saturate(125%) !important;
+  backdrop-filter: blur(9px) saturate(120%) !important;
+  -webkit-backdrop-filter: blur(9px) saturate(120%) !important;
 }
 
 .notifications-page .notification-avatar {
-  border-color: rgba(88, 246, 255, .28) !important;
-  box-shadow: 0 0 12px rgba(0, 220, 255, .08) !important;
+  border-color: rgba(255, 255, 255, .98) !important;
+  outline: 1px solid rgba(109, 93, 252, .16);
+  box-shadow: 0 12px 30px rgba(79, 70, 229, .18), 0 0 0 7px rgba(109, 93, 252, .055) !important;
 }
 
-.notifications-page .notification-avatar-fallback,
+.notifications-page .notification-avatar-fallback {
+  border: 4px solid rgba(255, 255, 255, .98) !important;
+  background: linear-gradient(135deg, #ede9fe, #cffafe) !important;
+  box-shadow: 0 12px 30px rgba(79, 70, 229, .18), 0 0 0 7px rgba(109, 93, 252, .055) !important;
+  backdrop-filter: blur(9px) !important;
+  -webkit-backdrop-filter: blur(9px) !important;
+}
+
 .notifications-page .notification-icon-badge {
-  border: 1px solid rgba(0, 220, 255, .16) !important;
-  background: rgba(8, 55, 88, .14) !important;
-  box-shadow: 0 5px 14px rgba(0, 20, 45, .12) !important;
+  border: 1px solid rgba(99, 102, 241, .14) !important;
+  background: rgba(255, 255, 255, .86) !important;
+  box-shadow: 0 7px 17px rgba(15, 23, 42, .065), inset 0 1px 0 rgba(255, 255, 255, .98) !important;
   backdrop-filter: blur(9px) !important;
   -webkit-backdrop-filter: blur(9px) !important;
 }
 
 .notifications-page .notification-empty {
-  border-radius: 19px !important;
-  color: #ccecf5 !important;
+  border-radius: 22px !important;
+  color: #475569 !important;
 }
 
 .notifications-page .notification-empty strong {
-  color: #e4faff !important;
+  color: #111827 !important;
 }
 
 .notifications-page .notification-empty p {
-  color: #9ec9dc !important;
+  color: #64748b !important;
 }
 
 .notifications-page .notification-flash {
-  border-radius: 19px !important;
-  color: #dff8ff !important;
+  border-radius: 22px !important;
+  color: #334155 !important;
 }
 
 .notifications-page .notification-flash .notification-flash-copy,
 .notifications-page .notification-flash .notification-flash-note {
-  color: #a9cfdf !important;
+  color: #475569 !important;
 }
 
 @media (max-width: 767px) {
   .notifications-page .notification-card,
   .notifications-page .notification-empty,
   .notifications-page .notification-flash {
-    border-radius: 18px !important;
+    border-radius: 19px !important;
   }
 }
