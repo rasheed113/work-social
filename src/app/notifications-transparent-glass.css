@@ -1,35 +1,40 @@
 /* Notifications — full notification cards/rows only.
    Heading, toolbar, and the small emoji badge are intentionally separate. */
 
+/*
+ * The article has inline light-surface styles in NotificationsPage.tsx.
+ * Keep the layout inline, but force the actual card surface to be genuinely
+ * translucent so the page background remains visible through every card.
+ */
 main.notifications-page article.notification-card {
   position: relative !important;
   overflow: hidden !important;
   box-sizing: border-box !important;
-  border: 1px solid rgba(88, 220, 255, .34) !important;
+  border: 1px solid rgba(96, 225, 255, .30) !important;
   border-radius: 22px !important;
-  background: rgba(0, 110, 190, .10) !important;
+  background: rgba(0, 125, 205, .045) !important;
   background-image: linear-gradient(135deg,
-    rgba(0, 174, 255, .20),
-    rgba(0, 91, 180, .08) 48%,
-    rgba(0, 220, 255, .14)) !important;
+    rgba(0, 190, 255, .085),
+    rgba(0, 91, 180, .025) 50%,
+    rgba(0, 225, 255, .065)) !important;
   box-shadow:
-    0 14px 36px rgba(0, 58, 140, .16),
-    inset 0 1px 0 rgba(220, 250, 255, .24),
-    inset 0 -1px 0 rgba(0, 190, 255, .10) !important;
-  backdrop-filter: blur(20px) saturate(160%) !important;
-  -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+    0 14px 36px rgba(0, 58, 140, .13),
+    inset 0 1px 0 rgba(225, 252, 255, .20),
+    inset 0 -1px 0 rgba(0, 205, 255, .08) !important;
+  backdrop-filter: blur(20px) saturate(165%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(165%) !important;
 }
 
-/* Mirror highlight across the entire card, not just the icon. */
+/* Full-card mirror sheen; intentionally very low alpha to preserve transparency. */
 main.notifications-page article.notification-card::after {
   content: '' !important;
   position: absolute !important;
   inset: 0 !important;
   border-radius: inherit !important;
   background: linear-gradient(180deg,
-    rgba(205, 247, 255, .12),
-    rgba(60, 190, 255, .035) 42%,
-    transparent 76%) !important;
+    rgba(220, 250, 255, .075),
+    rgba(60, 190, 255, .018) 44%,
+    transparent 78%) !important;
   pointer-events: none !important;
   z-index: 0 !important;
 }
@@ -40,33 +45,33 @@ main.notifications-page article.notification-card > * {
 }
 
 main.notifications-page article.notification-card:hover {
-  border-color: rgba(95, 230, 255, .48) !important;
+  border-color: rgba(105, 235, 255, .44) !important;
   box-shadow:
-    0 16px 40px rgba(0, 58, 145, .18),
-    0 0 24px rgba(0, 205, 255, .10),
-    inset 0 1px 0 rgba(225, 252, 255, .28) !important;
+    0 16px 40px rgba(0, 58, 145, .16),
+    0 0 24px rgba(0, 205, 255, .08),
+    inset 0 1px 0 rgba(225, 252, 255, .24) !important;
 }
 
 main.notifications-page article.notification-card[data-unread='true'] {
-  border-color: rgba(90, 225, 255, .40) !important;
+  border-color: rgba(100, 230, 255, .36) !important;
 }
 
-/* Report rows use exactly the same transparent glass surface. */
+/* Report rows use the same genuinely translucent glass surface. */
 main.notifications-page article.notification-card:has(.report-decline) {
-  border-color: rgba(88, 220, 255, .34) !important;
-  background: rgba(0, 110, 190, .10) !important;
+  border-color: rgba(96, 225, 255, .30) !important;
+  background: rgba(0, 125, 205, .045) !important;
   background-image: linear-gradient(135deg,
-    rgba(0, 174, 255, .20),
-    rgba(0, 91, 180, .08) 48%,
-    rgba(0, 220, 255, .14)) !important;
+    rgba(0, 190, 255, .085),
+    rgba(0, 91, 180, .025) 50%,
+    rgba(0, 225, 255, .065)) !important;
   box-shadow:
-    0 14px 36px rgba(0, 58, 140, .16),
-    inset 0 1px 0 rgba(220, 250, 255, .24),
-    inset 0 -1px 0 rgba(0, 190, 255, .10) !important;
+    0 14px 36px rgba(0, 58, 140, .13),
+    inset 0 1px 0 rgba(225, 252, 255, .20),
+    inset 0 -1px 0 rgba(0, 205, 255, .08) !important;
 }
 
 main.notifications-page article.notification-card:has(.report-decline):hover {
-  border-color: rgba(95, 230, 255, .48) !important;
+  border-color: rgba(105, 235, 255, .44) !important;
 }
 
 /* Small emoji/icon badge remains separate from the full card surface. */
