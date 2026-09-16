@@ -1,39 +1,35 @@
-/* Notifications — ONLY the full notification cards/rows.
-   Do not style the Notifications heading, toolbar, or the small emoji badge as the primary surface. */
+/* Notifications — full notification cards/rows only.
+   Heading, toolbar, and the small emoji badge are intentionally separate. */
 
-/* The notification-card class is the exact full-row surface target. */
 main.notifications-page article.notification-card {
   position: relative !important;
   overflow: hidden !important;
   box-sizing: border-box !important;
-  border: 1px solid rgba(120, 220, 255, .30) !important;
+  border: 1px solid rgba(88, 220, 255, .34) !important;
   border-radius: 22px !important;
-  background: linear-gradient(135deg,
-    rgba(45, 150, 255, .16),
-    rgba(255, 255, 255, .035) 48%,
-    rgba(80, 200, 255, .10)) !important;
-  background-color: rgba(20, 110, 210, .08) !important;
+  background: rgba(0, 110, 190, .10) !important;
   background-image: linear-gradient(135deg,
-    rgba(45, 150, 255, .16),
-    rgba(255, 255, 255, .035) 48%,
-    rgba(80, 200, 255, .10)) !important;
+    rgba(0, 174, 255, .20),
+    rgba(0, 91, 180, .08) 48%,
+    rgba(0, 220, 255, .14)) !important;
   box-shadow:
-    0 14px 34px rgba(0, 70, 150, .12),
-    inset 0 1px 0 rgba(210, 245, 255, .16) !important;
-  backdrop-filter: blur(18px) saturate(145%) !important;
-  -webkit-backdrop-filter: blur(18px) saturate(145%) !important;
+    0 14px 36px rgba(0, 58, 140, .16),
+    inset 0 1px 0 rgba(220, 250, 255, .24),
+    inset 0 -1px 0 rgba(0, 190, 255, .10) !important;
+  backdrop-filter: blur(20px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
 }
 
-/* Subtle glass reflection across the WHOLE notification card. */
+/* Mirror highlight across the entire card, not just the icon. */
 main.notifications-page article.notification-card::after {
   content: '' !important;
   position: absolute !important;
   inset: 0 !important;
   border-radius: inherit !important;
   background: linear-gradient(180deg,
-    rgba(185, 238, 255, .075),
-    rgba(90, 190, 255, .018) 45%,
-    transparent 78%) !important;
+    rgba(205, 247, 255, .12),
+    rgba(60, 190, 255, .035) 42%,
+    transparent 76%) !important;
   pointer-events: none !important;
   z-index: 0 !important;
 }
@@ -44,39 +40,36 @@ main.notifications-page article.notification-card > * {
 }
 
 main.notifications-page article.notification-card:hover {
-  border-color: rgba(125, 220, 255, .42) !important;
+  border-color: rgba(95, 230, 255, .48) !important;
   box-shadow:
-    0 16px 38px rgba(0, 70, 155, .15),
-    0 0 22px rgba(50, 175, 255, .09),
-    inset 0 1px 0 rgba(215, 248, 255, .22) !important;
+    0 16px 40px rgba(0, 58, 145, .18),
+    0 0 24px rgba(0, 205, 255, .10),
+    inset 0 1px 0 rgba(225, 252, 255, .28) !important;
 }
 
 main.notifications-page article.notification-card[data-unread='true'] {
-  border-color: rgba(120, 225, 255, .34) !important;
+  border-color: rgba(90, 225, 255, .40) !important;
 }
 
-/* Report notifications use the same transparent glass surface — never an opaque dark card. */
+/* Report rows use exactly the same transparent glass surface. */
 main.notifications-page article.notification-card:has(.report-decline) {
-  border-color: rgba(120, 220, 255, .30) !important;
-  background: linear-gradient(135deg,
-    rgba(45, 150, 255, .16),
-    rgba(255, 255, 255, .035) 48%,
-    rgba(80, 200, 255, .10)) !important;
-  background-color: rgba(20, 110, 210, .08) !important;
+  border-color: rgba(88, 220, 255, .34) !important;
+  background: rgba(0, 110, 190, .10) !important;
   background-image: linear-gradient(135deg,
-    rgba(45, 150, 255, .16),
-    rgba(255, 255, 255, .035) 48%,
-    rgba(80, 200, 255, .10)) !important;
+    rgba(0, 174, 255, .20),
+    rgba(0, 91, 180, .08) 48%,
+    rgba(0, 220, 255, .14)) !important;
   box-shadow:
-    0 14px 34px rgba(0, 70, 150, .12),
-    inset 0 1px 0 rgba(210, 245, 255, .16) !important;
+    0 14px 36px rgba(0, 58, 140, .16),
+    inset 0 1px 0 rgba(220, 250, 255, .24),
+    inset 0 -1px 0 rgba(0, 190, 255, .10) !important;
 }
 
 main.notifications-page article.notification-card:has(.report-decline):hover {
-  border-color: rgba(125, 220, 255, .42) !important;
+  border-color: rgba(95, 230, 255, .48) !important;
 }
 
-/* Small emoji/icon badge remains separate; it is NOT the large notification card. */
+/* Small emoji/icon badge remains separate from the full card surface. */
 .notifications-page .notification-icon-badge {
   border: 1px solid rgba(105, 211, 255, .26) !important;
   background: rgba(33, 132, 235, .13) !important;
