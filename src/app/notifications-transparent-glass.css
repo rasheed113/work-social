@@ -1,130 +1,86 @@
-/* Notifications — transparent mirror glass.
-   Scoped to .notifications-page so other routes remain untouched.
-   Notification rows intentionally use a very light translucent surface so the existing
-   page glass/background remains visible through every card. */
+/* Notifications — target the REAL full notification row/card.
+   The small emoji badge beside the avatar is intentionally NOT the target.
+   The notification item itself renders as an <article>; this rule owns that
+   outer surface while leaving notification content and behavior untouched. */
 
-.notifications-page .notification-card {
-  position: relative;
-  overflow: hidden;
-  box-sizing: border-box;
-  border: 1px solid rgba(115, 210, 255, .20) !important;
+.notifications-page article {
+  position: relative !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+  border: 1px solid rgba(96, 196, 255, .24) !important;
   border-radius: 22px !important;
-  background: rgba(46, 151, 255, .055) !important;
+  background: linear-gradient(145deg,
+    rgba(42, 150, 255, .12),
+    rgba(42, 150, 255, .055) 52%,
+    rgba(84, 202, 255, .09)) !important;
+  background-color: transparent !important;
   box-shadow:
-    0 12px 30px rgba(0, 54, 125, .10),
-    inset 0 1px 0 rgba(175, 235, 255, .14) !important;
-  backdrop-filter: blur(16px) saturate(125%) !important;
-  -webkit-backdrop-filter: blur(16px) saturate(125%) !important;
+    0 14px 34px rgba(0, 60, 145, .12),
+    inset 0 1px 0 rgba(190, 240, 255, .18) !important;
+  backdrop-filter: blur(16px) saturate(140%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(140%) !important;
 }
 
-.notifications-page .notification-card::after {
+/* The actual row gets a very light mirror reflection, not a second surface. */
+.notifications-page article::after {
   content: '';
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: linear-gradient(180deg, rgba(105, 211, 255, .055), transparent 42%);
+  background: linear-gradient(180deg,
+    rgba(145, 228, 255, .09),
+    rgba(42, 150, 255, .018) 42%,
+    transparent 76%);
   pointer-events: none;
   z-index: 0;
 }
 
-.notifications-page .notification-card > * {
+.notifications-page article > * {
   position: relative;
   z-index: 1;
 }
 
-.notifications-page .notification-card {
-  cursor: pointer;
-  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
-}
-
-.notifications-page .notification-card:hover {
-  transform: translateY(-1px);
-  border-color: rgba(125, 220, 255, .34) !important;
+.notifications-page article:hover {
+  border-color: rgba(112, 220, 255, .40) !important;
   box-shadow:
-    0 15px 34px rgba(0, 63, 150, .14),
-    inset 0 1px 0 rgba(190, 242, 255, .20) !important;
+    0 16px 38px rgba(0, 63, 150, .16),
+    0 0 22px rgba(35, 155, 255, .07),
+    inset 0 1px 0 rgba(190, 241, 255, .24) !important;
 }
 
-.notifications-page .notification-card[data-unread='true'] {
-  border-color: rgba(110, 216, 255, .30) !important;
+.notifications-page article[data-unread='true'] {
+  border-color: rgba(103, 214, 255, .34) !important;
 }
 
-.notifications-page .notification-card[data-report='true'] {
-  border-color: rgba(115, 210, 255, .20) !important;
-  background: rgba(46, 151, 255, .055) !important;
+/* Contractor report rows are also real notification articles. Override the
+   older report-specific dark surface so the OUTER card follows the same glass. */
+main.notifications-page article:has(.report-decline) {
+  border-color: rgba(96, 196, 255, .24) !important;
+  background: linear-gradient(145deg,
+    rgba(42, 150, 255, .12),
+    rgba(42, 150, 255, .055) 52%,
+    rgba(84, 202, 255, .09)) !important;
+  background-color: transparent !important;
   box-shadow:
-    0 12px 30px rgba(0, 54, 125, .10),
-    inset 0 1px 0 rgba(175, 235, 255, .14) !important;
+    0 14px 34px rgba(0, 60, 145, .12),
+    inset 0 1px 0 rgba(190, 240, 255, .18) !important;
 }
 
-.notifications-page .notification-card[data-report='true']:hover {
-  border-color: rgba(125, 220, 255, .34) !important;
-  box-shadow:
-    0 15px 34px rgba(0, 63, 150, .14),
-    inset 0 1px 0 rgba(190, 242, 255, .20) !important;
+main.notifications-page article:has(.report-decline):hover {
+  border-color: rgba(112, 220, 255, .40) !important;
 }
 
-.notifications-page .notification-card strong {
-  color: #e8f8ff !important;
-  text-shadow: 0 1px 8px rgba(0, 70, 150, .28) !important;
-}
-
-.notifications-page .notification-card,
-.notifications-page .notification-card > div {
-  color: #d5efff;
-}
-
-.notifications-page .notification-card small {
-  color: #9ed8f5 !important;
-}
-
-.notifications-page .notification-card .notification-note {
-  border: 1px solid rgba(93, 201, 255, .14) !important;
-  border-radius: 12px !important;
-  background: rgba(46, 151, 255, .035) !important;
-  box-shadow: inset 0 1px 0 rgba(173, 236, 255, .09) !important;
-  backdrop-filter: blur(11px) saturate(125%) !important;
-  -webkit-backdrop-filter: blur(11px) saturate(125%) !important;
-}
-
-.notifications-page .notification-card button {
-  position: relative;
-  z-index: 2;
-  backdrop-filter: blur(9px) saturate(125%) !important;
-  -webkit-backdrop-filter: blur(9px) saturate(125%) !important;
-}
-
-.notifications-page .notification-avatar {
-  border-color: rgba(174, 239, 255, .62) !important;
-  outline: 1px solid rgba(74, 193, 255, .26);
-  box-shadow: 0 10px 26px rgba(0, 75, 160, .15), 0 0 0 7px rgba(73, 190, 255, .045) !important;
-}
-
-.notifications-page .notification-avatar-fallback {
-  border: 4px solid rgba(174, 239, 255, .62) !important;
-  background: linear-gradient(135deg, rgba(42, 150, 255, .28), rgba(69, 211, 255, .20)) !important;
-  box-shadow: 0 10px 26px rgba(0, 75, 160, .15), 0 0 0 7px rgba(73, 190, 255, .045) !important;
-  backdrop-filter: blur(9px) !important;
-  -webkit-backdrop-filter: blur(9px) !important;
-}
-
+/* Keep the small emoji/icon badge separate from the large notification glass. */
 .notifications-page .notification-icon-badge {
-  border: 1px solid rgba(105, 211, 255, .18) !important;
-  background: rgba(33, 132, 235, .055) !important;
-  box-shadow: 0 6px 15px rgba(0, 57, 130, .09), inset 0 1px 0 rgba(181, 240, 255, .11) !important;
+  border: 1px solid rgba(105, 211, 255, .26) !important;
+  background: rgba(33, 132, 235, .13) !important;
+  box-shadow: 0 7px 17px rgba(0, 57, 130, .13), inset 0 1px 0 rgba(181, 240, 255, .18) !important;
   backdrop-filter: blur(9px) !important;
   -webkit-backdrop-filter: blur(9px) !important;
-}
-
-.notifications-page .notification-empty,
-.notifications-page .notification-flash {
-  border-radius: 22px !important;
 }
 
 @media (max-width: 767px) {
-  .notifications-page .notification-card,
-  .notifications-page .notification-empty,
-  .notifications-page .notification-flash {
+  .notifications-page article {
     border-radius: 19px !important;
   }
 }
