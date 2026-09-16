@@ -26,7 +26,6 @@ import './app/social-command-center-post-fix.css';
 import './index.css';
 import './app/master-glassmorphic-theme.css';
 import './app/social-hud-force-theme.css';
-import './app/profile-posts-supercomputer.css';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
