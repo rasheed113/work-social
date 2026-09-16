@@ -1,77 +1,68 @@
 /* Notifications — full notification cards/rows only.
-   Heading, toolbar, and the small emoji badge are intentionally separate. */
+   Heading, toolbar, emoji badge, and footer are intentionally untouched. */
 
 /*
- * The notification article itself must have ZERO filled surface.
- * The page/background behind it must remain visible through the card.
+ * FULL NOTIFICATION ROW:
+ * The row itself has NO visual surface. No tint, no gradient, no blur,
+ * no shadow and no pseudo-element overlay. The page background must show
+ * through the entire area of the notification row.
  */
 main.notifications-page article.notification-card {
   position: relative !important;
-  overflow: hidden !important;
   box-sizing: border-box !important;
-  border: 1px solid rgba(96, 225, 255, .30) !important;
+  overflow: visible !important;
+  border: 1px solid rgba(96, 225, 255, .22) !important;
   border-radius: 22px !important;
-
-  /* ZERO CARD DARKNESS / ZERO CARD FILL */
   background: transparent !important;
   background-color: transparent !important;
   background-image: none !important;
-
-  /* Edge/highlight only — no filled shadow */
-  box-shadow:
-    0 8px 24px rgba(0, 58, 140, .08),
-    inset 0 1px 0 rgba(225, 252, 255, .18) !important;
-
-  backdrop-filter: blur(18px) saturate(145%) !important;
-  -webkit-backdrop-filter: blur(18px) saturate(145%) !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 
-/* Absolutely no full-card pseudo-element surface/overlay. */
+/* Kill any full-card decorative layer. */
+main.notifications-page article.notification-card::before,
 main.notifications-page article.notification-card::after {
   content: none !important;
   display: none !important;
   background: none !important;
+  box-shadow: none !important;
 }
 
+/* Preserve notification content without creating a surface. */
 main.notifications-page article.notification-card > * {
   position: relative !important;
   z-index: 1 !important;
 }
 
-main.notifications-page article.notification-card:hover {
-  border-color: rgba(105, 235, 255, .42) !important;
-  box-shadow:
-    0 10px 28px rgba(0, 58, 145, .10),
-    inset 0 1px 0 rgba(225, 252, 255, .22) !important;
-}
-
-main.notifications-page article.notification-card[data-unread='true'] {
-  border-color: rgba(100, 230, 255, .36) !important;
-}
-
-/* Report rows use the exact same ZERO-SURFACE treatment. */
-main.notifications-page article.notification-card:has(.report-decline) {
-  border-color: rgba(96, 225, 255, .30) !important;
+/* Hover must never introduce a filled surface. */
+main.notifications-page article.notification-card:hover,
+main.notifications-page article.notification-card[data-unread='true'],
+main.notifications-page article.notification-card:has(.report-decline),
+main.notifications-page article.notification-card:has(.report-decline):hover {
   background: transparent !important;
   background-color: transparent !important;
   background-image: none !important;
-  box-shadow:
-    0 8px 24px rgba(0, 58, 140, .08),
-    inset 0 1px 0 rgba(225, 252, 255, .18) !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 
-main.notifications-page article.notification-card:has(.report-decline):hover {
-  border-color: rgba(105, 235, 255, .42) !important;
+/*
+ * The report-specific legacy HUD stylesheet adds its own dark surface.
+ * Override that surface here while leaving its report buttons/text styling
+ * intact.
+ */
+main.notifications-page article.notification-card:has(.report-decline) {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
 }
 
-/* Small emoji/icon badge remains separate from the full card surface. */
-.notifications-page .notification-icon-badge {
-  border: 1px solid rgba(105, 211, 255, .26) !important;
-  background: rgba(33, 132, 235, .13) !important;
-  box-shadow: 0 7px 17px rgba(0, 57, 130, .13), inset 0 1px 0 rgba(181, 240, 255, .18) !important;
-  backdrop-filter: blur(9px) !important;
-  -webkit-backdrop-filter: blur(9px) !important;
-}
+/* IMPORTANT: do not style .notification-icon-badge here.
+   Its existing inline/reference styling must remain exactly as-is. */
 
 @media (max-width: 767px) {
   main.notifications-page article.notification-card {
