@@ -1,0 +1,135 @@
+/* Profile-only transparent glass treatment. Scoped under .premium-profile-panel so other pages are untouched. */
+.premium-profile-panel .profile-feed-wrap {
+  --profile-glass-bg: linear-gradient(145deg, rgba(8, 24, 48, .40), rgba(8, 36, 72, .26) 58%, rgba(7, 22, 46, .34));
+  --profile-glass-bg-soft: linear-gradient(145deg, rgba(10, 34, 66, .32), rgba(7, 26, 54, .20));
+  --profile-glass-border: rgba(75, 207, 255, .22);
+  --profile-glass-border-soft: rgba(92, 183, 255, .14);
+  --profile-glass-shadow: 0 14px 34px rgba(0, 9, 24, .24), inset 0 1px 0 rgba(150, 230, 255, .07);
+}
+
+/* Posts / Community Feed heading */
+.premium-profile-panel .profile-feed-wrap > section > div:first-child {
+  background: var(--profile-glass-bg-soft) !important;
+  border: 1px solid var(--profile-glass-border-soft) !important;
+  box-shadow: 0 8px 24px rgba(0, 12, 32, .18), inset 0 1px 0 rgba(130, 225, 255, .06) !important;
+  backdrop-filter: blur(12px) saturate(125%) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(125%) !important;
+}
+
+/* Individual posts */
+.premium-profile-panel .profile-feed-wrap article {
+  background: var(--profile-glass-bg) !important;
+  border: 1px solid var(--profile-glass-border) !important;
+  box-shadow: var(--profile-glass-shadow) !important;
+  backdrop-filter: blur(16px) saturate(135%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(135%) !important;
+}
+
+/* Post header / internal glass surface */
+.premium-profile-panel .profile-feed-wrap article > header {
+  background: linear-gradient(180deg, rgba(18, 64, 112, .16), rgba(5, 23, 48, .08)) !important;
+  border-bottom-color: rgba(87, 204, 255, .13) !important;
+  border-radius: 13px 13px 0 0;
+}
+
+/* Remove the white avatar wrapper without changing the actual avatar. */
+.premium-profile-panel .profile-feed-wrap article > header > div:first-child {
+  background: linear-gradient(145deg, rgba(38, 128, 186, .28), rgba(7, 29, 58, .22)) !important;
+  border: 1px solid rgba(91, 218, 255, .18);
+  box-shadow: 0 5px 16px rgba(0, 10, 28, .24) !important;
+}
+
+/* Privacy / location pills */
+.premium-profile-panel .profile-feed-wrap article > header > span,
+.premium-profile-panel .profile-feed-wrap article [style*="padding: 6px 9px"][style*="border-radius: 999px"] {
+  background: rgba(20, 76, 122, .22) !important;
+  border-color: rgba(83, 211, 255, .16) !important;
+  color: inherit;
+  box-shadow: inset 0 1px 0 rgba(150, 235, 255, .05) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+}
+
+/* Expanded comments and latest-comment preview surfaces */
+.premium-profile-panel .profile-feed-wrap article [style*="padding: 9px"][style*="border-radius: 13px"],
+.premium-profile-panel .profile-feed-wrap article [style*="padding: 11px"][style*="border-radius: 15px"] {
+  background: var(--profile-glass-bg-soft) !important;
+  border-color: var(--profile-glass-border-soft) !important;
+  box-shadow: inset 0 1px 0 rgba(140, 230, 255, .05), 0 8px 20px rgba(0, 9, 26, .14) !important;
+  backdrop-filter: blur(13px) saturate(125%) !important;
+  -webkit-backdrop-filter: blur(13px) saturate(125%) !important;
+}
+
+/* Individual comment cards */
+.premium-profile-panel .profile-feed-wrap article [style*="margin-top: 7px"] {
+  background: rgba(7, 30, 58, .24) !important;
+  border: 1px solid rgba(79, 204, 255, .11);
+  border-radius: 13px;
+  padding: 8px;
+  box-shadow: inset 0 1px 0 rgba(150, 235, 255, .035), 0 5px 14px rgba(0, 8, 25, .12);
+  backdrop-filter: blur(10px) saturate(120%) !important;
+  -webkit-backdrop-filter: blur(10px) saturate(120%) !important;
+}
+
+/* Comment composer */
+.premium-profile-panel .profile-feed-wrap article [style*="padding: 5px"][style*="border-radius: 15px"] {
+  background: linear-gradient(145deg, rgba(10, 42, 76, .32), rgba(6, 27, 56, .22)) !important;
+  border-color: rgba(78, 211, 255, .18) !important;
+  box-shadow: inset 0 1px 0 rgba(150, 235, 255, .055), 0 6px 18px rgba(0, 9, 27, .14) !important;
+  backdrop-filter: blur(12px) saturate(125%) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(125%) !important;
+}
+
+/* Text inputs / edit surfaces inside posts/comments */
+.premium-profile-panel .profile-feed-wrap article input,
+.premium-profile-panel .profile-feed-wrap article textarea {
+  background: rgba(4, 22, 45, .28) !important;
+  color: inherit;
+  border-color: rgba(82, 210, 255, .16) !important;
+  box-shadow: inset 0 1px 0 rgba(140, 230, 255, .035) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+}
+
+/* Small controls: preserve media buttons, but glassify real action controls. */
+.premium-profile-panel .profile-feed-wrap article > header > button,
+.premium-profile-panel .profile-feed-wrap article > footer button,
+.premium-profile-panel .profile-feed-wrap article [role="menu"] button {
+  background: linear-gradient(145deg, rgba(19, 67, 105, .42), rgba(7, 30, 59, .30)) !important;
+  border-color: rgba(84, 211, 255, .18) !important;
+  color: inherit;
+  box-shadow: 0 4px 12px rgba(0, 8, 24, .16), inset 0 1px 0 rgba(150, 235, 255, .05) !important;
+  backdrop-filter: blur(9px) !important;
+  -webkit-backdrop-filter: blur(9px) !important;
+}
+
+/* Menus / reaction popovers */
+.premium-profile-panel .profile-feed-wrap article [role="menu"],
+.premium-profile-panel .profile-feed-wrap article [role="group"][aria-label="Reactions"],
+.premium-profile-panel .profile-feed-wrap article [role="group"][aria-label="Comment reactions"] {
+  background: linear-gradient(145deg, rgba(7, 31, 61, .72), rgba(5, 22, 45, .64)) !important;
+  border-color: rgba(80, 211, 255, .20) !important;
+  box-shadow: 0 16px 34px rgba(0, 7, 24, .30), inset 0 1px 0 rgba(150, 235, 255, .07) !important;
+  backdrop-filter: blur(16px) saturate(135%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(135%) !important;
+}
+
+/* Keep emoji-only reaction buttons visually transparent inside glass popovers. */
+.premium-profile-panel .profile-feed-wrap article [role="group"] button {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Footer separator and depth */
+.premium-profile-panel .profile-feed-wrap article > footer {
+  border-top-color: rgba(84, 211, 255, .13) !important;
+}
+
+/* Mobile keeps the same glass language without changing layout. */
+@media (max-width: 767px) {
+  .premium-profile-panel .profile-feed-wrap article {
+    backdrop-filter: blur(13px) saturate(125%) !important;
+    -webkit-backdrop-filter: blur(13px) saturate(125%) !important;
+  }
+}
