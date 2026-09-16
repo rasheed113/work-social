@@ -1,76 +1,75 @@
-/* Notifications — target the REAL full notification row/card.
-   The small emoji badge beside the avatar is intentionally NOT the target.
-   The notification item itself renders as an <article>; this rule owns that
-   outer surface while leaving notification content and behavior untouched. */
+/* Notifications — ONLY the full notification cards/rows.
+   Do not style the Notifications heading, toolbar, or the small emoji badge as the primary surface. */
 
-.notifications-page article {
+main.notifications-page article {
   position: relative !important;
   overflow: hidden !important;
   box-sizing: border-box !important;
-  border: 1px solid rgba(96, 196, 255, .24) !important;
+  border: 1px solid rgba(120, 210, 255, .24) !important;
   border-radius: 22px !important;
-  background: linear-gradient(145deg,
-    rgba(42, 150, 255, .12),
-    rgba(42, 150, 255, .055) 52%,
-    rgba(84, 202, 255, .09)) !important;
-  background-color: transparent !important;
+  background: rgba(255, 255, 255, .045) !important;
+  background-image: linear-gradient(135deg,
+    rgba(80, 190, 255, .12),
+    rgba(255, 255, 255, .025) 48%,
+    rgba(80, 170, 255, .07)) !important;
+  background-color: rgba(255, 255, 255, .045) !important;
   box-shadow:
-    0 14px 34px rgba(0, 60, 145, .12),
-    inset 0 1px 0 rgba(190, 240, 255, .18) !important;
-  backdrop-filter: blur(16px) saturate(140%) !important;
-  -webkit-backdrop-filter: blur(16px) saturate(140%) !important;
+    0 14px 34px rgba(0, 70, 150, .12),
+    inset 0 1px 0 rgba(210, 245, 255, .16) !important;
+  backdrop-filter: blur(18px) saturate(145%) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(145%) !important;
 }
 
-/* The actual row gets a very light mirror reflection, not a second surface. */
-.notifications-page article::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
+/* Subtle glass reflection across the WHOLE notification card. */
+main.notifications-page article::after {
+  content: '' !important;
+  position: absolute !important;
+  inset: 0 !important;
+  border-radius: inherit !important;
   background: linear-gradient(180deg,
-    rgba(145, 228, 255, .09),
-    rgba(42, 150, 255, .018) 42%,
-    transparent 76%);
-  pointer-events: none;
-  z-index: 0;
+    rgba(185, 238, 255, .075),
+    rgba(90, 190, 255, .018) 45%,
+    transparent 78%) !important;
+  pointer-events: none !important;
+  z-index: 0 !important;
 }
 
-.notifications-page article > * {
-  position: relative;
-  z-index: 1;
+main.notifications-page article > * {
+  position: relative !important;
+  z-index: 1 !important;
 }
 
-.notifications-page article:hover {
-  border-color: rgba(112, 220, 255, .40) !important;
+main.notifications-page article:hover {
+  border-color: rgba(125, 220, 255, .38) !important;
   box-shadow:
-    0 16px 38px rgba(0, 63, 150, .16),
-    0 0 22px rgba(35, 155, 255, .07),
-    inset 0 1px 0 rgba(190, 241, 255, .24) !important;
+    0 16px 38px rgba(0, 70, 155, .15),
+    0 0 22px rgba(50, 175, 255, .07),
+    inset 0 1px 0 rgba(215, 248, 255, .22) !important;
 }
 
-.notifications-page article[data-unread='true'] {
-  border-color: rgba(103, 214, 255, .34) !important;
+main.notifications-page article[data-unread='true'] {
+  border-color: rgba(120, 220, 255, .32) !important;
 }
 
-/* Contractor report rows are also real notification articles. Override the
-   older report-specific dark surface so the OUTER card follows the same glass. */
+/* Override the older report-card dark surface only on the full notification card. */
 main.notifications-page article:has(.report-decline) {
-  border-color: rgba(96, 196, 255, .24) !important;
-  background: linear-gradient(145deg,
-    rgba(42, 150, 255, .12),
-    rgba(42, 150, 255, .055) 52%,
-    rgba(84, 202, 255, .09)) !important;
-  background-color: transparent !important;
+  border-color: rgba(120, 210, 255, .24) !important;
+  background: rgba(255, 255, 255, .045) !important;
+  background-image: linear-gradient(135deg,
+    rgba(80, 190, 255, .12),
+    rgba(255, 255, 255, .025) 48%,
+    rgba(80, 170, 255, .07)) !important;
+  background-color: rgba(255, 255, 255, .045) !important;
   box-shadow:
-    0 14px 34px rgba(0, 60, 145, .12),
-    inset 0 1px 0 rgba(190, 240, 255, .18) !important;
+    0 14px 34px rgba(0, 70, 150, .12),
+    inset 0 1px 0 rgba(210, 245, 255, .16) !important;
 }
 
 main.notifications-page article:has(.report-decline):hover {
-  border-color: rgba(112, 220, 255, .40) !important;
+  border-color: rgba(125, 220, 255, .38) !important;
 }
 
-/* Keep the small emoji/icon badge separate from the large notification glass. */
+/* Small emoji/icon badge remains separate; it is NOT the large notification card. */
 .notifications-page .notification-icon-badge {
   border: 1px solid rgba(105, 211, 255, .26) !important;
   background: rgba(33, 132, 235, .13) !important;
@@ -80,7 +79,7 @@ main.notifications-page article:has(.report-decline):hover {
 }
 
 @media (max-width: 767px) {
-  .notifications-page article {
+  main.notifications-page article {
     border-radius: 19px !important;
   }
 }
