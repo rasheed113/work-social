@@ -1,35 +1,43 @@
 /* Notifications — actual notification cards only.
-   Source of truth: the existing Work Social top glass surface (.ws-main-header).
-   No notification/business logic is changed here. */
+   Transparent glass: the page canvas remains visible through the card. */
 
 main.notifications-page article.notification-card {
+  position: relative !important;
   box-sizing: border-box !important;
   overflow: hidden !important;
-  border: 1px solid rgba(0, 240, 255, 0.20) !important;
+  border: 1px solid rgba(105, 249, 255, .34) !important;
   border-radius: 22px !important;
-  background: rgba(10, 20, 40, 0.60) !important;
-  background-color: rgba(10, 20, 40, 0.60) !important;
+  background: rgba(19, 104, 166, .08) !important;
+  background-color: rgba(19, 104, 166, .08) !important;
   background-image: none !important;
-  box-shadow: 0 0 22px rgba(0, 240, 255, 0.08), inset 0 1px 0 rgba(0, 240, 255, 0.08) !important;
-  backdrop-filter: blur(12px) !important;
-  -webkit-backdrop-filter: blur(12px) !important;
+  box-shadow: 0 0 18px rgba(0, 240, 255, .10), inset 0 1px 0 rgba(220, 255, 255, .14) !important;
+  backdrop-filter: blur(6px) saturate(145%) !important;
+  -webkit-backdrop-filter: blur(6px) saturate(145%) !important;
 }
 
-/* NotificationsPage has inline read/unread surfaces; the shared top glass
-   treatment must win without changing any notification state/behavior. */
-main.notifications-page article.notification-card,
+/* Override the inline white/read and unread surfaces without changing state. */
 main.notifications-page article.notification-card:hover,
 main.notifications-page article.notification-card[data-unread='true'],
 main.notifications-page article.notification-card:not([data-unread='true']),
 main.notifications-page article.notification-card:has(.report-decline),
 main.notifications-page article.notification-card:has(.report-decline):hover {
-  background: rgba(10, 20, 40, 0.60) !important;
-  background-color: rgba(10, 20, 40, 0.60) !important;
+  background: rgba(19, 104, 166, .08) !important;
+  background-color: rgba(19, 104, 166, .08) !important;
   background-image: none !important;
-  border-color: rgba(0, 240, 255, 0.20) !important;
-  box-shadow: 0 0 22px rgba(0, 240, 255, 0.08), inset 0 1px 0 rgba(0, 240, 255, 0.08) !important;
-  backdrop-filter: blur(12px) !important;
-  -webkit-backdrop-filter: blur(12px) !important;
+  border-color: rgba(105, 249, 255, .34) !important;
+  box-shadow: 0 0 18px rgba(0, 240, 255, .10), inset 0 1px 0 rgba(220, 255, 255, .14) !important;
+  backdrop-filter: blur(6px) saturate(145%) !important;
+  -webkit-backdrop-filter: blur(6px) saturate(145%) !important;
+}
+
+main.notifications-page article.notification-card:hover {
+  border-color: rgba(105, 249, 255, .46) !important;
+  box-shadow: 0 0 22px rgba(0, 240, 255, .13), inset 0 1px 0 rgba(220, 255, 255, .16) !important;
+}
+
+main.notifications-page article.notification-card > * {
+  position: relative !important;
+  z-index: 1 !important;
 }
 
 @media (max-width: 767px) {
