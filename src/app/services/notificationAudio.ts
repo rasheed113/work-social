@@ -11,20 +11,35 @@ function getContext(): AudioContext | null {
   return audioContext;
 }
 
-function toneBuffer(ctx: AudioContext, notes: number[], noteSeconds: number): AudioBuffer {
+type ToneNote = { frequency: number; seconds: number; gapSeconds?: number };
+
+function toneBuffer(ctx: AudioContext, notes: ToneNote[], masterGain: number): AudioBuffer {
   const sampleRate = ctx.sampleRate;
-  const framesPerNote = Math.max(1, Math.floor(sampleRate * noteSeconds));
-  const buffer = ctx.createBuffer(1, framesPerNote * notes.length, sampleRate);
+  const totalSeconds = notes.reduce((sum, note) => sum + note.seconds + (note.gapSeconds ?? 0), 0);
+  const buffer = ctx.createBuffer(1, Math.max(1, Math.ceil(sampleRate * totalSeconds)), sampleRate);
   const data = buffer.getChannelData(0);
-  notes.forEach((frequency, noteIndex) => {
-    const start = noteIndex * framesPerNote;
-    for (let i = 0; i < framesPerNote; i += 1) {
+  let offset = 0;
+
+  notes.forEach(note => {
+    const frames = Math.max(1, Math.floor(sampleRate * note.seconds));
+    const attackSeconds = Math.min(0.018, note.seconds * 0.22);
+    const releaseSeconds = Math.min(0.055, note.seconds * 0.35);
+    const attackFrames = Math.max(1, Math.floor(sampleRate * attackSeconds));
+    const releaseFrames = Math.max(1, Math.floor(sampleRate * releaseSeconds));
+
+    for (let i = 0; i < frames && offset + i < data.length; i += 1) {
       const t = i / sampleRate;
-      const attack = Math.min(1, t / 0.015);
-      const release = Math.min(1, (noteSeconds - t) / 0.04);
-      data[start + i] = Math.sin(2 * Math.PI * frequency * t) * 0.18 * Math.max(0, Math.min(attack, release));
+      const attack = Math.min(1, i / attackFrames);
+      const release = Math.min(1, (frames - i) / releaseFrames);
+      const envelope = Math.max(0, Math.min(attack, release));
+      const fundamental = Math.sin(2 * Math.PI * note.frequency * t);
+      const softHarmonic = Math.sin(4 * Math.PI * note.frequency * t) * 0.08;
+      data[offset + i] = (fundamental + softHarmonic) * masterGain * envelope;
     }
+
+    offset += frames + Math.max(0, Math.floor(sampleRate * (note.gapSeconds ?? 0)));
   });
+
   return buffer;
 }
 
@@ -44,11 +59,14 @@ export function playNotificationSound(): void {
   void resumeContext(ctx).then(running => {
     if (!running) return;
     try {
-      notificationBuffer ??= toneBuffer(ctx, [880, 1320], 0.11);
+      notificationBuffer ??= toneBuffer(ctx, [
+        { frequency: 784, seconds: 0.075, gapSeconds: 0.018 },
+        { frequency: 1047, seconds: 0.085 },
+      ], 0.14);
       const source = ctx.createBufferSource();
       const gain = ctx.createGain();
       source.buffer = notificationBuffer;
-      gain.gain.value = 0.8;
+      gain.gain.value = 0.9;
       source.connect(gain).connect(ctx.destination);
       source.onended = () => {
         source.disconnect();
@@ -68,12 +86,17 @@ export function startCallRingtone(): void {
   void resumeContext(ctx).then(running => {
     if (!running || ringtoneSource) return;
     try {
-      ringtoneBuffer ??= toneBuffer(ctx, [660, 880, 660, 880], 0.22);
+      ringtoneBuffer ??= toneBuffer(ctx, [
+        { frequency: 523, seconds: 0.16, gapSeconds: 0.045 },
+        { frequency: 659, seconds: 0.16, gapSeconds: 0.045 },
+        { frequency: 784, seconds: 0.19, gapSeconds: 0.06 },
+        { frequency: 659, seconds: 0.16, gapSeconds: 0.045 },
+      ], 0.11);
       const source = ctx.createBufferSource();
       const gain = ctx.createGain();
       source.buffer = ringtoneBuffer;
       source.loop = true;
-      gain.gain.value = 0.75;
+      gain.gain.value = 0.82;
       source.connect(gain).connect(ctx.destination);
       source.onended = () => {
         if (ringtoneSource === source) ringtoneSource = null;
