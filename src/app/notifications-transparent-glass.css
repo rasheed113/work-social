@@ -1,4 +1,4 @@
-/* Notifications history — transparent glass/window effect. */
+/* Notifications history — clear window glass, not dark cards. */
 main.notifications-page article.notification-card,
 main.notifications-page article.notification-card:hover,
 main.notifications-page article.notification-card:focus,
@@ -13,17 +13,17 @@ main.notifications-page article.notification-card:active {
   padding: 11px !important;
   gap: 11px !important;
   align-items: flex-start !important;
-  background: rgba(15, 23, 42, 0.06) !important;
-  background-color: rgba(15, 23, 42, 0.06) !important;
+  background: rgba(255, 255, 255, 0.035) !important;
+  background-color: rgba(255, 255, 255, 0.035) !important;
   background-image: none !important;
-  backdrop-filter: blur(12px) saturate(125%) !important;
-  -webkit-backdrop-filter: blur(12px) saturate(125%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  backdrop-filter: blur(8px) saturate(120%) !important;
+  -webkit-backdrop-filter: blur(8px) saturate(120%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
   border-radius: 15px !important;
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04) !important;
 }
 
-/* Keep the notification emoji/avatar visible; only remove any unwanted outer chrome. */
+/* Emoji/icon stays visible — no dark bubble behind it. */
 main.notifications-page article.notification-card > div:first-child {
   display: flex !important;
   flex: 0 0 auto !important;
