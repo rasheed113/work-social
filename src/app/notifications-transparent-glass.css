@@ -1,6 +1,18 @@
 /* Notifications history — CLEAR WINDOW.
-   The MAIN notification row is always fully transparent.
-   Do not add any dark/tinted background to the article. */
+   The notification page and MAIN notification row are always fully transparent.
+   Do not add any dark/tinted background to the article or its page surface. */
+main.notifications-page,
+main.notifications-page:hover,
+main.notifications-page:focus,
+main.notifications-page:focus-visible,
+main.notifications-page:active {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  opacity: 1 !important;
+}
+
 main.notifications-page article.notification-card,
 main.notifications-page article.notification-card:hover,
 main.notifications-page article.notification-card:focus,
@@ -16,8 +28,18 @@ main.notifications-page article.notification-card:active {
   opacity: 1 !important;
 }
 
-/* ONLY the small avatar/emoji area: no card fill, no gradient, no shadow.
-   The emoji glyph itself remains visible. */
+/* Keep the actual notification content surface transparent in every state.
+   This does NOT alter the emoji glyph itself. */
+main.notifications-page article.notification-card > div:nth-child(2),
+main.notifications-page article.notification-card > div:nth-child(2) > div,
+main.notifications-page article.notification-card > div:nth-child(2) > div > div {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+/* The small avatar/emoji area stays transparent; the glyph remains visible. */
 main.notifications-page article.notification-card > div:first-child,
 main.notifications-page article.notification-card > div:first-child > div,
 main.notifications-page article.notification-card > div:first-child > span {
@@ -28,16 +50,6 @@ main.notifications-page article.notification-card > div:first-child > span {
   border-color: transparent !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
-}
-
-/* Text/content area must never paint a second rectangular surface. */
-main.notifications-page article.notification-card > div:nth-child(2),
-main.notifications-page article.notification-card > div:nth-child(2) > div,
-main.notifications-page article.notification-card > div:nth-child(2) > div > div {
-  background: transparent !important;
-  background-color: transparent !important;
-  background-image: none !important;
-  box-shadow: none !important;
 }
 
 main.notifications-page article.notification-card img {
