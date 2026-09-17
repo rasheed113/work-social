@@ -1,37 +1,29 @@
-/* Notifications — match the transparent glass material used by Profile cards. */
+/* Notifications — actual cards use the requested transparent glass surface. */
 main.notifications-page article.notification-card,
 main.notifications-page article.notification-card:hover {
   position: relative !important;
   min-width: 0 !important;
   box-sizing: border-box !important;
   overflow: hidden !important;
-  background: linear-gradient(145deg, rgba(8,45,78,.13), rgba(18,72,116,.10) 58%, rgba(15,92,140,.12)) !important;
-  background-color: transparent !important;
-  background-image: linear-gradient(145deg, rgba(8,45,78,.13), rgba(18,72,116,.10) 58%, rgba(15,92,140,.12)) !important;
-  backdrop-filter: blur(14px) saturate(135%) !important;
-  -webkit-backdrop-filter: blur(14px) saturate(135%) !important;
-  border: 1px solid rgba(0,220,255,.18) !important;
+  background: rgba(15, 23, 42, 0.22) !important;
+  background-image: none !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(56, 189, 248, 0.2) !important;
   border-radius: 22px !important;
-  box-shadow: 0 14px 34px rgba(0,20,45,.16), 0 2px 10px rgba(0,220,255,.035), inset 0 1px 0 rgba(255,255,255,.004) !important;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1) !important;
 }
 
 main.notifications-page article.notification-card:hover {
-  border-color: rgba(0,220,255,.28) !important;
+  border-color: rgba(56, 189, 248, 0.4) !important;
 }
 
-main.notifications-page article.notification-card::before {
-  content: '' !important;
-  position: absolute !important;
-  inset: 0 !important;
-  border-radius: inherit !important;
-  background: linear-gradient(180deg, rgba(255,255,255,.004), transparent 16%) !important;
-  pointer-events: none !important;
-  z-index: 0 !important;
-}
-
-main.notifications-page article.notification-card > * {
-  position: relative !important;
-  z-index: 1 !important;
+main.notifications-page article.notification-card::before,
+main.notifications-page article.notification-card::after {
+  content: none !important;
+  display: none !important;
+  background: none !important;
+  box-shadow: none !important;
 }
 
 @media (max-width: 767px) {
