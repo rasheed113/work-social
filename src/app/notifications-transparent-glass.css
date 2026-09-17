@@ -1,4 +1,4 @@
-/* Notifications history — clear window glass, not dark cards. */
+/* Notifications history — clear window glass. No dark/navy tint. */
 main.notifications-page article.notification-card,
 main.notifications-page article.notification-card:hover,
 main.notifications-page article.notification-card:focus,
@@ -13,17 +13,22 @@ main.notifications-page article.notification-card:active {
   padding: 11px !important;
   gap: 11px !important;
   align-items: flex-start !important;
-  background: rgba(255, 255, 255, 0.035) !important;
-  background-color: rgba(255, 255, 255, 0.035) !important;
+
+  /* Absolutely no dark fill. The page/background remains visible through it. */
+  background: transparent !important;
+  background-color: transparent !important;
   background-image: none !important;
-  backdrop-filter: blur(8px) saturate(120%) !important;
-  -webkit-backdrop-filter: blur(8px) saturate(120%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+
+  /* Glass comes from the background behind the element, not a tinted overlay. */
+  backdrop-filter: blur(5px) saturate(110%) !important;
+  -webkit-backdrop-filter: blur(5px) saturate(110%) !important;
+
+  border: 1px solid rgba(255, 255, 255, 0.10) !important;
   border-radius: 15px !important;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04) !important;
+  box-shadow: none !important;
 }
 
-/* Emoji/icon stays visible — no dark bubble behind it. */
+/* Keep emoji/icon visible and completely transparent. */
 main.notifications-page article.notification-card > div:first-child {
   display: flex !important;
   flex: 0 0 auto !important;
