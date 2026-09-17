@@ -1,9 +1,12 @@
-/* Report notification visual fix — target the actual report row, not generic notification selectors. */
+/* Report notification visual fix — preserve the requested transparent glass card surface. */
 
 main:has(> div > div > h1) article:has(.report-decline) {
-  background:linear-gradient(135deg,rgba(18,20,42,.96),rgba(43,18,42,.94)) !important;
-  border:1px solid rgba(255,86,145,.42) !important;
-  box-shadow:0 8px 24px rgba(10,8,30,.32),inset 0 1px 0 rgba(255,255,255,.05),0 0 18px rgba(255,55,120,.08) !important;
+  background:rgba(15, 23, 42, 0.22) !important;
+  background-image:none !important;
+  backdrop-filter:blur(12px) !important;
+  -webkit-backdrop-filter:blur(12px) !important;
+  border:1px solid rgba(56, 189, 248, 0.2) !important;
+  box-shadow:0 4px 30px rgba(0, 0, 0, 0.1) !important;
 }
 
 main:has(> div > div > h1) article:has(.report-decline) > div:nth-child(2) > div:has(+ div .report-decline) {
