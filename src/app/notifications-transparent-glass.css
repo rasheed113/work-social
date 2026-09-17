@@ -1,21 +1,18 @@
-/* Notifications history — transparent glass bubbles; header remains untouched. */
+/* Notifications history — text only; bubble/card chrome fully removed. */
 main.notifications-page article.notification-card,
-main.notifications-page article.notification-card:hover {
+main.notifications-page article.notification-card:hover,
+main.notifications-page article.notification-card:focus,
+main.notifications-page article.notification-card:active {
   position: relative !important;
   min-width: 0 !important;
   box-sizing: border-box !important;
-  overflow: hidden !important;
-  background: rgba(15, 23, 42, 0.03) !important;
+  overflow: visible !important;
+  background: transparent !important;
   background-image: none !important;
-  backdrop-filter: blur(6px) saturate(115%) !important;
-  -webkit-backdrop-filter: blur(6px) saturate(115%) !important;
-  border: 1px solid rgba(56, 189, 248, 0.14) !important;
-  border-radius: 30px !important;
-  box-shadow: none !important;
-}
-
-main.notifications-page article.notification-card:hover {
-  border-color: rgba(56, 189, 248, 0.24) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: 0 !important;
+  border-radius: 0 !important;
   box-shadow: none !important;
 }
 
@@ -24,12 +21,6 @@ main.notifications-page article.notification-card::after {
   content: none !important;
   display: none !important;
   background: none !important;
+  border: 0 !important;
   box-shadow: none !important;
-}
-
-@media (max-width: 767px) {
-  main.notifications-page article.notification-card,
-  main.notifications-page article.notification-card:hover {
-    border-radius: 25px !important;
-  }
 }
