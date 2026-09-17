@@ -1,6 +1,6 @@
 /* Notifications history — TRUE CLEAR WINDOW.
-   The notification row itself must contribute ZERO background fill.
-   Page/supercomputer canvas remains visible behind every row. */
+   The notification row itself contributes ZERO background fill.
+   Keep the main notification row transparent at all times. */
 main.notifications-page article.notification-card,
 main.notifications-page article.notification-card:hover,
 main.notifications-page article.notification-card:focus,
@@ -18,32 +18,22 @@ main.notifications-page article.notification-card:visited {
   opacity: 1 !important;
 }
 
-/* Catch any notification-card variant/state selector without changing layout
-   or interaction behavior. */
-main.notifications-page article.notification-card[class*="notification-card"],
-main.notifications-page article.notification-card[class*="notification-card"]:hover,
-main.notifications-page article.notification-card[class*="notification-card"]:focus,
-main.notifications-page article.notification-card[class*="notification-card"]:active {
+/* Keep every nested notification surface transparent, including the emoji/icon
+   bubble. Do not change layout, sizing, typography, or interaction behavior. */
+main.notifications-page article.notification-card > div,
+main.notifications-page article.notification-card > div > div,
+main.notifications-page article.notification-card > div > div > div,
+main.notifications-page article.notification-card > div > span,
+main.notifications-page article.notification-card span {
   background: rgba(0, 0, 0, 0) !important;
   background-color: rgba(0, 0, 0, 0) !important;
   background-image: none !important;
+  box-shadow: none !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
-  box-shadow: none !important;
 }
 
-/* No nested text/content wrapper may paint a second rectangular surface. */
-main.notifications-page article.notification-card > div,
-main.notifications-page article.notification-card > div > div,
-main.notifications-page article.notification-card > div > div > div {
-  background: transparent !important;
-  background-color: transparent !important;
-  background-image: none !important;
-  box-shadow: none !important;
-}
-
-/* Preserve real avatar images and the notification emoji itself; only remove
-   CSS-painted surfaces around them. */
+/* Emoji/icon itself remains visible; only its card/bubble surface is removed. */
 main.notifications-page article.notification-card img {
   background-color: transparent !important;
   box-shadow: none !important;
