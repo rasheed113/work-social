@@ -5,18 +5,18 @@ main.notifications-page article.notification-card:hover {
   min-width: 0 !important;
   box-sizing: border-box !important;
   overflow: hidden !important;
-  background: rgba(15, 23, 42, 0.08) !important;
+  background: rgba(15, 23, 42, 0.03) !important;
   background-image: none !important;
-  backdrop-filter: blur(14px) saturate(135%) !important;
-  -webkit-backdrop-filter: blur(14px) saturate(135%) !important;
-  border: 1px solid rgba(56, 189, 248, 0.22) !important;
+  backdrop-filter: blur(6px) saturate(115%) !important;
+  -webkit-backdrop-filter: blur(6px) saturate(115%) !important;
+  border: 1px solid rgba(56, 189, 248, 0.14) !important;
   border-radius: 30px !important;
-  box-shadow: 0 10px 28px rgba(0, 20, 45, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+  box-shadow: none !important;
 }
 
 main.notifications-page article.notification-card:hover {
-  border-color: rgba(56, 189, 248, 0.4) !important;
-  box-shadow: 0 12px 32px rgba(0, 20, 45, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+  border-color: rgba(56, 189, 248, 0.24) !important;
+  box-shadow: none !important;
 }
 
 main.notifications-page article.notification-card::before,
