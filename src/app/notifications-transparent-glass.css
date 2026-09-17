@@ -1,33 +1,42 @@
-/* Notifications history — no cards/bubbles; let the page background show through. */
+/* Notifications history — transparent glass/window effect. */
 main.notifications-page article.notification-card,
 main.notifications-page article.notification-card:hover,
 main.notifications-page article.notification-card:focus,
 main.notifications-page article.notification-card:active {
-  display: block !important;
+  display: flex !important;
   position: relative !important;
   min-width: 0 !important;
   width: auto !important;
   box-sizing: border-box !important;
   overflow: visible !important;
-  margin: 0 !important;
-  padding: 8px 0 !important;
+  margin: 9px 0 0 !important;
+  padding: 11px !important;
+  gap: 11px !important;
+  align-items: flex-start !important;
+  background: rgba(15, 23, 42, 0.06) !important;
+  background-color: rgba(15, 23, 42, 0.06) !important;
+  background-image: none !important;
+  backdrop-filter: blur(12px) saturate(125%) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(125%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  border-radius: 15px !important;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Keep the notification emoji/avatar visible; only remove any unwanted outer chrome. */
+main.notifications-page article.notification-card > div:first-child {
+  display: flex !important;
+  flex: 0 0 auto !important;
   background: transparent !important;
   background-color: transparent !important;
   background-image: none !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
   border: 0 !important;
-  border-radius: 0 !important;
   box-shadow: none !important;
-}
-
-/* Remove the avatar/icon bubble so notification history is text-only. */
-main.notifications-page article.notification-card > div:first-child {
-  display: none !important;
 }
 
 main.notifications-page article.notification-card > div:nth-child(2) {
   display: block !important;
+  flex: 1 1 auto !important;
   width: auto !important;
   min-width: 0 !important;
   margin: 0 !important;
@@ -40,14 +49,9 @@ main.notifications-page article.notification-card > div:nth-child(2) {
   box-shadow: none !important;
 }
 
-main.notifications-page article.notification-card > span {
-  display: none !important;
-}
-
 main.notifications-page article.notification-card::before,
 main.notifications-page article.notification-card::after {
   content: none !important;
-  display: none !important;
   background: none !important;
   border: 0 !important;
   box-shadow: none !important;
