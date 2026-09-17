@@ -14,37 +14,32 @@ main.notifications-page article.notification-card:active {
   padding: 11px !important;
   gap: 11px !important;
   align-items: flex-start !important;
-
-  /* ZERO surface fill. This is the critical part: no dark card layer. */
   background: transparent !important;
   background-color: transparent !important;
   background-image: none !important;
-
-  /* Do not let blur visually darken/compress the background. */
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
-
-  /* Only the faint edge of a glass pane remains. */
   border: 1px solid rgba(255, 255, 255, 0.16) !important;
   border-radius: 15px !important;
   box-shadow: none !important;
 }
 
-/* The notification contents themselves are not another card. */
+/* Notification text/content must not create another surface. */
 main.notifications-page article.notification-card > div:nth-child(2),
 main.notifications-page article.notification-card > div:nth-child(2) > div {
   background: transparent !important;
   background-color: transparent !important;
   background-image: none !important;
   border: 0 !important;
+  border-radius: 0 !important;
   box-shadow: none !important;
 }
 
-/* Keep the notification emoji/avatar visible; remove any surrounding dark
-   surface that could make it look like a second card. */
-main.notifications-page article.notification-card > div:first-child {
-  display: flex !important;
-  flex: 0 0 auto !important;
+/* Emoji/avatar area: keep the emoji itself, but make its 43px container
+   completely transparent. This removes the colored emoji bubble/card. */
+main.notifications-page article.notification-card > div:first-child,
+main.notifications-page article.notification-card > div:first-child > div,
+main.notifications-page article.notification-card > div:first-child > span {
   background: transparent !important;
   background-color: transparent !important;
   background-image: none !important;
@@ -52,11 +47,9 @@ main.notifications-page article.notification-card > div:first-child {
   box-shadow: none !important;
 }
 
-main.notifications-page article.notification-card > div:first-child > span {
-  background: transparent !important;
-  background-color: transparent !important;
-  box-shadow: none !important;
-  border: 0 !important;
+main.notifications-page article.notification-card > div:first-child {
+  display: flex !important;
+  flex: 0 0 auto !important;
 }
 
 main.notifications-page article.notification-card::before,
