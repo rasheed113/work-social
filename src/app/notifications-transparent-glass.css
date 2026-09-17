@@ -1,68 +1,100 @@
-/* Notifications — full notification cards/rows only.
-   Heading, toolbar, emoji badge, and footer are intentionally untouched. */
+/* Notifications — actual notification cards only.
+   Reuse the Profile page's premium glass language without touching the
+   Notifications heading, toolbar, icon badges, or footer. */
 
-/*
- * FULL NOTIFICATION ROW:
- * The row itself has NO visual surface. No tint, no gradient, no blur,
- * no shadow and no pseudo-element overlay. The page background must show
- * through the entire area of the notification row.
- */
 main.notifications-page article.notification-card {
   position: relative !important;
   box-sizing: border-box !important;
-  overflow: visible !important;
-  border: 1px solid rgba(96, 225, 255, .22) !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(109, 93, 252, .18) !important;
   border-radius: 22px !important;
-  background: transparent !important;
+  background: linear-gradient(145deg,
+    rgba(255, 255, 255, .34),
+    rgba(241, 245, 255, .20) 58%,
+    rgba(248, 250, 252, .24)) !important;
   background-color: transparent !important;
-  background-image: none !important;
-  box-shadow: none !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
+  background-image: linear-gradient(145deg,
+    rgba(255, 255, 255, .34),
+    rgba(241, 245, 255, .20) 58%,
+    rgba(248, 250, 252, .24)) !important;
+  box-shadow:
+    0 14px 34px rgba(15, 23, 42, .075),
+    0 2px 7px rgba(79, 70, 229, .045),
+    inset 0 1px 0 rgba(255, 255, 255, .72) !important;
+  backdrop-filter: blur(18px) saturate(125%) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(125%) !important;
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease, background .18s ease !important;
 }
 
-/* Kill any full-card decorative layer. */
-main.notifications-page article.notification-card::before,
+/* Soft highlight, matching the Profile card's existing layered treatment. */
+main.notifications-page article.notification-card::before {
+  content: '' !important;
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 0 !important;
+  border-radius: inherit !important;
+  background: linear-gradient(180deg, rgba(255, 255, 255, .18), transparent 38%) !important;
+  pointer-events: none !important;
+}
+
 main.notifications-page article.notification-card::after {
-  content: none !important;
-  display: none !important;
-  background: none !important;
-  box-shadow: none !important;
+  content: '' !important;
+  position: absolute !important;
+  z-index: 0 !important;
+  width: 180px !important;
+  height: 120px !important;
+  top: -78px !important;
+  right: -42px !important;
+  border-radius: 50% !important;
+  background: radial-gradient(circle, rgba(109, 93, 252, .11) 0%, rgba(34, 193, 220, .055) 45%, rgba(255, 92, 168, 0) 75%) !important;
+  pointer-events: none !important;
 }
 
-/* Preserve notification content without creating a surface. */
+/* Keep every existing notification child/content layer above the glass. */
 main.notifications-page article.notification-card > * {
   position: relative !important;
   z-index: 1 !important;
 }
 
-/* Hover must never introduce a filled surface. */
-main.notifications-page article.notification-card:hover,
+/* Read/unread state changes only the glass intensity; neither becomes opaque. */
 main.notifications-page article.notification-card[data-unread='true'],
-main.notifications-page article.notification-card:has(.report-decline),
-main.notifications-page article.notification-card:has(.report-decline):hover {
-  background: transparent !important;
+main.notifications-page article.notification-card:not([data-unread='true']) {
   background-color: transparent !important;
-  background-image: none !important;
-  box-shadow: none !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
 }
 
-/*
- * The report-specific legacy HUD stylesheet adds its own dark surface.
- * Override that surface here while leaving its report buttons/text styling
- * intact.
- */
+main.notifications-page article.notification-card:hover {
+  transform: translateY(-1px) !important;
+  border-color: rgba(109, 93, 252, .28) !important;
+  background: linear-gradient(145deg,
+    rgba(255, 255, 255, .42),
+    rgba(241, 245, 255, .27) 58%,
+    rgba(248, 250, 252, .30)) !important;
+  box-shadow:
+    0 18px 38px rgba(15, 23, 42, .10),
+    0 5px 13px rgba(79, 70, 229, .07),
+    inset 0 1px 0 rgba(255, 255, 255, .82) !important;
+  backdrop-filter: blur(20px) saturate(130%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(130%) !important;
+}
+
+/* Report/invitation rows must use the same card surface, not legacy HUD fills. */
 main.notifications-page article.notification-card:has(.report-decline) {
-  background: transparent !important;
+  background: linear-gradient(145deg,
+    rgba(255, 255, 255, .34),
+    rgba(241, 245, 255, .20) 58%,
+    rgba(248, 250, 252, .24)) !important;
   background-color: transparent !important;
-  background-image: none !important;
-  box-shadow: none !important;
+  background-image: linear-gradient(145deg,
+    rgba(255, 255, 255, .34),
+    rgba(241, 245, 255, .20) 58%,
+    rgba(248, 250, 252, .24)) !important;
+  box-shadow:
+    0 14px 34px rgba(15, 23, 42, .075),
+    0 2px 7px rgba(79, 70, 229, .045),
+    inset 0 1px 0 rgba(255, 255, 255, .72) !important;
+  backdrop-filter: blur(18px) saturate(125%) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(125%) !important;
 }
-
-/* IMPORTANT: do not style .notification-icon-badge here.
-   Its existing inline/reference styling must remain exactly as-is. */
 
 @media (max-width: 767px) {
   main.notifications-page article.notification-card {
