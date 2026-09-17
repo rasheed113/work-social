@@ -1,28 +1,6 @@
 /* Notifications — actual notification cards only.
-   FULLY transparent: the notification card itself contributes no dark/blue surface. */
-
-/* Exact offending layer: the shared page-content canvas paints the dark
-   supercomputer gradient behind an otherwise transparent notification card.
-   Notifications should expose the bright global canvas instead. */
-body:has(.notifications-page) {
-  background:
-    linear-gradient(to right, rgba(205, 255, 255, 0.10) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(205, 255, 255, 0.10) 1px, transparent 1px),
-    radial-gradient(ellipse 105% 72% at 50% -5%, rgba(235, 255, 255, 0.54), transparent 60%),
-    radial-gradient(ellipse 58% 78% at 4% 30%, rgba(0, 149, 255, 0.48), transparent 68%),
-    radial-gradient(ellipse 48% 72% at 94% 22%, rgba(0, 228, 255, 0.42), transparent 68%),
-    radial-gradient(ellipse 48% 72% at 12% 82%, rgba(183, 255, 24, 0.34), transparent 68%),
-    radial-gradient(ellipse 52% 76% at 88% 76%, rgba(183, 255, 24, 0.30), transparent 68%),
-    radial-gradient(ellipse 75% 58% at 50% 50%, rgba(70, 210, 255, 0.24), transparent 70%),
-    linear-gradient(115deg, #1769a8 0%, #2179b3 34%, #3a8fc4 58%, #2780b5 78%, #1769a8 100%) !important;
-  background-size: 32px 32px, 32px 32px, auto, auto, auto, auto, auto, auto, auto !important;
-}
-
-body:has(.notifications-page) .work-social-page-content {
-  background: transparent !important;
-  background-image: none !important;
-  background-color: transparent !important;
-}
+   Keep the existing page/canvas theme intact and remove the card's own
+   opaque surface so the notification rows expose the underlying glass canvas. */
 
 main.notifications-page article.notification-card,
 main.notifications-page article.notification-card:hover,
@@ -30,7 +8,8 @@ main.notifications-page article.notification-card[data-unread='true'],
 main.notifications-page article.notification-card:not([data-unread='true']),
 main.notifications-page article.notification-card:has(.report-decline),
 main.notifications-page article.notification-card:has(.report-decline):hover {
-  background: none !important;
+  /* NotificationsPage supplies a white/gradient background inline. Remove it. */
+  background: transparent !important;
   background-color: transparent !important;
   background-image: none !important;
   box-shadow: none !important;
@@ -41,7 +20,7 @@ main.notifications-page article.notification-card:has(.report-decline):hover {
   border-radius: 22px !important;
 }
 
-/* Prevent any pseudo-element from reintroducing a surface. */
+/* Do not let pseudo-elements paint another surface over the transparent row. */
 main.notifications-page article.notification-card::before,
 main.notifications-page article.notification-card::after {
   content: none !important;
