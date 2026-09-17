@@ -1,38 +1,30 @@
 /* Notifications — actual notification cards only.
-   Fully transparent glass: no tinted card fill; the page canvas stays visible. */
+   FULLY transparent: the notification card itself contributes no dark/blue surface. */
 
-main.notifications-page article.notification-card {
-  position: relative !important;
-  box-sizing: border-box !important;
-  overflow: hidden !important;
-  border: 1px solid rgba(105, 249, 255, .24) !important;
-  border-radius: 22px !important;
-  background: transparent !important;
-  background-color: transparent !important;
-  background-image: none !important;
-  box-shadow: 0 0 14px rgba(0, 240, 255, .06) !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-}
-
-/* Override the inline white/read and unread surfaces without changing state. */
+main.notifications-page article.notification-card,
 main.notifications-page article.notification-card:hover,
 main.notifications-page article.notification-card[data-unread='true'],
 main.notifications-page article.notification-card:not([data-unread='true']),
 main.notifications-page article.notification-card:has(.report-decline),
 main.notifications-page article.notification-card:has(.report-decline):hover {
-  background: transparent !important;
+  background: none !important;
   background-color: transparent !important;
   background-image: none !important;
-  border-color: rgba(105, 249, 255, .24) !important;
-  box-shadow: 0 0 14px rgba(0, 240, 255, .06) !important;
+  box-shadow: none !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
+  filter: none !important;
+  border: 1px solid rgba(105, 249, 255, .20) !important;
+  border-radius: 22px !important;
 }
 
-main.notifications-page article.notification-card:hover {
-  border-color: rgba(105, 249, 255, .34) !important;
-  box-shadow: 0 0 18px rgba(0, 240, 255, .08) !important;
+/* Prevent any pseudo-element from reintroducing a surface. */
+main.notifications-page article.notification-card::before,
+main.notifications-page article.notification-card::after {
+  content: none !important;
+  display: none !important;
+  background: none !important;
+  box-shadow: none !important;
 }
 
 main.notifications-page article.notification-card > * {
@@ -41,7 +33,8 @@ main.notifications-page article.notification-card > * {
 }
 
 @media (max-width: 767px) {
-  main.notifications-page article.notification-card {
+  main.notifications-page article.notification-card,
+  main.notifications-page article.notification-card:hover {
     border-radius: 19px !important;
   }
 }
