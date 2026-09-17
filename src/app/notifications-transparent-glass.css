@@ -49,9 +49,9 @@ main.notifications-page article.notification-card img {
   box-shadow: none !important;
 }
 
-/* Surgical fix for the small emoji/icon card only. Real avatar images are
-   left alone; the emoji/icon surface itself contributes zero fill. */
-main.notifications-page article.notification-card > div:first-child > div:not(:has(img)) {
+/* ONLY the small emoji/icon card: transparent. Do not alter the parent
+   notification row or real avatar image. */
+main.notifications-page article.notification-card > div:first-child > span {
   background: rgba(0, 0, 0, 0) !important;
   background-color: rgba(0, 0, 0, 0) !important;
   background-image: none !important;
