@@ -1,5 +1,8 @@
-main.notifications-page article.notification-card {
-  background: rgba(15, 23, 42, 0.22) !important;
+/* Notifications — transparent glass rows only. */
+main.notifications-page article.notification-card,
+main.notifications-page article.notification-card:hover {
+  background: transparent !important;
+  background-color: transparent !important;
   background-image: none !important;
   backdrop-filter: blur(12px) !important;
   -webkit-backdrop-filter: blur(12px) !important;
@@ -8,6 +11,13 @@ main.notifications-page article.notification-card {
 }
 
 main.notifications-page article.notification-card:hover {
-  background: rgba(15, 23, 42, 0.32) !important;
   border-color: rgba(56, 189, 248, 0.4) !important;
+}
+
+main.notifications-page article.notification-card::before,
+main.notifications-page article.notification-card::after {
+  content: none !important;
+  display: none !important;
+  background: none !important;
+  box-shadow: none !important;
 }
