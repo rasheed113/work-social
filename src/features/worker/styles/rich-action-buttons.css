@@ -1,0 +1,110 @@
+.worker-home__resource.worker-home__resource--finance .worker-home__card-button,
+.worker-home__resource.worker-home__resource--diary .worker-home__card-button {
+  --action-accent: 16, 185, 129;
+  --action-accent-dark: #047857;
+  --action-ink: #064e3b;
+  position: relative !important;
+  isolation: isolate;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  width: auto !important;
+  max-width: 100%;
+  min-height: 40px !important;
+  margin-top: 11px;
+  padding: 0 13px !important;
+  border: 1px solid rgba(var(--action-accent), .52) !important;
+  border-radius: 10px !important;
+  background: linear-gradient(180deg, rgba(255,255,255,.92) 0%, rgba(255,255,255,.30) 17%, transparent 38%), linear-gradient(145deg, #ffffff 0%, rgba(var(--action-accent), .10) 38%, rgba(var(--action-accent), .28) 100%) !important;
+  color: var(--action-ink) !important;
+  font: inherit;
+  font-size: 11px !important;
+  font-weight: 950;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  text-shadow: 0 1px 0 rgba(255,255,255,.98), 0 2px 2px rgba(15,23,42,.18);
+  transform: translateY(0);
+  box-shadow: 0 3px 0 var(--action-accent-dark), 0 5px 0 rgba(var(--action-accent), .34), 0 9px 13px rgba(15,23,42,.14), 0 4px 9px rgba(var(--action-accent), .22), inset 0 1px 0 #fff, inset 0 2px 4px rgba(255,255,255,.56), inset 0 -2px 4px rgba(var(--action-accent), .20) !important;
+  transition: transform .16s cubic-bezier(.2,.8,.2,1), box-shadow .16s ease, border-color .16s ease, filter .16s ease;
+}
+
+.worker-home__resource.worker-home__resource--finance .worker-home__card-button::before,
+.worker-home__resource.worker-home__resource--diary .worker-home__card-button::before {
+  content: '';
+  position: absolute;
+  z-index: 2;
+  top: 2px;
+  left: 7px;
+  right: 7px;
+  height: 3px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, #fff, rgba(255,255,255,.68), transparent);
+  box-shadow: 0 1px 5px rgba(255,255,255,.9);
+  pointer-events: none;
+}
+
+.worker-home__resource.worker-home__resource--finance .worker-home__card-button::after,
+.worker-home__resource.worker-home__resource--diary .worker-home__card-button::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  left: 1px;
+  right: 1px;
+  bottom: -4px;
+  height: 100%;
+  border: 1px solid rgba(var(--action-accent), .62);
+  border-radius: 9px;
+  background: linear-gradient(180deg, rgba(var(--action-accent), .58), rgba(var(--action-accent), .92));
+  box-shadow: 0 5px 10px rgba(var(--action-accent), .20);
+  pointer-events: none;
+}
+
+.worker-home__resource.worker-home__resource--finance .worker-home__card-button:hover,
+.worker-home__resource.worker-home__resource--diary .worker-home__card-button:hover {
+  transform: translateY(-2px) !important;
+  border-color: rgba(var(--action-accent), .78) !important;
+  filter: saturate(1.06);
+  box-shadow: 0 5px 0 var(--action-accent-dark), 0 7px 0 rgba(var(--action-accent), .38), 0 15px 21px rgba(15,23,42,.17), 0 6px 12px rgba(var(--action-accent), .26), inset 0 1px 0 #fff, inset 0 2px 5px rgba(255,255,255,.62), inset 0 -2px 4px rgba(var(--action-accent), .20) !important;
+}
+
+.worker-home__resource.worker-home__resource--finance .worker-home__card-button:active,
+.worker-home__resource.worker-home__resource--diary .worker-home__card-button:active {
+  transform: translateY(3px) !important;
+  filter: none;
+  box-shadow: 0 1px 0 var(--action-accent-dark), 0 2px 0 rgba(var(--action-accent), .28), 0 4px 7px rgba(15,23,42,.10), inset 0 3px 6px rgba(15,23,42,.12), inset 0 1px 0 rgba(255,255,255,.72) !important;
+}
+
+.worker-home__resource.worker-home__resource--finance .worker-home__card-button:focus-visible,
+.worker-home__resource.worker-home__resource--diary .worker-home__card-button:focus-visible {
+  outline: 2px solid rgba(var(--action-accent), .9) !important;
+  outline-offset: 3px;
+}
+
+.worker-home__resource.worker-home__resource--finance .worker-home__card-button:disabled,
+.worker-home__resource.worker-home__resource--diary .worker-home__card-button:disabled {
+  opacity: .58;
+  cursor: not-allowed;
+  transform: none !important;
+  filter: none;
+  box-shadow: 0 2px 0 rgba(var(--action-accent), .22), 0 5px 9px rgba(15,23,42,.06), inset 0 1px 0 rgba(255,255,255,.86) !important;
+}
+
+.worker-home__resource.worker-home__resource--diary .worker-home__card-button {
+  --action-accent: 20, 184, 166;
+  --action-accent-dark: #0f766e;
+  --action-ink: #134e4a;
+}
+
+.worker-home__resource.worker-home__resource--finance .worker-home__card-button::after { background: linear-gradient(180deg, rgba(4,120,87,.58), rgba(4,120,87,.94)); }
+.worker-home__resource.worker-home__resource--diary .worker-home__card-button::after { background: linear-gradient(180deg, rgba(15,118,110,.58), rgba(15,118,110,.94)); }
+
+@media (max-width: 759px) {
+  .worker-home__resource.worker-home__resource--finance .worker-home__card-button,
+  .worker-home__resource.worker-home__resource--diary .worker-home__card-button { width: min(100%, 240px) !important; }
+}
+
+@media (max-width: 430px) {
+  .worker-home__resource.worker-home__resource--finance .worker-home__card-button,
+  .worker-home__resource.worker-home__resource--diary .worker-home__card-button { width: 100% !important; min-height: 39px !important; padding-inline: 11px !important; }
+}
