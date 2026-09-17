@@ -1,11 +1,11 @@
-/* Notifications history — real notifications rows use a visibly transparent glass surface. */
+/* Notifications history — actual notification rows only; header remains untouched. */
 main.notifications-page article.notification-card,
 main.notifications-page article.notification-card:hover {
   position: relative !important;
   min-width: 0 !important;
   box-sizing: border-box !important;
   overflow: hidden !important;
-  background: rgba(15, 23, 42, 0.08) !important;
+  background: rgba(15, 23, 42, 0.22) !important;
   background-image: none !important;
   backdrop-filter: blur(12px) !important;
   -webkit-backdrop-filter: blur(12px) !important;
