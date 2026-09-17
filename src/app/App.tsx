@@ -48,6 +48,30 @@ export function App() {
     const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => { if (active) { setSession(nextSession); setAuthError(null); if (nextSession) window.setTimeout(() => restoreLastAccountMode(nextSession.user.id), 0); } });
     return () => { active = false; listener.subscription.unsubscribe(); };
   }, []);
+  useEffect(() => {
+    const classifyPage = () => {
+      const path = window.location.pathname.toLowerCase();
+      const page = path.startsWith('/notifications') ? 'notifications'
+        : path.startsWith('/chat') || path.startsWith('/inbox') ? 'chat'
+        : path.startsWith('/friends') ? 'friends'
+        : path.startsWith('/profile') ? 'profile'
+        : path.startsWith('/settings') ? 'settings'
+        : path.startsWith('/work/finance') ? 'finance'
+        : path.startsWith('/expense-manager') ? 'expense-manager'
+        : path.startsWith('/contractor') ? 'contractor'
+        : 'social';
+      document.body.dataset.wsPage = page;
+    };
+    classifyPage();
+    window.addEventListener('popstate', classifyPage);
+    const observer = new MutationObserver(classifyPage);
+    observer.observe(document.body, { childList: true, subtree: true });
+    return () => {
+      window.removeEventListener('popstate', classifyPage);
+      observer.disconnect();
+      delete document.body.dataset.wsPage;
+    };
+  }, []);
   if (initializing) return <WorkSocialPremiumLoader title="Opening Work Social" message="Checking your secure session and preparing your workspace." status="Securing your workspace" />;
   if (!session) return <main className="app-shell auth-screen" style={{ background: 'radial-gradient(circle at 15% 15%, rgba(109,93,252,.20), transparent 32%), radial-gradient(circle at 88% 85%, rgba(34,193,220,.16), transparent 30%), linear-gradient(135deg, #080b16 0%, #11162a 48%, #09151b 100%)', minHeight: '100dvh', width: '100%', padding: '24px', boxSizing: 'border-box', position: 'relative', overflowX: 'hidden' }}>{authError && <p role="alert">{authError}</p>}{showSignup ? <SignupForm onLogin={() => { setAuthError(null); setShowSignup(false); }} /> : <LoginForm onSignup={() => { setAuthError(null); setShowSignup(true); }} />}<style>{`.auth-screen::before{content:'';position:fixed;inset:0;pointer-events:none;background:linear-gradient(115deg,transparent 0%,rgba(255,255,255,.035) 48%,transparent 62%);}.auth-screen>.ws-auth-card{position:relative;z-index:1;}.auth-screen>[role=alert]{position:fixed;top:18px;left:50%;transform:translateX(-50%);z-index:5;width:min(calc(100% - 32px),438px);margin:0;padding:11px 14px;border:1px solid rgba(248,113,113,.28);border-radius:13px;background:rgba(45,16,25,.88);color:#fecaca;box-shadow:0 14px 34px rgba(0,0,0,.28);backdrop-filter:blur(14px);}`}</style></main>;
   return <main className="app-shell" style={{ height: '100dvh', minHeight: 0, padding: 0, boxSizing: 'border-box', overflow: 'hidden', width: '100%' }}>

@@ -94,17 +94,33 @@ export function HomePage({ profileId }: HomePageProps) {
     <main style={{ width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box', padding: '18px 0 112px', overflowX: 'hidden' }}>
       <style>{`
         .home-page-title {
+          position: relative;
+          display: inline-block;
           margin: 0;
-          font-size: clamp(28px, 5vw, 40px);
-          line-height: 1.05;
+          font-family: Orbitron, 'Roboto Mono', monospace;
+          font-size: clamp(30px, 5.5vw, 44px);
+          line-height: 1;
           font-weight: 900;
-          letter-spacing: -.035em;
-          color: transparent;
-          background: linear-gradient(135deg, #6d5dfc 0%, #22c1dc 48%, #ff5ca8 100%);
-          -webkit-background-clip: text;
-          background-clip: text;
-          -webkit-text-fill-color: transparent;
-          text-shadow: 0 3px 0 rgba(255,255,255,.8), 0 7px 18px rgba(79,70,229,.16);
+          letter-spacing: .045em;
+          color: #f3fdff !important;
+          background: none !important;
+          -webkit-background-clip: initial !important;
+          background-clip: initial !important;
+          -webkit-text-fill-color: #f3fdff !important;
+          text-shadow:
+            0 0 2px rgba(243,253,255,.95),
+            0 0 10px rgba(0,240,255,.72),
+            0 0 24px rgba(0,190,255,.38);
+        }
+        .home-page-title::after {
+          content: '';
+          display: block;
+          width: 100%;
+          height: 2px;
+          margin-top: 8px;
+          border-radius: 999px;
+          background: linear-gradient(90deg, rgba(0,240,255,.95), rgba(0,240,255,.28), transparent);
+          box-shadow: 0 0 10px rgba(0,240,255,.55);
         }
         .home-post-feed > section > h2 {
           position: relative;
