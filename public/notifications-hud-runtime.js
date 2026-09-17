@@ -6,9 +6,6 @@
   const styleReport = (article) => {
     if (!(article instanceof HTMLElement)) return;
     article.classList.add(REPORT);
-    article.style.setProperty('background', 'linear-gradient(145deg, rgba(34, 8, 30, .98), rgba(18, 8, 27, .98) 52%, rgba(8, 13, 27, .98))', 'important');
-    article.style.setProperty('border', '1px solid rgba(255, 82, 178, .48)', 'important');
-    article.style.setProperty('box-shadow', '0 10px 28px rgba(255, 43, 155, .16), inset 0 1px 0 rgba(255, 125, 205, .16)', 'important');
 
     const time = article.querySelector('small');
     if (time instanceof HTMLElement) {
