@@ -1,42 +1,13 @@
-/* Notifications — actual notification cards only.
-   Keep the existing page/canvas theme intact and remove the card's own
-   opaque surface so the notification rows expose the underlying glass canvas. */
-
-main.notifications-page article.notification-card,
-main.notifications-page article.notification-card:hover,
-main.notifications-page article.notification-card[data-unread='true'],
-main.notifications-page article.notification-card:not([data-unread='true']),
-main.notifications-page article.notification-card:has(.report-decline),
-main.notifications-page article.notification-card:has(.report-decline):hover {
-  /* NotificationsPage supplies a white/gradient background inline. Remove it. */
-  background: transparent !important;
-  background-color: transparent !important;
+main.notifications-page article.notification-card {
+  background: rgba(15, 23, 42, 0.22) !important;
   background-image: none !important;
-  box-shadow: none !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  filter: none !important;
-  border: 1px solid rgba(105, 249, 255, .20) !important;
-  border-radius: 22px !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(56, 189, 248, 0.2) !important;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1) !important;
 }
 
-/* Do not let pseudo-elements paint another surface over the transparent row. */
-main.notifications-page article.notification-card::before,
-main.notifications-page article.notification-card::after {
-  content: none !important;
-  display: none !important;
-  background: none !important;
-  box-shadow: none !important;
-}
-
-main.notifications-page article.notification-card > * {
-  position: relative !important;
-  z-index: 1 !important;
-}
-
-@media (max-width: 767px) {
-  main.notifications-page article.notification-card,
-  main.notifications-page article.notification-card:hover {
-    border-radius: 19px !important;
-  }
+main.notifications-page article.notification-card:hover {
+  background: rgba(15, 23, 42, 0.32) !important;
+  border-color: rgba(56, 189, 248, 0.4) !important;
 }
