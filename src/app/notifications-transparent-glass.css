@@ -61,6 +61,16 @@ main.notifications-page article.notification-card > div:first-child > span {
   -webkit-backdrop-filter: none !important;
 }
 
+/* ONLY the history More/Load More button: clear window, no dark fill.
+   This selector is intentionally outside notification-card so the main
+   notification rows remain exactly as-is. */
+main.notifications-page button:not(.team-invite-btn):not(.report-btn)[type="button"] {
+  background: transparent !important;
+  background-color: rgba(0, 0, 0, 0) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
 main.notifications-page article.notification-card *::before,
 main.notifications-page article.notification-card *::after {
   box-shadow: none !important;
