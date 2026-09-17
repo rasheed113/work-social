@@ -1,5 +1,5 @@
-/* Notifications history — true clear window glass.
-   No dark/navy fill. The page background must remain visible through each row. */
+/* Notifications history — clear window treatment.
+   Every notification row stays transparent; the page background remains visible. */
 main.notifications-page article.notification-card,
 main.notifications-page article.notification-card:hover,
 main.notifications-page article.notification-card:focus,
@@ -14,13 +14,29 @@ main.notifications-page article.notification-card:active {
   padding: 11px !important;
   gap: 11px !important;
   align-items: flex-start !important;
-  background: transparent !important;
-  background-color: transparent !important;
+  background: none !important;
+  background-color: rgba(255, 255, 255, 0) !important;
+  background-image: none !important;
+  background-blend-mode: normal !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  filter: none !important;
+  opacity: 1 !important;
+  border: 1px solid transparent !important;
+  border-radius: 15px !important;
+  box-shadow: none !important;
+}
+
+/* Force every notification type to use the same clear row surface. */
+main.notifications-page article.notification-card[class*="notification-card--"],
+main.notifications-page article.notification-card[class*="notification-card--"]:hover,
+main.notifications-page article.notification-card[class*="notification-card--"]:focus,
+main.notifications-page article.notification-card[class*="notification-card--"]:active {
+  background: none !important;
+  background-color: rgba(255, 255, 255, 0) !important;
   background-image: none !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
-  border: 1px solid rgba(255, 255, 255, 0.16) !important;
-  border-radius: 15px !important;
   box-shadow: none !important;
 }
 
@@ -28,25 +44,19 @@ main.notifications-page article.notification-card:active {
 main.notifications-page article.notification-card > div:nth-child(2),
 main.notifications-page article.notification-card > div:nth-child(2) > div,
 main.notifications-page article.notification-card > div:nth-child(2) > div * {
-  background: transparent !important;
+  background: none !important;
   background-color: transparent !important;
   background-image: none !important;
-  border: 0 !important;
-  border-radius: 0 !important;
   box-shadow: none !important;
 }
 
-/* The visible emoji is nested inside the first child. The previous selector
-   only reached one wrapper level, so any deeper inline-styled bubble could
-   keep its own background. Flatten EVERY descendant surface in this emoji
-   column while preserving the emoji itself. */
+/* Keep the profile avatar and visible notification emoji, but remove any
+   surrounding painted bubble/surface. */
 main.notifications-page article.notification-card > div:first-child,
 main.notifications-page article.notification-card > div:first-child * {
   background: transparent !important;
   background-color: transparent !important;
   background-image: none !important;
-  border: 0 !important;
-  border-radius: 0 !important;
   box-shadow: none !important;
 }
 
@@ -56,15 +66,8 @@ main.notifications-page article.notification-card > div:first-child > div {
   flex: 0 0 auto !important;
 }
 
-/* Also remove any pseudo-element bubble that a nested emoji wrapper may paint. */
 main.notifications-page article.notification-card > div:first-child *::before,
-main.notifications-page article.notification-card > div:first-child *::after {
-  content: none !important;
-  background: none !important;
-  border: 0 !important;
-  box-shadow: none !important;
-}
-
+main.notifications-page article.notification-card > div:first-child *::after,
 main.notifications-page article.notification-card::before,
 main.notifications-page article.notification-card::after {
   content: none !important;
