@@ -1,71 +1,89 @@
 /* Notifications — actual notification cards only.
-   Use the same shared transparent HUD glass material already used by the
-   Work Social shell and Profile surfaces. Notification behavior is untouched. */
+   Exact transparent blue mirror-glass treatment used by the Social/Profile visual system.
+   The page canvas/background must remain clearly visible through every card. */
 
 main.notifications-page article.notification-card {
   position: relative !important;
   isolation: isolate !important;
   box-sizing: border-box !important;
   overflow: hidden !important;
-  border: 1px solid var(--ws-glass-border) !important;
-  border-radius: var(--ws-radius-lg) !important;
-  background: var(--ws-glass-bg) !important;
-  background-color: rgba(19, 104, 166, 0.20) !important;
+  border: 1px solid rgba(105, 249, 255, .34) !important;
+  border-radius: 22px !important;
+  background: rgba(19, 104, 166, .08) !important;
+  background-color: rgba(19, 104, 166, .08) !important;
   background-image: none !important;
-  box-shadow: var(--ws-glow-cyan) !important;
-  backdrop-filter: blur(var(--ws-glass-blur)) saturate(185%) !important;
-  -webkit-backdrop-filter: blur(var(--ws-glass-blur)) saturate(185%) !important;
+  box-shadow:
+    0 0 18px rgba(0, 240, 255, .10),
+    inset 0 1px 0 rgba(220, 255, 255, .14) !important;
+  backdrop-filter: blur(6px) saturate(145%) !important;
+  -webkit-backdrop-filter: blur(6px) saturate(145%) !important;
   transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease, background .18s ease !important;
 }
 
-/* Subtle internal sheen; the page canvas remains visible through the card. */
+/* Clear reflection/highlight — never a white or dark opaque overlay. */
 main.notifications-page article.notification-card::before {
   content: '' !important;
   position: absolute !important;
   inset: 0 !important;
   z-index: -1 !important;
   border-radius: inherit !important;
-  background: linear-gradient(135deg,
-    rgba(235, 255, 255, .15),
-    rgba(90, 235, 255, .07) 35%,
-    rgba(183, 255, 24, .035) 58%,
-    transparent 72%) !important;
+  background:
+    linear-gradient(135deg,
+      rgba(235, 255, 255, .075),
+      rgba(90, 235, 255, .035) 38%,
+      transparent 72%) !important;
   pointer-events: none !important;
 }
 
-/* Preserve all existing notification content above the glass layer. */
+main.notifications-page article.notification-card::after {
+  content: '' !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 12% !important;
+  right: 12% !important;
+  height: 1px !important;
+  background: rgba(220, 255, 255, .30) !important;
+  box-shadow: 0 0 8px rgba(0, 240, 255, .12) !important;
+  pointer-events: none !important;
+}
+
+/* Keep all real notification content above the glass/reflection layers. */
 main.notifications-page article.notification-card > * {
   position: relative !important;
   z-index: 1 !important;
 }
 
-/* Inline read/unread surfaces from NotificationsPage must never become opaque. */
+/* NotificationsPage has inline read/unread backgrounds; force both states back to clear glass. */
 main.notifications-page article.notification-card[data-unread='true'],
 main.notifications-page article.notification-card:not([data-unread='true']) {
-  background: var(--ws-glass-bg) !important;
-  background-color: rgba(19, 104, 166, 0.20) !important;
+  background: rgba(19, 104, 166, .08) !important;
+  background-color: rgba(19, 104, 166, .08) !important;
   background-image: none !important;
 }
 
 main.notifications-page article.notification-card:hover {
   transform: translateY(-1px) !important;
-  border-color: rgba(0, 240, 255, .72) !important;
-  background: rgba(19, 104, 166, .27) !important;
+  border-color: rgba(105, 249, 255, .52) !important;
+  background: rgba(19, 104, 166, .12) !important;
   background-image: none !important;
-  box-shadow: var(--ws-glow-cyan-hover) !important;
-  backdrop-filter: blur(calc(var(--ws-glass-blur) + 2px)) saturate(195%) !important;
-  -webkit-backdrop-filter: blur(calc(var(--ws-glass-blur) + 2px)) saturate(195%) !important;
+  box-shadow:
+    0 0 24px rgba(0, 240, 255, .16),
+    inset 0 1px 0 rgba(220, 255, 255, .18) !important;
+  backdrop-filter: blur(7px) saturate(155%) !important;
+  -webkit-backdrop-filter: blur(7px) saturate(155%) !important;
 }
 
-/* Report/invitation rows use the same transparent glass surface. */
+/* Report/invitation rows use the exact same clear blue glass surface. */
 main.notifications-page article.notification-card:has(.report-decline) {
-  background: var(--ws-glass-bg) !important;
-  background-color: rgba(19, 104, 166, 0.20) !important;
+  background: rgba(19, 104, 166, .08) !important;
+  background-color: rgba(19, 104, 166, .08) !important;
   background-image: none !important;
-  border-color: var(--ws-glass-border) !important;
-  box-shadow: var(--ws-glow-cyan) !important;
-  backdrop-filter: blur(var(--ws-glass-blur)) saturate(185%) !important;
-  -webkit-backdrop-filter: blur(var(--ws-glass-blur)) saturate(185%) !important;
+  border-color: rgba(105, 249, 255, .34) !important;
+  box-shadow:
+    0 0 18px rgba(0, 240, 255, .10),
+    inset 0 1px 0 rgba(220, 255, 255, .14) !important;
+  backdrop-filter: blur(6px) saturate(145%) !important;
+  -webkit-backdrop-filter: blur(6px) saturate(145%) !important;
 }
 
 @media (max-width: 767px) {
