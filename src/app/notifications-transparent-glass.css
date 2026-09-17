@@ -26,7 +26,8 @@ main.notifications-page article.notification-card:active {
 
 /* Notification text/content must not create another surface. */
 main.notifications-page article.notification-card > div:nth-child(2),
-main.notifications-page article.notification-card > div:nth-child(2) > div {
+main.notifications-page article.notification-card > div:nth-child(2) > div,
+main.notifications-page article.notification-card > div:nth-child(2) > div * {
   background: transparent !important;
   background-color: transparent !important;
   background-image: none !important;
@@ -35,21 +36,33 @@ main.notifications-page article.notification-card > div:nth-child(2) > div {
   box-shadow: none !important;
 }
 
-/* Emoji/avatar area: keep the emoji itself, but make its 43px container
-   completely transparent. This removes the colored emoji bubble/card. */
+/* The visible emoji is nested inside the first child. The previous selector
+   only reached one wrapper level, so any deeper inline-styled bubble could
+   keep its own background. Flatten EVERY descendant surface in this emoji
+   column while preserving the emoji itself. */
 main.notifications-page article.notification-card > div:first-child,
-main.notifications-page article.notification-card > div:first-child > div,
-main.notifications-page article.notification-card > div:first-child > span {
+main.notifications-page article.notification-card > div:first-child * {
   background: transparent !important;
   background-color: transparent !important;
   background-image: none !important;
   border: 0 !important;
+  border-radius: 0 !important;
   box-shadow: none !important;
 }
 
-main.notifications-page article.notification-card > div:first-child {
+main.notifications-page article.notification-card > div:first-child,
+main.notifications-page article.notification-card > div:first-child > div {
   display: flex !important;
   flex: 0 0 auto !important;
+}
+
+/* Also remove any pseudo-element bubble that a nested emoji wrapper may paint. */
+main.notifications-page article.notification-card > div:first-child *::before,
+main.notifications-page article.notification-card > div:first-child *::after {
+  content: none !important;
+  background: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
 }
 
 main.notifications-page article.notification-card::before,
