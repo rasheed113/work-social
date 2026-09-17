@@ -1,18 +1,18 @@
 /* Notifications — actual notification cards only.
-   Transparent glass: the page canvas remains visible through the card. */
+   Fully transparent glass: no tinted card fill; the page canvas stays visible. */
 
 main.notifications-page article.notification-card {
   position: relative !important;
   box-sizing: border-box !important;
   overflow: hidden !important;
-  border: 1px solid rgba(105, 249, 255, .34) !important;
+  border: 1px solid rgba(105, 249, 255, .24) !important;
   border-radius: 22px !important;
-  background: rgba(19, 104, 166, .08) !important;
-  background-color: rgba(19, 104, 166, .08) !important;
+  background: transparent !important;
+  background-color: transparent !important;
   background-image: none !important;
-  box-shadow: 0 0 18px rgba(0, 240, 255, .10), inset 0 1px 0 rgba(220, 255, 255, .14) !important;
-  backdrop-filter: blur(6px) saturate(145%) !important;
-  -webkit-backdrop-filter: blur(6px) saturate(145%) !important;
+  box-shadow: 0 0 14px rgba(0, 240, 255, .06) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 
 /* Override the inline white/read and unread surfaces without changing state. */
@@ -21,18 +21,18 @@ main.notifications-page article.notification-card[data-unread='true'],
 main.notifications-page article.notification-card:not([data-unread='true']),
 main.notifications-page article.notification-card:has(.report-decline),
 main.notifications-page article.notification-card:has(.report-decline):hover {
-  background: rgba(19, 104, 166, .08) !important;
-  background-color: rgba(19, 104, 166, .08) !important;
+  background: transparent !important;
+  background-color: transparent !important;
   background-image: none !important;
-  border-color: rgba(105, 249, 255, .34) !important;
-  box-shadow: 0 0 18px rgba(0, 240, 255, .10), inset 0 1px 0 rgba(220, 255, 255, .14) !important;
-  backdrop-filter: blur(6px) saturate(145%) !important;
-  -webkit-backdrop-filter: blur(6px) saturate(145%) !important;
+  border-color: rgba(105, 249, 255, .24) !important;
+  box-shadow: 0 0 14px rgba(0, 240, 255, .06) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 
 main.notifications-page article.notification-card:hover {
-  border-color: rgba(105, 249, 255, .46) !important;
-  box-shadow: 0 0 22px rgba(0, 240, 255, .13), inset 0 1px 0 rgba(220, 255, 255, .16) !important;
+  border-color: rgba(105, 249, 255, .34) !important;
+  box-shadow: 0 0 18px rgba(0, 240, 255, .08) !important;
 }
 
 main.notifications-page article.notification-card > * {
