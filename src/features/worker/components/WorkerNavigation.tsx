@@ -10,11 +10,13 @@ type TeamInvitation = { id:string; sender_id:string; type:string; metadata:Recor
 type ContractorTeamContext = { team_id:number; team_number:number; team_name:string };
 const workerDestinations: Destination[] = [
   { path: '/work', label: 'Home', icon: '⌂' },
+  { path: '/work/dashboard', label: 'Dashboard', icon: '▦' },
   { path: '/work/finance', label: 'Finance', salaryLabel: 'Salary', icon: '¤' },
   { path: '/work/settings', label: 'Settings', icon: '⚙' },
 ];
 const contractorDestinations: Destination[] = [
   { path: '/work/contractor?view=overview', label: 'Home', icon: '⌂' },
+  { path: '/work/contractor?view=dashboard', label: 'Dashboard', icon: '▦' },
   { path: '/work/contractor?view=finance', label: 'Finance', icon: '¤' },
   { path: '/work/contractor?view=settings', label: 'Settings', icon: '⚙' },
 ];
