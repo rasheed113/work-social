@@ -71,11 +71,14 @@ body:has(.home-page-title) .home-post-feed > section > div:first-child span:firs
 
 /* Create-post composer becomes the Social Transmission Console. */
 body:has(.home-page-title) .work-social-page-content main > div > section:first-of-type {
-  border: 1px solid var(--ws-social-line) !important;
-  background: var(--ws-social-surface-strong) !important;
-  box-shadow: 0 18px 46px rgba(0, 8, 24, .30), inset 0 1px 0 rgba(183, 239, 255, .09) !important;
-  backdrop-filter: blur(18px) saturate(125%);
-  -webkit-backdrop-filter: blur(18px) saturate(125%);
+  /* Create Post itself is intentionally surfaceless; the page background is the surface. */
+  border-color: transparent !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 
 body:has(.home-page-title) .work-social-page-content main > div > section:first-of-type h2,
