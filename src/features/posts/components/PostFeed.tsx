@@ -24,6 +24,8 @@ const commentProfile = (comment: CommentRow): CommentProfile | null => Array.isA
 type LightboxMedia = { type: 'image' | 'video'; url: string; alt?: string };
 const glassCard: React.CSSProperties = { background: 'transparent', backgroundImage: 'none', border: '0', boxShadow: 'none', backdropFilter: 'none', WebkitBackdropFilter: 'none' };
 const softButton: React.CSSProperties = { border: '0', borderRadius: 999, background: 'transparent', backgroundImage: 'none', boxShadow: 'none', cursor: 'pointer', fontWeight: 600 };
+const hudNameStyle: React.CSSProperties = { color: 'inherit' };
+const hudWritingStyle: React.CSSProperties = { color: 'inherit', background: 'transparent' };
 export function PostFeed({ refreshKey, profileId, feedProfileId, scope = 'profile' }: PostFeedProps) {
   const [posts, setPosts] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
