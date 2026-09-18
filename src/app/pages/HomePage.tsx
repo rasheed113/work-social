@@ -122,6 +122,62 @@ export function HomePage({ profileId }: HomePageProps) {
           background: linear-gradient(90deg, rgba(0,240,255,.95), rgba(0,240,255,.28), transparent);
           box-shadow: 0 0 10px rgba(0,240,255,.55);
         }
+        /* Home post content is intentionally surface-less: text/content only. */
+        .home-post-feed,
+        .home-post-feed > section,
+        .home-post-feed > section > div,
+        .home-post-feed > section > h2,
+        .home-post-feed article,
+        .home-post-feed article > header,
+        .home-post-feed article > footer,
+        .home-post-feed article > div,
+        .home-post-feed article > div > div,
+        .home-post-feed article footer > div {
+          background: transparent !important;
+          background-color: transparent !important;
+          background-image: none !important;
+          border-color: transparent !important;
+          box-shadow: none !important;
+          filter: none !important;
+          backdrop-filter: none !important;
+          -webkit-backdrop-filter: none !important;
+        }
+        .home-post-feed article:hover {
+          background: transparent !important;
+          background-color: transparent !important;
+          background-image: none !important;
+          border-color: transparent !important;
+          box-shadow: none !important;
+        }
+        .home-post-feed article::before,
+        .home-post-feed article::after,
+        .home-post-feed article *::before,
+        .home-post-feed article *::after {
+          background: transparent !important;
+          background-color: transparent !important;
+          background-image: none !important;
+          box-shadow: none !important;
+          filter: none !important;
+          backdrop-filter: none !important;
+          -webkit-backdrop-filter: none !important;
+        }
+        .home-post-feed article input,
+        .home-post-feed article textarea,
+        .home-post-feed article button {
+          background: transparent !important;
+          background-color: transparent !important;
+          background-image: none !important;
+          box-shadow: none !important;
+        }
+        .home-post-feed article [role="menu"],
+        .home-post-feed article [role="dialog"],
+        .home-post-feed article [role="alertdialog"] {
+          background: linear-gradient(145deg, rgba(15, 39, 73, .98), rgba(5, 20, 42, .99)) !important;
+          border-color: rgba(75, 204, 255, .38) !important;
+          box-shadow: 0 26px 68px rgba(0, 5, 20, .48) !important;
+          backdrop-filter: blur(22px) saturate(130%) !important;
+          -webkit-backdrop-filter: blur(22px) saturate(130%) !important;
+        }
         @media (max-width: 767px) {
           .home-post-feed > section > h2 { margin-bottom: 10px; padding: 9px 11px; font-size: 16px; }
         }
