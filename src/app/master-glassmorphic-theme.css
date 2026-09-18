@@ -32,8 +32,7 @@ body {
 /* Home uses the exact same canvas as the global/notification environment while scrolling. */
 .work-social-page-content,
 body:has(.home-post-feed) .app-shell,
-body:has(.home-post-feed) .work-social-page-content,
-body:has(.home-post-feed) .home-post-feed {
+body:has(.home-post-feed) .work-social-page-content {
   background-color: transparent !important;
   background-image:
     linear-gradient(rgba(130, 235, 255, 0.035) 1px, transparent 1px),
