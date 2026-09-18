@@ -44,7 +44,7 @@ export function CreatePostForm({ profileId, onCreated }: CreatePostFormProps) {
   }
   const canPost = Boolean(content.trim() || selectedFiles.length || location);
 
-  return <section className="ws-glass-panel" style={{ position: 'relative', overflow: 'hidden', padding: 10 }}>
+  return <section className="ws-glass-panel home-create-post" style={{ position: 'relative', overflow: 'hidden', padding: 10 }}>
     <header style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 6 }}>
       <div style={{ minWidth: 0 }}>
         <h2 className="ws-heading ws-cyan-text" style={{ margin: 0, fontSize: 15, lineHeight: 1.1 }}>Create post</h2>
@@ -77,6 +77,18 @@ export function CreatePostForm({ profileId, onCreated }: CreatePostFormProps) {
     {location && <p className="ws-glass" style={{ margin: '6px 0 0', padding: '7px 9px', fontSize: 11, fontWeight: 700 }}>📍 Location attached ({location.latitude.toFixed(5)}, {location.longitude.toFixed(5)}) <button type="button" className="ws-glass ws-glow-cyan" onClick={() => setLocation(null)} disabled={saving} style={{ marginLeft: 5 }}>Remove</button></p>}
     {error && <p role="alert" className="ws-glass" style={{ margin: '6px 0 0', padding: '7px 9px', fontSize: 11, fontWeight: 700 }}>{error}</p>}
     <style>{`
+      .home-create-post,
+      .home-create-post.ws-glass-panel,
+      .home-create-post .ws-glass:not(button),
+      .home-create-post .ws-glass-panel {
+        background: transparent !important;
+        background-color: transparent !important;
+        background-image: none !important;
+        border-color: transparent !important;
+        box-shadow: none !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+      }
       .create-post-attachment-actions .create-post-attachment-btn {
         min-height: 34px !important;
         padding: 0 11px !important;
