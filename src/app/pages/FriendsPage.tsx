@@ -5,19 +5,19 @@ import { navigate } from '../Router';
 
 const styles = {
   page: {
-    width: '100%', maxWidth: 920, margin: '0 auto', padding: '18px 16px 96px', boxSizing: 'border-box', color: '#bfefff',
+    width: '100%', maxWidth: 920, margin: '0 auto', padding: '18px 16px 96px', boxSizing: 'border-box', color: '#9defff',
   } as React.CSSProperties,
   hero: {
     position: 'relative', overflow: 'hidden', borderRadius: 26, padding: '22px 22px 20px', marginBottom: 18,
     background: 'transparent',
     backgroundImage: 'none',
-    backdropFilter: 'blur(18px)', WebkitBackdropFilter: 'blur(18px)',
+    backdropFilter: 'none', WebkitBackdropFilter: 'none',
     boxShadow: 'none',
-    border: '1px solid rgba(70,220,255,.28)',
+    border: '0',
   } as React.CSSProperties,
   glow: { position: 'absolute', width: 240, height: 240, borderRadius: '50%', right: -95, top: -120, background: 'rgba(52, 211, 255, .13)', filter: 'blur(30px)', pointerEvents: 'none' } as React.CSSProperties,
   title: { margin: '2px 0 0', fontSize: 31, lineHeight: 1.05, fontWeight: 900, letterSpacing: '.01em', fontFamily: 'monospace, sans-serif', color: '#66e8ff', textShadow: '0 0 18px rgba(75,220,255,.32)' } as React.CSSProperties,
-  subtitle: { margin: '8px 0 0', color: '#bfefff', fontSize: 13 } as React.CSSProperties,
+  subtitle: { margin: '8px 0 0', color: 'rgba(157,239,255,.68)', fontSize: 13 } as React.CSSProperties,
   searchWrap: { display: 'flex', alignItems: 'center', gap: 10, marginTop: 17, padding: '10px 13px', borderRadius: 13, background: 'transparent',
     backgroundImage: 'none', backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)', border: '1px solid rgba(91,224,255,.32)', boxShadow: 'none' } as React.CSSProperties,
   search: { flex: 1, minWidth: 0, border: 0, outline: 0, background: 'transparent', color: '#bfefff', fontSize: 14, fontFamily: 'monospace, sans-serif', letterSpacing: '.02em' } as React.CSSProperties,
@@ -94,14 +94,14 @@ export function FriendsPage() {
           <div style={{ position: 'relative', zIndex: 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 13 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><span style={{ width: 7, height: 7, borderRadius: '50%', background: '#63e8ff', boxShadow: '0 0 12px rgba(99,232,255,.9)' }} /><span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '.19em', textTransform: 'uppercase', color: '#8de7ff', fontFamily: 'monospace' }}>SOCIAL COMMAND CENTER</span></div>
-              <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: '.12em', color: 'rgba(173,225,238,.52)', whiteSpace: 'nowrap', fontFamily: 'monospace' }}>SYS / FRIENDS</span>
+              <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: '.12em', color: 'rgba(141,231,255,.48)', whiteSpace: 'nowrap', fontFamily: 'monospace' }}>SYS / FRIENDS</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 16 }}>
-              <div style={{ minWidth: 0 }}><div style={{ fontSize: 9, fontWeight: 800, letterSpacing: '.16em', color: 'rgba(160,226,239,.52)', textTransform: 'uppercase', marginBottom: 6, fontFamily: 'monospace' }}>NETWORK DIRECTORY</div><h1 style={styles.title}>Friends</h1><p style={styles.subtitle}>Connect with people, manage requests and build your circle.</p></div>
+              <div style={{ minWidth: 0 }}><div style={{ fontSize: 9, fontWeight: 800, letterSpacing: '.16em', color: 'rgba(141,231,255,.46)', textTransform: 'uppercase', marginBottom: 6, fontFamily: 'monospace' }}>NETWORK DIRECTORY</div><h1 style={styles.title}>Friends</h1><p style={styles.subtitle}>Connect with people, manage requests and build your circle.</p></div>
               <div aria-hidden="true" style={{ display: 'grid', gap: 4, minWidth: 78, flexShrink: 0, textAlign: 'right' }}><span style={{ fontSize: 8, letterSpacing: '.12em', color: 'rgba(141,231,255,.45)', fontFamily: 'monospace' }}>LINK</span><strong style={{ fontSize: 10, letterSpacing: '.1em', color: '#9af0ff', fontFamily: 'monospace' }}>ONLINE</strong></div>
             </div>
             <div style={styles.searchWrap}><span aria-hidden="true" style={{ fontSize: 18, lineHeight: 1, color: '#78e8ff', textShadow: '0 0 10px rgba(120,232,255,.55)' }}>⌕</span><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search people..." aria-label="Search people" style={styles.search} />{search && <button type="button" onClick={() => setSearch('')} aria-label="Clear search" style={{ border: '1px solid rgba(120,232,255,.2)', background: 'rgba(100,220,255,.08)', color: '#bff6ff', borderRadius: 8, width: 29, height: 29, cursor: 'pointer' }}>×</button>}</div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, marginTop: 9, fontSize: 8, letterSpacing: '.1em', textTransform: 'uppercase', color: 'rgba(157,218,232,.42)', fontFamily: 'monospace' }}><span>DIRECTORY ACCESS // READY</span><span>QUERY: {search.trim() ? 'ACTIVE' : 'IDLE'}</span></div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, marginTop: 9, fontSize: 8, letterSpacing: '.1em', textTransform: 'uppercase', color: 'rgba(141,231,255,.40)', fontFamily: 'monospace' }}><span>DIRECTORY ACCESS // READY</span><span>QUERY: {search.trim() ? 'ACTIVE' : 'IDLE'}</span></div>
           </div>
         </section>
         {error && <p role="alert" style={styles.alert}>{error}</p>}
