@@ -122,6 +122,35 @@ export function HomePage({ profileId }: HomePageProps) {
           background: linear-gradient(90deg, rgba(0,240,255,.95), rgba(0,240,255,.28), transparent);
           box-shadow: 0 0 10px rgba(0,240,255,.55);
         }
+        /* HARD RESET: remove any post-level blue/blur surface, including inherited layers. */
+        .home-post-feed,
+        .home-post-feed > *,
+        .home-post-feed > section,
+        .home-post-feed > section > *,
+        .home-post-feed article,
+        .home-post-feed article * {
+          background: transparent !important;
+          background-color: transparent !important;
+          background-image: none !important;
+          box-shadow: none !important;
+          backdrop-filter: none !important;
+          -webkit-backdrop-filter: none !important;
+          filter: none !important;
+        }
+        .home-post-feed article,
+        .home-post-feed article * {
+          border-color: transparent !important;
+        }
+        .home-post-feed article [role="menu"],
+        .home-post-feed article [role="dialog"],
+        .home-post-feed article [role="alertdialog"] {
+          background: linear-gradient(145deg, rgba(15, 39, 73, .98), rgba(5, 20, 42, .99)) !important;
+          border-color: rgba(75, 204, 255, .38) !important;
+          box-shadow: 0 26px 68px rgba(0, 5, 20, .48) !important;
+          backdrop-filter: blur(22px) saturate(130%) !important;
+          -webkit-backdrop-filter: blur(22px) saturate(130%) !important;
+        }
+
         /* Home post content is intentionally surface-less: text/content only. */
         .home-post-feed,
         .home-post-feed > section,
