@@ -96,9 +96,9 @@ export function CreatePostForm({ profileId, onCreated }: CreatePostFormProps) {
       }
 
       /* The visible "card on card" can be the wrapper that directly owns this form. */
-      body *:has(> .home-create-post),
-      body *:has(> .home-create-post).ws-glass,
-      body *:has(> .home-create-post).ws-glass-panel {
+      /* Remove the actual glass/card ancestor that is painting the blue block. */
+      :is(.ws-glass, .ws-glass-panel):has(.home-create-post),
+      :is(.ws-glass, .ws-glass-panel):has(.home-create-post) * {
         background: transparent !important;
         background-color: transparent !important;
         background-image: none !important;
@@ -106,6 +106,12 @@ export function CreatePostForm({ profileId, onCreated }: CreatePostFormProps) {
         box-shadow: none !important;
         backdrop-filter: none !important;
         -webkit-backdrop-filter: none !important;
+      }
+
+      /* Keep the Create Post controls themselves visible. */
+      .home-create-post .create-post-attachment-actions,
+      .home-create-post .create-post-attachment-actions * {
+        background: revert !important;
       }
 
       .home-create-post textarea {
