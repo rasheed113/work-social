@@ -131,7 +131,7 @@ export function HomePage({ profileId }: HomePageProps) {
           <h1 className="home-page-title">Home</h1>
         </header>
         <CreatePostForm profileId={profileId} onCreated={() => setRefreshKey((key) => key + 1)} />
-        <div className="home-post-feed" style={{ marginTop: 18 }}>
+        <div className="home-post-feed" style={{ marginTop: 18, background: 'transparent', backgroundImage: 'none', boxShadow: 'none', border: 0, backdropFilter: 'none', WebkitBackdropFilter: 'none', filter: 'none' }}>
           <PostFeed refreshKey={refreshKey} profileId={profileId} scope="public" />
         </div>
       </div>
