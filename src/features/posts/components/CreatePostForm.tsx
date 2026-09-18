@@ -79,7 +79,10 @@ export function CreatePostForm({ profileId, onCreated }: CreatePostFormProps) {
       .home-create-post,
       .home-create-post.ws-glass-panel,
       .home-create-post .ws-glass:not(button),
-      .home-create-post .ws-glass-panel {
+      .home-create-post .ws-glass-panel,
+      .home-create-post textarea,
+      .home-create-post input,
+      .home-create-post p {
         background: transparent !important;
         background-color: transparent !important;
         background-image: none !important;
@@ -87,6 +90,10 @@ export function CreatePostForm({ profileId, onCreated }: CreatePostFormProps) {
         box-shadow: none !important;
         backdrop-filter: none !important;
         -webkit-backdrop-filter: none !important;
+      }
+      .home-create-post textarea {
+        border: 0 !important;
+        border-radius: 0 !important;
       }
       .create-post-attachment-actions .create-post-attachment-btn {
         min-height: 34px !important;
