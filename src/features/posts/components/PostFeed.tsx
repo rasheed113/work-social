@@ -107,7 +107,29 @@ export function PostFeed({ refreshKey, profileId, feedProfileId, scope = 'profil
     </div>;
   };
 
-  return <section style={{ minWidth: 0 }}><div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '4px 2px 12px', padding: '8px 12px', borderRadius: 14, background: 'linear-gradient(145deg,rgba(255,255,255,.9),rgba(240,244,249,.72))', border: '1px solid rgba(80,100,130,.10)', boxShadow: '0 5px 18px rgba(20,35,60,.05)' }}><span style={{ width: 8, height: 28, borderRadius: 99, background: 'linear-gradient(180deg,#6d7cff,#b56cff)', boxShadow: '0 0 12px rgba(109,124,255,.35)' }} /><h2 style={{ margin: 0, fontSize: 17, letterSpacing: '.01em' }}>Posts</h2><span style={{ marginLeft: 'auto', fontSize: 11, opacity: .55, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase' }}>Community feed</span></div>{error && <p role="alert">{error}</p>}
+  return <section className="home-feed-surface-less" style={{ minWidth: 0 }}>
+    <style>{`
+      .home-feed-surface-less article,
+      .home-feed-surface-less article > header,
+      .home-feed-surface-less article > footer,
+      .home-feed-surface-less article > footer > div,
+      .home-feed-surface-less article > footer > div > div,
+      .home-feed-surface-less article > footer > div > div > div,
+      .home-feed-surface-less article > footer > div > input,
+      .home-feed-surface-less article > div[role="menu"],
+      .home-feed-surface-less > div:first-child {
+        background: transparent !important;
+        background-color: transparent !important;
+        background-image: none !important;
+        border-color: transparent !important;
+        box-shadow: none !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+      }
+      .home-feed-surface-less article > footer > div > input {
+        outline: none !important;
+      }
+    `}</style><div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '4px 2px 12px', padding: '8px 12px', borderRadius: 14, background: 'linear-gradient(145deg,rgba(255,255,255,.9),rgba(240,244,249,.72))', border: '1px solid rgba(80,100,130,.10)', boxShadow: '0 5px 18px rgba(20,35,60,.05)' }}><span style={{ width: 8, height: 28, borderRadius: 99, background: 'linear-gradient(180deg,#6d7cff,#b56cff)', boxShadow: '0 0 12px rgba(109,124,255,.35)' }} /><h2 style={{ margin: 0, fontSize: 17, letterSpacing: '.01em' }}>Posts</h2><span style={{ marginLeft: 'auto', fontSize: 11, opacity: .55, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase' }}>Community feed</span></div>{error && <p role="alert">{error}</p>}
     {posts.map((post) => { const isOwner = post.profile_id === profileId; const privacy = (post.privacy ?? 'public') as PostPrivacy; const counts = reactionCounts[post.id] ?? {}; const myReaction = myReactions[post.id]; const totalReactions = Object.values(counts).reduce((sum, value) => sum + value, 0); const postComments = comments[post.id] ?? []; const latestComment = postComments[postComments.length - 1]; const attachments = post.attachments ?? []; const imageAttachments = attachments.filter((attachment: any) => attachment.kind === 'image'); const allImages = attachments.length > 0 && imageAttachments.length === attachments.length;
       const renderImage = (attachment: any, index: number, extraCount = 0) => <button key={attachment.id} type="button" onClick={() => openMedia('image', attachment.public_url, attachment.file_name ?? 'Post image')} aria-label={`Open ${attachment.file_name ?? 'post image'}`} style={{ position: 'relative', display: 'block', width: '100%', minWidth: 0, height: '100%', maxWidth: '100%', padding: 0, margin: 0, border: 0, background: 'transparent', cursor: 'zoom-in', overflow: 'hidden', borderRadius: 13 }}><img src={attachment.public_url} alt={attachment.file_name ?? 'Post image'} style={{ display: 'block', width: '100%', height: '100%', maxWidth: '100%', objectFit: 'cover' }} />{extraCount > 0 && index === 3 && <span aria-hidden="true" style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', pointerEvents: 'none', background: 'rgba(0,0,0,.52)', color: '#fff', fontSize: 28, fontWeight: 800 }}>{`+${extraCount}`}</span>}</button>;
       const imageCollage = allImages && imageAttachments.length > 1 ? <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gridTemplateRows: imageAttachments.length === 2 ? 'minmax(0, 1fr)' : 'minmax(0, 1fr) minmax(0, 1fr)', gap: 4, width: '100%', minWidth: 0, maxWidth: '100%', height: imageAttachments.length === 2 ? 300 : 420, overflow: 'hidden', borderRadius: 13 }}>{imageAttachments.slice(0, 4).map((attachment: any, index: number) => <div key={attachment.id} style={{ minWidth: 0, minHeight: 0, gridColumn: imageAttachments.length === 3 && index === 2 ? '1 / -1' : undefined }}>{renderImage(attachment, index, imageAttachments.length > 4 ? imageAttachments.length - 4 : 0)}</div>)}</div> : null;
