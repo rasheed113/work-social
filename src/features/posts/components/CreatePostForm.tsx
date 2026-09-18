@@ -108,10 +108,12 @@ export function CreatePostForm({ profileId, onCreated }: CreatePostFormProps) {
         -webkit-backdrop-filter: none !important;
       }
 
-      /* Keep the Create Post controls themselves visible. */
-      .home-create-post .create-post-attachment-actions,
-      .home-create-post .create-post-attachment-actions * {
-        background: revert !important;
+      /* Keep the three attachment controls as the only visible cards. */
+      .home-create-post .create-post-attachment-actions .create-post-attachment-btn {
+        background: linear-gradient(135deg, rgba(7, 25, 43, .92), rgba(8, 55, 82, .72)) !important;
+        background-image: linear-gradient(135deg, rgba(7, 25, 43, .92), rgba(8, 55, 82, .72)) !important;
+        border: 1px solid rgba(66, 226, 255, .34) !important;
+        box-shadow: 0 0 10px rgba(0, 195, 255, .12), inset 0 1px 0 rgba(255,255,255,.08) !important;
       }
 
       .home-create-post textarea {
