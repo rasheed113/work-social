@@ -220,6 +220,20 @@ body:has(.home-page-title) .home-post-feed article [style*="box-shadow"] {
   box-shadow: none !important;
 }
 
+/* Post itself has no painted pseudo-surface either: the complete post is content/context only. */
+body:has(.home-page-title) .home-post-feed article::before,
+body:has(.home-page-title) .home-post-feed article::after,
+body:has(.home-page-title) .home-post-feed article *::before,
+body:has(.home-page-title) .home-post-feed article *::after {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-color: transparent !important;
+}
+
 /* Home post cards use the same surfaceless language as Create Post / Community Feed. */
 body:has(.home-page-title) .home-post-feed article {
   border-color: transparent !important;
