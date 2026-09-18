@@ -212,3 +212,55 @@ nav[aria-label="Main navigation"] > button:hover {
     transition: none !important;
   }
 }
+
+/* HOME POST SURFACE AUDIT — static post content must be completely surfaceless. */
+body:has(.home-post-feed) .home-post-feed,
+body:has(.home-post-feed) .home-post-feed > section,
+body:has(.home-post-feed) .home-post-feed > section > div,
+body:has(.home-post-feed) .home-post-feed article,
+body:has(.home-post-feed) .home-post-feed article > header,
+body:has(.home-post-feed) .home-post-feed article > footer,
+body:has(.home-post-feed) .home-post-feed article > div,
+body:has(.home-post-feed) .home-post-feed article > div > div {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  filter: none !important;
+}
+
+body:has(.home-post-feed) .home-post-feed article input,
+body:has(.home-post-feed) .home-post-feed article textarea,
+body:has(.home-post-feed) .home-post-feed article button {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+body:has(.home-post-feed) .home-post-feed article [role="group"] {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+body:has(.home-post-feed) .home-post-feed > section > h2,
+body:has(.home-post-feed) .home-post-feed > section > header {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
