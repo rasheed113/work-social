@@ -83,3 +83,59 @@ main.notifications-page article.notification-card::after {
   box-shadow: none !important;
   border: 0 !important;
 }
+
+
+/* FINAL HOME POST SURFACE RESET — loaded last so no earlier glass/HUD rule can repaint static posts. */
+body:has(.home-post-feed) .home-post-feed,
+body:has(.home-post-feed) .home-post-feed > section,
+body:has(.home-post-feed) .home-post-feed > section > div,
+body:has(.home-post-feed) .home-post-feed article,
+body:has(.home-post-feed) .home-post-feed article > header,
+body:has(.home-post-feed) .home-post-feed article > footer,
+body:has(.home-post-feed) .home-post-feed article > div,
+body:has(.home-post-feed) .home-post-feed article > div > div,
+body:has(.home-post-feed) .home-post-feed article footer > div {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  filter: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+body:has(.home-post-feed) .home-post-feed article input,
+body:has(.home-post-feed) .home-post-feed article textarea,
+body:has(.home-post-feed) .home-post-feed article button {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+body:has(.home-post-feed) .home-post-feed article::before,
+body:has(.home-post-feed) .home-post-feed article::after,
+body:has(.home-post-feed) .home-post-feed article *::before,
+body:has(.home-post-feed) .home-post-feed article *::after {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  filter: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-color: transparent !important;
+}
+
+/* Open menus/dialogs remain intentionally surfaced. */
+body:has(.home-post-feed) .home-post-feed article [role="menu"],
+body:has(.home-post-feed) .home-post-feed article [role="dialog"],
+body:has(.home-post-feed) .home-post-feed article [role="alertdialog"] {
+  background: linear-gradient(145deg, rgba(15, 39, 73, .98), rgba(5, 20, 42, .99)) !important;
+  border-color: rgba(75, 204, 255, .38) !important;
+  box-shadow: 0 26px 68px rgba(0, 5, 20, .48), 0 0 34px rgba(34, 211, 238, .07) !important;
+  backdrop-filter: blur(22px) saturate(130%) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(130%) !important;
+}
