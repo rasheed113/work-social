@@ -273,40 +273,33 @@ body:has(.home-page-title) .home-post-feed article footer {
   border-top-color: rgba(104, 205, 255, .13) !important;
 }
 
-/* Reaction / Comment controls use the same transparent-glass language. */
-body:has(.home-page-title) .home-post-feed article button {
-  color: #dffaff !important;
-  border: 1px solid rgba(104, 205, 255, .18) !important;
-  background: rgba(34, 211, 238, .035) !important;
-  background-image: none !important;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 0 12px rgba(34,211,238,.045) !important;
-  backdrop-filter: blur(8px) !important;
-  -webkit-backdrop-filter: blur(8px) !important;
-}
-
-body:has(.home-page-title) .home-post-feed article button:hover:not(:disabled) {
-  border-color: rgba(104, 205, 255, .34) !important;
-  background: rgba(34, 211, 238, .075) !important;
-  background-image: none !important;
-  box-shadow: 0 0 18px rgba(34, 211, 238, .09), inset 0 1px 0 rgba(255,255,255,.09) !important;
-}
-
-/* Comment typing field stays visibly glass, never a filled dark card. */
+/* User posts are context-first: no card/chip surface on any static post control. */
+body:has(.home-page-title) .home-post-feed article button,
 body:has(.home-page-title) .home-post-feed article input,
 body:has(.home-page-title) .home-post-feed article textarea {
-  color: var(--ws-social-text) !important;
-  background: rgba(34, 211, 238, .025) !important;
+  color: #dffaff !important;
+  border-color: transparent !important;
+  background: transparent !important;
+  background-color: transparent !important;
   background-image: none !important;
-  border: 1px solid rgba(104, 205, 255, .18) !important;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.055), 0 0 12px rgba(34,211,238,.035) !important;
-  backdrop-filter: blur(8px) !important;
-  -webkit-backdrop-filter: blur(8px) !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 
-body:has(.home-page-title) .home-post-feed article input::placeholder,
-body:has(.home-page-title) .work-social-page-content textarea::placeholder {
-  color: rgba(169, 196, 223, .62) !important;
+body:has(.home-page-title) .home-post-feed article button:hover:not(:disabled),
+body:has(.home-page-title) .home-post-feed article input:focus,
+body:has(.home-page-title) .home-post-feed article textarea:focus {
+  border-color: transparent !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
+
+/* Comment field is text-only; its wrapper is already surfaceless. */
 
 /* Comment history / reaction sub-cards stay transparent and layered, not opaque. */
 body:has(.home-page-title) .home-post-feed article footer > div:last-child,
