@@ -87,7 +87,7 @@ export function FriendsPage() {
   return (
     <main style={{ minWidth: 0, width: '100%', boxSizing: 'border-box' }}>
       <div style={styles.page}>
-        <section style={styles.hero}>
+        <div style={{ marginBottom: 18 }}>
           <div style={{ position: 'relative', zIndex: 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 13 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><span style={{ width: 7, height: 7, borderRadius: '50%', background: '#63e8ff', boxShadow: '0 0 12px rgba(99,232,255,.9)' }} /><span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '.24em', textTransform: 'uppercase', color: '#7df5ff', fontFamily: 'monospace', textShadow: '0 0 10px rgba(0,240,255,.45)' }}>SOCIAL COMMAND CENTER</span></div>
@@ -100,7 +100,7 @@ export function FriendsPage() {
             <div style={styles.searchWrap}><span aria-hidden="true" style={{ fontSize: 18, lineHeight: 1, color: '#78e8ff', textShadow: '0 0 10px rgba(120,232,255,.55)' }}>⌕</span><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search people..." aria-label="Search people" style={styles.search} />{search && <button type="button" onClick={() => setSearch('')} aria-label="Clear search" style={{ border: '1px solid rgba(120,232,255,.2)', background: 'rgba(100,220,255,.08)', color: '#bff6ff', borderRadius: 8, width: 29, height: 29, cursor: 'pointer' }}>×</button>}</div>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, marginTop: 9, fontSize: 8, fontWeight: 800, letterSpacing: '.16em', textTransform: 'uppercase', color: 'rgba(125,245,255,.52)', fontFamily: 'monospace' }}><span>DIRECTORY ACCESS // READY</span><span>QUERY: {search.trim() ? 'ACTIVE' : 'IDLE'}</span></div>
           </div>
-        </section>
+        </div>
         {error && <p role="alert" style={styles.alert}>{error}</p>}
         {loading && <section style={styles.section}><WorkSocialPremiumLoader title="Friends" message="Loading your social circle…" /></section>}
         {!loading && requests.length > 0 && <section style={styles.section}><h2 style={styles.sectionTitle}><span>🤝 Friend Requests</span><span style={{ fontSize: 9, fontFamily: 'monospace', color: '#bfefff', fontWeight: 800 }}>{requests.length} INBOUND</span></h2>{requests.map((r) => { const sender = profiles.find((p) => p.id === r.sender_id); return <div key={r.id} style={styles.row}><div style={styles.identity}>{sender?.avatar_url ? <img src={sender.avatar_url} alt="" style={styles.avatar} /> : <div style={styles.avatarFallback}>◉</div>}<button type="button" onClick={() => navigate(`/profile/${r.sender_id}`)} style={styles.nameButton}>{sender?.display_name ?? 'Unknown worker'}</button></div><div style={styles.actions}><button type="button" onClick={() => void respond(r, 'accepted')} style={{ ...styles.buttonBase, ...styles.accept }}>Accept</button><button type="button" onClick={() => void respond(r, 'rejected')} style={{ ...styles.buttonBase, ...styles.reject }}>Decline</button></div></div>})}</section>}
