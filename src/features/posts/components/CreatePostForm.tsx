@@ -110,8 +110,8 @@ export function CreatePostForm({ profileId, onCreated }: CreatePostFormProps) {
 
       /* Keep the three attachment controls as the only visible cards. */
       .home-create-post .create-post-attachment-actions .create-post-attachment-btn {
-        background: linear-gradient(135deg, rgba(7, 25, 43, .92), rgba(8, 55, 82, .72)) !important;
-        background-image: linear-gradient(135deg, rgba(7, 25, 43, .92), rgba(8, 55, 82, .72)) !important;
+        background: rgba(34, 211, 238, .055) !important;
+        background-image: none !important;
         border: 1px solid rgba(66, 226, 255, .34) !important;
         box-shadow: 0 0 10px rgba(0, 195, 255, .12), inset 0 1px 0 rgba(255,255,255,.08) !important;
       }
@@ -126,7 +126,7 @@ export function CreatePostForm({ profileId, onCreated }: CreatePostFormProps) {
         padding: 0 11px !important;
         border: 1px solid rgba(66, 226, 255, .34) !important;
         border-radius: 10px !important;
-        background: linear-gradient(135deg, rgba(7, 25, 43, .92), rgba(8, 55, 82, .72)) !important;
+        background: rgba(34, 211, 238, .055) !important;
         color: #bffbff !important;
         -webkit-text-fill-color: #bffbff !important;
         font-family: monospace, sans-serif !important;
@@ -139,23 +139,23 @@ export function CreatePostForm({ profileId, onCreated }: CreatePostFormProps) {
       }
       .create-post-attachment-actions .create-post-attachment-media {
         border-color: rgba(91, 238, 255, .58) !important;
-        background: linear-gradient(135deg, rgba(5, 42, 62, .96), rgba(7, 91, 118, .78)) !important;
+        background: rgba(34, 211, 238, .075) !important;
         box-shadow: 0 0 14px rgba(42, 224, 255, .22), inset 0 1px 0 rgba(255,255,255,.1) !important;
       }
       .create-post-attachment-actions .create-post-attachment-file {
         border-color: rgba(62, 165, 255, .52) !important;
-        background: linear-gradient(135deg, rgba(7, 28, 56, .96), rgba(13, 67, 119, .76)) !important;
+        background: rgba(59, 130, 246, .065) !important;
         box-shadow: 0 0 13px rgba(50, 145, 255, .18), inset 0 1px 0 rgba(255,255,255,.08) !important;
       }
       .create-post-attachment-actions .create-post-attachment-location {
         border-color: rgba(76, 211, 255, .5) !important;
-        background: linear-gradient(135deg, rgba(5, 35, 57, .96), rgba(8, 78, 104, .74)) !important;
+        background: rgba(34, 211, 238, .065) !important;
         box-shadow: 0 0 13px rgba(53, 202, 255, .18), inset 0 1px 0 rgba(255,255,255,.08) !important;
       }
       .create-post-attachment-actions .create-post-attachment-btn:hover:not(:disabled) {
         transform: translateY(-1px);
         border-color: rgba(126, 247, 255, .92) !important;
-        background: linear-gradient(135deg, rgba(8, 48, 70, .98), rgba(10, 105, 135, .86)) !important;
+        background: rgba(34, 211, 238, .12) !important;
         box-shadow: 0 0 20px rgba(58, 224, 255, .3), inset 0 1px 0 rgba(255,255,255,.14) !important;
       }
       .create-post-attachment-actions .create-post-attachment-btn:active:not(:disabled) {
