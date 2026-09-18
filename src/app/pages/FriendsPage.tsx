@@ -88,20 +88,17 @@ export function FriendsPage() {
     <main style={{ minWidth: 0, width: '100%', boxSizing: 'border-box' }}>
       <div style={styles.page}>
         <section style={styles.hero}>
-          <div style={styles.glow} />
-          <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', opacity: .36, backgroundImage: 'linear-gradient(rgba(0,240,255,.055) 1px, transparent 1px), linear-gradient(90deg, rgba(0,240,255,.045) 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
-          <div style={{ position: 'absolute', left: 16, bottom: 14, width: 34, height: 1, background: 'rgba(0,240,255,.55)', boxShadow: '0 0 9px rgba(0,240,255,.35)' }} />
           <div style={{ position: 'relative', zIndex: 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 13 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><span style={{ width: 7, height: 7, borderRadius: '50%', background: '#63e8ff', boxShadow: '0 0 12px rgba(99,232,255,.9)' }} /><span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '.19em', textTransform: 'uppercase', color: '#8de7ff', fontFamily: 'monospace' }}>SOCIAL COMMAND CENTER</span></div>
-              <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: '.12em', color: 'rgba(141,231,255,.48)', whiteSpace: 'nowrap', fontFamily: 'monospace' }}>SYS / FRIENDS</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><span style={{ width: 7, height: 7, borderRadius: '50%', background: '#63e8ff', boxShadow: '0 0 12px rgba(99,232,255,.9)' }} /><span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '.24em', textTransform: 'uppercase', color: '#7df5ff', fontFamily: 'monospace', textShadow: '0 0 10px rgba(0,240,255,.45)' }}>SOCIAL COMMAND CENTER</span></div>
+              <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: '.18em', color: 'rgba(125,245,255,.62)', whiteSpace: 'nowrap', fontFamily: 'monospace' }}>SYS / FRIENDS</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 16 }}>
-              <div style={{ minWidth: 0 }}><div style={{ fontSize: 9, fontWeight: 800, letterSpacing: '.16em', color: 'rgba(141,231,255,.46)', textTransform: 'uppercase', marginBottom: 6, fontFamily: 'monospace' }}>NETWORK DIRECTORY</div><h1 style={styles.title}>Friends</h1><p style={styles.subtitle}>Connect with people, manage requests and build your circle.</p></div>
-              <div aria-hidden="true" style={{ display: 'grid', gap: 4, minWidth: 78, flexShrink: 0, textAlign: 'right' }}><span style={{ fontSize: 8, letterSpacing: '.12em', color: 'rgba(141,231,255,.45)', fontFamily: 'monospace' }}>LINK</span><strong style={{ fontSize: 10, letterSpacing: '.1em', color: '#9af0ff', fontFamily: 'monospace' }}>ONLINE</strong></div>
+              <div style={{ minWidth: 0 }}><div style={{ fontSize: 9, fontWeight: 900, letterSpacing: '.2em', color: 'rgba(125,245,255,.62)', textTransform: 'uppercase', marginBottom: 6, fontFamily: 'monospace', textShadow: '0 0 8px rgba(0,240,255,.25)' }}>NETWORK DIRECTORY</div><h1 style={styles.title}>Friends</h1><p style={styles.subtitle}>Connect with people, manage requests and build your circle.</p></div>
+              <div aria-hidden="true" style={{ display: 'grid', gap: 4, minWidth: 78, flexShrink: 0, textAlign: 'right' }}><span style={{ fontSize: 8, fontWeight: 800, letterSpacing: '.18em', color: 'rgba(125,245,255,.58)', fontFamily: 'monospace' }}>LINK</span><strong style={{ fontSize: 10, fontWeight: 900, letterSpacing: '.16em', color: '#7df5ff', fontFamily: 'monospace', textShadow: '0 0 9px rgba(0,240,255,.35)' }}>ONLINE</strong></div>
             </div>
             <div style={styles.searchWrap}><span aria-hidden="true" style={{ fontSize: 18, lineHeight: 1, color: '#78e8ff', textShadow: '0 0 10px rgba(120,232,255,.55)' }}>⌕</span><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search people..." aria-label="Search people" style={styles.search} />{search && <button type="button" onClick={() => setSearch('')} aria-label="Clear search" style={{ border: '1px solid rgba(120,232,255,.2)', background: 'rgba(100,220,255,.08)', color: '#bff6ff', borderRadius: 8, width: 29, height: 29, cursor: 'pointer' }}>×</button>}</div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, marginTop: 9, fontSize: 8, letterSpacing: '.1em', textTransform: 'uppercase', color: 'rgba(141,231,255,.40)', fontFamily: 'monospace' }}><span>DIRECTORY ACCESS // READY</span><span>QUERY: {search.trim() ? 'ACTIVE' : 'IDLE'}</span></div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, marginTop: 9, fontSize: 8, fontWeight: 800, letterSpacing: '.16em', textTransform: 'uppercase', color: 'rgba(125,245,255,.52)', fontFamily: 'monospace' }}><span>DIRECTORY ACCESS // READY</span><span>QUERY: {search.trim() ? 'ACTIVE' : 'IDLE'}</span></div>
           </div>
         </section>
         {error && <p role="alert" style={styles.alert}>{error}</p>}
