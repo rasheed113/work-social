@@ -176,6 +176,7 @@ body:has(.home-page-title) .work-social-page-content main > div > section:first-
 
 /* Deep surface audit: nested post wrappers/cards inherit no painted surface. */
 body:has(.home-page-title) .home-post-feed article * {
+  background: transparent !important;
   background-color: transparent !important;
   background-image: none !important;
   box-shadow: none !important;
