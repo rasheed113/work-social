@@ -163,11 +163,49 @@ export function HomePage({ profileId }: HomePageProps) {
           background: radial-gradient(circle, rgba(109,93,252,.13), rgba(34,193,220,0));
           pointer-events: none;
         }
+        /* Home surface-less pass: remove painted card surfaces; keep content and controls. */
+        .home-page-root > .ws-glass-panel,
+        .home-page-root .home-post-feed > section > h2,
+        .home-page-root .home-post-feed article,
+        .home-page-root .home-post-feed article > footer > div:last-child,
+        .home-page-root .home-post-feed article > footer > div:last-child > div,
+        .home-page-root .home-post-feed article > footer > div:last-child > div > div,
+        .home-page-root .home-post-feed article > footer > div:nth-last-child(2),
+        .home-page-root .home-post-feed article > footer > div:nth-last-child(2) > div,
+        .home-page-root .home-post-feed article > footer > div:nth-last-child(2) > div > div,
+        .home-page-root .home-post-feed article > div[role="menu"] {
+          background: transparent !important;
+          background-image: none !important;
+          box-shadow: none !important;
+          backdrop-filter: none !important;
+          -webkit-backdrop-filter: none !important;
+        }
+        .home-page-root .home-post-feed > section > h2,
+        .home-page-root .home-post-feed article,
+        .home-page-root .home-post-feed article > footer > div:last-child,
+        .home-page-root .home-post-feed article > footer > div:last-child > div,
+        .home-page-root .home-post-feed article > footer > div:nth-last-child(2) > div {
+          border-color: transparent !important;
+        }
+        .home-page-root .home-post-feed article > footer > div:last-child,
+        .home-page-root .home-post-feed article > footer > div:nth-last-child(2) > div {
+          border-top-color: transparent !important;
+        }
+        .home-page-root .home-post-feed article > footer > div:last-child > div > input {
+          background: transparent !important;
+          box-shadow: none !important;
+        }
+        .home-page-root .home-post-feed article > header {
+          background: transparent !important;
+        }
+        .home-page-root .home-post-feed article > div[role="menu"] {
+          border-color: transparent !important;
+        }
         @media (max-width: 767px) {
           .home-post-feed > section > h2 { margin-bottom: 10px; padding: 9px 11px; font-size: 16px; }
         }
       `}</style>
-      <div style={{ width: '100%', maxWidth: 900, minWidth: 0, margin: '0 auto', padding: '0 14px', boxSizing: 'border-box' }}>
+      <div className="home-page-root" style={{ width: '100%', maxWidth: 900, minWidth: 0, margin: '0 auto', padding: '0 14px', boxSizing: 'border-box' }}>
         <header style={{ marginBottom: 16, padding: '4px 4px 2px' }}>
           <h1 className="home-page-title">Home</h1>
         </header>
