@@ -16,6 +16,7 @@ import { GlobalModuleMenu } from './components/GlobalModuleMenu';
 import { playNotificationSound, requestNotificationPermission, showBrowserNotification } from './services/notificationAudio';
 import { WorkerIdentityPage } from '../features/worker/pages/WorkerIdentityPage';
 import { WorkerWorkHousePage } from '../features/worker/pages/WorkerWorkHousePage';
+import { WorkerOverviewPage } from '../features/worker/pages/WorkerOverviewPage';
 import { WorkerWorkHistoryPage } from '../features/worker/pages/WorkerWorkHistoryPage';
 import { WorkerFinancePage } from '../features/worker/pages/WorkerFinancePage';
 import { WorkerSettingsPage } from '../features/worker/pages/WorkerSettingsPage';
@@ -67,7 +68,9 @@ export function Router({ profileId }: RouterProps) {
   const inboxPage:ReactNode=(<><InboxPage profileId={profileId}/><InboxGroupMaker profileId={profileId}/><InboxGroupMenu profileId={profileId}/><CallSpeakerEnhancer /></>);
   const workPage:ReactNode=pathname==='/work/identity'
     ?<WorkerIdentityPage profileId={profileId}/>
-    :pathname==='/work/finance'
+    :pathname==='/work/dashboard'
+      ?<WorkerOverviewPage/>
+      :pathname==='/work/finance'
       ?<WorkerFinancePage/>
       :pathname==='/work/settings/team-joining'
         ?<WorkerSettingsPage teamJoining/>
