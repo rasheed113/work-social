@@ -216,3 +216,33 @@ body:has(.home-post-feed) .home-post-feed article [role="alertdialog"] {
   backdrop-filter: blur(22px) saturate(130%) !important;
   -webkit-backdrop-filter: blur(22px) saturate(130%) !important;
 }
+
+
+/* FINAL HOME FEED BLUE SURFACE LOCK — no static blue/navy layer may sit behind posts. */
+body:has(.home-post-feed) .home-post-feed,
+body:has(.home-post-feed) .home-post-feed > section,
+body:has(.home-post-feed) .home-post-feed > section > div,
+body:has(.home-post-feed) .home-post-feed > section > h2,
+body:has(.home-post-feed) .home-post-feed > section > header {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  border-color: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Static reaction/footer/group surfaces are part of the post content, not cards. */
+body:has(.home-post-feed) .home-post-feed article [role="group"],
+body:has(.home-post-feed) .home-post-feed article [aria-label*="reaction" i],
+body:has(.home-post-feed) .home-post-feed article footer,
+body:has(.home-post-feed) .home-post-feed article footer > div {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  border-color: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
