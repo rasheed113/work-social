@@ -44,16 +44,15 @@ export function CreatePostForm({ profileId, onCreated }: CreatePostFormProps) {
   }
   const canPost = Boolean(content.trim() || selectedFiles.length || location);
 
-  return <section className="ws-glass-panel home-create-post" style={{ position: 'relative', overflow: 'hidden', padding: 10 }}>
+  return <section className="home-create-post" style={{ position: 'relative', overflow: 'hidden', padding: 10 }}>
     <header style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 6 }}>
       <div style={{ minWidth: 0 }}>
         <h2 className="ws-heading ws-cyan-text" style={{ margin: 0, fontSize: 15, lineHeight: 1.1 }}>Create post</h2>
         <small className="ws-muted-text" style={{ display: 'block', marginTop: 2, fontSize: 10.5, lineHeight: 1.2 }}>Share something with your community</small>
       </div>
-      <span aria-hidden="true" className="ws-glass ws-glow-cyan" style={{ width: 27, height: 27, flexShrink: 0, display: 'grid', placeItems: 'center', borderRadius: 9, color: 'var(--ws-cyan)', fontSize: 13 }}>✦</span>
+      <span aria-hidden="true" style={{ width: 27, height: 27, flexShrink: 0, display: 'grid', placeItems: 'center', borderRadius: 9, color: 'var(--ws-cyan)', fontSize: 13 }}>✦</span>
     </header>
     <textarea
-      className="ws-glass"
       value={content}
       onChange={(event) => setContent(event.target.value)}
       placeholder="What's happening?"
@@ -68,14 +67,14 @@ export function CreatePostForm({ profileId, onCreated }: CreatePostFormProps) {
       <button type="button" className="ws-glass ws-glow-cyan create-post-attachment-btn create-post-attachment-location" onClick={getLocation} disabled={saving || locationLoading}>📍 {locationLoading ? 'Getting location…' : 'Location'}</button>
       <button type="button" className="ws-glass ws-glow-cyan" onClick={() => void submit()} disabled={saving || !canPost} style={{ marginLeft: 'auto' }}>{saving ? 'Posting…' : 'Post'}</button>
     </div>
-    {selectedFiles.length > 0 && <div className="ws-glass" style={{ display: 'grid', gap: 6, marginTop: 7, marginBottom: 7, padding: 6 }}>
-      {selectedFiles.map((item, index) => <div key={`${item.file.name}-${index}`} className="ws-glass" style={{ display: 'flex', alignItems: 'center', gap: 7, minWidth: 0, padding: 6 }}>
+    {selectedFiles.length > 0 && <div style={{ display: 'grid', gap: 6, marginTop: 7, marginBottom: 7 }}>
+      {selectedFiles.map((item, index) => <div key={`${item.file.name}-${index}`} style={{ display: 'flex', alignItems: 'center', gap: 7, minWidth: 0, padding: 6 }}>
         {item.kind === 'image' ? <img src={item.preview} alt={item.file.name} width={64} height={64} style={{ objectFit: 'cover', borderRadius: 9, flexShrink: 0 }} /> : item.kind === 'video' ? <video src={item.preview} width={110} height={64} controls style={{ maxWidth: '100%', borderRadius: 9, flexShrink: 0 }} /> : <span className="ws-muted-text" style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>📎 {item.file.name}</span>}
         <button type="button" className="ws-glass ws-glow-cyan" onClick={() => setSelectedFiles((current) => current.filter((_, i) => i !== index))} disabled={saving} style={{ marginLeft: 'auto', flexShrink: 0 }}>Remove</button>
       </div>)}
     </div>}
-    {location && <p className="ws-glass" style={{ margin: '6px 0 0', padding: '7px 9px', fontSize: 11, fontWeight: 700 }}>📍 Location attached ({location.latitude.toFixed(5)}, {location.longitude.toFixed(5)}) <button type="button" className="ws-glass ws-glow-cyan" onClick={() => setLocation(null)} disabled={saving} style={{ marginLeft: 5 }}>Remove</button></p>}
-    {error && <p role="alert" className="ws-glass" style={{ margin: '6px 0 0', padding: '7px 9px', fontSize: 11, fontWeight: 700 }}>{error}</p>}
+    {location && <p style={{ margin: '6px 0 0', padding: '7px 9px', fontSize: 11, fontWeight: 700 }}>📍 Location attached ({location.latitude.toFixed(5)}, {location.longitude.toFixed(5)}) <button type="button" className="ws-glass ws-glow-cyan" onClick={() => setLocation(null)} disabled={saving} style={{ marginLeft: 5 }}>Remove</button></p>}
+    {error && <p role="alert" style={{ margin: '6px 0 0', padding: '7px 9px', fontSize: 11, fontWeight: 700 }}>{error}</p>}
     <style>{`
       .home-create-post,
       .home-create-post.ws-glass-panel,
