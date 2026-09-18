@@ -82,7 +82,10 @@ export function CreatePostForm({ profileId, onCreated }: CreatePostFormProps) {
       .home-create-post .ws-glass-panel,
       .home-create-post textarea,
       .home-create-post input,
-      .home-create-post p {
+      .home-create-post p,
+      .home-create-post-wrapper,
+      .home-create-post-wrapper.ws-glass,
+      .home-create-post-wrapper.ws-glass-panel {
         background: transparent !important;
         background-color: transparent !important;
         background-image: none !important;
@@ -91,10 +94,25 @@ export function CreatePostForm({ profileId, onCreated }: CreatePostFormProps) {
         backdrop-filter: none !important;
         -webkit-backdrop-filter: none !important;
       }
+
+      /* The visible "card on card" can be the wrapper that directly owns this form. */
+      body *:has(> .home-create-post),
+      body *:has(> .home-create-post).ws-glass,
+      body *:has(> .home-create-post).ws-glass-panel {
+        background: transparent !important;
+        background-color: transparent !important;
+        background-image: none !important;
+        border-color: transparent !important;
+        box-shadow: none !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+      }
+
       .home-create-post textarea {
         border: 0 !important;
         border-radius: 0 !important;
       }
+
       .create-post-attachment-actions .create-post-attachment-btn {
         min-height: 34px !important;
         padding: 0 11px !important;
