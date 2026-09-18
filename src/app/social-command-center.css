@@ -105,10 +105,13 @@ body:has(.home-page-title) .work-social-page-content main > div > section:first-
 }
 
 body:has(.home-page-title) .work-social-page-content main > div > section:first-of-type button:last-child {
-  color: #effcff !important;
-  border-color: rgba(127, 236, 255, .34) !important;
-  background: linear-gradient(135deg, rgba(34, 211, 238, .92), rgba(59, 130, 246, .94) 56%, rgba(105, 116, 255, .92)) !important;
-  box-shadow: 0 9px 22px rgba(37, 99, 235, .25), inset 0 1px 0 rgba(255, 255, 255, .18) !important;
+  /* Post uses the same transparent glass language as the attachment controls. */
+  color: #bffbff !important;
+  -webkit-text-fill-color: #bffbff !important;
+  border: 1px solid rgba(91, 238, 255, .58) !important;
+  background: rgba(34, 211, 238, .075) !important;
+  background-image: none !important;
+  box-shadow: 0 0 14px rgba(42, 224, 255, .22), inset 0 1px 0 rgba(255, 255, 255, .10) !important;
 }
 
 /* Posts are compact operational content surfaces. */
