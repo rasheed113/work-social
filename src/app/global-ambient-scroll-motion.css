@@ -5,12 +5,8 @@
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  background:
-    radial-gradient(circle at 14% 18%, rgba(37, 99, 235, .24), transparent 34%),
-    radial-gradient(circle at 86% 22%, rgba(6, 182, 212, .20), transparent 32%),
-    radial-gradient(circle at 78% 84%, rgba(124, 58, 237, .24), transparent 38%),
-    linear-gradient(135deg, #06142d 0%, #0a2550 38%, #17184c 62%, #062f4a 100%) !important;
-  background-color: #07162f !important;
+  background: #040b1d !important;
+  background-color: #040b1d !important;
 }
 
 body .app-shell .work-social-page-content,
@@ -22,23 +18,81 @@ body:has(.work-social-page-content) .work-social-page-content {
   background-attachment: initial !important;
 }
 
+/* Animated aurora field: large color masses visibly travel across the viewport. */
 .work-social-router-shell::before {
   content: '';
   position: absolute;
-  inset: -28%;
+  inset: -55%;
   pointer-events: none;
   z-index: 0;
   background:
-    radial-gradient(ellipse 48% 58% at 12% 18%, rgba(32, 116, 255, .58), transparent 70%),
-    radial-gradient(ellipse 46% 54% at 88% 24%, rgba(0, 235, 255, .50), transparent 70%),
-    radial-gradient(ellipse 52% 58% at 78% 86%, rgba(145, 61, 255, .54), transparent 70%),
-    radial-gradient(ellipse 42% 48% at 18% 82%, rgba(0, 175, 255, .40), transparent 72%),
-    linear-gradient(125deg, #06142d 0%, #0a2a58 34%, #171b59 55%, #073b5e 76%, #06152f 100%);
-  background-size: 145% 145%, 150% 150%, 150% 150%, 140% 140%, 220% 220%;
-  opacity: .92;
-  animation: ws-ambient-drift 22s ease-in-out infinite alternate;
-  transform: translate3d(0, 0, 0);
-  will-change: transform;
+    radial-gradient(ellipse 34% 24% at 12% 20%, rgba(0, 229, 255, .72), transparent 68%),
+    radial-gradient(ellipse 32% 26% at 86% 18%, rgba(62, 112, 255, .70), transparent 68%),
+    radial-gradient(ellipse 38% 28% at 72% 78%, rgba(168, 72, 255, .72), transparent 70%),
+    radial-gradient(ellipse 30% 22% at 20% 84%, rgba(0, 174, 255, .60), transparent 68%),
+    conic-gradient(from 120deg at 50% 50%, #04112b 0deg, #062f58 65deg, #10135a 135deg, #260c54 205deg, #063f55 285deg, #04112b 360deg);
+  background-size: 72% 62%, 70% 64%, 76% 66%, 68% 60%, 150% 150%;
+  background-position: 0% 0%, 100% 0%, 100% 100%, 0% 100%, 50% 50%;
+  opacity: .96;
+  animation: ws-aurora-flow 14s ease-in-out infinite alternate;
+  will-change: transform, background-position;
+}
+
+@keyframes ws-aurora-flow {
+  0% {
+    transform: translate3d(-5%, -3%, 0) scale(1);
+    background-position: 0% 10%, 100% 0%, 100% 100%, 0% 90%, 42% 52%;
+  }
+  35% {
+    transform: translate3d(3%, 2%, 0) scale(1.045);
+    background-position: 28% 38%, 78% 18%, 72% 82%, 18% 70%, 58% 44%;
+  }
+  70% {
+    transform: translate3d(-1%, 5%, 0) scale(1.02);
+    background-position: 62% 62%, 42% 44%, 46% 54%, 54% 36%, 45% 58%;
+  }
+  100% {
+    transform: translate3d(5%, -1%, 0) scale(1.055);
+    background-position: 100% 30%, 12% 58%, 18% 12%, 86% 46%, 62% 50%;
+  }
+}
+
+/* Faster foreground light ribbons make the motion obvious without moving page content. */
+.work-social-router-shell::after {
+  content: '';
+  position: absolute;
+  inset: -35%;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse 18% 44% at 22% 50%, rgba(0, 255, 255, .42), transparent 70%),
+    radial-gradient(ellipse 16% 40% at 76% 44%, rgba(130, 90, 255, .44), transparent 70%),
+    radial-gradient(ellipse 12% 34% at 50% 78%, rgba(30, 150, 255, .30), transparent 72%),
+    linear-gradient(115deg, transparent 28%, rgba(0, 225, 255, .12) 42%, transparent 52%),
+    linear-gradient(295deg, transparent 38%, rgba(170, 80, 255, .12) 50%, transparent 62%);
+  filter: blur(8px);
+  mix-blend-mode: screen;
+  opacity: .82;
+  animation: ws-light-ribbons 9s ease-in-out infinite alternate;
+  will-change: transform, background-position, opacity;
+}
+
+@keyframes ws-light-ribbons {
+  0% {
+    transform: translate3d(-7%, 2%, 0) rotate(-2deg) scale(.96);
+    background-position: 0% 50%, 100% 50%, 50% 100%, 0% 0%, 100% 100%;
+    opacity: .52;
+  }
+  50% {
+    transform: translate3d(4%, -4%, 0) rotate(2deg) scale(1.05);
+    background-position: 48% 42%, 54% 58%, 62% 30%, 55% 50%, 45% 40%;
+    opacity: .88;
+  }
+  100% {
+    transform: translate3d(8%, 5%, 0) rotate(-1deg) scale(1);
+    background-position: 100% 55%, 0% 44%, 38% 80%, 100% 100%, 0% 0%;
+    opacity: .64;
+  }
 }
 
 .work-social-router-shell > * {
@@ -46,38 +100,9 @@ body:has(.work-social-page-content) .work-social-page-content {
   z-index: 1;
 }
 
-@keyframes ws-ambient-drift {
-  0% { transform: translate3d(-2%, -1%, 0) scale(1.01); }
-  50% { transform: translate3d(1%, 1.5%, 0) scale(1.025); }
-  100% { transform: translate3d(3%, -1%, 0) scale(1.015); }
-}
-
-.work-social-router-shell::after {
-  content: '';
-  position: absolute;
-  inset: -22%;
-  pointer-events: none;
-  z-index: 0;
-  opacity: .72;
-  background:
-    radial-gradient(circle at 28% 38%, rgba(0, 255, 255, .34), transparent 22%),
-    radial-gradient(circle at 68% 62%, rgba(168, 85, 247, .38), transparent 24%),
-    radial-gradient(circle at 52% 8%, rgba(59, 130, 246, .26), transparent 20%);
-  filter: blur(18px);
-  mix-blend-mode: screen;
-  animation: ws-ambient-orbs 18s ease-in-out infinite alternate;
-  will-change: transform, opacity;
-}
-
-@keyframes ws-ambient-orbs {
-  0% { transform: translate3d(-5%, 3%, 0) scale(.96); opacity: .55; }
-  50% { transform: translate3d(4%, -4%, 0) scale(1.08); opacity: .82; }
-  100% { transform: translate3d(6%, 5%, 0) scale(1); opacity: .62; }
-}
-
 @media (max-width: 767px) {
-  .work-social-router-shell::before { animation-duration: 30s; }
-  .work-social-router-shell::after { animation-duration: 24s; }
+  .work-social-router-shell::before { animation-duration: 18s; }
+  .work-social-router-shell::after { animation-duration: 12s; }
 }
 
 @media (prefers-reduced-motion: reduce) {
