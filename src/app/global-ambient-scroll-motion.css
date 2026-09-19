@@ -33,6 +33,27 @@ body::before {
   background-color:#010107 !important;
 }
 
+/* Dedicated atmospheric scene: independent DOM layers make the environment visibly alive.
+   These layers are decorative only and never participate in scrolling or touch input. */
+.ws-cosmic-atmosphere {
+  position:absolute; inset:0; z-index:0; pointer-events:none; overflow:hidden;
+  background:radial-gradient(ellipse 70% 20% at 50% 52%,rgba(38,226,255,.12),transparent 70%);
+}
+.ws-cosmic-orb,.ws-cosmic-core,.ws-cosmic-vignette { position:absolute; pointer-events:none; }
+.ws-cosmic-orb { border-radius:50%; filter:blur(38px); mix-blend-mode:screen; will-change:transform,opacity; }
+.ws-cosmic-orb-a { width:42vw;height:42vw;left:-12vw;top:8%;background:radial-gradient(circle,rgba(0,126,255,.32),transparent 68%);animation:ws-orbit-a 19s ease-in-out infinite; }
+.ws-cosmic-orb-b { width:38vw;height:38vw;right:-9vw;top:22%;background:radial-gradient(circle,rgba(179,52,255,.30),transparent 68%);animation:ws-orbit-b 23s ease-in-out infinite; }
+.ws-cosmic-orb-c { width:28vw;height:28vw;right:18%;top:-14%;background:radial-gradient(circle,rgba(0,255,211,.22),transparent 66%);animation:ws-orbit-c 16s ease-in-out infinite; }
+.ws-cosmic-orb-d { width:34vw;height:34vw;left:17%;bottom:-22%;background:radial-gradient(circle,rgba(91,55,255,.24),transparent 67%);animation:ws-orbit-d 27s ease-in-out infinite; }
+.ws-cosmic-core { width:46vw;height:12vw;left:27%;top:44%;border-radius:50%;background:radial-gradient(ellipse,rgba(255,255,255,.18) 0 2%,rgba(0,240,255,.24) 8%,rgba(91,71,255,.12) 35%,transparent 72%);filter:blur(14px);animation:ws-core-breathe 9s ease-in-out infinite; }
+.ws-cosmic-vignette { inset:-1px;background:radial-gradient(ellipse at center,transparent 34%,rgba(0,0,10,.32) 100%); }
+
+@keyframes ws-orbit-a { 0%,100%{transform:translate3d(0,0,0) scale(1)} 50%{transform:translate3d(18vw,8vh,0) scale(1.18)} }
+@keyframes ws-orbit-b { 0%,100%{transform:translate3d(0,0,0) scale(1)} 50%{transform:translate3d(-15vw,-10vh,0) scale(1.22)} }
+@keyframes ws-orbit-c { 0%,100%{transform:translate3d(0,0,0) scale(1);opacity:.55} 50%{transform:translate3d(-10vw,20vh,0) scale(1.35);opacity:.95} }
+@keyframes ws-orbit-d { 0%,100%{transform:translate3d(0,0,0) scale(1)} 50%{transform:translate3d(14vw,-13vh,0) scale(1.16)} }
+@keyframes ws-core-breathe { 0%,100%{transform:scaleX(.82);opacity:.45} 50%{transform:scaleX(1.22);opacity:1} }
+
 /* The scroll surface is transparent; the cosmic environment stays behind it. */
 body .app-shell .work-social-page-content,
 body .app-shell .work-social-router-shell > div.work-social-page-content,
@@ -136,7 +157,7 @@ body:has(.work-social-page-content) .work-social-page-content {
   100% { transform:translate3d(-14%,2%,0) rotate(-9deg) scale(1.04); opacity:.76; }
 }
 
-@media (max-width: 767px) {
+@media (max-width: 767px) {\n  .ws-cosmic-orb { filter:blur(28px); }\n  .ws-cosmic-orb-a { width:68vw;height:68vw; }\n  .ws-cosmic-orb-b { width:62vw;height:62vw; }\n  .ws-cosmic-orb-c { width:48vw;height:48vw; }\n  .ws-cosmic-orb-d { width:56vw;height:56vw; }\n  .ws-cosmic-core { width:78vw;left:11%; }
   .work-social-router-shell::before { animation-duration: 24s; }
   .work-social-router-shell::after { animation-duration: 18s; filter: blur(7px); }
 }
