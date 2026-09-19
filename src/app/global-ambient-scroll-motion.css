@@ -16,13 +16,21 @@ body {
   animation: ws-ambient-base-drift 34s ease-in-out infinite alternate;
 }
 
+/* Keep the application above the ambient pseudo-element while allowing the
+   light field to render above body's painted background. */
+#root {
+  position: relative;
+  z-index: 1;
+  background: transparent !important;
+}
+
 /* An independent, fixed light field follows the viewport rather than the
    document, so it remains present while the user scrolls long pages. */
 body::after {
   content: '';
   position: fixed;
   inset: -12%;
-  z-index: -1;
+  z-index: 0;
   pointer-events: none;
   opacity: .72;
   background:
