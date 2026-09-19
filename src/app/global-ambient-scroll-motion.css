@@ -84,7 +84,7 @@ body::before {
   animation:ws-dust-drift 29s ease-in-out infinite;
 }
 .ws-cosmic-streaks { inset:-30%; opacity:0; mix-blend-mode:screen; background:linear-gradient(115deg,transparent 46%,rgba(150,245,255,.72) 49.7%,rgba(255,255,255,.95) 50%,rgba(130,95,255,.55) 50.3%,transparent 54%); filter:blur(1px); animation:ws-streak-pass 18s ease-in-out infinite; }
-@keyframes ws-stars-near { 0%,100%{transform:translate3d(-2%,1%,0);opacity:.72} 50%{transform:translate3d(3%,-2%,0);opacity:1} }
+@keyframes ws-stars-near { 0%,100%{transform:translate3d(-2%,1%,0);background-position:0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0;opacity:.72} 50%{transform:translate3d(3%,-2%,0);background-position:3vw -2vh,-2vw 3vh,4vw 1vh,-3vw -2vh,2vw 2vh,-4vw 1vh,3vw -1vh,-2vw 3vh;opacity:1} }
 @keyframes ws-stars-mid { 0%{transform:translate3d(5%,-3%,0) rotate(0deg)} 50%{transform:translate3d(-5%,4%,0) rotate(.8deg)} 100%{transform:translate3d(5%,-3%,0) rotate(0deg)} }
 @keyframes ws-stars-far { 0%,100%{transform:scale(1) translate3d(0,0,0);opacity:.22} 50%{transform:scale(1.08) translate3d(-3%,2%,0);opacity:.48} }
 @keyframes ws-dust-drift { 0%,100%{transform:translate3d(-4%,2%,0) scale(1);opacity:.22} 50%{transform:translate3d(5%,-3%,0) scale(1.14);opacity:.46} }
@@ -208,7 +208,7 @@ body:has(.work-social-page-content) .work-social-page-content {
   100% { transform:translate3d(-14%,2%,0) rotate(-9deg) scale(1.04); opacity:.76; }
 }
 
-@media (max-width: 767px) {
+@media (prefers-reduced-motion: reduce) {\n  .work-social-router-shell,\n  .work-social-router-shell::before,\n  .work-social-router-shell::after,\n  .ws-cosmic-orb, .ws-cosmic-core, .ws-cosmic-star-layer, .ws-cosmic-dust, .ws-cosmic-streaks { animation: none !important; }\n}\n\n@media (max-width: 767px) {
   .ws-cosmic-orb { filter:blur(28px); }
   .ws-cosmic-orb-a { width:68vw;height:68vw; }
   .ws-cosmic-orb-b { width:62vw;height:62vw; }
