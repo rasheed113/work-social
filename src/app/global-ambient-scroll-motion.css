@@ -55,9 +55,15 @@ body:has(.work-social-page-content) .work-social-page-content {
     radial-gradient(ellipse 88% 19% at 50% 50%,rgba(0,235,255,.22),transparent 70%),
     radial-gradient(ellipse 64% 12% at 50% 51%,rgba(120,75,255,.16),transparent 72%),
     radial-gradient(ellipse 74% 46% at 4% 5%,rgba(25,88,255,.22),transparent 72%),
-    radial-gradient(ellipse 74% 46% at 96% 95%,rgba(126,45,255,.20),transparent 72%);
+    radial-gradient(ellipse 74% 46% at 96% 95%,rgba(126,45,255,.20),transparent 72%),
+    radial-gradient(ellipse 42% 18% at 28% 72%,rgba(0,170,255,.16),transparent 70%),
+    radial-gradient(ellipse 38% 16% at 73% 27%,rgba(190,65,255,.14),transparent 70%),
+    radial-gradient(circle at 58% 46%,rgba(255,255,255,.34) 0 1px,transparent 1.8px),
+    radial-gradient(circle at 39% 58%,rgba(95,220,255,.42) 0 1px,transparent 2px),
+    radial-gradient(circle at 79% 61%,rgba(205,120,255,.38) 0 1px,transparent 2px);
   opacity:.98;
   transform:translate3d(-7%,-2%,0) scale(1.08);
+  filter:brightness(1.08) saturate(1.12);
   animation:ws-ultra-starfield 18s ease-in-out infinite;
   will-change:transform;
   backface-visibility:hidden;
@@ -72,13 +78,16 @@ body:has(.work-social-page-content) .work-social-page-content {
     conic-gradient(from 210deg at 50% 50%,transparent 0deg 18deg,rgba(0,220,255,.06) 28deg,rgba(0,238,255,.34) 48deg,rgba(66,120,255,.46) 68deg,rgba(151,65,255,.38) 91deg,rgba(213,83,255,.16) 112deg,transparent 136deg 226deg,rgba(0,215,255,.26) 250deg,rgba(67,119,255,.34) 274deg,rgba(157,65,255,.28) 301deg,transparent 326deg 360deg),
     radial-gradient(ellipse 62% 7% at 50% 50%,rgba(75,240,255,.70),transparent 68%),
     radial-gradient(ellipse 44% 4% at 50% 50%,rgba(218,108,255,.48),transparent 72%),
-    radial-gradient(ellipse 96% 18% at 50% 50%,rgba(31,80,255,.18),transparent 72%);
+    radial-gradient(ellipse 96% 18% at 50% 50%,rgba(31,80,255,.18),transparent 72%),
+    radial-gradient(ellipse 34% 3% at 50% 50%,rgba(255,255,255,.42),transparent 72%),
+    radial-gradient(ellipse 70% 9% at 50% 50%,rgba(0,255,245,.13),transparent 68%),
+    radial-gradient(ellipse 58% 6% at 50% 50%,rgba(205,70,255,.12),transparent 70%);
   filter:blur(7px);
   mix-blend-mode:screen;
   opacity:.94;
   transform:translate3d(-14%,2%,0) rotate(-9deg) scale(1.04);
   animation:ws-ultra-nebula 14s ease-in-out infinite;
-  will-change:transform;
+  will-change:transform,opacity;
   backface-visibility:hidden;
 }
 /* Subtle depth/edge illumination without introducing another scrolling layer. */
@@ -96,11 +105,11 @@ body:has(.work-social-page-content) .work-social-page-content {
 }
 
 @keyframes ws-ultra-nebula {
-  0% { transform:translate3d(-14%,2%,0) rotate(-9deg) scale(1.04); }
-  25% { transform:translate3d(-3%,-3%,0) rotate(-3deg) scale(1.07); }
-  50% { transform:translate3d(13%,1%,0) rotate(9deg) scale(1.04); }
-  75% { transform:translate3d(3%,4%,0) rotate(3deg) scale(1.07); }
-  100% { transform:translate3d(-14%,2%,0) rotate(-9deg) scale(1.04); }
+  0% { transform:translate3d(-14%,2%,0) rotate(-9deg) scale(1.04); opacity:.76; }
+  25% { transform:translate3d(-3%,-3%,0) rotate(-3deg) scale(1.07); opacity:.98; }
+  50% { transform:translate3d(13%,1%,0) rotate(9deg) scale(1.04); opacity:.84; }
+  75% { transform:translate3d(3%,4%,0) rotate(3deg) scale(1.07); opacity:1; }
+  100% { transform:translate3d(-14%,2%,0) rotate(-9deg) scale(1.04); opacity:.76; }
 }
 
 @media (max-width: 767px) {
