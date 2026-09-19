@@ -16,62 +16,39 @@ body {
   animation: ws-ambient-base-drift 34s ease-in-out infinite alternate;
 }
 
-/* The app uses an internal scroll viewport, not window scrolling. Keep the
-   actual Work Social canvas transparent so this ambient field is visible on
-   every route instead of being hidden by the router shell's opaque gradient. */
-.work-social-router-shell {
-  background: transparent !important;
-  background-color: transparent !important;
-  background-image: none !important;
+/* Work Social owns its own scroll viewport. Paint the ambient field on the
+   app shell itself so it cannot disappear behind the router's stacking context. */
+.app-shell:not(.auth-screen) {
   position: relative;
   isolation: isolate;
+  background: transparent !important;
+  background-color: transparent !important;
 }
 
-.work-social-router-shell::after {
+.app-shell:not(.auth-screen)::before {
   content: '';
-  position: absolute;
-  inset: 0;
-  z-index: -1;
+  position: fixed;
+  inset: -10%;
+  z-index: 0;
   pointer-events: none;
   background:
-    radial-gradient(ellipse 58% 52% at calc(14% + var(--ws-scroll-progress) * 12%) 18%, rgba(54, 103, 255, .42), transparent 68%),
-    radial-gradient(ellipse 54% 56% at calc(86% - var(--ws-scroll-progress) * 10%) 28%, rgba(0, 235, 255, .34), transparent 68%),
-    radial-gradient(ellipse 58% 52% at calc(76% - var(--ws-scroll-progress) * 16%) 84%, rgba(155, 70, 255, .38), transparent 68%),
-    radial-gradient(ellipse 48% 48% at calc(18% + var(--ws-scroll-progress) * 18%) 76%, rgba(38, 167, 255, .28), transparent 70%),
-    linear-gradient(125deg, #06142a 0%, #0b2450 34%, #101f55 56%, #092e52 76%, #07152d 100%);
+    radial-gradient(ellipse 58% 52% at calc(12% + var(--ws-scroll-progress) * 16%) 16%, rgba(48, 96, 255, .58), transparent 66%),
+    radial-gradient(ellipse 54% 56% at calc(88% - var(--ws-scroll-progress) * 14%) 24%, rgba(0, 235, 255, .48), transparent 66%),
+    radial-gradient(ellipse 58% 52% at calc(78% - var(--ws-scroll-progress) * 18%) 84%, rgba(166, 65, 255, .50), transparent 66%),
+    radial-gradient(ellipse 48% 48% at calc(16% + var(--ws-scroll-progress) * 20%) 78%, rgba(30, 166, 255, .38), transparent 68%),
+    linear-gradient(125deg, #06142d 0%, #0b2a58 32%, #111d59 55%, #07375a 76%, #07152f 100%);
   background-size: 135% 135%, 140% 140%, 138% 138%, 132% 132%, 220% 220%;
   background-position: 0% 0%, 100% 0%, 100% 100%, 0% 100%, 0% 50%;
   animation: ws-router-ambient-drift 24s ease-in-out infinite alternate;
   will-change: background-position;
 }
 
-
-/* Keep the application above the ambient pseudo-element while allowing the
-   light field to render above body's painted background. */
-#root {
+.work-social-router-shell {
   position: relative;
   z-index: 1;
   background: transparent !important;
-}
-
-/* An independent, fixed light field follows the viewport rather than the
-   document, so it remains present while the user scrolls long pages. */
-body::after {
-  content: '';
-  position: fixed;
-  inset: -12%;
-  z-index: 0;
-  pointer-events: none;
-  opacity: .72;
-  background:
-    radial-gradient(ellipse 42% 38% at 18% 28%, rgba(72, 99, 255, .28), transparent 72%),
-    radial-gradient(ellipse 38% 44% at 82% 24%, rgba(0, 240, 255, .25), transparent 72%),
-    radial-gradient(ellipse 44% 38% at 72% 82%, rgba(176, 76, 255, .25), transparent 72%),
-    radial-gradient(ellipse 36% 42% at 20% 78%, rgba(0, 183, 255, .18), transparent 74%);
-  background-size: 130% 130%;
-  transform: translate3d(0, calc(var(--ws-scroll-progress) * -24px), 0);
-  will-change: background-position, transform;
-  animation: ws-ambient-orb-drift 26s ease-in-out infinite alternate;
+  background-color: transparent !important;
+  background-image: none !important;
 }
 
 @keyframes ws-ambient-base-drift {
