@@ -1,0 +1,174 @@
+/* Work-side surface-less glass pass.
+   Visual-only: preserves Work content, controls, data and interactions while letting
+   the global living galaxy remain visible through the Work UI. */
+
+main.worker-home .worker-home__hero,
+main.worker-home .worker-home__section,
+main.worker-home .worker-home__resource,
+main.worker-home .worker-summary {
+  background: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  border-color: rgba(103, 232, 249, 0.12) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+}
+
+main.worker-home .worker-home__hero::before,
+main.worker-home .worker-home__hero::after,
+main.worker-home .worker-home__section::after,
+main.worker-home .worker-home__resource::before,
+main.worker-home .worker-summary::before,
+main.worker-home .worker-summary::after {
+  opacity: 0 !important;
+  background: none !important;
+  box-shadow: none !important;
+}
+
+main.worker-home .worker-summary__card,
+main.worker-home .worker-summary__lifetime,
+main.worker-home .worker-summary__ring-core,
+main.worker-home .worker-summary__legend,
+main.worker-home .worker-summary__metric {
+  background: rgba(4, 12, 28, 0.12) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  border-color: rgba(103, 232, 249, 0.11) !important;
+  backdrop-filter: blur(9px) !important;
+  -webkit-backdrop-filter: blur(9px) !important;
+}
+
+main.worker-home .worker-summary__card:hover {
+  background: rgba(4, 12, 28, 0.18) !important;
+  border-color: rgba(103, 232, 249, 0.24) !important;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.16) !important;
+}
+
+main.worker-home .worker-summary__card::after {
+  opacity: 0 !important;
+}
+
+main.worker-home .worker-summary__icon,
+main.worker-home .worker-home__resource-icon,
+main.worker-home .worker-home__private,
+main.worker-home .worker-home__button:not(.worker-home__button--primary),
+main.worker-home .worker-home__card-button {
+  background: rgba(4, 12, 28, 0.10) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  border-color: rgba(103, 232, 249, 0.12) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+}
+
+main.worker-home .worker-home__button--primary {
+  box-shadow: 0 8px 20px rgba(34, 211, 238, 0.10) !important;
+}
+
+/* Worker personal command-center / overview */
+main.wo .wo-hero,
+main.wo .wo-card {
+  background: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  border-color: rgba(103, 232, 249, 0.12) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+}
+
+main.wo .wo-card--first {
+  background: transparent !important;
+  border-color: transparent !important;
+}
+
+main.wo .wo-stat,
+main.wo .wo-star-node {
+  background: rgba(4, 12, 28, 0.14) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  border-color: rgba(103, 232, 249, 0.12) !important;
+}
+
+main.wo .wo-stat {
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+}
+
+main.wo .wo-star-node {
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+}
+
+main.wo .wo-field,
+main.wo .wo-prism {
+  background-color: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Contractor Work Overview */
+main.co5-page .co5-hero,
+main.co5-page .co5-card,
+main.co5-page .co5-summary article,
+main.co5-page .co5-team,
+main.co5-page .co5-priority,
+main.co5-page .co5-progress,
+main.co5-page .co5-kpis > div:not(.co5-remaining),
+main.co5-page .co5-empty {
+  background: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  border-color: rgba(103, 232, 249, 0.12) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+}
+
+main.co5-page .co5-hero::before,
+main.co5-page .co5-hero::after,
+main.co5-page .co5-remaining::before {
+  opacity: 0 !important;
+  background: none !important;
+}
+
+main.co5-page .co5-remaining,
+main.co5-page .co5-team-head > span,
+main.co5-page .co5-team-metrics > div,
+main.co5-page .co5-actions button,
+main.co5-page .co5-priority button {
+  background: rgba(4, 12, 28, 0.12) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  border-color: rgba(103, 232, 249, 0.11) !important;
+}
+
+main.co5-page .co5-actions button:first-child {
+  background: rgba(59, 130, 246, 0.14) !important;
+}
+
+main.co5-page .co5-create-team {
+  box-shadow: 0 8px 20px rgba(34, 211, 238, 0.10) !important;
+}
+
+/* Contractor intelligence/finance surfaces embedded in Work */
+main.co5-page .wsi,
+main.co5-page .wsi-stage,
+main.co5-page .wsi-signals .wsi-signal,
+main.co5-page .wsi-foot,
+main.co5-page .ctwi-lead,
+main.co5-page .cofi,
+main.co5-page .cofi-command,
+main.co5-page .cofi-primary,
+main.co5-page .cosa,
+main.co5-page .cosa-primary,
+main.co5-page .cosa-node {
+  background: rgba(4, 12, 28, 0.14) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+}
+
+main.co5-page .ctwi-lead strong,
+main.co5-page .ctwi-lead span,
+main.co5-page .ctwi-lead small {
+  text-shadow: none !important;
+}
