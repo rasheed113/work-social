@@ -394,3 +394,7 @@ body:has(.work-social-page-content) .work-social-page-content {
   50% { transform:scaleX(1.3); opacity:1; }
 }
 .work-social-router-shell { z-index:1 !important; background:transparent !important; background-image:none !important; background-color:transparent !important; }
+
+
+/* FINAL FIX: the new viewport canvas must be visible; the legacy DOM atmosphere must not cover it. */
+.ws-cosmic-atmosphere { display:none !important; }
