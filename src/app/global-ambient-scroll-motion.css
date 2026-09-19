@@ -1,12 +1,12 @@
-/* Work Social ambient background.
-   IMPORTANT: this file never changes scroll physics or scroll position. */
+/* Work Social — living futuristic OS background.
+   Background motion is isolated from the scroll container: native touch scrolling stays 1:1. */
 
 .work-social-router-shell {
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  background: #040b1d !important;
-  background-color: #040b1d !important;
+  background: #030712 !important;
+  background-color: #030712 !important;
 }
 
 body .app-shell .work-social-page-content,
@@ -18,74 +18,54 @@ body:has(.work-social-page-content) .work-social-page-content {
   background-attachment: initial !important;
 }
 
-/* Animated aurora field: large color masses visibly travel across the viewport. */
+/* Deep-space canvas: subtle technical grid + luminous horizon. */
 .work-social-router-shell::before {
   content: '';
   position: absolute;
-  inset: -55%;
-  pointer-events: none;
+  inset: -18%;
   z-index: 0;
+  pointer-events: none;
   background:
-    radial-gradient(ellipse 34% 24% at 12% 20%, rgba(0, 229, 255, .72), transparent 68%),
-    radial-gradient(ellipse 32% 26% at 86% 18%, rgba(62, 112, 255, .70), transparent 68%),
-    radial-gradient(ellipse 38% 28% at 72% 78%, rgba(168, 72, 255, .72), transparent 70%),
-    radial-gradient(ellipse 30% 22% at 20% 84%, rgba(0, 174, 255, .60), transparent 68%),
-    conic-gradient(from 120deg at 50% 50%, #04112b 0deg, #062f58 65deg, #10135a 135deg, #260c54 205deg, #063f55 285deg, #04112b 360deg);
-  background-size: 72% 62%, 70% 64%, 76% 66%, 68% 60%, 150% 150%;
-  opacity: .96;
-  animation: ws-aurora-flow 18s ease-in-out infinite alternate;
+    radial-gradient(ellipse 34% 20% at 50% 104%, rgba(0, 214, 255, .22), transparent 72%),
+    radial-gradient(ellipse 26% 18% at 8% 18%, rgba(0, 110, 255, .14), transparent 74%),
+    radial-gradient(ellipse 25% 20% at 92% 28%, rgba(126, 58, 255, .15), transparent 74%),
+    repeating-linear-gradient(90deg, rgba(94, 234, 212, .025) 0 1px, transparent 1px 72px),
+    repeating-linear-gradient(0deg, rgba(56, 189, 248, .022) 0 1px, transparent 1px 72px),
+    linear-gradient(135deg, #020617 0%, #061329 46%, #08071b 72%, #020617 100%);
+  opacity: .98;
+  transform: translate3d(0, 0, 0) scale(1.02);
+  animation: ws-space-drift 26s ease-in-out infinite alternate;
   will-change: transform;
 }
 
-@keyframes ws-aurora-flow {
-  0% {
-    transform: translate3d(-5%, -3%, 0) scale(1);
-  }
-  35% {
-    transform: translate3d(3%, 2%, 0) scale(1.045);
-  }
-  70% {
-    transform: translate3d(-1%, 5%, 0) scale(1.02);
-  }
-  100% {
-    transform: translate3d(5%, -1%, 0) scale(1.055);
-  }
-}
-
-/* Faster foreground light ribbons make the motion obvious without moving page content. */
+/* Moving light architecture — ribbons rather than generic blurred blobs. */
 .work-social-router-shell::after {
   content: '';
   position: absolute;
-  inset: -35%;
-  pointer-events: none;
+  inset: -30%;
   z-index: 0;
+  pointer-events: none;
   background:
-    radial-gradient(ellipse 18% 44% at 22% 50%, rgba(0, 255, 255, .42), transparent 70%),
-    radial-gradient(ellipse 16% 40% at 76% 44%, rgba(130, 90, 255, .44), transparent 70%),
-    radial-gradient(ellipse 12% 34% at 50% 78%, rgba(30, 150, 255, .30), transparent 72%),
-    linear-gradient(115deg, transparent 28%, rgba(0, 225, 255, .12) 42%, transparent 52%),
-    linear-gradient(295deg, transparent 38%, rgba(170, 80, 255, .12) 50%, transparent 62%);
-  filter: blur(8px);
-  transform: translateZ(0);
+    linear-gradient(112deg,
+      transparent 20%,
+      rgba(0, 229, 255, 0) 31%,
+      rgba(0, 229, 255, .16) 39%,
+      rgba(86, 196, 255, .08) 43%,
+      transparent 52%),
+    linear-gradient(294deg,
+      transparent 35%,
+      rgba(132, 72, 255, 0) 43%,
+      rgba(132, 72, 255, .15) 49%,
+      rgba(0, 210, 255, .07) 54%,
+      transparent 63%),
+    radial-gradient(ellipse 16% 7% at 18% 34%, rgba(0, 238, 255, .34), transparent 72%),
+    radial-gradient(ellipse 13% 8% at 82% 68%, rgba(137, 92, 255, .30), transparent 72%);
+  filter: blur(12px);
+  opacity: .78;
   mix-blend-mode: screen;
-  opacity: .82;
-  animation: ws-light-ribbons 13s ease-in-out infinite alternate;
+  transform: translate3d(-2%, 0, 0) rotate(-1deg);
+  animation: ws-light-architecture 17s cubic-bezier(.45, 0, .35, 1) infinite alternate;
   will-change: transform, opacity;
-}
-
-@keyframes ws-light-ribbons {
-  0% {
-    transform: translate3d(-7%, 2%, 0) rotate(-2deg) scale(.96);
-    opacity: .52;
-  }
-  50% {
-    transform: translate3d(4%, -4%, 0) rotate(2deg) scale(1.05);
-    opacity: .88;
-  }
-  100% {
-    transform: translate3d(8%, 5%, 0) rotate(-1deg) scale(1);
-    opacity: .64;
-  }
 }
 
 .work-social-router-shell > * {
@@ -93,12 +73,48 @@ body:has(.work-social-page-content) .work-social-page-content {
   z-index: 1;
 }
 
-@media (max-width: 767px) {
-  .work-social-router-shell::before { animation-duration: 24s; }
-  .work-social-router-shell::after { animation-duration: 18s; }
+@keyframes ws-space-drift {
+  0% {
+    transform: translate3d(-1.2%, -0.6%, 0) scale(1.02);
+  }
+  50% {
+    transform: translate3d(.8%, .7%, 0) scale(1.035);
+  }
+  100% {
+    transform: translate3d(1.4%, -0.8%, 0) scale(1.025);
+  }
 }
 
-/* Keep the ambient canvas alive even when the device requests reduced motion. */
+@keyframes ws-light-architecture {
+  0% {
+    transform: translate3d(-9%, 3%, 0) rotate(-2deg) scale(.97);
+    opacity: .50;
+  }
+  35% {
+    transform: translate3d(-1%, -2%, 0) rotate(1deg) scale(1);
+    opacity: .72;
+  }
+  70% {
+    transform: translate3d(6%, 2%, 0) rotate(2deg) scale(1.035);
+    opacity: .88;
+  }
+  100% {
+    transform: translate3d(11%, -3%, 0) rotate(-1deg) scale(1.01);
+    opacity: .62;
+  }
+}
+
+@media (max-width: 767px) {
+  .work-social-router-shell::before {
+    animation-duration: 32s;
+  }
+
+  .work-social-router-shell::after {
+    animation-duration: 21s;
+  }
+}
+
+/* Keep motion active; neither layer participates in scrolling or touch input. */
 .work-social-router-shell::before,
 .work-social-router-shell::after {
   animation-play-state: running !important;
