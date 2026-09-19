@@ -1,12 +1,8 @@
 /* Work Social global ambient motion layer.
-   Presentation-only: the existing glass surfaces and page scrolling remain untouched. */
+   Presentation-only: native page scrolling stays 1:1 with the user's finger. */
 
-:root {
-  --ws-scroll-shift: 0px;
-}
-
-.app-shell:not(.auth-screen),
 .work-social-router-shell {
+  --ws-scroll-shift: 0px;
   position: relative;
   isolation: isolate;
   background: transparent !important;
@@ -14,7 +10,6 @@
   background-image: none !important;
 }
 
-/* The scrolling viewport stays transparent so the ambient field remains visible. */
 body .app-shell .work-social-page-content,
 body .app-shell .work-social-router-shell > div.work-social-page-content,
 body:has(.work-social-page-content) .work-social-page-content {
@@ -24,7 +19,6 @@ body:has(.work-social-page-content) .work-social-page-content {
   background-attachment: initial !important;
 }
 
-/* Slow, compositor-friendly ambient motion. Only the background layer moves. */
 .work-social-router-shell::before,
 .work-social-router-shell::after {
   content: '';
@@ -68,9 +62,6 @@ body:has(.work-social-page-content) .work-social-page-content {
 @media (max-width: 767px) {
   .work-social-router-shell::before {
     animation-duration: 42s;
-  }
-  .work-social-router-shell::after {
-    transform: translate3d(0, var(--ws-scroll-shift), 0) scale(1.04);
   }
 }
 
