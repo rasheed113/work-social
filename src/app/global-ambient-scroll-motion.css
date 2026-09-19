@@ -1,5 +1,5 @@
 /* Work Social — Living Galaxy.
-   Animation is isolated to decorative layers; page touch scrolling stays native. */
+   Decorative animation only; native page scrolling remains untouched. */
 
 .work-social-router-shell {
   position: relative;
@@ -18,25 +18,25 @@ body:has(.work-social-page-content) .work-social-page-content {
   background-attachment: initial !important;
 }
 
-/* Smooth, continuously moving starfield. No scroll coupling. */
+/* Moving starfield: deliberately visible, but slow and continuous. */
 .work-social-router-shell::before {
   content: '';
   position: absolute;
-  inset: -22%;
+  inset: -30%;
   z-index: 0;
   pointer-events: none;
   background:
-    radial-gradient(circle at 7% 14%, rgba(255,255,255,.95) 0 1.2px, transparent 2.2px),
-    radial-gradient(circle at 19% 72%, rgba(169,235,255,.9) 0 1.1px, transparent 2px),
-    radial-gradient(circle at 31% 31%, rgba(255,255,255,.8) 0 1px, transparent 2px),
-    radial-gradient(circle at 47% 83%, rgba(151,221,255,.85) 0 1.2px, transparent 2.2px),
-    radial-gradient(circle at 63% 17%, rgba(255,255,255,.9) 0 1px, transparent 2px),
-    radial-gradient(circle at 79% 43%, rgba(205,183,255,.9) 0 1.2px, transparent 2.2px),
-    radial-gradient(circle at 91% 78%, rgba(255,255,255,.85) 0 1px, transparent 2px),
-    radial-gradient(circle at 58% 57%, rgba(102,220,255,.8) 0 1px, transparent 2px),
-    repeating-radial-gradient(circle at 50% 50%, rgba(255,255,255,.12) 0 1px, transparent 1.8px 82px),
-    radial-gradient(ellipse 72% 17% at 50% 53%, rgba(0,213,255,.22), transparent 68%),
-    radial-gradient(ellipse 64% 13% at 48% 54%, rgba(121,65,255,.22), transparent 72%),
+    radial-gradient(circle at 7% 14%, rgba(255,255,255,.98) 0 1.3px, transparent 2.5px),
+    radial-gradient(circle at 19% 72%, rgba(169,235,255,.92) 0 1.2px, transparent 2.2px),
+    radial-gradient(circle at 31% 31%, rgba(255,255,255,.86) 0 1.1px, transparent 2.2px),
+    radial-gradient(circle at 47% 83%, rgba(151,221,255,.9) 0 1.3px, transparent 2.4px),
+    radial-gradient(circle at 63% 17%, rgba(255,255,255,.92) 0 1.1px, transparent 2.2px),
+    radial-gradient(circle at 79% 43%, rgba(205,183,255,.94) 0 1.3px, transparent 2.4px),
+    radial-gradient(circle at 91% 78%, rgba(255,255,255,.88) 0 1.1px, transparent 2.2px),
+    radial-gradient(circle at 58% 57%, rgba(102,220,255,.86) 0 1.1px, transparent 2.2px),
+    repeating-radial-gradient(circle at 50% 50%, rgba(255,255,255,.13) 0 1px, transparent 1.8px 82px),
+    radial-gradient(ellipse 72% 17% at 50% 53%, rgba(0,213,255,.25), transparent 68%),
+    radial-gradient(ellipse 64% 13% at 48% 54%, rgba(121,65,255,.25), transparent 72%),
     linear-gradient(140deg, #01020a 0%, #030817 40%, #080318 66%, #01020a 100%);
   background-size:
     170px 150px, 210px 190px, 240px 220px, 190px 210px,
@@ -47,43 +47,43 @@ body:has(.work-social-page-content) .work-social-page-content {
     110px 40px, 60px 120px, 140px 70px, 20px 140px,
     0 0, 0 0, 0 0, 0 0;
   opacity: .98;
-  transform: translate3d(-1.5%,0,0) scale(1.04);
-  animation: ws-starfield-drift 75s linear infinite;
+  transform: translate3d(-10%, 0, 0) scale(1.06);
+  animation: ws-starfield-visible 34s linear infinite;
   will-change: transform;
   backface-visibility: hidden;
   contain: paint;
 }
 
-/* Smooth luminous galactic stream. */
+/* Moving galactic energy band: visibly sweeps across the canvas. */
 .work-social-router-shell::after {
   content: '';
   position: absolute;
-  inset: -38%;
+  inset: -42%;
   z-index: 0;
   pointer-events: none;
   background:
     conic-gradient(
       from 205deg at 52% 50%,
       transparent 0deg,
-      rgba(0,220,255,.02) 34deg,
-      rgba(0,229,255,.28) 67deg,
-      rgba(79,125,255,.12) 91deg,
-      rgba(155,72,255,.25) 126deg,
+      rgba(0,220,255,.03) 34deg,
+      rgba(0,229,255,.34) 67deg,
+      rgba(79,125,255,.16) 91deg,
+      rgba(155,72,255,.32) 126deg,
       transparent 163deg,
       transparent 250deg,
-      rgba(0,204,255,.18) 286deg,
+      rgba(0,204,255,.24) 286deg,
       transparent 324deg
     ),
-    radial-gradient(ellipse 46% 9% at 49% 50%, rgba(0,240,255,.34), transparent 70%),
-    radial-gradient(ellipse 38% 7% at 50% 51%, rgba(172,77,255,.30), transparent 72%),
-    radial-gradient(circle at 18% 35%, rgba(0,238,255,.72) 0 1.4px, transparent 3px),
-    radial-gradient(circle at 84% 63%, rgba(168,103,255,.68) 0 1.5px, transparent 3px),
-    radial-gradient(circle at 62% 26%, rgba(255,255,255,.72) 0 1px, transparent 2.5px);
+    radial-gradient(ellipse 46% 9% at 49% 50%, rgba(0,240,255,.42), transparent 70%),
+    radial-gradient(ellipse 38% 7% at 50% 51%, rgba(172,77,255,.38), transparent 72%),
+    radial-gradient(circle at 18% 35%, rgba(0,238,255,.82) 0 1.5px, transparent 3px),
+    radial-gradient(circle at 84% 63%, rgba(168,103,255,.78) 0 1.6px, transparent 3px),
+    radial-gradient(circle at 62% 26%, rgba(255,255,255,.8) 0 1px, transparent 2.5px);
   filter: blur(5px);
   mix-blend-mode: screen;
-  opacity: .72;
-  transform: translate3d(-6%,0,0) rotate(-4deg) scale(1.01);
-  animation: ws-galactic-drift 58s ease-in-out infinite;
+  opacity: .9;
+  transform: translate3d(-12%, 0, 0) rotate(-7deg) scale(1.01);
+  animation: ws-galactic-visible 27s ease-in-out infinite;
   will-change: transform;
   backface-visibility: hidden;
   contain: paint;
@@ -94,21 +94,21 @@ body:has(.work-social-page-content) .work-social-page-content {
   z-index: 1;
 }
 
-@keyframes ws-starfield-drift {
-  0% { transform: translate3d(-1.5%, 0, 0) scale(1.04); }
-  50% { transform: translate3d(1.5%, 0, 0) scale(1.04); }
-  100% { transform: translate3d(-1.5%, 0, 0) scale(1.04); }
+@keyframes ws-starfield-visible {
+  0% { transform: translate3d(-10%, 0, 0) scale(1.06); }
+  50% { transform: translate3d(10%, 0, 0) scale(1.06); }
+  100% { transform: translate3d(-10%, 0, 0) scale(1.06); }
 }
 
-@keyframes ws-galactic-drift {
-  0% { transform: translate3d(-6%, 0, 0) rotate(-4deg) scale(1.01); }
-  50% { transform: translate3d(6%, 0, 0) rotate(4deg) scale(1.01); }
-  100% { transform: translate3d(-6%, 0, 0) rotate(-4deg) scale(1.01); }
+@keyframes ws-galactic-visible {
+  0% { transform: translate3d(-12%, 0, 0) rotate(-7deg) scale(1.01); }
+  50% { transform: translate3d(12%, 0, 0) rotate(7deg) scale(1.01); }
+  100% { transform: translate3d(-12%, 0, 0) rotate(-7deg) scale(1.01); }
 }
 
 @media (max-width: 767px) {
-  .work-social-router-shell::before { animation-duration: 82s; }
-  .work-social-router-shell::after { animation-duration: 64s; }
+  .work-social-router-shell::before { animation-duration: 38s; }
+  .work-social-router-shell::after { animation-duration: 31s; }
 }
 
 .work-social-router-shell::before,
