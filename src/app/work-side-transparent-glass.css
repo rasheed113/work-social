@@ -172,3 +172,54 @@ main.co5-page .ctwi-lead span,
 main.co5-page .ctwi-lead small {
   text-shadow: none !important;
 }
+
+
+/* Contractor Team Intelligence has its own inline style block, so override its
+   white surfaces explicitly without changing its real-data logic. */
+main.co5-page .ctwi {
+  background: transparent !important;
+  background-image: none !important;
+  border-color: rgba(103, 232, 249, 0.12) !important;
+  box-shadow: none !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+}
+
+main.co5-page .ctwi::before {
+  opacity: 0 !important;
+  background: none !important;
+}
+
+main.co5-page .ctwi-lead,
+main.co5-page .ctwi-team,
+main.co5-page .ctwi-output,
+main.co5-page .ctwi-metrics > div,
+main.co5-page .ctwi-team-foot,
+main.co5-page .ctwi-foot,
+main.co5-page .ctwi-signal {
+  background: rgba(4, 12, 28, 0.10) !important;
+  background-image: none !important;
+  border-color: rgba(103, 232, 249, 0.11) !important;
+  box-shadow: none !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+}
+
+main.co5-page .ctwi-team:hover {
+  background: rgba(4, 12, 28, 0.16) !important;
+  border-color: rgba(103, 232, 249, 0.23) !important;
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.14) !important;
+}
+
+main.co5-page .ctwi-rank,
+main.co5-page .ctwi-output-track,
+main.co5-page .ctwi-progress-line i {
+  background: rgba(4, 12, 28, 0.10) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+main.co5-page .ctwi-output-track span,
+main.co5-page .ctwi-progress-line b {
+  box-shadow: none !important;
+}
