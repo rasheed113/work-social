@@ -55,6 +55,19 @@ body::before {
 @keyframes ws-orbit-d { 0%,100%{transform:translate3d(0,0,0) scale(1)} 50%{transform:translate3d(14vw,-13vh,0) scale(1.16)} }
 @keyframes ws-core-breathe { 0%,100%{transform:scaleX(.82);opacity:.45} 50%{transform:scaleX(1.22);opacity:1} }
 
+/* Individual stars: each particle changes position and brightness independently. This is autonomous animation, not scroll-linked motion. */
+.ws-living-star-field { position:absolute; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
+.ws-living-star { position:absolute; left:var(--ws-x); top:var(--ws-y); width:var(--ws-size); height:var(--ws-size); border-radius:50%; background:rgba(235,250,255,.96); box-shadow:0 0 5px rgba(90,220,255,.72),0 0 11px rgba(150,90,255,.34); animation:ws-living-star var(--ws-duration) ease-in-out var(--ws-delay) infinite; will-change:transform,opacity; }
+.ws-living-star:nth-child(3n) { background:rgba(110,235,255,.96); }
+.ws-living-star:nth-child(5n) { background:rgba(215,180,255,.95); }
+.ws-living-star:nth-child(7n) { box-shadow:0 0 7px rgba(255,255,255,.9),0 0 18px rgba(0,230,255,.58); }
+@keyframes ws-living-star {
+  0%,100% { transform:translate3d(0,0,0) scale(.72); opacity:.28; }
+  22% { transform:translate3d(8px,-6px,0) scale(1); opacity:.88; }
+  48% { transform:translate3d(-11px,9px,0) scale(1.42); opacity:1; }
+  73% { transform:translate3d(13px,5px,0) scale(.82); opacity:.46; }
+}
+
 /* Independent deep-space layers: each has its own motion cycle, so the scene never moves as one flat texture. */
 .ws-cosmic-star-layer,.ws-cosmic-dust,.ws-cosmic-streaks { position:absolute; inset:-12%; pointer-events:none; will-change:transform,opacity; }
 .ws-cosmic-star-layer { background-repeat:repeat; mix-blend-mode:screen; }
