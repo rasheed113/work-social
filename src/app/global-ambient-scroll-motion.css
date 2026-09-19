@@ -147,3 +147,45 @@ body:has(.work-social-page-content) .work-social-page-content {
 .work-social-router-shell::after {
   animation-play-state: running !important;
 }
+
+
+/* FINAL VIEWPORT CANVAS LOCK.
+   Page-level backgrounds are content surfaces, not the environment.
+   Keep the single galaxy canvas visible behind every routed page. */
+.work-social-router-shell > .work-social-page-content > main,
+.work-social-router-shell > .work-social-page-content > .wo,
+.work-social-router-shell > .work-social-page-content > .expense-manager-page,
+.work-social-router-shell > .work-social-page-content > .worker-identity-page,
+.work-social-router-shell > .work-social-page-content > .premium-profile-page,
+.work-social-router-shell > .work-social-page-content > .notifications-page,
+.work-social-router-shell > .work-social-page-content > .home-page-root {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  background-attachment: initial !important;
+  box-shadow: none !important;
+}
+
+/* Remove legacy full-page canvas effects that are attached to routed page roots. */
+.work-social-router-shell > .work-social-page-content > main::before,
+.work-social-router-shell > .work-social-page-content > main::after,
+.work-social-router-shell > .work-social-page-content > .wo::before,
+.work-social-router-shell > .work-social-page-content > .wo::after,
+.work-social-router-shell > .work-social-page-content > .expense-manager-page::before,
+.work-social-router-shell > .work-social-page-content > .expense-manager-page::after,
+.work-social-router-shell > .work-social-page-content > .worker-identity-page::before,
+.work-social-router-shell > .work-social-page-content > .worker-identity-page::after {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+/* The scroll viewport itself never paints a competing canvas. */
+.work-social-router-shell > .work-social-page-content {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
