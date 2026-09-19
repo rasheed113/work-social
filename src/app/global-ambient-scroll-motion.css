@@ -16,6 +16,36 @@ body {
   animation: ws-ambient-base-drift 34s ease-in-out infinite alternate;
 }
 
+/* The app uses an internal scroll viewport, not window scrolling. Keep the
+   actual Work Social canvas transparent so this ambient field is visible on
+   every route instead of being hidden by the router shell's opaque gradient. */
+.work-social-router-shell {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  position: relative;
+  isolation: isolate;
+}
+
+.work-social-router-shell::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 58% 52% at calc(14% + var(--ws-scroll-progress) * 12%) 18%, rgba(54, 103, 255, .42), transparent 68%),
+    radial-gradient(ellipse 54% 56% at calc(86% - var(--ws-scroll-progress) * 10%) 28%, rgba(0, 235, 255, .34), transparent 68%),
+    radial-gradient(ellipse 58% 52% at calc(76% - var(--ws-scroll-progress) * 16%) 84%, rgba(155, 70, 255, .38), transparent 68%),
+    radial-gradient(ellipse 48% 48% at calc(18% + var(--ws-scroll-progress) * 18%) 76%, rgba(38, 167, 255, .28), transparent 70%),
+    linear-gradient(125deg, #06142a 0%, #0b2450 34%, #101f55 56%, #092e52 76%, #07152d 100%);
+  background-size: 135% 135%, 140% 140%, 138% 138%, 132% 132%, 220% 220%;
+  background-position: 0% 0%, 100% 0%, 100% 100%, 0% 100%, 0% 50%;
+  animation: ws-router-ambient-drift 24s ease-in-out infinite alternate;
+  will-change: background-position;
+}
+
+
 /* Keep the application above the ambient pseudo-element while allowing the
    light field to render above body's painted background. */
 #root {
@@ -49,6 +79,12 @@ body::after {
   100% { background-position: 0 0, 0 0, center top, left center, right top, left bottom, right bottom, center, 100% 55%; }
 }
 
+@keyframes ws-router-ambient-drift {
+  0% { background-position: 0% 0%, 100% 0%, 100% 100%, 0% 100%, 0% 50%; }
+  50% { background-position: 18% 20%, 82% 8%, 76% 82%, 12% 72%, 55% 46%; }
+  100% { background-position: 38% 42%, 62% 24%, 48% 62%, 28% 48%, 100% 54%; }
+}
+
 @keyframes ws-ambient-orb-drift {
   0% { background-position: 0% 10%; }
   50% { background-position: 100% 55%; }
@@ -57,6 +93,9 @@ body::after {
 
 @media (max-width: 767px) {
   body { animation-duration: 46s; }
+  .work-social-router-shell::after {
+    animation-duration: 34s;
+  }
   body::after {
     opacity: .56;
     inset: -5%;
@@ -68,6 +107,7 @@ body::after {
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  body, body::after { animation: none !important; }
+  body, body::after, .work-social-router-shell::after { animation: none !important; }
   body::after { transform: none; will-change: auto; }
+  .work-social-router-shell::after { will-change: auto; }
 }
