@@ -48,8 +48,10 @@ body:has(.work-social-page-content) .work-social-page-content {
     0 0, 0 0, 0 0, 0 0;
   opacity: .98;
   transform: translate3d(0,0,0) scale(1.04);
-  animation: ws-starfield 42s ease-in-out infinite;
+  animation: ws-starfield 55s linear infinite;
   will-change: transform;
+  backface-visibility: hidden;
+  contain: paint;
 }
 
 /* A moving luminous galactic stream with a slow orbital sweep. */
@@ -81,8 +83,10 @@ body:has(.work-social-page-content) .work-social-page-content {
   mix-blend-mode: screen;
   opacity: .8;
   transform: translate3d(-5%,0,0) rotate(-9deg) scale(1.02);
-  animation: ws-galactic-orbit 30s cubic-bezier(.45,.08,.35,.92) infinite alternate;
+  animation: ws-galactic-orbit 40s linear infinite;
   will-change: transform, opacity;
+  backface-visibility: hidden;
+  contain: paint;
 }
 
 .work-social-router-shell > * {
@@ -91,44 +95,20 @@ body:has(.work-social-page-content) .work-social-page-content {
 }
 
 @keyframes ws-starfield {
-  0% {
-    transform: translate3d(-1.5%, -.5%, 0) scale(1.04);
-    background-position:
-      0 0, 40px 30px, 80px 10px, 20px 90px, 110px 40px, 60px 120px, 140px 70px, 20px 140px,
-      0 0, 0 0, 0 0, 0 0;
-  }
-  50% {
-    transform: translate3d(1%, .8%, 0) scale(1.055);
-    background-position:
-      55px 38px, 5px 92px, 130px 55px, 95px 5px, 25px 105px, 125px 20px, 35px 145px, 105px 55px,
-      0 0, 0 0, 0 0, 0 0;
-  }
-  100% {
-    transform: translate3d(2%, -.7%, 0) scale(1.04);
-    background-position:
-      110px 76px, -30px 154px, 180px 100px, 170px -80px, -60px 170px, 190px -80px, -70px 220px, 190px -30px,
-      0 0, 0 0, 0 0, 0 0;
-  }
+  0% { transform: translate3d(-1.2%, -.4%, 0) scale(1.04); }
+  50% { transform: translate3d(0.6%, .4%, 0) scale(1.045); }
+  100% { transform: translate3d(1.2%, -.4%, 0) scale(1.04); }
 }
 
 @keyframes ws-galactic-orbit {
-  0% {
-    transform: translate3d(-13%, 5%, 0) rotate(-12deg) scale(.94);
-    opacity: .42;
-  }
-  50% {
-    transform: translate3d(0, -2%, 0) rotate(0deg) scale(1.04);
-    opacity: .9;
-  }
-  100% {
-    transform: translate3d(13%, 4%, 0) rotate(12deg) scale(.97);
-    opacity: .58;
-  }
+  0% { transform: translate3d(-7%, 2%, 0) rotate(-4deg) scale(.99); opacity: .56; }
+  50% { transform: translate3d(0, -1%, 0) rotate(0deg) scale(1.01); opacity: .78; }
+  100% { transform: translate3d(7%, 2%, 0) rotate(4deg) scale(.99); opacity: .56; }
 }
 
 @media (max-width: 767px) {
-  .work-social-router-shell::before { animation-duration: 50s; }
-  .work-social-router-shell::after { animation-duration: 34s; }
+  .work-social-router-shell::before { animation-duration: 62s; }
+  .work-social-router-shell::after { animation-duration: 46s; }
 }
 
 .work-social-router-shell::before,
