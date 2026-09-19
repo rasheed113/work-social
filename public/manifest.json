@@ -1,0 +1,15 @@
+{
+  "name": "Work Social",
+  "short_name": "WorkSocial",
+  "description": "Work Social — a real social web platform.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#071426",
+  "theme_color": "#071426",
+  "icons": [
+    {"src": "/icon-192.svg", "type": "image/svg+xml", "sizes": "192x192", "purpose": "any maskable"},
+    {"src": "/icon-512.svg", "type": "image/svg+xml", "sizes": "512x512", "purpose": "any maskable"}
+  ]
+}
