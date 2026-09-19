@@ -48,8 +48,8 @@ body:has(.work-social-page-content) .work-social-page-content {
     0 0, 0 0, 0 0, 0 0;
   opacity: .98;
   transform: translate3d(0,0,0) scale(1.04);
-  animation: ws-starfield 28s linear infinite;
-  will-change: transform, background-position;
+  animation: ws-starfield 42s ease-in-out infinite;
+  will-change: transform;
 }
 
 /* A moving luminous galactic stream with a slow orbital sweep. */
@@ -81,7 +81,7 @@ body:has(.work-social-page-content) .work-social-page-content {
   mix-blend-mode: screen;
   opacity: .8;
   transform: translate3d(-5%,0,0) rotate(-9deg) scale(1.02);
-  animation: ws-galactic-orbit 18s cubic-bezier(.55,.05,.35,.95) infinite alternate;
+  animation: ws-galactic-orbit 30s cubic-bezier(.45,.08,.35,.92) infinite alternate;
   will-change: transform, opacity;
 }
 
@@ -127,8 +127,8 @@ body:has(.work-social-page-content) .work-social-page-content {
 }
 
 @media (max-width: 767px) {
-  .work-social-router-shell::before { animation-duration: 34s; }
-  .work-social-router-shell::after { animation-duration: 22s; }
+  .work-social-router-shell::before { animation-duration: 50s; }
+  .work-social-router-shell::after { animation-duration: 34s; }
 }
 
 .work-social-router-shell::before,
