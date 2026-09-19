@@ -35,14 +35,17 @@ if (typeof window !== 'undefined') {
   const updateAmbientScroll = () => {
     if (scrollFrame) return;
     scrollFrame = window.requestAnimationFrame(() => {
-      const scrollable = document.documentElement.scrollHeight - window.innerHeight;
-      const progress = scrollable > 0 ? Math.min(1, Math.max(0, window.scrollY / scrollable)) : 0;
+      const scroller = document.querySelector<HTMLElement>('.work-social-page-content');
+      const scrollable = scroller ? scroller.scrollHeight - scroller.clientHeight : document.documentElement.scrollHeight - window.innerHeight;
+      const scrollTop = scroller ? scroller.scrollTop : window.scrollY;
+      const progress = scrollable > 0 ? Math.min(1, Math.max(0, scrollTop / scrollable)) : 0;
       document.documentElement.style.setProperty('--ws-scroll-progress', progress.toFixed(4));
       scrollFrame = 0;
     });
   };
   window.addEventListener('scroll', updateAmbientScroll, { passive: true });
   window.addEventListener('resize', updateAmbientScroll, { passive: true });
+  document.addEventListener('scroll', updateAmbientScroll, { passive: true, capture: true });
   updateAmbientScroll();
 }
 
