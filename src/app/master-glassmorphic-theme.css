@@ -44,11 +44,9 @@ body:has(.home-post-feed) .work-social-page-content {
 .app-shell,
 .premium-profile-panel {
   background-color: transparent !important;
-  background-image:
-    linear-gradient(rgba(130, 235, 255, 0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(130, 235, 255, 0.025) 1px, transparent 1px) !important;
-  background-size: 32px 32px !important;
+  background-image: none !important;
 }
+
 
 /* Posts: use the shared glass material instead of legacy solid cards. */
 .home-post-feed article,
