@@ -27,22 +27,18 @@
   --ws-radius-xl: 26px;
 }
 
-html { min-height: 100%; background: #1769a8; }
+/* The futuristic environment is rendered exclusively by .work-social-router-shell.
+   Keep document-level surfaces transparent so the old blue/grid canvas cannot leak through. */
+html {
+  min-height: 100%;
+  background: transparent !important;
+}
 body {
   min-height: 100vh;
   margin: 0;
-  background:
-    linear-gradient(to right, rgba(205, 255, 255, 0.10) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(205, 255, 255, 0.10) 1px, transparent 1px),
-    radial-gradient(ellipse 105% 72% at 50% -5%, rgba(235, 255, 255, 0.54), transparent 60%),
-    radial-gradient(ellipse 58% 78% at 4% 30%, rgba(0, 149, 255, 0.48), transparent 68%),
-    radial-gradient(ellipse 48% 72% at 94% 22%, rgba(0, 228, 255, 0.42), transparent 68%),
-    radial-gradient(ellipse 48% 72% at 12% 82%, rgba(183, 255, 24, 0.34), transparent 68%),
-    radial-gradient(ellipse 52% 76% at 88% 76%, rgba(183, 255, 24, 0.30), transparent 68%),
-    radial-gradient(ellipse 75% 58% at 50% 50%, rgba(70, 210, 255, 0.24), transparent 70%),
-    linear-gradient(115deg, #1769a8 0%, #2179b3 34%, #3a8fc4 58%, #2780b5 78%, #1769a8 100%) !important;
-  background-size: 32px 32px, 32px 32px, auto, auto, auto, auto, auto, auto, auto !important;
-  background-attachment: fixed;
+  background: transparent !important;
+  background-image: none !important;
+  background-attachment: initial !important;
   color: var(--ws-text-primary);
   font-family: 'JetBrains Mono', monospace;
   -webkit-font-smoothing: antialiased;
