@@ -18,28 +18,27 @@ body,
     linear-gradient(120deg, #07162b 0%, #0a2344 32%, #0c2d52 55%, #0a2341 76%, #061427 100%);
 }
 
-html {
-  background: #07162b !important;
+/* The router shell owns the environment canvas. Never paint a second,
+   page-level supercomputer canvas underneath/above the animated shell. */
+html,
+body {
+  background: transparent !important;
+  background-image: none !important;
+  background-attachment: initial !important;
 }
 
 body {
-  background: var(--ws-supercomputer-canvas) !important;
-  background-attachment: fixed !important;
-  background-size: cover !important;
   color: var(--ws-text-primary) !important;
 }
 
-/* Home uses the exact same canvas as the global/notification environment while scrolling. */
+/* Routed content is a native scroll viewport, not a background layer. */
 .work-social-page-content,
 body:has(.home-post-feed) .app-shell,
 body:has(.home-post-feed) .work-social-page-content {
   background-color: transparent !important;
-  background-image:
-    linear-gradient(rgba(130, 235, 255, 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(130, 235, 255, 0.035) 1px, transparent 1px),
-    var(--ws-supercomputer-canvas) !important;
-  background-size: 32px 32px, 32px 32px, cover !important;
-  background-attachment: scroll, scroll, fixed !important;
+  background-image: none !important;
+  background-attachment: initial !important;
+  background-size: auto !important;
 }
 
 .app-shell,
