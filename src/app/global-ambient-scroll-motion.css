@@ -173,7 +173,13 @@ body:has(.work-social-page-content) .work-social-page-content {
   100% { transform:translate3d(-14%,2%,0) rotate(-9deg) scale(1.04); opacity:.76; }
 }
 
-@media (max-width: 767px) {\n  .ws-cosmic-orb { filter:blur(28px); }\n  .ws-cosmic-orb-a { width:68vw;height:68vw; }\n  .ws-cosmic-orb-b { width:62vw;height:62vw; }\n  .ws-cosmic-orb-c { width:48vw;height:48vw; }\n  .ws-cosmic-orb-d { width:56vw;height:56vw; }\n  .ws-cosmic-core { width:78vw;left:11%; }
+@media (max-width: 767px) {
+  .ws-cosmic-orb { filter:blur(28px); }
+  .ws-cosmic-orb-a { width:68vw;height:68vw; }
+  .ws-cosmic-orb-b { width:62vw;height:62vw; }
+  .ws-cosmic-orb-c { width:48vw;height:48vw; }
+  .ws-cosmic-orb-d { width:56vw;height:56vw; }
+  .ws-cosmic-core { width:78vw;left:11%; }
   .work-social-router-shell::before { animation-duration: 24s; }
   .work-social-router-shell::after { animation-duration: 18s; filter: blur(7px); }
 }
