@@ -20,13 +20,11 @@ body::before {
   isolation: isolate;
   overflow: hidden;
   background:
-    radial-gradient(ellipse 92% 42% at 50% 50%, rgba(0, 214, 255, .12), transparent 68%),
-    radial-gradient(ellipse 58% 54% at 0% 8%, rgba(34, 96, 255, .18), transparent 72%),
-    radial-gradient(ellipse 58% 54% at 100% 8%, rgba(126, 53, 255, .18), transparent 72%),
-    radial-gradient(ellipse 58% 54% at 0% 92%, rgba(0, 195, 255, .15), transparent 72%),
-    radial-gradient(ellipse 58% 54% at 100% 92%, rgba(111, 51, 255, .15), transparent 72%),
-    linear-gradient(135deg, #01020a 0%, #020817 34%, #080318 66%, #01020a 100%) !important;
-  background-color: #01020a !important;
+    radial-gradient(ellipse 72% 34% at 50% 50%, rgba(0,225,255,.12), transparent 68%),
+    radial-gradient(ellipse 38% 62% at 18% 38%, rgba(34,78,255,.13), transparent 72%),
+    radial-gradient(ellipse 38% 62% at 82% 62%, rgba(139,53,255,.13), transparent 72%),
+    linear-gradient(118deg,#010207 0%,#02030c 28%,#050313 52%,#02030c 74%,#010207 100%) !important;
+  background-color:#010207 !important;
 }
 
 /* The scroll surface is transparent; the cosmic environment stays behind it. */
@@ -42,80 +40,47 @@ body:has(.work-social-page-content) .work-social-page-content {
 /* Deep-space field: stars, dust, edge nebulae and a faint galaxy plane.
    The base galaxy is painted on the shell itself; this layer adds motion/depth. */
 .work-social-router-shell::before {
-  content: '';
-  position: absolute;
-  inset: -48%;
-  z-index: 0;
-  pointer-events: none;
+  content:'';
+  position:absolute;
+  inset:-45%;
+  z-index:0;
+  pointer-events:none;
   background:
-    radial-gradient(circle at 8% 12%, rgba(255,255,255,.95) 0 1.1px, transparent 2.2px),
-    radial-gradient(circle at 18% 68%, rgba(168,235,255,.9) 0 1px, transparent 2px),
-    radial-gradient(circle at 29% 28%, rgba(255,255,255,.8) 0 1px, transparent 2px),
-    radial-gradient(circle at 43% 86%, rgba(130,218,255,.9) 0 1.1px, transparent 2.1px),
-    radial-gradient(circle at 57% 14%, rgba(255,255,255,.9) 0 1px, transparent 2px),
-    radial-gradient(circle at 72% 42%, rgba(207,190,255,.9) 0 1.1px, transparent 2.1px),
-    radial-gradient(circle at 91% 76%, rgba(255,255,255,.86) 0 1px, transparent 2px),
-    radial-gradient(circle at 61% 59%, rgba(95,220,255,.8) 0 1px, transparent 2px),
-    repeating-radial-gradient(circle at 50% 50%, rgba(255,255,255,.1) 0 1px, transparent 1.7px 74px),
-    radial-gradient(ellipse 96% 38% at 50% 52%, rgba(0,220,255,.20), transparent 69%),
-    radial-gradient(ellipse 72% 34% at 3% 8%, rgba(34,96,255,.26), transparent 72%),
-    radial-gradient(ellipse 72% 34% at 97% 8%, rgba(126,53,255,.26), transparent 72%),
-    radial-gradient(ellipse 72% 38% at 3% 92%, rgba(0,195,255,.22), transparent 72%),
-    radial-gradient(ellipse 72% 38% at 97% 92%, rgba(111,51,255,.22), transparent 72%),
-    linear-gradient(135deg, #01020a 0%, #020817 32%, #080318 63%, #01020a 100%);
-  background-size:
-    150px 140px, 205px 185px, 230px 215px, 180px 205px,
-    220px 175px, 195px 215px, 250px 195px, 175px 165px,
-    100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%;
-  background-position:
-    0 0, 35px 24px, 74px 8px, 18px 82px,
-    105px 35px, 58px 112px, 132px 64px, 18px 132px,
-    0 0, 0 0, 0 0, 0 0, 0 0, 0 0;
-  opacity: .98;
-  transform: translate3d(-6%, -1%, 0) scale(1.06);
-  animation: ws-ultra-starfield 72s linear infinite;
-  will-change: transform;
-  backface-visibility: hidden;
+    radial-gradient(circle at 7% 15%,rgba(255,255,255,.95) 0 1.2px,transparent 2.5px),
+    radial-gradient(circle at 23% 34%,rgba(255,255,255,.82) 0 1px,transparent 2.2px),
+    radial-gradient(circle at 46% 18%,rgba(255,255,255,.9) 0 1.2px,transparent 2.4px),
+    radial-gradient(circle at 66% 29%,rgba(221,205,255,.92) 0 1.1px,transparent 2.4px),
+    radial-gradient(circle at 88% 20%,rgba(170,225,255,.9) 0 1.1px,transparent 2.3px),
+    repeating-radial-gradient(circle at 50% 50%,rgba(255,255,255,.10) 0 1px,transparent 1.7px 88px),
+    radial-gradient(ellipse 88% 19% at 50% 50%,rgba(0,235,255,.22),transparent 70%),
+    radial-gradient(ellipse 64% 12% at 50% 51%,rgba(120,75,255,.16),transparent 72%),
+    radial-gradient(ellipse 74% 46% at 4% 5%,rgba(25,88,255,.22),transparent 72%),
+    radial-gradient(ellipse 74% 46% at 96% 95%,rgba(126,45,255,.20),transparent 72%);
+  opacity:.98;
+  transform:translate3d(-7%,-2%,0) scale(1.08);
+  animation:ws-ultra-starfield 64s linear infinite;
+  will-change:transform;
+  backface-visibility:hidden;
 }
-
 .work-social-router-shell::after {
-  content: '';
-  position: absolute;
-  inset: -58%;
-  z-index: 0;
-  pointer-events: none;
+  content:'';
+  position:absolute;
+  inset:-62%;
+  z-index:0;
+  pointer-events:none;
   background:
-    conic-gradient(
-      from 218deg at 50% 50%,
-      transparent 0deg,
-      rgba(0,220,255,.04) 28deg,
-      rgba(0,229,255,.20) 51deg,
-      rgba(61,129,255,.40) 72deg,
-      rgba(141,66,255,.30) 101deg,
-      rgba(190,76,255,.13) 121deg,
-      transparent 151deg,
-      transparent 238deg,
-      rgba(0,215,255,.20) 273deg,
-      rgba(69,122,255,.28) 296deg,
-      transparent 328deg
-    ),
-    radial-gradient(ellipse 64% 8% at 50% 50%, rgba(0,244,255,.48), transparent 70%),
-    radial-gradient(ellipse 52% 6% at 50% 51%, rgba(188,82,255,.38), transparent 72%),
-    radial-gradient(ellipse 92% 24% at 50% 50%, rgba(20,80,255,.14), transparent 72%),
-    radial-gradient(circle at 4% 12%, rgba(0,238,255,.28), transparent 18%),
-    radial-gradient(circle at 96% 13%, rgba(133,74,255,.27), transparent 18%),
-    radial-gradient(circle at 4% 88%, rgba(0,194,255,.23), transparent 18%),
-    radial-gradient(circle at 96% 88%, rgba(128,65,255,.23), transparent 18%),
-    linear-gradient(112deg, transparent 20%, rgba(0,225,255,.08) 43%, rgba(125,69,255,.09) 57%, transparent 78%);
-  filter: blur(8px);
-  mix-blend-mode: screen;
-  opacity: .92;
-  transform: translate3d(-8%, 0, 0) rotate(-7deg) scale(1.02);
-  animation: ws-ultra-nebula 58s ease-in-out infinite;
-  will-change: transform;
-  backface-visibility: hidden;
+    conic-gradient(from 210deg at 50% 50%,transparent 0deg 18deg,rgba(0,220,255,.06) 28deg,rgba(0,238,255,.34) 48deg,rgba(66,120,255,.46) 68deg,rgba(151,65,255,.38) 91deg,rgba(213,83,255,.16) 112deg,transparent 136deg 226deg,rgba(0,215,255,.26) 250deg,rgba(67,119,255,.34) 274deg,rgba(157,65,255,.28) 301deg,transparent 326deg 360deg),
+    radial-gradient(ellipse 62% 7% at 50% 50%,rgba(75,240,255,.70),transparent 68%),
+    radial-gradient(ellipse 44% 4% at 50% 50%,rgba(218,108,255,.48),transparent 72%),
+    radial-gradient(ellipse 96% 18% at 50% 50%,rgba(31,80,255,.18),transparent 72%);
+  filter:blur(7px);
+  mix-blend-mode:screen;
+  opacity:.94;
+  transform:translate3d(-14%,2%,0) rotate(-9deg) scale(1.04);
+  animation:ws-ultra-nebula 42s ease-in-out infinite;
+  will-change:transform;
+  backface-visibility:hidden;
 }
-
 /* Subtle depth/edge illumination without introducing another scrolling layer. */
 .work-social-router-shell > * {
   position: relative;
@@ -123,19 +88,19 @@ body:has(.work-social-page-content) .work-social-page-content {
 }
 
 @keyframes ws-ultra-starfield {
-  0% { transform: translate3d(-6%, -1%, 0) scale(1.06); }
-  25% { transform: translate3d(0%, 1%, 0) scale(1.06); }
-  50% { transform: translate3d(6%, -1%, 0) scale(1.06); }
-  75% { transform: translate3d(0%, 1%, 0) scale(1.06); }
-  100% { transform: translate3d(-6%, -1%, 0) scale(1.06); }
+  0% { transform:translate3d(-7%,-2%,0) scale(1.08); }
+  25% { transform:translate3d(2%,1%,0) scale(1.10); }
+  50% { transform:translate3d(8%,-3%,0) scale(1.08); }
+  75% { transform:translate3d(-1%,3%,0) scale(1.11); }
+  100% { transform:translate3d(-7%,-2%,0) scale(1.08); }
 }
 
 @keyframes ws-ultra-nebula {
-  0% { transform: translate3d(-8%, 0, 0) rotate(-7deg) scale(1.02); }
-  25% { transform: translate3d(-2%, -1%, 0) rotate(-2deg) scale(1.035); }
-  50% { transform: translate3d(8%, 0, 0) rotate(7deg) scale(1.02); }
-  75% { transform: translate3d(2%, 1%, 0) rotate(2deg) scale(1.035); }
-  100% { transform: translate3d(-8%, 0, 0) rotate(-7deg) scale(1.02); }
+  0% { transform:translate3d(-14%,2%,0) rotate(-9deg) scale(1.04); }
+  25% { transform:translate3d(-3%,-3%,0) rotate(-3deg) scale(1.07); }
+  50% { transform:translate3d(13%,1%,0) rotate(9deg) scale(1.04); }
+  75% { transform:translate3d(3%,4%,0) rotate(3deg) scale(1.07); }
+  100% { transform:translate3d(-14%,2%,0) rotate(-9deg) scale(1.04); }
 }
 
 @media (max-width: 767px) {
