@@ -396,5 +396,16 @@ body:has(.work-social-page-content) .work-social-page-content {
 .work-social-router-shell { z-index:1 !important; background:transparent !important; background-image:none !important; background-color:transparent !important; }
 
 
-/* FINAL FIX: the new viewport canvas must be visible; the legacy DOM atmosphere must not cover it. */
-.ws-cosmic-atmosphere { display:none !important; }
+/* FINAL FIX: the new viewport canvas must be visible; legacy shell renderers must not cover it. */
+.ws-cosmic-atmosphere,
+.ws-cosmic-orb,
+.ws-cosmic-core,
+.ws-cosmic-vignette,
+.ws-cosmic-star-layer,
+.ws-cosmic-dust,
+.ws-cosmic-streaks,
+.ws-living-star-field,
+.work-social-router-shell::before,
+.work-social-router-shell::after {
+  display:none !important;
+}
