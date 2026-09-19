@@ -1,23 +1,10 @@
 /* Work Social global ambient motion layer.
-   Keeps the existing global background and glass surfaces intact. */
+   Presentation-only: the existing glass surfaces and page scrolling remain untouched. */
+
 :root {
-  --ws-scroll-progress: 0;
+  --ws-scroll-shift: 0px;
 }
 
-html {
-  scroll-behavior: smooth;
-}
-
-body {
-  position: relative;
-  isolation: isolate;
-  background-attachment: fixed !important;
-  background-size: 32px 32px, 32px 32px, auto, auto, auto, auto, auto, auto, 220% 220% !important;
-  animation: ws-ambient-base-drift 34s ease-in-out infinite alternate;
-}
-
-/* Global living environment: two independent layers make the effect robust.
-   Layer 1 continuously breathes; Layer 2 follows the real page scroll progress. */
 .app-shell:not(.auth-screen),
 .work-social-router-shell {
   position: relative;
@@ -27,47 +14,7 @@ body {
   background-image: none !important;
 }
 
-.work-social-router-shell::before,
-.work-social-router-shell::after {
-  content: '';
-  position: absolute;
-  inset: -12%;
-  pointer-events: none;
-}
-
-/* Continuous ambient flow — deliberately independent of scroll state. */
-.work-social-router-shell::before {
-  z-index: 0;
-  background:
-    radial-gradient(ellipse 62% 58% at 10% 16%, rgba(48, 106, 255, .62), transparent 68%),
-    radial-gradient(ellipse 58% 62% at 90% 25%, rgba(0, 238, 255, .52), transparent 68%),
-    radial-gradient(ellipse 62% 58% at 82% 88%, rgba(166, 68, 255, .56), transparent 68%),
-    radial-gradient(ellipse 52% 54% at 14% 82%, rgba(34, 168, 255, .42), transparent 70%),
-    linear-gradient(125deg, #06142d 0%, #0b2b5c 32%, #151d5c 54%, #073a5e 76%, #07152f 100%);
-  background-size: 140% 140%, 145% 145%, 142% 142%, 136% 136%, 220% 220%;
-  animation: ws-ambient-flow 18s ease-in-out infinite alternate;
-  will-change: background-position;
-}
-
-/* Scroll response — transform is guaranteed to remain independent from the
-   background-position animation above, so both effects are visible together. */
-.work-social-router-shell::after {
-  z-index: 0;
-  background:
-    radial-gradient(ellipse 48% 46% at calc(12% + var(--ws-scroll-progress) * 72%) 20%, rgba(0, 230, 255, .28), transparent 70%),
-    radial-gradient(ellipse 52% 48% at calc(88% - var(--ws-scroll-progress) * 68%) 78%, rgba(157, 64, 255, .30), transparent 70%);
-  transform: translate3d(calc(var(--ws-scroll-progress) * -7%), calc(var(--ws-scroll-progress) * 5%), 0) scale(1.08);
-  transition: transform 180ms ease-out;
-  will-change: transform;
-}
-
-.work-social-router-shell > * {
-  position: relative;
-  z-index: 1;
-}
-
-/* The scrolling viewport itself must stay transparent so the environment is
-   visible behind every route, including Home where the legacy canvas was set. */
+/* The scrolling viewport stays transparent so the ambient field remains visible. */
 body .app-shell .work-social-page-content,
 body .app-shell .work-social-router-shell > div.work-social-page-content,
 body:has(.work-social-page-content) .work-social-page-content {
@@ -77,40 +24,63 @@ body:has(.work-social-page-content) .work-social-page-content {
   background-attachment: initial !important;
 }
 
-@keyframes ws-ambient-base-drift {
-  0% { background-position: 0 0, 0 0, center top, left center, right top, left bottom, right bottom, center, 0% 45%; }
-  100% { background-position: 0 0, 0 0, center top, left center, right top, left bottom, right bottom, center, 100% 55%; }
+/* Slow, compositor-friendly ambient motion. Only the background layer moves. */
+.work-social-router-shell::before,
+.work-social-router-shell::after {
+  content: '';
+  position: absolute;
+  inset: -16%;
+  pointer-events: none;
+  z-index: 0;
 }
 
-@keyframes ws-ambient-flow {
-  0% { background-position: 0% 0%, 100% 0%, 100% 100%, 0% 100%, 0% 50%; }
-  50% { background-position: 24% 18%, 76% 12%, 72% 82%, 16% 72%, 50% 46%; }
-  100% { background-position: 48% 42%, 52% 28%, 44% 60%, 32% 44%, 100% 54%; }
+.work-social-router-shell::before {
+  background:
+    radial-gradient(ellipse 48% 58% at 12% 18%, rgba(32, 116, 255, .58), transparent 70%),
+    radial-gradient(ellipse 46% 54% at 88% 24%, rgba(0, 235, 255, .50), transparent 70%),
+    radial-gradient(ellipse 52% 58% at 78% 86%, rgba(145, 61, 255, .54), transparent 70%),
+    radial-gradient(ellipse 42% 48% at 18% 82%, rgba(0, 175, 255, .40), transparent 72%),
+    linear-gradient(125deg, #06142d 0%, #0a2a58 34%, #171b59 55%, #073b5e 76%, #06152f 100%);
+  background-size: 145% 145%, 150% 150%, 150% 150%, 140% 140%, 220% 220%;
+  animation: ws-ambient-drift 30s ease-in-out infinite alternate;
+  will-change: transform;
 }
 
-@keyframes ws-ambient-orb-drift {
-  0% { background-position: 0% 10%; }
-  50% { background-position: 100% 55%; }
-  100% { background-position: 18% 100%; }
+.work-social-router-shell::after {
+  background:
+    radial-gradient(ellipse 44% 44% at 16% 22%, rgba(0, 225, 255, .24), transparent 72%),
+    radial-gradient(ellipse 48% 46% at 84% 80%, rgba(168, 67, 255, .24), transparent 72%);
+  transform: translate3d(0, var(--ws-scroll-shift), 0) scale(1.04);
+  will-change: transform;
+}
+
+.work-social-router-shell > * {
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes ws-ambient-drift {
+  0% { transform: translate3d(-2%, -1%, 0) scale(1.01); }
+  50% { transform: translate3d(1%, 1.5%, 0) scale(1.025); }
+  100% { transform: translate3d(3%, -1%, 0) scale(1.015); }
 }
 
 @media (max-width: 767px) {
-  body { animation-duration: 46s; }
-  .work-social-router-shell::after {
-    animation-duration: 34s;
+  .work-social-router-shell::before {
+    animation-duration: 42s;
   }
-  body::after {
-    opacity: .56;
-    inset: -5%;
-    background-size: 150% 150%;
-    animation-duration: 38s;
-    will-change: auto;
+  .work-social-router-shell::after {
+    transform: translate3d(0, var(--ws-scroll-shift), 0) scale(1.04);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto; }
-  body, body::after, .work-social-router-shell::after { animation: none !important; }
-  body::after { transform: none; will-change: auto; }
-  .work-social-router-shell::after { will-change: auto; }
+  .work-social-router-shell::before {
+    animation: none !important;
+    transform: none !important;
+  }
+  .work-social-router-shell::after {
+    transform: none !important;
+    will-change: auto;
+  }
 }
