@@ -320,3 +320,89 @@ main:has(#account-mode-switch-title) > section[aria-labelledby="account-mode-swi
   background-image: none !important;
 }
 
+
+
+/* PAGE PASS 01 — Worker Personal Finance: cards + popup windows. */
+main:has(> section[aria-label="Finance summary"]) { color:#e2e8f0 !important; }
+main:has(> section[aria-label="Finance summary"]) > section[aria-label="Finance summary"] > section,
+main:has(> section[aria-label="Finance summary"]) > section:nth-of-type(2),
+main:has(> section[aria-label="Finance summary"]) > section:nth-of-type(3) article,
+main:has(> section[aria-label="Finance summary"]) > section:nth-of-type(3) > div[style*="textAlign"] {
+  background:rgba(4,12,28,.10) !important; background-image:none !important;
+  border-color:rgba(103,232,249,.13) !important; box-shadow:none !important;
+  backdrop-filter:blur(9px) !important; -webkit-backdrop-filter:blur(9px) !important;
+}
+main:has(> section[aria-label="Finance summary"]) > section[aria-label="Finance summary"] > section:hover,
+main:has(> section[aria-label="Finance summary"]) > section:nth-of-type(3) article:hover {
+  background:rgba(4,12,28,.16) !important; border-color:rgba(103,232,249,.22) !important;
+  box-shadow:0 12px 28px rgba(0,0,0,.14) !important;
+}
+main:has(> section[aria-label="Finance summary"]) > section:nth-of-type(2) > div { background:transparent !important; background-image:none !important; box-shadow:none !important; }
+main:has(> section[aria-label="Finance summary"]) button:not([aria-label="Dismiss message"]) { color:#cbd5e1 !important; border-color:rgba(103,232,249,.13) !important; box-shadow:none !important; }
+main:has(> section[aria-label="Finance summary"]) > header button:last-child { color:#fff !important; }
+
+/* Finance popup windows: Add/Edit, Delete confirmation, Work Entry details. */
+main:has(> section[aria-label="Finance summary"]) > div[role="presentation"] {
+  background:rgba(2,6,23,.46) !important; backdrop-filter:blur(5px) !important; -webkit-backdrop-filter:blur(5px) !important;
+}
+main:has(> section[aria-label="Finance summary"]) > div[role="presentation"] > section[role="dialog"] {
+  background:rgba(4,12,28,.72) !important; background-image:none !important;
+  border-color:rgba(103,232,249,.22) !important; box-shadow:0 22px 60px rgba(0,0,0,.32) !important;
+  backdrop-filter:blur(18px) !important; -webkit-backdrop-filter:blur(18px) !important; color:#e2e8f0 !important;
+}
+main:has(> section[aria-label="Finance summary"]) > div[role="presentation"] > section[role="dialog"] h2 { color:#f8fafc !important; }
+main:has(> section[aria-label="Finance summary"]) > div[role="presentation"] > section[role="dialog"] p,
+main:has(> section[aria-label="Finance summary"]) > div[role="presentation"] > section[role="dialog"] label,
+main:has(> section[aria-label="Finance summary"]) > div[role="presentation"] > section[role="dialog"] > div > div > div { color:#94a3b8 !important; }
+main:has(> section[aria-label="Finance summary"]) > div[role="presentation"] input {
+  background:rgba(2,6,23,.34) !important; background-image:none !important; color:#f8fafc !important;
+  border-color:rgba(103,232,249,.16) !important; box-shadow:none !important;
+}
+main:has(> section[aria-label="Finance summary"]) > div[role="presentation"] button {
+  background:rgba(4,12,28,.34) !important; background-image:none !important; color:#cbd5e1 !important;
+  border-color:rgba(103,232,249,.14) !important; box-shadow:none !important;
+}
+main:has(> section[aria-label="Finance summary"]) > div[role="presentation"] button:hover:not(:disabled) {
+  background:rgba(8,145,178,.14) !important; border-color:rgba(103,232,249,.24) !important;
+}
+main:has(> section[aria-label="Finance summary"]) > div[role="presentation"] button:last-child { color:#fff !important; }
+main:has(> section[aria-label="Finance summary"]) > div[role="presentation"] [role="alert"] { color:#fca5a5 !important; }
+
+/* PAGE PASS 02 — Worker Settings: replace legacy light 3D cards with transparent glass. */
+main:has(#worker-profile-title), main:has(#team-joining-title) { color:#e2e8f0 !important; }
+main:has(#worker-profile-title) > header > div,
+main:has(#team-joining-title) > header > div,
+main:has(#worker-profile-title) > p:first-of-type { color:#94a3b8 !important; text-shadow:none !important; }
+main:has(#worker-profile-title) > header h1,
+main:has(#team-joining-title) > header h1,
+main:has(#worker-profile-title) #worker-profile-title,
+main:has(#team-joining-title) #team-joining-title,
+main:has(#worker-profile-title) section[aria-labelledby="worker-settings-section-title"] > button strong { color:#f8fafc !important; text-shadow:none !important; }
+main:has(#worker-profile-title) section[aria-labelledby="worker-profile-title"],
+main:has(#worker-profile-title) section[aria-labelledby="worker-settings-section-title"],
+main:has(#team-joining-title) section[aria-labelledby="team-joining-title"] {
+  background:rgba(4,12,28,.10) !important; background-image:none !important;
+  border-color:rgba(103,232,249,.14) !important; box-shadow:none !important;
+  backdrop-filter:blur(12px) !important; -webkit-backdrop-filter:blur(12px) !important;
+}
+main:has(#worker-profile-title) section[aria-labelledby="worker-profile-title"]::before,
+main:has(#worker-profile-title) section[aria-labelledby="worker-settings-section-title"]::before,
+main:has(#team-joining-title) section[aria-labelledby="team-joining-title"]::before { display:none !important; }
+main:has(#worker-profile-title) section[aria-labelledby="worker-profile-title"] > div:last-child {
+  background:rgba(4,12,28,.08) !important; background-image:none !important;
+  border-color:rgba(103,232,249,.12) !important; box-shadow:none !important;
+}
+main:has(#worker-profile-title) section[aria-labelledby="worker-profile-title"] button,
+main:has(#team-joining-title) section[aria-labelledby="team-joining-title"] button,
+main:has(#worker-profile-title) section[aria-labelledby="worker-settings-section-title"] button {
+  background:rgba(4,12,28,.12) !important; background-image:none !important; color:#cbd5e1 !important;
+  border-color:rgba(103,232,249,.14) !important; box-shadow:none !important;
+}
+main:has(#worker-profile-title) section[aria-labelledby="worker-profile-title"] button:hover:not(:disabled),
+main:has(#team-joining-title) section[aria-labelledby="team-joining-title"] button:hover:not(:disabled),
+main:has(#worker-profile-title) section[aria-labelledby="worker-settings-section-title"] button:hover:not(:disabled) {
+  background:rgba(8,145,178,.13) !important; border-color:rgba(103,232,249,.24) !important;
+}
+main:has(#worker-profile-title) section[aria-labelledby="worker-profile-title"] code { color:#67e8f9 !important; }
+main:has(#worker-profile-title) section[aria-labelledby="worker-profile-title"] .worker-settings-label,
+main:has(#worker-profile-title) section[aria-labelledby="worker-profile-title"] div[style*="textTransform: 'uppercase'"] { color:#94a3b8 !important; }
