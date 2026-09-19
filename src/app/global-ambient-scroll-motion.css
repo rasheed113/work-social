@@ -1,0 +1,117 @@
+/* Work Social global living background — based directly on 92ab0a5. */
+@property --ws-ambient-x {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 0%;
+}
+
+@property --ws-ambient-y {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 0%;
+}
+
+:root {
+  --ws-scroll-progress: 0;
+  --ws-ambient-x: 0%;
+  --ws-ambient-y: 0%;
+}
+
+/* The Work Social shell is the actual full-screen environment. */
+.app-shell:not(.auth-screen),
+.work-social-router-shell {
+  position: relative !important;
+  isolation: isolate !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+/* Remove the legacy fixed canvas from the scrolling viewport so the animated
+   environment underneath can actually be seen on every route. */
+.work-social-router-shell > div.work-social-page-content,
+body:has(.work-social-page-content) .work-social-page-content {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  background-attachment: initial !important;
+}
+
+/* Continuous ambient field. Multiple large gradients move slowly so the
+   background visibly lives without competing with foreground content. */
+.work-social-router-shell::before {
+  content: '';
+  position: absolute;
+  inset: -18%;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 48% 58% at 12% 18%, rgba(32, 116, 255, .66), transparent 70%),
+    radial-gradient(ellipse 46% 54% at 88% 24%, rgba(0, 235, 255, .58), transparent 70%),
+    radial-gradient(ellipse 52% 58% at 78% 86%, rgba(145, 61, 255, .62), transparent 70%),
+    radial-gradient(ellipse 42% 48% at 18% 82%, rgba(0, 175, 255, .46), transparent 72%),
+    linear-gradient(125deg, #06142d 0%, #0a2a58 34%, #171b59 55%, #073b5e 76%, #06152f 100%);
+  background-size: 145% 145%, 150% 150%, 150% 150%, 140% 140%, 220% 220%;
+  background-position: var(--ws-ambient-x) var(--ws-ambient-y),
+    calc(100% - var(--ws-ambient-x)) var(--ws-ambient-y),
+    calc(100% - var(--ws-ambient-x)) calc(100% - var(--ws-ambient-y)),
+    var(--ws-ambient-x) calc(100% - var(--ws-ambient-y)),
+    var(--ws-ambient-x) 50%;
+  animation: ws-ambient-drift 22s ease-in-out infinite alternate;
+  will-change: background-position;
+}
+
+/* Scroll-linked light field. It is separate from the breathing layer, so
+   scroll movement cannot overwrite the continuous CSS animation. */
+.work-social-router-shell::after {
+  content: '';
+  position: absolute;
+  inset: -12%;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 42% 44% at calc(8% + var(--ws-scroll-progress) * 76%) 18%, rgba(0, 225, 255, .34), transparent 72%),
+    radial-gradient(ellipse 46% 48% at calc(92% - var(--ws-scroll-progress) * 70%) 82%, rgba(168, 67, 255, .34), transparent 72%);
+  transform: translate3d(calc(var(--ws-scroll-progress) * -8%), calc(var(--ws-scroll-progress) * 6%), 0) scale(1.08);
+  transition: transform 180ms ease-out;
+  will-change: transform;
+}
+
+.work-social-router-shell > * {
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes ws-ambient-drift {
+  0% {
+    --ws-ambient-x: 0%;
+    --ws-ambient-y: 0%;
+  }
+  50% {
+    --ws-ambient-x: 34%;
+    --ws-ambient-y: 18%;
+  }
+  100% {
+    --ws-ambient-x: 68%;
+    --ws-ambient-y: 42%;
+  }
+}
+
+@media (max-width: 767px) {
+  .work-social-router-shell::before {
+    animation-duration: 32s;
+  }
+  .work-social-router-shell::after {
+    transition-duration: 240ms;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .work-social-router-shell::before {
+    animation: none !important;
+  }
+  .work-social-router-shell::after {
+    transition: none !important;
+    transform: none !important;
+  }
+}
