@@ -22,6 +22,15 @@ import './features/contractor/contractor-overview-colorful-premium.css';
 import './app/premium-visual-unification.css';
 import './app/universal-components.css';
 
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js', { scope: '/' }).then(
+      (registration) => console.info('[Work Social] Service worker registered:', registration.scope),
+      (error) => console.warn('[Work Social] Service worker registration failed:', error),
+    );
+  });
+}
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <App />
