@@ -221,7 +221,19 @@ body:has(.work-social-page-content) .work-social-page-content {
   100% { transform:translate3d(-14%,2%,0) rotate(-9deg) scale(1.04); opacity:.76; }
 }
 
-@media (prefers-reduced-motion: reduce) {\n  .work-social-router-shell,\n  .work-social-router-shell::before,\n  .work-social-router-shell::after,\n  .ws-cosmic-orb, .ws-cosmic-core, .ws-cosmic-star-layer, .ws-cosmic-dust, .ws-cosmic-streaks { animation: none !important; }\n}\n\n@media (max-width: 767px) {
+@media (prefers-reduced-motion: reduce) {
+  .work-social-router-shell,
+  .work-social-router-shell::before,
+  .work-social-router-shell::after,
+  .ws-cosmic-orb,
+  .ws-cosmic-core,
+  .ws-cosmic-star-layer,
+  .ws-cosmic-dust,
+  .ws-cosmic-streaks,
+  .ws-living-star { animation: none !important; }
+}
+
+@media (max-width: 767px) {
   .ws-cosmic-orb { filter:blur(28px); }
   .ws-cosmic-orb-a { width:68vw;height:68vw; }
   .ws-cosmic-orb-b { width:62vw;height:62vw; }
