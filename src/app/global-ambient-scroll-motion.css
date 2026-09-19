@@ -1,14 +1,30 @@
 /* Work Social — Ultra Premium Living Galaxy.
    Decorative layers only; native page scrolling remains untouched. */
 
+/* Neutralize the older page-canvas layers so the galaxy owns the environment. */
+html,
+body,
+#root,
+body .app-shell {
+  background: #01020a !important;
+  background-image: none !important;
+  background-attachment: initial !important;
+}
+
+body::before {
+  content: none !important;
+}
+
 .work-social-router-shell {
   position: relative;
   isolation: isolate;
   overflow: hidden;
   background: #01020a !important;
   background-color: #01020a !important;
+  background-image: none !important;
 }
 
+/* The scroll surface is transparent; the cosmic environment stays behind it. */
 body .app-shell .work-social-page-content,
 body .app-shell .work-social-router-shell > div.work-social-page-content,
 body:has(.work-social-page-content) .work-social-page-content {
@@ -18,11 +34,11 @@ body:has(.work-social-page-content) .work-social-page-content {
   background-attachment: initial !important;
 }
 
-/* Deep-space field: dense micro-stars, depth haze and slow parallax-like drift. */
+/* Deep-space field: stars, dust, edge nebulae and a faint galaxy plane. */
 .work-social-router-shell::before {
   content: '';
   position: absolute;
-  inset: -55%;
+  inset: -48%;
   z-index: 0;
   pointer-events: none;
   background:
@@ -35,11 +51,11 @@ body:has(.work-social-page-content) .work-social-page-content {
     radial-gradient(circle at 91% 76%, rgba(255,255,255,.86) 0 1px, transparent 2px),
     radial-gradient(circle at 61% 59%, rgba(95,220,255,.8) 0 1px, transparent 2px),
     repeating-radial-gradient(circle at 50% 50%, rgba(255,255,255,.1) 0 1px, transparent 1.7px 74px),
-    radial-gradient(ellipse 82% 34% at 50% 51%, rgba(0,220,255,.18), transparent 70%),
-    radial-gradient(ellipse 70% 32% at 7% 10%, rgba(34,96,255,.22), transparent 72%),
-    radial-gradient(ellipse 70% 32% at 93% 11%, rgba(126,53,255,.22), transparent 72%),
-    radial-gradient(ellipse 70% 34% at 7% 91%, rgba(0,195,255,.18), transparent 72%),
-    radial-gradient(ellipse 70% 34% at 93% 91%, rgba(111,51,255,.18), transparent 72%),
+    radial-gradient(ellipse 96% 38% at 50% 52%, rgba(0,220,255,.20), transparent 69%),
+    radial-gradient(ellipse 72% 34% at 3% 8%, rgba(34,96,255,.26), transparent 72%),
+    radial-gradient(ellipse 72% 34% at 97% 8%, rgba(126,53,255,.26), transparent 72%),
+    radial-gradient(ellipse 72% 38% at 3% 92%, rgba(0,195,255,.22), transparent 72%),
+    radial-gradient(ellipse 72% 38% at 97% 92%, rgba(111,51,255,.22), transparent 72%),
     linear-gradient(135deg, #01020a 0%, #020817 32%, #080318 63%, #01020a 100%);
   background-size:
     150px 140px, 205px 185px, 230px 215px, 180px 205px,
@@ -50,77 +66,75 @@ body:has(.work-social-page-content) .work-social-page-content {
     105px 35px, 58px 112px, 132px 64px, 18px 132px,
     0 0, 0 0, 0 0, 0 0, 0 0, 0 0;
   opacity: .98;
-  transform: translate3d(-8%, -1%, 0) scale(1.08);
-  animation: ws-ultra-starfield 58s linear infinite;
+  transform: translate3d(-6%, -1%, 0) scale(1.06);
+  animation: ws-ultra-starfield 72s linear infinite;
   will-change: transform;
   backface-visibility: hidden;
-  contain: paint;
 }
 
-/* Volumetric cosmic ribbon: layered cyan/blue/violet energy with soft depth. */
 .work-social-router-shell::after {
   content: '';
   position: absolute;
-  inset: -65%;
+  inset: -58%;
   z-index: 0;
   pointer-events: none;
   background:
     conic-gradient(
       from 218deg at 50% 50%,
       transparent 0deg,
-      rgba(0,220,255,.03) 28deg,
-      rgba(0,229,255,.18) 51deg,
-      rgba(61,129,255,.38) 72deg,
-      rgba(141,66,255,.28) 101deg,
-      rgba(190,76,255,.12) 121deg,
+      rgba(0,220,255,.04) 28deg,
+      rgba(0,229,255,.20) 51deg,
+      rgba(61,129,255,.40) 72deg,
+      rgba(141,66,255,.30) 101deg,
+      rgba(190,76,255,.13) 121deg,
       transparent 151deg,
       transparent 238deg,
-      rgba(0,215,255,.18) 273deg,
-      rgba(69,122,255,.26) 296deg,
+      rgba(0,215,255,.20) 273deg,
+      rgba(69,122,255,.28) 296deg,
       transparent 328deg
     ),
-    radial-gradient(ellipse 62% 9% at 50% 50%, rgba(0,244,255,.52), transparent 70%),
-    radial-gradient(ellipse 50% 7% at 50% 51%, rgba(188,82,255,.42), transparent 72%),
-    radial-gradient(ellipse 88% 22% at 50% 50%, rgba(20,80,255,.13), transparent 72%),
-    radial-gradient(circle at 4% 12%, rgba(0,238,255,.27), transparent 18%),
-    radial-gradient(circle at 96% 13%, rgba(133,74,255,.26), transparent 18%),
-    radial-gradient(circle at 4% 88%, rgba(0,194,255,.22), transparent 18%),
-    radial-gradient(circle at 96% 88%, rgba(128,65,255,.22), transparent 18%),
-    linear-gradient(112deg, transparent 20%, rgba(0,225,255,.07) 43%, rgba(125,69,255,.08) 57%, transparent 78%);
+    radial-gradient(ellipse 64% 8% at 50% 50%, rgba(0,244,255,.48), transparent 70%),
+    radial-gradient(ellipse 52% 6% at 50% 51%, rgba(188,82,255,.38), transparent 72%),
+    radial-gradient(ellipse 92% 24% at 50% 50%, rgba(20,80,255,.14), transparent 72%),
+    radial-gradient(circle at 4% 12%, rgba(0,238,255,.28), transparent 18%),
+    radial-gradient(circle at 96% 13%, rgba(133,74,255,.27), transparent 18%),
+    radial-gradient(circle at 4% 88%, rgba(0,194,255,.23), transparent 18%),
+    radial-gradient(circle at 96% 88%, rgba(128,65,255,.23), transparent 18%),
+    linear-gradient(112deg, transparent 20%, rgba(0,225,255,.08) 43%, rgba(125,69,255,.09) 57%, transparent 78%);
   filter: blur(8px);
   mix-blend-mode: screen;
-  opacity: .94;
-  transform: translate3d(-10%, 0, 0) rotate(-8deg) scale(1.02);
-  animation: ws-ultra-nebula 46s ease-in-out infinite;
+  opacity: .92;
+  transform: translate3d(-8%, 0, 0) rotate(-7deg) scale(1.02);
+  animation: ws-ultra-nebula 58s ease-in-out infinite;
   will-change: transform;
   backface-visibility: hidden;
-  contain: paint;
 }
 
+/* Subtle depth/edge illumination without introducing another scrolling layer. */
 .work-social-router-shell > * {
   position: relative;
   z-index: 1;
 }
 
 @keyframes ws-ultra-starfield {
-  0% { transform: translate3d(-8%, -1%, 0) scale(1.08); }
-  25% { transform: translate3d(1%, 1%, 0) scale(1.08); }
-  50% { transform: translate3d(8%, -1%, 0) scale(1.08); }
-  75% { transform: translate3d(-1%, 1%, 0) scale(1.08); }
-  100% { transform: translate3d(-8%, -1%, 0) scale(1.08); }
+  0% { transform: translate3d(-6%, -1%, 0) scale(1.06); }
+  25% { transform: translate3d(0%, 1%, 0) scale(1.06); }
+  50% { transform: translate3d(6%, -1%, 0) scale(1.06); }
+  75% { transform: translate3d(0%, 1%, 0) scale(1.06); }
+  100% { transform: translate3d(-6%, -1%, 0) scale(1.06); }
 }
 
 @keyframes ws-ultra-nebula {
-  0% { transform: translate3d(-10%, 0, 0) rotate(-8deg) scale(1.02); }
-  25% { transform: translate3d(-2%, -1%, 0) rotate(-2deg) scale(1.04); }
-  50% { transform: translate3d(10%, 0, 0) rotate(8deg) scale(1.02); }
-  75% { transform: translate3d(2%, 1%, 0) rotate(2deg) scale(1.04); }
-  100% { transform: translate3d(-10%, 0, 0) rotate(-8deg) scale(1.02); }
+  0% { transform: translate3d(-8%, 0, 0) rotate(-7deg) scale(1.02); }
+  25% { transform: translate3d(-2%, -1%, 0) rotate(-2deg) scale(1.035); }
+  50% { transform: translate3d(8%, 0, 0) rotate(7deg) scale(1.02); }
+  75% { transform: translate3d(2%, 1%, 0) rotate(2deg) scale(1.035); }
+  100% { transform: translate3d(-8%, 0, 0) rotate(-7deg) scale(1.02); }
 }
 
 @media (max-width: 767px) {
-  .work-social-router-shell::before { animation-duration: 66s; }
-  .work-social-router-shell::after { animation-duration: 54s; filter: blur(7px); }
+  .work-social-router-shell::before { animation-duration: 82s; }
+  .work-social-router-shell::after { animation-duration: 66s; filter: blur(7px); }
 }
 
 .work-social-router-shell::before,
