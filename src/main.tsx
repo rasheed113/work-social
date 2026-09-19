@@ -32,20 +32,22 @@ import './app/global-ambient-scroll-motion.css';
 
 if (typeof window !== 'undefined') {
   let scrollFrame = 0;
+
   const updateAmbientScroll = () => {
     if (scrollFrame) return;
+
     scrollFrame = window.requestAnimationFrame(() => {
       const scroller = document.querySelector<HTMLElement>('.work-social-page-content');
-      const scrollable = scroller ? scroller.scrollHeight - scroller.clientHeight : document.documentElement.scrollHeight - window.innerHeight;
       const scrollTop = scroller ? scroller.scrollTop : window.scrollY;
-      const progress = scrollable > 0 ? Math.min(1, Math.max(0, scrollTop / scrollable)) : 0;
-      document.documentElement.style.setProperty('--ws-scroll-progress', progress.toFixed(4));
+      const shift = Math.min(120, Math.max(0, scrollTop * 0.045));
+
+      document.documentElement.style.setProperty('--ws-scroll-shift', `${shift.toFixed(2)}px`);
       scrollFrame = 0;
     });
   };
-  window.addEventListener('scroll', updateAmbientScroll, { passive: true });
+
+  window.addEventListener('scroll', updateAmbientScroll, { passive: true, capture: true });
   window.addEventListener('resize', updateAmbientScroll, { passive: true });
-  document.addEventListener('scroll', updateAmbientScroll, { passive: true, capture: true });
   updateAmbientScroll();
 }
 
