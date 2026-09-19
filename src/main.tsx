@@ -29,6 +29,15 @@ import './app/social-hud-force-theme.css';
 import './app/profile-posts-supercomputer.css';
 import './app/notifications-transparent-glass.css';
 
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js', { scope: '/' }).then(
+      (registration) => console.info('[Work Social] Service worker registered:', registration.scope),
+      (error) => console.warn('[Work Social] Service worker registration failed:', error),
+    );
+  });
+}
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <App />
