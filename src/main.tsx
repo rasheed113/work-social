@@ -30,6 +30,22 @@ import './app/profile-posts-supercomputer.css';
 import './app/notifications-transparent-glass.css';
 import './app/global-ambient-scroll-motion.css';
 
+if (typeof window !== 'undefined') {
+  let scrollFrame = 0;
+  const updateAmbientScroll = () => {
+    if (scrollFrame) return;
+    scrollFrame = window.requestAnimationFrame(() => {
+      const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = scrollable > 0 ? Math.min(1, Math.max(0, window.scrollY / scrollable)) : 0;
+      document.documentElement.style.setProperty('--ws-scroll-progress', progress.toFixed(4));
+      scrollFrame = 0;
+    });
+  };
+  window.addEventListener('scroll', updateAmbientScroll, { passive: true });
+  window.addEventListener('resize', updateAmbientScroll, { passive: true });
+  updateAmbientScroll();
+}
+
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js', { scope: '/' }).then(
