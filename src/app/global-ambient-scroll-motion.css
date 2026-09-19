@@ -221,17 +221,9 @@ body:has(.work-social-page-content) .work-social-page-content {
   100% { transform:translate3d(-14%,2%,0) rotate(-9deg) scale(1.04); opacity:.76; }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .work-social-router-shell,
-  .work-social-router-shell::before,
-  .work-social-router-shell::after,
-  .ws-cosmic-orb,
-  .ws-cosmic-core,
-  .ws-cosmic-star-layer,
-  .ws-cosmic-dust,
-  .ws-cosmic-streaks,
-  .ws-living-star { animation: none !important; }
-}
+/* The cosmic environment is intentionally autonomous. Its animation is not tied to
+   scrolling or touch input, so accessibility motion preferences must not freeze
+   the requested living-galaxy background. */
 
 @media (max-width: 767px) {
   .ws-cosmic-orb { filter:blur(28px); }
@@ -330,3 +322,15 @@ body:has(.work-social-page-content) .work-social-page-content {
   50% { background-position:57% 56%,36% 51%,64% 49%,72% 12%,28% 88%,46% 54%; }
   75% { background-position:46% 49%,18% 61%,82% 39%,58% 22%,42% 78%,52% 48%; }
 }
+
+
+/* FORCE GALAXY MOTION — never scroll-linked. */
+.work-social-router-shell,
+.work-social-router-shell::before,
+.work-social-router-shell::after,
+.ws-cosmic-orb,
+.ws-cosmic-core,
+.ws-cosmic-star-layer,
+.ws-cosmic-dust,
+.ws-cosmic-streaks,
+.ws-living-star { animation-play-state: running !important; }
