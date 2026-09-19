@@ -30,35 +30,6 @@ import './app/profile-posts-supercomputer.css';
 import './app/notifications-transparent-glass.css';
 import './app/global-ambient-scroll-motion.css';
 
-if (typeof window !== 'undefined') {
-  let scrollFrame = 0;
-  let lastShift = -1;
-
-  const updateAmbientScroll = () => {
-    if (scrollFrame) return;
-
-    scrollFrame = window.requestAnimationFrame(() => {
-      const scroller = document.querySelector<HTMLElement>('.work-social-page-content');
-      const shell = document.querySelector<HTMLElement>('.work-social-router-shell');
-
-      if (scroller && shell) {
-        const shift = Math.min(72, Math.max(0, scroller.scrollTop * 0.028));
-
-        if (Math.abs(shift - lastShift) >= 0.25) {
-          shell.style.setProperty('--ws-scroll-shift', shift.toFixed(2) + 'px');
-          lastShift = shift;
-        }
-      }
-
-      scrollFrame = 0;
-    });
-  };
-
-  window.addEventListener('scroll', updateAmbientScroll, { passive: true, capture: true });
-  window.addEventListener('resize', updateAmbientScroll, { passive: true });
-  window.requestAnimationFrame(updateAmbientScroll);
-}
-
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js', { scope: '/' }).then(
