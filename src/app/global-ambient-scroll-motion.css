@@ -16,39 +16,43 @@ body {
   animation: ws-ambient-base-drift 34s ease-in-out infinite alternate;
 }
 
-/* Work Social owns its own scroll viewport. Paint the ambient field on the
-   app shell itself so it cannot disappear behind the router's stacking context. */
-.app-shell:not(.auth-screen) {
+/* The router shell is the real Work Social viewport. Keep it transparent and
+   render the ambient environment as a dedicated layer behind its content. */
+.app-shell:not(.auth-screen),
+.work-social-router-shell {
   position: relative;
   isolation: isolate;
   background: transparent !important;
   background-color: transparent !important;
+  background-image: none !important;
 }
 
-.app-shell:not(.auth-screen)::before {
+.work-social-router-shell::before {
   content: '';
-  position: fixed;
-  inset: -10%;
+  position: absolute;
+  inset: 0;
   z-index: 0;
   pointer-events: none;
   background:
-    radial-gradient(ellipse 58% 52% at calc(12% + var(--ws-scroll-progress) * 16%) 16%, rgba(48, 96, 255, .58), transparent 66%),
-    radial-gradient(ellipse 54% 56% at calc(88% - var(--ws-scroll-progress) * 14%) 24%, rgba(0, 235, 255, .48), transparent 66%),
-    radial-gradient(ellipse 58% 52% at calc(78% - var(--ws-scroll-progress) * 18%) 84%, rgba(166, 65, 255, .50), transparent 66%),
-    radial-gradient(ellipse 48% 48% at calc(16% + var(--ws-scroll-progress) * 20%) 78%, rgba(30, 166, 255, .38), transparent 68%),
-    linear-gradient(125deg, #06142d 0%, #0b2a58 32%, #111d59 55%, #07375a 76%, #07152f 100%);
-  background-size: 135% 135%, 140% 140%, 138% 138%, 132% 132%, 220% 220%;
-  background-position: 0% 0%, 100% 0%, 100% 100%, 0% 100%, 0% 50%;
+    radial-gradient(ellipse 62% 58% at calc(8% + var(--ws-scroll-progress) * 24% + var(--ws-ambient-drift) * 1%) 14%, rgba(54, 112, 255, .62), transparent 68%),
+    radial-gradient(ellipse 58% 62% at calc(92% - var(--ws-scroll-progress) * 26% + var(--ws-ambient-drift) * -1%) 26%, rgba(0, 238, 255, .52), transparent 68%),
+    radial-gradient(ellipse 62% 58% at calc(82% - var(--ws-scroll-progress) * 30%) 88%, rgba(164, 68, 255, .56), transparent 68%),
+    radial-gradient(ellipse 52% 54% at calc(12% + var(--ws-scroll-progress) * 30%) 82%, rgba(34, 168, 255, .42), transparent 70%),
+    linear-gradient(125deg, #06142d 0%, #0b2b5c 32%, #151d5c 54%, #073a5e 76%, #07152f 100%);
+  background-size: 140% 140%, 145% 145%, 142% 142%, 136% 136%, 220% 220%;
+  background-position:
+    calc(var(--ws-ambient-drift) * 1%) calc(var(--ws-ambient-drift) * .5%),
+    calc(100% - var(--ws-ambient-drift) * 1%) calc(var(--ws-ambient-drift) * .4%),
+    calc(100% - var(--ws-ambient-drift) * .8%) calc(100% - var(--ws-ambient-drift) * .5%),
+    calc(var(--ws-ambient-drift) * .7%) calc(100% - var(--ws-ambient-drift) * .4%),
+    calc(var(--ws-ambient-drift) * 1%) 50%;
   animation: ws-router-ambient-drift 24s ease-in-out infinite alternate;
   will-change: background-position;
 }
 
-.work-social-router-shell {
+.work-social-router-shell > * {
   position: relative;
   z-index: 1;
-  background: transparent !important;
-  background-color: transparent !important;
-  background-image: none !important;
 }
 
 @keyframes ws-ambient-base-drift {
