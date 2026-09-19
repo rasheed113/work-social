@@ -32,23 +32,31 @@ import './app/global-ambient-scroll-motion.css';
 
 if (typeof window !== 'undefined') {
   let scrollFrame = 0;
+  let lastShift = -1;
 
   const updateAmbientScroll = () => {
     if (scrollFrame) return;
 
     scrollFrame = window.requestAnimationFrame(() => {
       const scroller = document.querySelector<HTMLElement>('.work-social-page-content');
-      const scrollTop = scroller ? scroller.scrollTop : window.scrollY;
-      const shift = Math.min(120, Math.max(0, scrollTop * 0.045));
+      const shell = document.querySelector<HTMLElement>('.work-social-router-shell');
 
-      document.documentElement.style.setProperty('--ws-scroll-shift', `${shift.toFixed(2)}px`);
+      if (scroller && shell) {
+        const shift = Math.min(72, Math.max(0, scroller.scrollTop * 0.028));
+
+        if (Math.abs(shift - lastShift) >= 0.25) {
+          shell.style.setProperty('--ws-scroll-shift', shift.toFixed(2) + 'px');
+          lastShift = shift;
+        }
+      }
+
       scrollFrame = 0;
     });
   };
 
   window.addEventListener('scroll', updateAmbientScroll, { passive: true, capture: true });
   window.addEventListener('resize', updateAmbientScroll, { passive: true });
-  updateAmbientScroll();
+  window.requestAnimationFrame(updateAmbientScroll);
 }
 
 if ('serviceWorker' in navigator) {
