@@ -1,8 +1,7 @@
-/* Work Social global ambient motion layer.
-   Presentation-only: native page scrolling stays 1:1 with the user's finger. */
+/* Work Social ambient background.
+   IMPORTANT: this file never changes scroll physics or scroll position. */
 
 .work-social-router-shell {
-  --ws-scroll-shift: 0px;
   position: relative;
   isolation: isolate;
   background: transparent !important;
@@ -19,16 +18,12 @@ body:has(.work-social-page-content) .work-social-page-content {
   background-attachment: initial !important;
 }
 
-.work-social-router-shell::before,
-.work-social-router-shell::after {
+.work-social-router-shell::before {
   content: '';
   position: absolute;
-  inset: -16%;
+  inset: -18%;
   pointer-events: none;
   z-index: 0;
-}
-
-.work-social-router-shell::before {
   background:
     radial-gradient(ellipse 48% 58% at 12% 18%, rgba(32, 116, 255, .58), transparent 70%),
     radial-gradient(ellipse 46% 54% at 88% 24%, rgba(0, 235, 255, .50), transparent 70%),
@@ -36,15 +31,8 @@ body:has(.work-social-page-content) .work-social-page-content {
     radial-gradient(ellipse 42% 48% at 18% 82%, rgba(0, 175, 255, .40), transparent 72%),
     linear-gradient(125deg, #06142d 0%, #0a2a58 34%, #171b59 55%, #073b5e 76%, #06152f 100%);
   background-size: 145% 145%, 150% 150%, 150% 150%, 140% 140%, 220% 220%;
-  animation: ws-ambient-drift 30s ease-in-out infinite alternate;
-  will-change: transform;
-}
-
-.work-social-router-shell::after {
-  background:
-    radial-gradient(ellipse 44% 44% at 16% 22%, rgba(0, 225, 255, .24), transparent 72%),
-    radial-gradient(ellipse 48% 46% at 84% 80%, rgba(168, 67, 255, .24), transparent 72%);
-  transform: translate3d(0, var(--ws-scroll-shift), 0) scale(1.04);
+  animation: ws-ambient-drift 34s ease-in-out infinite alternate;
+  transform: translate3d(0, 0, 0);
   will-change: transform;
 }
 
@@ -61,16 +49,13 @@ body:has(.work-social-page-content) .work-social-page-content {
 
 @media (max-width: 767px) {
   .work-social-router-shell::before {
-    animation-duration: 42s;
+    animation-duration: 44s;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .work-social-router-shell::before {
     animation: none !important;
-    transform: none !important;
-  }
-  .work-social-router-shell::after {
     transform: none !important;
     will-change: auto;
   }
