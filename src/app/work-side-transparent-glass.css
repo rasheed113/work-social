@@ -223,3 +223,100 @@ main.co5-page .ctwi-output-track span,
 main.co5-page .ctwi-progress-line b {
   box-shadow: none !important;
 }
+
+/* Work House Settings — remove legacy white/light card surfaces across Worker
+   and Contractor settings while preserving all controls and real data. */
+main:has(#worker-profile-title) section[aria-labelledby="worker-profile-title"],
+main:has(#worker-profile-title) section[aria-labelledby="worker-settings-section-title"],
+main:has(#team-joining-title) section[aria-labelledby="team-joining-title"] {
+  background: rgba(4, 12, 28, 0.10) !important;
+  background-image: none !important;
+  border-color: rgba(103, 232, 249, 0.14) !important;
+  box-shadow: none !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+}
+
+main:has(#worker-profile-title) section[aria-labelledby="worker-profile-title"]::before,
+main:has(#team-joining-title) section[aria-labelledby="team-joining-title"]::before {
+  opacity: 0 !important;
+  background: none !important;
+}
+
+main:has(#worker-profile-title) section[aria-labelledby="worker-profile-title"] > div:last-child,
+main:has(#worker-profile-title) section[aria-labelledby="worker-settings-section-title"] > button,
+main:has(#team-joining-title) section[aria-labelledby="team-joining-title"] button {
+  background: rgba(4, 12, 28, 0.10) !important;
+  background-image: none !important;
+  border-color: rgba(103, 232, 249, 0.13) !important;
+  box-shadow: none !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+}
+
+main:has(#worker-profile-title) section[aria-labelledby="worker-profile-title"] button {
+  background: rgba(4, 12, 28, 0.10) !important;
+  background-image: none !important;
+  border-color: rgba(103, 232, 249, 0.13) !important;
+  box-shadow: none !important;
+}
+
+main:has(#worker-profile-title) section[aria-labelledby="worker-settings-section-title"] > button:hover,
+main:has(#worker-profile-title) section[aria-labelledby="worker-profile-title"] button:hover,
+main:has(#team-joining-title) section[aria-labelledby="team-joining-title"] button:hover {
+  background: rgba(4, 12, 28, 0.16) !important;
+  border-color: rgba(103, 232, 249, 0.24) !important;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.14) !important;
+}
+
+/* Contractor account Settings + Contractor Team Settings. */
+main:has(#account-mode-switch-title),
+main:has([aria-label="Back to Team Dashboard"]) {
+  color: #e2e8f0 !important;
+}
+
+main:has(#account-mode-switch-title) > section,
+main:has([aria-label="Back to Team Dashboard"]) > section,
+main:has([aria-label="Back to Team Dashboard"]) > header,
+main:has(#account-mode-switch-title) > header {
+  background: rgba(4, 12, 28, 0.10) !important;
+  background-image: none !important;
+  border-color: rgba(103, 232, 249, 0.14) !important;
+  box-shadow: none !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+}
+
+main:has(#account-mode-switch-title) > section > div,
+main:has([aria-label="Back to Team Dashboard"]) > section > div {
+  background: rgba(4, 12, 28, 0.08) !important;
+  background-image: none !important;
+  border-color: rgba(103, 232, 249, 0.12) !important;
+  box-shadow: none !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+}
+
+main:has(#account-mode-switch-title) > button,
+main:has([aria-label="Back to Team Dashboard"]) button {
+  background: rgba(4, 12, 28, 0.10) !important;
+  background-image: none !important;
+  border-color: rgba(103, 232, 249, 0.14) !important;
+  box-shadow: none !important;
+}
+
+main:has(#account-mode-switch-title) > section button:hover,
+main:has([aria-label="Back to Team Dashboard"]) button:hover {
+  background: rgba(4, 12, 28, 0.17) !important;
+  border-color: rgba(103, 232, 249, 0.24) !important;
+}
+
+main:has(#account-mode-switch-title) > section[aria-labelledby="account-mode-switch-title"] {
+  background: rgba(4, 12, 28, 0.10) !important;
+}
+
+main:has(#account-mode-switch-title) > section[aria-labelledby="account-mode-switch-title"] > button > div > div > span,
+main:has(#account-mode-switch-title) > section[aria-labelledby="account-mode-switch-title"] > button > div + div {
+  background-image: none !important;
+}
+
