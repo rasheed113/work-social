@@ -105,11 +105,8 @@ body:has(.work-social-page-content) .work-social-page-content {
   .work-social-router-shell::after { animation-duration: 12s; }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .work-social-router-shell::before,
-  .work-social-router-shell::after {
-    animation: none !important;
-    transform: none !important;
-    will-change: auto;
-  }
+/* Keep the ambient canvas alive even when the device requests reduced motion. */
+.work-social-router-shell::before,
+.work-social-router-shell::after {
+  animation-play-state: running !important;
 }
