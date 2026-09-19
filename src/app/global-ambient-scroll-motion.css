@@ -16,8 +16,8 @@ body {
   animation: ws-ambient-base-drift 34s ease-in-out infinite alternate;
 }
 
-/* The router shell is the real Work Social viewport. Keep it transparent and
-   render the ambient environment as a dedicated layer behind its content. */
+/* Global living environment: two independent layers make the effect robust.
+   Layer 1 continuously breathes; Layer 2 follows the real page scroll progress. */
 .app-shell:not(.auth-screen),
 .work-social-router-shell {
   position: relative;
@@ -27,27 +27,38 @@ body {
   background-image: none !important;
 }
 
-.work-social-router-shell::before {
+.work-social-router-shell::before,
+.work-social-router-shell::after {
   content: '';
   position: absolute;
-  inset: 0;
-  z-index: 0;
+  inset: -12%;
   pointer-events: none;
+}
+
+/* Continuous ambient flow — deliberately independent of scroll state. */
+.work-social-router-shell::before {
+  z-index: 0;
   background:
-    radial-gradient(ellipse 62% 58% at calc(8% + var(--ws-scroll-progress) * 24% + var(--ws-ambient-drift) * 1%) 14%, rgba(54, 112, 255, .62), transparent 68%),
-    radial-gradient(ellipse 58% 62% at calc(92% - var(--ws-scroll-progress) * 26% + var(--ws-ambient-drift) * -1%) 26%, rgba(0, 238, 255, .52), transparent 68%),
-    radial-gradient(ellipse 62% 58% at calc(82% - var(--ws-scroll-progress) * 30%) 88%, rgba(164, 68, 255, .56), transparent 68%),
-    radial-gradient(ellipse 52% 54% at calc(12% + var(--ws-scroll-progress) * 30%) 82%, rgba(34, 168, 255, .42), transparent 70%),
+    radial-gradient(ellipse 62% 58% at 10% 16%, rgba(48, 106, 255, .62), transparent 68%),
+    radial-gradient(ellipse 58% 62% at 90% 25%, rgba(0, 238, 255, .52), transparent 68%),
+    radial-gradient(ellipse 62% 58% at 82% 88%, rgba(166, 68, 255, .56), transparent 68%),
+    radial-gradient(ellipse 52% 54% at 14% 82%, rgba(34, 168, 255, .42), transparent 70%),
     linear-gradient(125deg, #06142d 0%, #0b2b5c 32%, #151d5c 54%, #073a5e 76%, #07152f 100%);
   background-size: 140% 140%, 145% 145%, 142% 142%, 136% 136%, 220% 220%;
-  background-position:
-    calc(var(--ws-ambient-drift) * 1%) calc(var(--ws-ambient-drift) * .5%),
-    calc(100% - var(--ws-ambient-drift) * 1%) calc(var(--ws-ambient-drift) * .4%),
-    calc(100% - var(--ws-ambient-drift) * .8%) calc(100% - var(--ws-ambient-drift) * .5%),
-    calc(var(--ws-ambient-drift) * .7%) calc(100% - var(--ws-ambient-drift) * .4%),
-    calc(var(--ws-ambient-drift) * 1%) 50%;
-  animation: ws-router-ambient-drift 24s ease-in-out infinite alternate;
+  animation: ws-ambient-flow 18s ease-in-out infinite alternate;
   will-change: background-position;
+}
+
+/* Scroll response — transform is guaranteed to remain independent from the
+   background-position animation above, so both effects are visible together. */
+.work-social-router-shell::after {
+  z-index: 0;
+  background:
+    radial-gradient(ellipse 48% 46% at calc(12% + var(--ws-scroll-progress) * 72%) 20%, rgba(0, 230, 255, .28), transparent 70%),
+    radial-gradient(ellipse 52% 48% at calc(88% - var(--ws-scroll-progress) * 68%) 78%, rgba(157, 64, 255, .30), transparent 70%);
+  transform: translate3d(calc(var(--ws-scroll-progress) * -7%), calc(var(--ws-scroll-progress) * 5%), 0) scale(1.08);
+  transition: transform 180ms ease-out;
+  will-change: transform;
 }
 
 .work-social-router-shell > * {
@@ -55,7 +66,8 @@ body {
   z-index: 1;
 }
 
-/* Do not paint a second opaque canvas over the animated environment. */
+/* The scrolling viewport itself must stay transparent so the environment is
+   visible behind every route, including Home where the legacy canvas was set. */
 body .app-shell .work-social-page-content,
 body .app-shell .work-social-router-shell > div.work-social-page-content,
 body:has(.work-social-page-content) .work-social-page-content {
@@ -70,10 +82,10 @@ body:has(.work-social-page-content) .work-social-page-content {
   100% { background-position: 0 0, 0 0, center top, left center, right top, left bottom, right bottom, center, 100% 55%; }
 }
 
-@keyframes ws-router-ambient-drift {
+@keyframes ws-ambient-flow {
   0% { background-position: 0% 0%, 100% 0%, 100% 100%, 0% 100%, 0% 50%; }
-  50% { background-position: 18% 20%, 82% 8%, 76% 82%, 12% 72%, 55% 46%; }
-  100% { background-position: 38% 42%, 62% 24%, 48% 62%, 28% 48%, 100% 54%; }
+  50% { background-position: 24% 18%, 76% 12%, 72% 82%, 16% 72%, 50% 46%; }
+  100% { background-position: 48% 42%, 52% 28%, 44% 60%, 32% 44%, 100% 54%; }
 }
 
 @keyframes ws-ambient-orb-drift {
