@@ -20,11 +20,17 @@ body::before {
   isolation: isolate;
   overflow: hidden;
   background:
-    radial-gradient(ellipse 72% 34% at 50% 50%, rgba(0,225,255,.12), transparent 68%),
-    radial-gradient(ellipse 38% 62% at 18% 38%, rgba(34,78,255,.13), transparent 72%),
-    radial-gradient(ellipse 38% 62% at 82% 62%, rgba(139,53,255,.13), transparent 72%),
-    linear-gradient(118deg,#010207 0%,#02030c 28%,#050313 52%,#02030c 74%,#010207 100%) !important;
-  background-color:#010207 !important;
+    radial-gradient(ellipse 72% 34% at 50% 50%, rgba(0,238,255,.18), transparent 68%),
+    radial-gradient(ellipse 48% 30% at 22% 36%, rgba(18,88,255,.22), transparent 70%),
+    radial-gradient(ellipse 44% 34% at 78% 62%, rgba(166,55,255,.21), transparent 70%),
+    radial-gradient(ellipse 28% 18% at 68% 25%, rgba(0,255,214,.13), transparent 72%),
+    radial-gradient(ellipse 26% 20% at 30% 76%, rgba(92,55,255,.14), transparent 72%),
+    radial-gradient(ellipse 92% 12% at 50% 50%, rgba(0,216,255,.11), transparent 70%),
+    linear-gradient(116deg,#010107 0%,#020313 24%,#05021a 46%,#020817 66%,#010107 100%) !important;
+  background-size: 145% 125%, 125% 140%, 125% 140%, 120% 130%, 120% 130%, 150% 115%, 115% 115% !important;
+  background-position: 50% 50%, 20% 36%, 80% 64%, 68% 25%, 30% 76%, 50% 50%, 50% 50% !important;
+  animation:ws-cosmic-base 26s ease-in-out infinite;
+  background-color:#010107 !important;
 }
 
 /* The scroll surface is transparent; the cosmic environment stays behind it. */
@@ -94,6 +100,24 @@ body:has(.work-social-page-content) .work-social-page-content {
 .work-social-router-shell > * {
   position: relative;
   z-index: 1;
+}
+
+@keyframes ws-cosmic-base {
+  0% {
+    background-position: 50% 50%, 20% 36%, 80% 64%, 68% 25%, 30% 76%, 50% 50%, 50% 50%;
+  }
+  25% {
+    background-position: 56% 44%, 30% 28%, 70% 72%, 74% 31%, 24% 68%, 44% 54%, 54% 46%;
+  }
+  50% {
+    background-position: 44% 58%, 38% 46%, 62% 54%, 62% 20%, 36% 82%, 56% 46%, 46% 54%;
+  }
+  75% {
+    background-position: 60% 42%, 16% 52%, 86% 46%, 80% 38%, 20% 62%, 48% 58%, 58% 42%;
+  }
+  100% {
+    background-position: 50% 50%, 20% 36%, 80% 64%, 68% 25%, 30% 76%, 50% 50%, 50% 50%;
+  }
 }
 
 @keyframes ws-ultra-starfield {
