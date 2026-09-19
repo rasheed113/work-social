@@ -18,7 +18,7 @@ body:has(.work-social-page-content) .work-social-page-content {
   background-attachment: initial !important;
 }
 
-/* A clearly visible moving starfield and Milky-Way-style luminous band. */
+/* Smooth, continuously moving starfield. No scroll coupling. */
 .work-social-router-shell::before {
   content: '';
   position: absolute;
@@ -47,14 +47,14 @@ body:has(.work-social-page-content) .work-social-page-content {
     110px 40px, 60px 120px, 140px 70px, 20px 140px,
     0 0, 0 0, 0 0, 0 0;
   opacity: .98;
-  transform: translate3d(0,0,0) scale(1.04);
-  animation: ws-starfield 55s linear infinite;
+  transform: translate3d(-1.5%,0,0) scale(1.04);
+  animation: ws-starfield-drift 75s linear infinite;
   will-change: transform;
   backface-visibility: hidden;
   contain: paint;
 }
 
-/* A moving luminous galactic stream with a slow orbital sweep. */
+/* Smooth luminous galactic stream. */
 .work-social-router-shell::after {
   content: '';
   position: absolute;
@@ -81,10 +81,10 @@ body:has(.work-social-page-content) .work-social-page-content {
     radial-gradient(circle at 62% 26%, rgba(255,255,255,.72) 0 1px, transparent 2.5px);
   filter: blur(5px);
   mix-blend-mode: screen;
-  opacity: .8;
-  transform: translate3d(-5%,0,0) rotate(-9deg) scale(1.02);
-  animation: ws-galactic-orbit 40s linear infinite;
-  will-change: transform, opacity;
+  opacity: .72;
+  transform: translate3d(-6%,0,0) rotate(-4deg) scale(1.01);
+  animation: ws-galactic-drift 58s ease-in-out infinite;
+  will-change: transform;
   backface-visibility: hidden;
   contain: paint;
 }
@@ -94,21 +94,21 @@ body:has(.work-social-page-content) .work-social-page-content {
   z-index: 1;
 }
 
-@keyframes ws-starfield {
-  0% { transform: translate3d(-1.2%, -.4%, 0) scale(1.04); }
-  50% { transform: translate3d(0.6%, .4%, 0) scale(1.045); }
-  100% { transform: translate3d(1.2%, -.4%, 0) scale(1.04); }
+@keyframes ws-starfield-drift {
+  0% { transform: translate3d(-1.5%, 0, 0) scale(1.04); }
+  50% { transform: translate3d(1.5%, 0, 0) scale(1.04); }
+  100% { transform: translate3d(-1.5%, 0, 0) scale(1.04); }
 }
 
-@keyframes ws-galactic-orbit {
-  0% { transform: translate3d(-7%, 2%, 0) rotate(-4deg) scale(.99); opacity: .56; }
-  50% { transform: translate3d(0, -1%, 0) rotate(0deg) scale(1.01); opacity: .78; }
-  100% { transform: translate3d(7%, 2%, 0) rotate(4deg) scale(.99); opacity: .56; }
+@keyframes ws-galactic-drift {
+  0% { transform: translate3d(-6%, 0, 0) rotate(-4deg) scale(1.01); }
+  50% { transform: translate3d(6%, 0, 0) rotate(4deg) scale(1.01); }
+  100% { transform: translate3d(-6%, 0, 0) rotate(-4deg) scale(1.01); }
 }
 
 @media (max-width: 767px) {
-  .work-social-router-shell::before { animation-duration: 62s; }
-  .work-social-router-shell::after { animation-duration: 46s; }
+  .work-social-router-shell::before { animation-duration: 82s; }
+  .work-social-router-shell::after { animation-duration: 64s; }
 }
 
 .work-social-router-shell::before,
