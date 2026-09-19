@@ -478,3 +478,188 @@ body:has(.work-social-page-content) .work-social-page-content {
 .work-social-router-shell > .work-social-page-content > * {
   background-color:transparent !important;
 }
+
+
+/* CINEMATIC POLISH PASS — living deep-space depth.
+   Keeps native scrolling/touch completely independent from the environment. */
+
+/* Let the large canvas breathe almost imperceptibly; the moving structures carry the scene. */
+.ws-new-cosmic-backdrop {
+  animation: ws-polish-canvas 68s ease-in-out infinite !important;
+  transform-origin: 50% 50% !important;
+  background:
+    radial-gradient(ellipse 46% 38% at 10% 24%, rgba(25,86,255,.18), transparent 74%),
+    radial-gradient(ellipse 34% 44% at 86% 16%, rgba(0,224,211,.13), transparent 75%),
+    radial-gradient(ellipse 48% 44% at 92% 84%, rgba(157,48,255,.18), transparent 75%),
+    radial-gradient(ellipse 40% 34% at 18% 88%, rgba(63,48,190,.13), transparent 76%),
+    radial-gradient(ellipse 28% 32% at 52% 48%, rgba(16,66,145,.07), transparent 78%),
+    linear-gradient(145deg,#000005 0%,#01020e 32%,#010613 59%,#02000a 100%) !important;
+}
+
+/* The main nebula becomes soft, irregular gas rather than a recognizable band. */
+.ws-new-cosmic-band {
+  width: 150vw !important;
+  height: 140vh !important;
+  left: -25vw !important;
+  top: -20vh !important;
+  border-radius: 47% 53% 61% 39% / 43% 58% 42% 57% !important;
+  transform: rotate(-12deg) !important;
+  background:
+    radial-gradient(ellipse 22% 18% at 12% 34%, rgba(0,190,255,.16), transparent 76%),
+    radial-gradient(ellipse 29% 23% at 31% 68%, rgba(56,92,255,.13), transparent 78%),
+    radial-gradient(ellipse 20% 28% at 55% 25%, rgba(0,238,214,.11), transparent 78%),
+    radial-gradient(ellipse 31% 20% at 74% 63%, rgba(181,54,255,.15), transparent 78%),
+    radial-gradient(ellipse 17% 19% at 91% 31%, rgba(95,71,255,.10), transparent 80%),
+    radial-gradient(ellipse 58% 24% at 48% 50%, rgba(70,61,166,.07), transparent 82%),
+    conic-gradient(from 132deg at 47% 51%, transparent 0 18%, rgba(0,210,255,.035) 29%, transparent 42%, rgba(190,58,255,.04) 58%, transparent 73%, rgba(30,120,255,.03) 86%, transparent 100%) !important;
+  filter: blur(34px) saturate(132%) !important;
+  opacity: .82 !important;
+  animation: ws-polish-nebula 57s cubic-bezier(.37,0,.63,1) infinite !important;
+}
+
+/* Three independent gas clouds migrate on different paths and timescales. */
+.ws-new-cosmic-glow-a {
+  width: 48vw !important;
+  height: 48vw !important;
+  left: -17vw !important;
+  top: 2vh !important;
+  background: radial-gradient(circle, rgba(0,113,255,.27), rgba(0,113,255,.055) 42%, transparent 74%) !important;
+  filter: blur(46px) !important;
+  animation: ws-polish-cloud-a 43s ease-in-out infinite !important;
+}
+.ws-new-cosmic-glow-b {
+  width: 46vw !important;
+  height: 46vw !important;
+  right: -13vw !important;
+  top: 48vh !important;
+  background: radial-gradient(circle, rgba(184,45,255,.25), rgba(139,38,255,.045) 44%, transparent 75%) !important;
+  filter: blur(50px) !important;
+  animation: ws-polish-cloud-b 61s ease-in-out infinite !important;
+}
+.ws-new-cosmic-glow-c {
+  width: 34vw !important;
+  height: 34vw !important;
+  left: 42vw !important;
+  top: -18vh !important;
+  background: radial-gradient(circle, rgba(0,244,211,.17), rgba(0,182,255,.035) 44%, transparent 76%) !important;
+  filter: blur(42px) !important;
+  animation: ws-polish-cloud-c 49s ease-in-out infinite !important;
+}
+
+/* Deep stars: denser and quieter, with a separate sparse bright layer. */
+.ws-new-cosmic-backdrop::before {
+  inset: -48% !important;
+  background:
+    radial-gradient(circle at 3% 11%,rgba(255,255,255,.78) 0 1px,transparent 2.2px),
+    radial-gradient(circle at 9% 69%,rgba(142,216,255,.68) 0 1px,transparent 2.1px),
+    radial-gradient(circle at 16% 31%,rgba(255,255,255,.62) 0 1px,transparent 2px),
+    radial-gradient(circle at 23% 84%,rgba(204,174,255,.66) 0 1px,transparent 2.1px),
+    radial-gradient(circle at 31% 18%,rgba(255,255,255,.72) 0 1px,transparent 2.2px),
+    radial-gradient(circle at 39% 58%,rgba(106,215,255,.62) 0 1px,transparent 2px),
+    radial-gradient(circle at 47% 27%,rgba(255,255,255,.68) 0 1px,transparent 2.1px),
+    radial-gradient(circle at 55% 91%,rgba(202,168,255,.58) 0 1px,transparent 2px),
+    radial-gradient(circle at 64% 43%,rgba(255,255,255,.72) 0 1px,transparent 2.1px),
+    radial-gradient(circle at 72% 8%,rgba(112,222,255,.65) 0 1px,transparent 2px),
+    radial-gradient(circle at 81% 73%,rgba(255,255,255,.70) 0 1px,transparent 2.1px),
+    radial-gradient(circle at 91% 34%,rgba(218,179,255,.64) 0 1px,transparent 2px),
+    radial-gradient(circle at 13% 17%,rgba(255,255,255,.42) 0 1.8px,transparent 4px),
+    radial-gradient(circle at 76% 81%,rgba(90,225,255,.34) 0 1.6px,transparent 4px),
+    radial-gradient(circle at 58% 12%,rgba(226,206,255,.30) 0 1.5px,transparent 3.8px);
+  background-size: 17vw 21vh,23vw 29vh,31vw 37vh,43vw 41vh,53vw 47vh,67vw 59vh,79vw 71vh,97vw 83vh,61vw 91vh,73vw 57vh,107vw 97vh,127vw 113vh,151vw 131vh,181vw 157vh,211vw 179vh !important;
+  opacity: .66 !important;
+  animation: ws-polish-stars 73s linear infinite !important;
+}
+
+/* Wispy gas is deliberately off-centre; there is no permanent luminous centre strip. */
+.ws-new-cosmic-backdrop::after {
+  inset: -34% !important;
+  background:
+    radial-gradient(ellipse 27% 15% at 13% 27%,rgba(0,225,255,.13),transparent 76%),
+    radial-gradient(ellipse 21% 23% at 74% 17%,rgba(73,91,255,.11),transparent 78%),
+    radial-gradient(ellipse 30% 17% at 88% 70%,rgba(198,58,255,.14),transparent 77%),
+    radial-gradient(ellipse 23% 19% at 24% 82%,rgba(0,166,255,.10),transparent 78%),
+    radial-gradient(ellipse 18% 13% at 54% 43%,rgba(255,255,255,.045),transparent 80%),
+    radial-gradient(ellipse 42% 11% at 67% 57%,rgba(93,76,204,.05),transparent 82%),
+    conic-gradient(from 8deg at 44% 51%,transparent 0 24%,rgba(0,210,255,.035) 35%,transparent 48%,rgba(190,60,255,.035) 63%,transparent 80%);
+  filter: blur(30px) saturate(125%) !important;
+  opacity: .58 !important;
+  animation: ws-polish-mist 64s ease-in-out infinite !important;
+}
+
+/* Re-enable a restrained individual-star layer: mostly twinkle, with tiny multidirectional drift. */
+.ws-living-star-field {
+  display: block !important;
+  z-index: 1 !important;
+  opacity: .48 !important;
+}
+.ws-living-star {
+  width: max(1px,var(--ws-size)) !important;
+  height: max(1px,var(--ws-size)) !important;
+  opacity: .35 !important;
+  box-shadow: 0 0 5px rgba(145,228,255,.65),0 0 10px rgba(150,90,255,.22) !important;
+  animation: ws-polish-individual-star var(--ws-duration) ease-in-out var(--ws-delay) infinite !important;
+}
+.ws-living-star:nth-child(5n) {
+  box-shadow: 0 0 5px rgba(255,225,255,.72),0 0 12px rgba(190,90,255,.30) !important;
+}
+@keyframes ws-polish-individual-star {
+  0%,100% { transform: translate3d(0,0,0) scale(.72); opacity:.18; }
+  27% { transform: translate3d(3px,-2px,0) scale(1); opacity:.52; }
+  53% { transform: translate3d(-2px,3px,0) scale(1.28); opacity:.78; }
+  79% { transform: translate3d(2px,1px,0) scale(.84); opacity:.34; }
+}
+
+/* Long, asynchronous paths reduce the obvious repeating-wallpaper feel. */
+@keyframes ws-polish-canvas {
+  0%,100% { transform:scale(1); filter:brightness(.91) saturate(1.04); }
+  25% { transform:scale(1.012) translate3d(.4vw,-.3vh,0); filter:brightness(.96) saturate(1.08); }
+  50% { transform:scale(1.018) translate3d(-.5vw,.5vh,0); filter:brightness(1.02) saturate(1.12); }
+  75% { transform:scale(1.009) translate3d(.3vw,.2vh,0); filter:brightness(.95) saturate(1.06); }
+}
+@keyframes ws-polish-nebula {
+  0% { transform:translate3d(-11vw,9vh,0) rotate(-12deg) scale(.94); opacity:.42; }
+  21% { transform:translate3d(5vw,-7vh,0) rotate(-4deg) scale(1.01); opacity:.60; }
+  43% { transform:translate3d(21vw,6vh,0) rotate(6deg) scale(1.08); opacity:.72; }
+  67% { transform:translate3d(8vw,18vh,0) rotate(13deg) scale(1.01); opacity:.52; }
+  84% { transform:translate3d(-18vw,2vh,0) rotate(4deg) scale(.98); opacity:.64; }
+  100% { transform:translate3d(-11vw,9vh,0) rotate(-12deg) scale(.94); opacity:.42; }
+}
+@keyframes ws-polish-cloud-a {
+  0%,100% { transform:translate3d(0,0,0) scale(.84); opacity:.32; }
+  29% { transform:translate3d(18vw,15vh,0) scale(1.08); opacity:.54; }
+  58% { transform:translate3d(37vw,-3vh,0) scale(.92); opacity:.38; }
+  82% { transform:translate3d(13vw,-15vh,0) scale(1.12); opacity:.48; }
+}
+@keyframes ws-polish-cloud-b {
+  0%,100% { transform:translate3d(0,0,0) scale(.86); opacity:.30; }
+  31% { transform:translate3d(-24vw,-11vh,0) scale(1.10); opacity:.58; }
+  59% { transform:translate3d(-8vw,-29vh,0) scale(.96); opacity:.38; }
+  83% { transform:translate3d(18vw,-7vh,0) scale(1.04); opacity:.50; }
+}
+@keyframes ws-polish-cloud-c {
+  0%,100% { transform:translate3d(0,0,0) scale(.82); opacity:.25; }
+  34% { transform:translate3d(-21vw,20vh,0) scale(1.14); opacity:.50; }
+  63% { transform:translate3d(15vw,37vh,0) scale(.91); opacity:.31; }
+  86% { transform:translate3d(27vw,10vh,0) scale(1.05); opacity:.43; }
+}
+@keyframes ws-polish-stars {
+  0% { transform:translate3d(-4%,-3%,0) rotate(0deg) scale(1); opacity:.42; }
+  23% { transform:translate3d(2%,5%,0) rotate(-.5deg) scale(1.018); opacity:.66; }
+  49% { transform:translate3d(7%,-1%,0) rotate(.8deg) scale(1.032); opacity:.48; }
+  74% { transform:translate3d(-1%,8%,0) rotate(-.4deg) scale(1.014); opacity:.72; }
+  100% { transform:translate3d(-4%,-3%,0) rotate(0deg) scale(1); opacity:.42; }
+}
+@keyframes ws-polish-mist {
+  0%,100% { transform:translate3d(-15vw,5vh,0) rotate(-6deg) scale(.94); opacity:.28; }
+  24% { transform:translate3d(7vw,-10vh,0) rotate(3deg) scale(1.04); opacity:.48; }
+  51% { transform:translate3d(24vw,8vh,0) rotate(11deg) scale(.98); opacity:.32; }
+  77% { transform:translate3d(-1vw,22vh,0) rotate(-2deg) scale(1.08); opacity:.44; }
+}
+
+/* Keep every decorative layer passive to input and independent from page scrolling. */
+.ws-new-cosmic-backdrop,
+.ws-new-cosmic-backdrop *,
+.ws-living-star-field,
+.ws-living-star {
+  pointer-events: none !important;
+}
