@@ -56,11 +56,13 @@ body {
 }
 
 /* Do not paint a second opaque canvas over the animated environment. */
-.work-social-page-content,
-.work-social-router-shell > div.work-social-page-content {
+body .app-shell .work-social-page-content,
+body .app-shell .work-social-router-shell > div.work-social-page-content,
+body:has(.work-social-page-content) .work-social-page-content {
   background: transparent !important;
   background-color: transparent !important;
   background-image: none !important;
+  background-attachment: initial !important;
 }
 
 @keyframes ws-ambient-base-drift {
