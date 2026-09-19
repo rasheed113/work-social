@@ -1,0 +1,65 @@
+/* Work Social global ambient motion layer.
+   Keeps the existing global background and glass surfaces intact. */
+:root {
+  --ws-scroll-progress: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  position: relative;
+  isolation: isolate;
+  background-attachment: fixed !important;
+  background-size: 32px 32px, 32px 32px, auto, auto, auto, auto, auto, auto, 220% 220% !important;
+  animation: ws-ambient-base-drift 34s ease-in-out infinite alternate;
+}
+
+/* An independent, fixed light field follows the viewport rather than the
+   document, so it remains present while the user scrolls long pages. */
+body::after {
+  content: '';
+  position: fixed;
+  inset: -12%;
+  z-index: -1;
+  pointer-events: none;
+  opacity: .72;
+  background:
+    radial-gradient(ellipse 42% 38% at 18% 28%, rgba(72, 99, 255, .28), transparent 72%),
+    radial-gradient(ellipse 38% 44% at 82% 24%, rgba(0, 240, 255, .25), transparent 72%),
+    radial-gradient(ellipse 44% 38% at 72% 82%, rgba(176, 76, 255, .25), transparent 72%),
+    radial-gradient(ellipse 36% 42% at 20% 78%, rgba(0, 183, 255, .18), transparent 74%);
+  background-size: 130% 130%;
+  transform: translate3d(0, calc(var(--ws-scroll-progress) * -24px), 0);
+  will-change: background-position, transform;
+  animation: ws-ambient-orb-drift 26s ease-in-out infinite alternate;
+}
+
+@keyframes ws-ambient-base-drift {
+  0% { background-position: 0 0, 0 0, center top, left center, right top, left bottom, right bottom, center, 0% 45%; }
+  100% { background-position: 0 0, 0 0, center top, left center, right top, left bottom, right bottom, center, 100% 55%; }
+}
+
+@keyframes ws-ambient-orb-drift {
+  0% { background-position: 0% 10%; }
+  50% { background-position: 100% 55%; }
+  100% { background-position: 18% 100%; }
+}
+
+@media (max-width: 767px) {
+  body { animation-duration: 46s; }
+  body::after {
+    opacity: .56;
+    inset: -5%;
+    background-size: 150% 150%;
+    animation-duration: 38s;
+    will-change: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  body, body::after { animation: none !important; }
+  body::after { transform: none; will-change: auto; }
+}
