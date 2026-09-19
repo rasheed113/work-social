@@ -28,6 +28,7 @@ import './app/master-glassmorphic-theme.css';
 import './app/social-hud-force-theme.css';
 import './app/profile-posts-supercomputer.css';
 import './app/notifications-transparent-glass.css';
+import './app/global-ambient-scroll-motion.css';
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
