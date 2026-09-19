@@ -290,3 +290,43 @@ body:has(.work-social-page-content) .work-social-page-content {
   background-image: none !important;
   box-shadow: none !important;
 }
+
+/* FINAL LIVING GALAXY OVERRIDE — visually distinct environment. */
+
+.work-social-router-shell {
+  background:
+    radial-gradient(ellipse 72% 28% at 50% 51%, rgba(28,235,255,.42) 0%, rgba(0,150,255,.25) 22%, rgba(91,70,255,.16) 42%, transparent 72%),
+    radial-gradient(ellipse 42% 48% at 12% 42%, rgba(0,110,255,.28), transparent 70%),
+    radial-gradient(ellipse 42% 48% at 88% 56%, rgba(177,55,255,.27), transparent 70%),
+    radial-gradient(ellipse 34% 30% at 64% 18%, rgba(0,255,220,.18), transparent 72%),
+    radial-gradient(ellipse 34% 30% at 35% 82%, rgba(86,65,255,.18), transparent 72%),
+    linear-gradient(115deg,#000006 0%,#010313 24%,#02051a 48%,#010716 72%,#000006 100%) !important;
+  background-size: 135% 70%, 125% 135%, 125% 135%, 120% 120%, 120% 120%, 120% 120% !important;
+  background-position: 50% 52%, 10% 42%, 90% 58%, 64% 18%, 35% 82%, 50% 50% !important;
+  animation: ws-living-canvas 20s ease-in-out infinite !important;
+}
+.ws-living-star {
+  width: max(2px,var(--ws-size)) !important;
+  height: max(2px,var(--ws-size)) !important;
+  background: #eaffff !important;
+  box-shadow: 0 0 6px rgba(140,240,255,.95), 0 0 16px rgba(72,132,255,.62) !important;
+}
+.ws-living-star:nth-child(5n) {
+  background:#f0dfff !important;
+  box-shadow:0 0 7px rgba(255,220,255,.95),0 0 18px rgba(190,90,255,.66) !important;
+}
+.ws-cosmic-core {
+  width:72vw !important;
+  height:18vw !important;
+  left:14% !important;
+  top:41% !important;
+  background:radial-gradient(ellipse,rgba(255,255,255,.42) 0 2%,rgba(60,240,255,.48) 8%,rgba(35,145,255,.30) 24%,rgba(135,65,255,.18) 46%,transparent 74%) !important;
+  filter:blur(12px) !important;
+  animation:ws-core-breathe 7s ease-in-out infinite !important;
+}
+@keyframes ws-living-canvas {
+  0%,100% { background-position:50% 52%,10% 42%,90% 58%,64% 18%,35% 82%,50% 50%; }
+  25% { background-position:44% 47%,24% 32%,76% 68%,52% 28%,48% 72%,54% 46%; }
+  50% { background-position:57% 56%,36% 51%,64% 49%,72% 12%,28% 88%,46% 54%; }
+  75% { background-position:46% 49%,18% 61%,82% 39%,58% 22%,42% 78%,52% 48%; }
+}
