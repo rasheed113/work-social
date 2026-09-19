@@ -1,0 +1,191 @@
+/* Remaining Cyber HUD white-text cleanup */
+
+/* Header / branding */
+.ws-master-header [class*="logo"],
+.ws-master-header [class*="Logo"],
+.ws-master-header [class*="brand"],
+.ws-master-header [class*="Brand"],
+header [class*="logo"],
+header [class*="Logo"],
+header [class*="brand"],
+header [class*="Brand"] {
+  color: #00f0ff !important;
+  border-color: rgba(0, 240, 255, 0.4) !important;
+  text-shadow: 0 0 10px rgba(0, 240, 255, 0.6) !important;
+}
+
+.ws-master-header [class*="logo"] > *,
+.ws-master-header [class*="Logo"] > *,
+header [class*="logo"] > *,
+header [class*="Logo"] > * {
+  color: #00f0ff !important;
+  border-color: rgba(0, 240, 255, 0.4) !important;
+  text-shadow: 0 0 10px rgba(0, 240, 255, 0.6) !important;
+}
+
+/* Main headings / section titles */
+.home-page-title,
+.home-post-feed > section > h1,
+.home-post-feed > section > h2,
+.home-post-feed h1,
+.home-post-feed h2,
+.home-post-feed h3,
+.home-post-feed h4,
+[class*="CreatePost"] h1,
+[class*="CreatePost"] h2,
+[class*="CreatePost"] h3,
+[class*="CreatePost"] h4,
+[class*="Community"] h1,
+[class*="Community"] h2,
+[class*="Community"] h3,
+[class*="Community"] h4 {
+  font-family: monospace, sans-serif !important;
+  color: #00f0ff !important;
+  -webkit-text-fill-color: #00f0ff !important;
+  text-shadow: 0 0 10px rgba(0, 240, 255, 0.6) !important;
+}
+
+/* Home Create Post card: force all inherited white typography into HUD palette */
+.home-post-feed > section:first-child,
+.home-post-feed > section:first-child p,
+.home-post-feed > section:first-child span,
+.home-post-feed > section:first-child label,
+.home-post-feed > section:first-child div {
+  color: #cbd5e1 !important;
+  -webkit-text-fill-color: #cbd5e1 !important;
+}
+
+.home-post-feed > section:first-child h1,
+.home-post-feed > section:first-child h2,
+.home-post-feed > section:first-child h3,
+.home-post-feed > section:first-child h4,
+.home-post-feed > section:first-child [class*="title"],
+.home-post-feed > section:first-child [class*="Title"] {
+  font-family: monospace, sans-serif !important;
+  color: #00f0ff !important;
+  -webkit-text-fill-color: #00f0ff !important;
+  text-shadow: 0 0 10px rgba(0, 240, 255, 0.6) !important;
+}
+
+.home-post-feed > section:first-child p,
+.home-post-feed > section:first-child [class*="subtitle"],
+.home-post-feed > section:first-child [class*="Subtitle"],
+.home-post-feed > section:first-child time,
+.home-post-feed > section:first-child small {
+  color: #94a3b8 !important;
+  -webkit-text-fill-color: #94a3b8 !important;
+}
+
+.home-post-feed > section:first-child textarea,
+.home-post-feed > section:first-child input {
+  color: #cbd5e1 !important;
+  -webkit-text-fill-color: #cbd5e1 !important;
+}
+
+.home-post-feed > section:first-child textarea::placeholder,
+.home-post-feed > section:first-child input::placeholder {
+  color: #94a3b8 !important;
+  -webkit-text-fill-color: #94a3b8 !important;
+  opacity: 1 !important;
+}
+
+.home-post-feed > section:first-child button,
+.home-post-feed > section:first-child button span {
+  color: #00f0ff !important;
+  -webkit-text-fill-color: #00f0ff !important;
+}
+
+/* CreatePost action controls: override browser/button component defaults explicitly */
+[class*="CreatePost"] button,
+[class*="CreatePost"] button *,
+[class*="CreatePost"] [role="button"],
+[class*="CreatePost"] [role="button"] *,
+.home-post-feed > section:first-child button,
+.home-post-feed > section:first-child button * {
+  color: #00f0ff !important;
+  -webkit-text-fill-color: #00f0ff !important;
+  text-shadow: 0 0 7px rgba(0, 240, 255, 0.45) !important;
+}
+
+/* Media / file / location controls — keep both text and icons in the HUD palette */
+[class*="CreatePost"] button[aria-label*="Photo"],
+[class*="CreatePost"] button[aria-label*="File"],
+[class*="CreatePost"] button[aria-label*="Location"],
+[class*="CreatePost"] button[title*="Photo"],
+[class*="CreatePost"] button[title*="File"],
+[class*="CreatePost"] button[title*="Location"] {
+  color: #00f0ff !important;
+  -webkit-text-fill-color: #00f0ff !important;
+}
+
+.home-post-feed > section:first-child svg,
+.home-post-feed > section:first-child svg * {
+  color: #00f0ff !important;
+  stroke: #00f0ff !important;
+}
+
+/* Subtitles, timestamps and muted metadata */
+.home-post-feed time,
+.home-post-feed small,
+.home-post-feed [class*="timestamp"],
+.home-post-feed [class*="Timestamp"],
+.home-post-feed [class*="date"],
+.home-post-feed [class*="Date"],
+.home-post-feed [class*="privacy"],
+.home-post-feed [class*="Privacy"],
+.home-post-feed [class*="subtitle"],
+.home-post-feed [class*="Subtitle"],
+[class*="CreatePost"] [class*="subtitle"],
+[class*="CreatePost"] [class*="Subtitle"] {
+  color: #94a3b8 !important;
+  -webkit-text-fill-color: #94a3b8 !important;
+}
+
+/* Create-post helper text / community sharing subtitle */
+[class*="CreatePost"] p,
+[class*="CreatePost"] span,
+.home-post-feed > section:first-child p {
+  color: #94a3b8 !important;
+}
+
+/* Privacy dropdown / menus */
+.home-post-feed [role="listbox"],
+.home-post-feed [role="menu"],
+.home-post-feed [role="dialog"],
+[class*="Privacy"] [role="listbox"],
+[class*="Privacy"] [role="menu"],
+[class*="Privacy"] [role="dialog"] {
+  background: rgba(8, 15, 30, 0.9) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(0, 240, 255, 0.4) !important;
+  box-shadow: 0 0 18px rgba(0, 240, 255, 0.16) !important;
+}
+
+.home-post-feed [role="listbox"] [aria-selected="true"],
+.home-post-feed [role="menu"] [aria-selected="true"],
+.home-post-feed [role="listbox"] [data-state="checked"],
+.home-post-feed [role="menu"] [data-state="checked"],
+.home-post-feed [role="listbox"] [data-selected="true"],
+.home-post-feed [role="menu"] [data-selected="true"] {
+  background: rgba(0, 240, 255, 0.12) !important;
+  color: #00f0ff !important;
+  -webkit-text-fill-color: #00f0ff !important;
+  text-shadow: 0 0 8px rgba(0, 240, 255, 0.55) !important;
+}
+
+/* Post body + comment placeholder */
+.home-post-feed article p,
+.home-post-feed article [data-post-content="true"],
+.home-post-feed article [data-comment-content="true"] {
+  color: #cbd5e1 !important;
+  -webkit-text-fill-color: #cbd5e1 !important;
+}
+
+.home-post-feed article input::placeholder,
+.home-post-feed article textarea::placeholder,
+.home-post-feed input[placeholder*="comment"]::placeholder,
+.home-post-feed textarea[placeholder*="comment"]::placeholder {
+  color: #cbd5e1 !important;
+  -webkit-text-fill-color: #cbd5e1 !important;
+}

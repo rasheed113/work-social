@@ -1,0 +1,204 @@
+/* Work Social — Phase 3.1 Social Post surface correction.
+   Presentation-only. Removes legacy light/white PostFeed surfaces while preserving behavior.
+   No data, routing, auth, API, Supabase, AI, or business logic. */
+
+body:has(.home-post-feed) {
+  --ws-social-post-surface: linear-gradient(145deg, rgba(18, 47, 84, .82), rgba(6, 22, 46, .92));
+  --ws-social-post-surface-2: linear-gradient(145deg, rgba(14, 38, 71, .78), rgba(5, 20, 42, .90));
+  --ws-social-post-surface-3: rgba(5, 21, 43, .78);
+  --ws-social-post-line: rgba(104, 205, 255, .20);
+  --ws-social-post-line-strong: rgba(75, 204, 255, .38);
+  --ws-social-post-text: #a9c4df;
+  --ws-social-post-soft: #7dd3fc;
+}
+
+body:has(.home-post-feed) .home-post-feed article {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  color: #a9c4df !important;
+  -webkit-text-fill-color: #a9c4df !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Catch legacy inline white/light surfaces without touching user media. */
+body:has(.home-post-feed) .home-post-feed article [style*="rgba(255,255,255"],
+body:has(.home-post-feed) .home-post-feed article [style*="rgba(255, 255, 255"],
+body:has(.home-post-feed) .home-post-feed article [style*="rgba(247,249,252"],
+body:has(.home-post-feed) .home-post-feed article [style*="rgba(247, 249, 252"],
+body:has(.home-post-feed) .home-post-feed article [style*="#fff"],
+body:has(.home-post-feed) .home-post-feed article [style*="#FFF"],
+body:has(.home-post-feed) .home-post-feed article [style*="#ffffff"],
+body:has(.home-post-feed) .home-post-feed article [style*="#FFFFFF"] {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  color: #a9c4df !important;
+  -webkit-text-fill-color: #a9c4df !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+/* IMPORTANT: posted content is plain text inside the post body and may not be a <p>.
+   Force every textual element in the actual post body out of the legacy white palette. */
+body:has(.home-post-feed) .home-post-feed article > div,
+body:has(.home-post-feed) .home-post-feed article > div *,
+body:has(.home-post-feed) .home-post-feed article > footer,
+body:has(.home-post-feed) .home-post-feed article > footer * {
+  color: #a9c4df !important;
+  -webkit-text-fill-color: #a9c4df !important;
+}
+
+/* Posted message itself: slate/cyan, never white. */
+body:has(.home-post-feed) .home-post-feed article p,
+body:has(.home-post-feed) .home-post-feed article p * {
+  color: #a9c4df !important;
+  -webkit-text-fill-color: #a9c4df !important;
+  text-shadow: 0 0 5px rgba(74, 190, 255, .08) !important;
+}
+
+/* Names are command identifiers; timestamps and metadata remain muted. */
+body:has(.home-post-feed) .home-post-feed article strong {
+  color: #00f0ff !important;
+  -webkit-text-fill-color: #00f0ff !important;
+  text-shadow: 0 0 8px rgba(0, 240, 255, .42) !important;
+}
+
+body:has(.home-post-feed) .home-post-feed article small,
+body:has(.home-post-feed) .home-post-feed article time {
+  color: #7dd3fc !important;
+  -webkit-text-fill-color: #7dd3fc !important;
+}
+
+body:has(.home-post-feed) .home-post-feed article span,
+body:has(.home-post-feed) .home-post-feed article label {
+  color: #a9c4df !important;
+  -webkit-text-fill-color: #a9c4df !important;
+}
+
+/* Inputs and comment composers. */
+body:has(.home-post-feed) .home-post-feed article input,
+body:has(.home-post-feed) .home-post-feed article textarea {
+  color: #a9c4df !important;
+  -webkit-text-fill-color: #a9c4df !important;
+  caret-color: #00f0ff !important;
+  background: rgba(4, 18, 38, .82) !important;
+  border-color: var(--ws-social-post-line) !important;
+  box-shadow: inset 0 1px 0 rgba(183, 239, 255, .05), 0 6px 18px rgba(0, 8, 24, .14) !important;
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+body:has(.home-post-feed) .home-post-feed article input::placeholder,
+body:has(.home-post-feed) .home-post-feed article textarea::placeholder {
+  color: #7dd3fc !important;
+  -webkit-text-fill-color: #7dd3fc !important;
+  opacity: 1 !important;
+}
+
+/* Actions. */
+body:has(.home-post-feed) .home-post-feed article button {
+  color: #a9c4df !important;
+  -webkit-text-fill-color: #a9c4df !important;
+  border-color: var(--ws-social-post-line) !important;
+  background: linear-gradient(145deg, rgba(20, 50, 88, .72), rgba(6, 23, 47, .84)) !important;
+  box-shadow: inset 0 1px 0 rgba(183, 239, 255, .06), 0 6px 16px rgba(0, 8, 24, .14) !important;
+  border-color: transparent !important;
+  background: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+body:has(.home-post-feed) .home-post-feed article button:hover:not(:disabled) {
+  border-color: transparent !important;
+  background: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+/* Privacy labels/options. */
+body:has(.home-post-feed) .home-post-feed article [role="menu"] button,
+body:has(.home-post-feed) .home-post-feed article [aria-label*="privacy" i],
+body:has(.home-post-feed) .home-post-feed article [title*="privacy" i] {
+  color: #67e8f9 !important;
+  -webkit-text-fill-color: #67e8f9 !important;
+  text-shadow: 0 0 7px rgba(0, 240, 255, .28) !important;
+}
+
+/* Community feed heading/subheading. */
+body:has(.home-post-feed) .home-post-feed > header,
+body:has(.home-post-feed) .home-post-feed > header h1,
+body:has(.home-post-feed) .home-post-feed > header h2,
+body:has(.home-post-feed) .home-post-feed > header p,
+body:has(.home-post-feed) .home-post-feed > header small,
+body:has(.home-post-feed) .home-post-feed > section > header,
+body:has(.home-post-feed) .home-post-feed > section > header h1,
+body:has(.home-post-feed) .home-post-feed > section > header h2,
+body:has(.home-post-feed) .home-post-feed > section > header p,
+body:has(.home-post-feed) .home-post-feed > section > header small {
+  color: #67e8f9 !important;
+  -webkit-text-fill-color: #67e8f9 !important;
+}
+
+/* Reaction groups and menus. */
+body:has(.home-post-feed) .home-post-feed article [role="group"],
+body:has(.home-post-feed) .home-post-feed article [aria-label*="reaction" i] {
+  background: var(--ws-social-post-surface-2) !important;
+  color: #a9c4df !important;
+  border-color: var(--ws-social-post-line) !important;
+}
+
+body:has(.home-post-feed) .home-post-feed article [role="menu"],
+body:has(.home-post-feed) .home-post-feed article [role="dialog"],
+body:has(.home-post-feed) .home-post-feed article [role="alertdialog"] {
+  color: #a9c4df !important;
+  background: linear-gradient(145deg, rgba(15, 39, 73, .98), rgba(5, 20, 42, .99)) !important;
+  border-color: var(--ws-social-post-line-strong) !important;
+  box-shadow: 0 26px 68px rgba(0, 5, 20, .48), 0 0 34px rgba(34, 211, 238, .07), inset 0 1px 0 rgba(188, 241, 255, .09) !important;
+  backdrop-filter: blur(22px) saturate(130%);
+  -webkit-backdrop-filter: blur(22px) saturate(130%);
+}
+
+body:has(.home-post-feed) .home-post-feed article [role="menu"] button,
+body:has(.home-post-feed) .home-post-feed article [role="dialog"] button,
+body:has(.home-post-feed) .home-post-feed article [role="alertdialog"] button {
+  background: rgba(20, 52, 92, .58) !important;
+  color: #67e8f9 !important;
+  -webkit-text-fill-color: #67e8f9 !important;
+}
+
+/* Preserve actual media appearance. */
+body:has(.home-post-feed) .home-post-feed article img,
+body:has(.home-post-feed) .home-post-feed article video {
+  background: initial;
+  box-shadow: revert-layer;
+}
+
+body:has(.home-post-feed) .home-post-feed article div[style*="linear-gradient(145deg,#f8fafc,#e7ecf2"] {
+  background: linear-gradient(145deg, rgba(183, 239, 255, .12), rgba(10, 31, 58, .90)) !important;
+  color: var(--ws-social-post-soft) !important;
+}
+
+@media (max-width: 720px) {
+  body:has(.home-post-feed) .home-post-feed article {
+    border-radius: 18px !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  body:has(.home-post-feed) .home-post-feed article footer {
+    background: transparent !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body:has(.home-post-feed) .home-post-feed article {
+    scroll-behavior: auto !important;
+  }
+}

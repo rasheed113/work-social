@@ -1,0 +1,19 @@
+/* Friends HUD header text override — scoped strictly to the Friends page. */
+body[data-ws-page="friends"] main > div > section:first-child h1 {
+  color: #66e8ff !important;
+  text-shadow: 0 0 18px rgba(75, 220, 255, .34) !important;
+}
+
+body[data-ws-page="friends"] main > div > section:first-child p {
+  color: #8fb9c9 !important;
+}
+
+body[data-ws-page="friends"] main > div > section:first-child input[aria-label="Search people"] {
+  color: #bff6ff !important;
+  caret-color: #66e8ff !important;
+}
+
+body[data-ws-page="friends"] main > div > section:first-child input[aria-label="Search people"]::placeholder {
+  color: #6fa9bc !important;
+  opacity: 1 !important;
+}

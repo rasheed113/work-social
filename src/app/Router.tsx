@@ -16,6 +16,7 @@ import { GlobalModuleMenu } from './components/GlobalModuleMenu';
 import { playNotificationSound, requestNotificationPermission, showBrowserNotification } from './services/notificationAudio';
 import { WorkerIdentityPage } from '../features/worker/pages/WorkerIdentityPage';
 import { WorkerWorkHousePage } from '../features/worker/pages/WorkerWorkHousePage';
+import { WorkerOverviewPage } from '../features/worker/pages/WorkerOverviewPage';
 import { WorkerWorkHistoryPage } from '../features/worker/pages/WorkerWorkHistoryPage';
 import { WorkerFinancePage } from '../features/worker/pages/WorkerFinancePage';
 import { WorkerSettingsPage } from '../features/worker/pages/WorkerSettingsPage';
@@ -43,8 +44,22 @@ function viewedProfileId(pathname: string): string | null {
   try { return decodeURIComponent(pathname.slice('/profile/'.length)) || null; } catch { return null; }
 }
 
-function locationKey() { return `${window.location.pathname}${window.location.search}`; }
-export function navigate(path: string) { window.history.pushState({}, '', path); window.dispatchEvent(new PopStateEvent('popstate')); }
+function locationKey() { return `${window.location.pathname}${window.location.search}${window.location.hash}`; }
+export function navigate(path: string) {
+  const next = new URL(path, window.location.href);
+  const nextKey = `${next.pathname}${next.search}${next.hash}`;
+  if (nextKey === locationKey()) return;
+  window.history.pushState({ workSocial: true }, '', nextKey);
+  window.dispatchEvent(new PopStateEvent('popstate'));
+}
+export function goBack(fallback = '/') {
+  const sameOriginReferrer = document.referrer.startsWith(window.location.origin);
+  if (window.history.state?.workSocial || sameOriginReferrer) {
+    window.history.back();
+    return;
+  }
+  navigate(fallback);
+}
 
 interface RouterProps { profileId: string; }
 const notificationCopy: Record<string, string> = { message: 'You have a new message.', friend_request: 'You have a new friend request.', friend_accept: 'Your friend request was accepted.', like: 'Someone liked your post.', comment: 'Someone commented on your post.', comment_reply: 'Someone replied to your comment.', mention_post: 'You were mentioned in a post.', mention_comment: 'You were mentioned in a comment.', follow: 'Someone started following you.' };
@@ -67,7 +82,9 @@ export function Router({ profileId }: RouterProps) {
   const inboxPage:ReactNode=(<><InboxPage profileId={profileId}/><InboxGroupMaker profileId={profileId}/><InboxGroupMenu profileId={profileId}/><CallSpeakerEnhancer /></>);
   const workPage:ReactNode=pathname==='/work/identity'
     ?<WorkerIdentityPage profileId={profileId}/>
-    :pathname==='/work/finance'
+    :pathname==='/work/dashboard'
+      ?<WorkerOverviewPage/>
+      :pathname==='/work/finance'
       ?<WorkerFinancePage/>
       :pathname==='/work/settings/team-joining'
         ?<WorkerSettingsPage teamJoining/>

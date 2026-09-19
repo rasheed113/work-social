@@ -1,0 +1,396 @@
+/* Work Social — Ultra Premium Living Galaxy.
+   Decorative layers only; native page scrolling remains untouched. */
+
+/* Neutralize the older page-canvas layers so the galaxy owns the environment. */
+html,
+body,
+#root,
+body .app-shell {
+  background: transparent !important;
+  background-image: none !important;
+  background-attachment: initial !important;
+}
+
+body::before {
+  content: none !important;
+}
+
+/* SINGLE ENVIRONMENT RENDERER: this shell is the only full-viewport canvas. */
+.work-social-router-shell {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 72% 34% at 50% 50%, rgba(0,238,255,.18), transparent 68%),
+    radial-gradient(ellipse 48% 30% at 22% 36%, rgba(18,88,255,.22), transparent 70%),
+    radial-gradient(ellipse 44% 34% at 78% 62%, rgba(166,55,255,.21), transparent 70%),
+    radial-gradient(ellipse 28% 18% at 68% 25%, rgba(0,255,214,.13), transparent 72%),
+    radial-gradient(ellipse 26% 20% at 30% 76%, rgba(92,55,255,.14), transparent 72%),
+    radial-gradient(ellipse 92% 12% at 50% 50%, rgba(0,216,255,.11), transparent 70%),
+    linear-gradient(116deg,#010107 0%,#020313 24%,#05021a 46%,#020817 66%,#010107 100%) !important;
+  background-size: 145% 125%, 125% 140%, 125% 140%, 120% 130%, 120% 130%, 150% 115%, 115% 115% !important;
+  background-position: 50% 50%, 20% 36%, 80% 64%, 68% 25%, 30% 76%, 50% 50%, 50% 50% !important;
+  animation:ws-cosmic-base 26s ease-in-out infinite;
+  background-color:#010107 !important;
+}
+
+/* Dedicated atmospheric scene: independent DOM layers make the environment visibly alive.
+   These layers are decorative only and never participate in scrolling or touch input. */
+.ws-cosmic-atmosphere {
+  position:absolute; inset:0; z-index:0; pointer-events:none; overflow:hidden;
+  background:radial-gradient(ellipse 70% 20% at 50% 52%,rgba(38,226,255,.12),transparent 70%);
+}
+.ws-cosmic-orb,.ws-cosmic-core,.ws-cosmic-vignette { position:absolute; pointer-events:none; }
+.ws-cosmic-orb { z-index:1; border-radius:50%; filter:blur(38px); mix-blend-mode:screen; will-change:transform,opacity; }
+.ws-cosmic-core { z-index:2; }
+.ws-cosmic-vignette { z-index:6; }
+.ws-cosmic-orb-a { width:42vw;height:42vw;left:-12vw;top:8%;background:radial-gradient(circle,rgba(0,126,255,.32),transparent 68%);animation:ws-orbit-a 19s ease-in-out infinite; }
+.ws-cosmic-orb-b { width:38vw;height:38vw;right:-9vw;top:22%;background:radial-gradient(circle,rgba(179,52,255,.30),transparent 68%);animation:ws-orbit-b 23s ease-in-out infinite; }
+.ws-cosmic-orb-c { width:28vw;height:28vw;right:18%;top:-14%;background:radial-gradient(circle,rgba(0,255,211,.22),transparent 66%);animation:ws-orbit-c 16s ease-in-out infinite; }
+.ws-cosmic-orb-d { width:34vw;height:34vw;left:17%;bottom:-22%;background:radial-gradient(circle,rgba(91,55,255,.24),transparent 67%);animation:ws-orbit-d 27s ease-in-out infinite; }
+.ws-cosmic-core { width:46vw;height:12vw;left:27%;top:44%;border-radius:50%;background:radial-gradient(ellipse,rgba(255,255,255,.18) 0 2%,rgba(0,240,255,.24) 8%,rgba(91,71,255,.12) 35%,transparent 72%);filter:blur(14px);animation:ws-core-breathe 9s ease-in-out infinite; }
+.ws-cosmic-vignette { inset:-1px;background:radial-gradient(ellipse at center,transparent 34%,rgba(0,0,10,.32) 100%); }
+
+@keyframes ws-orbit-a { 0%,100%{transform:translate3d(0,0,0) scale(1)} 50%{transform:translate3d(18vw,8vh,0) scale(1.18)} }
+@keyframes ws-orbit-b { 0%,100%{transform:translate3d(0,0,0) scale(1)} 50%{transform:translate3d(-15vw,-10vh,0) scale(1.22)} }
+@keyframes ws-orbit-c { 0%,100%{transform:translate3d(0,0,0) scale(1);opacity:.55} 50%{transform:translate3d(-10vw,20vh,0) scale(1.35);opacity:.95} }
+@keyframes ws-orbit-d { 0%,100%{transform:translate3d(0,0,0) scale(1)} 50%{transform:translate3d(14vw,-13vh,0) scale(1.16)} }
+@keyframes ws-core-breathe { 0%,100%{transform:scaleX(.82);opacity:.45} 50%{transform:scaleX(1.22);opacity:1} }
+
+/* Individual stars: each particle changes position and brightness independently. This is autonomous animation, not scroll-linked motion. */
+.ws-living-star-field { position:absolute; inset:0; z-index:4; pointer-events:none; overflow:hidden; }
+.ws-living-star { position:absolute; left:var(--ws-x); top:var(--ws-y); width:var(--ws-size); height:var(--ws-size); border-radius:50%; background:rgba(235,250,255,.96); box-shadow:0 0 5px rgba(90,220,255,.72),0 0 11px rgba(150,90,255,.34); animation:ws-living-star var(--ws-duration) ease-in-out var(--ws-delay) infinite; will-change:transform,opacity; }
+.ws-living-star:nth-child(3n) { background:rgba(110,235,255,.96); }
+.ws-living-star:nth-child(5n) { background:rgba(215,180,255,.95); }
+.ws-living-star:nth-child(7n) { box-shadow:0 0 7px rgba(255,255,255,.9),0 0 18px rgba(0,230,255,.58); }
+@keyframes ws-living-star {
+  0%,100% { transform:translate3d(0,0,0) scale(.72); opacity:.28; }
+  22% { transform:translate3d(8px,-6px,0) scale(1); opacity:.88; }
+  48% { transform:translate3d(-11px,9px,0) scale(1.42); opacity:1; }
+  73% { transform:translate3d(13px,5px,0) scale(.82); opacity:.46; }
+}
+
+/* Independent deep-space layers: each has its own motion cycle, so the scene never moves as one flat texture. */
+.ws-cosmic-star-layer,.ws-cosmic-dust,.ws-cosmic-streaks { position:absolute; inset:-12%; z-index:3; pointer-events:none; will-change:transform,opacity; }
+.ws-cosmic-star-layer { background-repeat:repeat; mix-blend-mode:screen; }
+.ws-cosmic-star-layer-a {
+  opacity:.92;
+  background-image:
+    radial-gradient(circle at 3% 12%,rgba(255,255,255,.95) 0 1px,transparent 1.9px),radial-gradient(circle at 17% 64%,rgba(180,230,255,.78) 0 1px,transparent 1.8px),radial-gradient(circle at 29% 27%,rgba(255,255,255,.88) 0 1.2px,transparent 2px),radial-gradient(circle at 43% 79%,rgba(190,170,255,.82) 0 1px,transparent 1.8px),radial-gradient(circle at 58% 18%,rgba(255,255,255,.92) 0 1.1px,transparent 2px),radial-gradient(circle at 71% 57%,rgba(130,225,255,.82) 0 1px,transparent 1.8px),radial-gradient(circle at 86% 31%,rgba(255,255,255,.9) 0 1px,transparent 1.9px),radial-gradient(circle at 94% 83%,rgba(215,180,255,.78) 0 1px,transparent 1.8px);
+  background-size:17vw 19vw,23vw 27vw,31vw 29vw,37vw 41vw,47vw 43vw,53vw 49vw,61vw 59vw,71vw 67vw;
+  animation:ws-stars-near 13s ease-in-out infinite;
+}
+.ws-cosmic-star-layer-b {
+  opacity:.62; filter:blur(.25px);
+  background-image:
+    radial-gradient(circle at 9% 42%,rgba(255,255,255,.82) 0 1.5px,transparent 2.8px),radial-gradient(circle at 34% 9%,rgba(90,220,255,.72) 0 1.2px,transparent 2.4px),radial-gradient(circle at 52% 68%,rgba(200,130,255,.76) 0 1.4px,transparent 2.7px),radial-gradient(circle at 78% 17%,rgba(255,255,255,.8) 0 1.3px,transparent 2.5px),radial-gradient(circle at 91% 73%,rgba(80,205,255,.7) 0 1.2px,transparent 2.4px);
+  background-size:43vw 39vw,59vw 53vw,71vw 67vw,83vw 79vw,97vw 89vw;
+  animation:ws-stars-mid 21s linear infinite;
+}
+.ws-cosmic-star-layer-c {
+  opacity:.34; filter:blur(1px);
+  background-image:radial-gradient(circle at 14% 18%,rgba(255,255,255,.8) 0 2px,transparent 4px),radial-gradient(circle at 48% 46%,rgba(0,240,255,.65) 0 1.8px,transparent 4px),radial-gradient(circle at 82% 76%,rgba(210,100,255,.7) 0 2px,transparent 4px);
+  background-size:67vw 61vw,89vw 83vw,113vw 107vw;
+  animation:ws-stars-far 34s ease-in-out infinite;
+}
+.ws-cosmic-dust {
+  inset:-20%; opacity:.34; filter:blur(3px); mix-blend-mode:screen;
+  background-image:radial-gradient(ellipse at 20% 40%,rgba(0,220,255,.24),transparent 24%),radial-gradient(ellipse at 78% 58%,rgba(170,65,255,.22),transparent 25%),radial-gradient(ellipse at 50% 52%,rgba(255,255,255,.10),transparent 18%);
+  animation:ws-dust-drift 29s ease-in-out infinite;
+}
+.ws-cosmic-streaks { z-index:5; inset:-30%; opacity:0; mix-blend-mode:screen; background:linear-gradient(115deg,transparent 46%,rgba(150,245,255,.72) 49.7%,rgba(255,255,255,.95) 50%,rgba(130,95,255,.55) 50.3%,transparent 54%); filter:blur(1px); animation:ws-streak-pass 18s ease-in-out infinite; }
+@keyframes ws-stars-near { 0%,100%{transform:translate3d(-2%,1%,0);background-position:0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0;opacity:.72} 50%{transform:translate3d(3%,-2%,0);background-position:3vw -2vh,-2vw 3vh,4vw 1vh,-3vw -2vh,2vw 2vh,-4vw 1vh,3vw -1vh,-2vw 3vh;opacity:1} }
+@keyframes ws-stars-mid { 0%{transform:translate3d(5%,-3%,0) rotate(0deg)} 50%{transform:translate3d(-5%,4%,0) rotate(.8deg)} 100%{transform:translate3d(5%,-3%,0) rotate(0deg)} }
+@keyframes ws-stars-far { 0%,100%{transform:scale(1) translate3d(0,0,0);opacity:.22} 50%{transform:scale(1.08) translate3d(-3%,2%,0);opacity:.48} }
+@keyframes ws-dust-drift { 0%,100%{transform:translate3d(-4%,2%,0) scale(1);opacity:.22} 50%{transform:translate3d(5%,-3%,0) scale(1.14);opacity:.46} }
+@keyframes ws-streak-pass { 0%,72%{transform:translate3d(-55%,-30%,0) rotate(-8deg);opacity:0} 78%{opacity:.35} 84%{transform:translate3d(8%,6%,0) rotate(-8deg);opacity:.62} 91%,100%{transform:translate3d(55%,30%,0) rotate(-8deg);opacity:0} }
+
+/* The scroll surface is transparent; the cosmic environment stays behind it. */
+body .app-shell .work-social-page-content,
+body .app-shell .work-social-router-shell > div.work-social-page-content,
+body:has(.work-social-page-content) .work-social-page-content {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  background-attachment: initial !important;
+}
+
+/* Deep-space field: stars, dust, edge nebulae and a faint galaxy plane.
+   The base galaxy is painted on the shell itself; this layer adds motion/depth. */
+.work-social-router-shell::before {
+  content:'';
+  position:absolute;
+  inset:-45%;
+  z-index:0;
+  pointer-events:none;
+  background:
+    radial-gradient(circle at 7% 15%,rgba(255,255,255,.95) 0 1.2px,transparent 2.5px),
+    radial-gradient(circle at 23% 34%,rgba(255,255,255,.82) 0 1px,transparent 2.2px),
+    radial-gradient(circle at 46% 18%,rgba(255,255,255,.9) 0 1.2px,transparent 2.4px),
+    radial-gradient(circle at 66% 29%,rgba(221,205,255,.92) 0 1.1px,transparent 2.4px),
+    radial-gradient(circle at 88% 20%,rgba(170,225,255,.9) 0 1.1px,transparent 2.3px),
+    repeating-radial-gradient(circle at 50% 50%,rgba(255,255,255,.10) 0 1px,transparent 1.7px 88px),
+    radial-gradient(ellipse 88% 19% at 50% 50%,rgba(0,235,255,.22),transparent 70%),
+    radial-gradient(ellipse 64% 12% at 50% 51%,rgba(120,75,255,.16),transparent 72%),
+    radial-gradient(ellipse 74% 46% at 4% 5%,rgba(25,88,255,.22),transparent 72%),
+    radial-gradient(ellipse 74% 46% at 96% 95%,rgba(126,45,255,.20),transparent 72%),
+    radial-gradient(ellipse 42% 18% at 28% 72%,rgba(0,170,255,.16),transparent 70%),
+    radial-gradient(ellipse 38% 16% at 73% 27%,rgba(190,65,255,.14),transparent 70%),
+    radial-gradient(circle at 58% 46%,rgba(255,255,255,.34) 0 1px,transparent 1.8px),
+    radial-gradient(circle at 39% 58%,rgba(95,220,255,.42) 0 1px,transparent 2px),
+    radial-gradient(circle at 79% 61%,rgba(205,120,255,.38) 0 1px,transparent 2px);
+  opacity:.98;
+  transform:translate3d(-7%,-2%,0) scale(1.08);
+  filter:brightness(1.08) saturate(1.12);
+  animation:ws-ultra-starfield 18s ease-in-out infinite;
+  will-change:transform;
+  backface-visibility:hidden;
+}
+.work-social-router-shell::after {
+  content:'';
+  position:absolute;
+  inset:-62%;
+  z-index:0;
+  pointer-events:none;
+  background:
+    conic-gradient(from 210deg at 50% 50%,transparent 0deg 18deg,rgba(0,220,255,.06) 28deg,rgba(0,238,255,.34) 48deg,rgba(66,120,255,.46) 68deg,rgba(151,65,255,.38) 91deg,rgba(213,83,255,.16) 112deg,transparent 136deg 226deg,rgba(0,215,255,.26) 250deg,rgba(67,119,255,.34) 274deg,rgba(157,65,255,.28) 301deg,transparent 326deg 360deg),
+    radial-gradient(ellipse 62% 7% at 50% 50%,rgba(75,240,255,.70),transparent 68%),
+    radial-gradient(ellipse 44% 4% at 50% 50%,rgba(218,108,255,.48),transparent 72%),
+    radial-gradient(ellipse 96% 18% at 50% 50%,rgba(31,80,255,.18),transparent 72%),
+    radial-gradient(ellipse 34% 3% at 50% 50%,rgba(255,255,255,.42),transparent 72%),
+    radial-gradient(ellipse 70% 9% at 50% 50%,rgba(0,255,245,.13),transparent 68%),
+    radial-gradient(ellipse 58% 6% at 50% 50%,rgba(205,70,255,.12),transparent 70%);
+  filter:blur(7px);
+  mix-blend-mode:screen;
+  opacity:.94;
+  transform:translate3d(-14%,2%,0) rotate(-9deg) scale(1.04);
+  animation:ws-ultra-nebula 14s ease-in-out infinite;
+  will-change:transform,opacity;
+  backface-visibility:hidden;
+}
+/* Subtle depth/edge illumination without introducing another scrolling layer. */
+.work-social-router-shell > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Rendering-path invariant: routed content can scroll, but it can never paint
+   a competing full-page environment over the shell. */
+.work-social-router-shell > .work-social-page-content {
+  position: relative !important;
+  z-index: 2 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  background-attachment: initial !important;
+  isolation: auto !important;
+  touch-action: pan-y !important;
+  overscroll-behavior: none !important;
+  scroll-behavior: auto !important;
+}
+
+@keyframes ws-cosmic-base {
+  0% {
+    background-position: 50% 50%, 20% 36%, 80% 64%, 68% 25%, 30% 76%, 50% 50%, 50% 50%;
+  }
+  25% {
+    background-position: 56% 44%, 30% 28%, 70% 72%, 74% 31%, 24% 68%, 44% 54%, 54% 46%;
+  }
+  50% {
+    background-position: 44% 58%, 38% 46%, 62% 54%, 62% 20%, 36% 82%, 56% 46%, 46% 54%;
+  }
+  75% {
+    background-position: 60% 42%, 16% 52%, 86% 46%, 80% 38%, 20% 62%, 48% 58%, 58% 42%;
+  }
+  100% {
+    background-position: 50% 50%, 20% 36%, 80% 64%, 68% 25%, 30% 76%, 50% 50%, 50% 50%;
+  }
+}
+
+@keyframes ws-ultra-starfield {
+  0% { transform:translate3d(-7%,-2%,0) scale(1.08); }
+  25% { transform:translate3d(2%,1%,0) scale(1.10); }
+  50% { transform:translate3d(8%,-3%,0) scale(1.08); }
+  75% { transform:translate3d(-1%,3%,0) scale(1.11); }
+  100% { transform:translate3d(-7%,-2%,0) scale(1.08); }
+}
+
+@keyframes ws-ultra-nebula {
+  0% { transform:translate3d(-14%,2%,0) rotate(-9deg) scale(1.04); opacity:.76; }
+  25% { transform:translate3d(-3%,-3%,0) rotate(-3deg) scale(1.07); opacity:.98; }
+  50% { transform:translate3d(13%,1%,0) rotate(9deg) scale(1.04); opacity:.84; }
+  75% { transform:translate3d(3%,4%,0) rotate(3deg) scale(1.07); opacity:1; }
+  100% { transform:translate3d(-14%,2%,0) rotate(-9deg) scale(1.04); opacity:.76; }
+}
+
+/* The cosmic environment is intentionally autonomous. Its animation is not tied to
+   scrolling or touch input, so accessibility motion preferences must not freeze
+   the requested living-galaxy background. */
+
+@media (max-width: 767px) {
+  .ws-cosmic-orb { filter:blur(28px); }
+  .ws-cosmic-orb-a { width:68vw;height:68vw; }
+  .ws-cosmic-orb-b { width:62vw;height:62vw; }
+  .ws-cosmic-orb-c { width:48vw;height:48vw; }
+  .ws-cosmic-orb-d { width:56vw;height:56vw; }
+  .ws-cosmic-core { width:78vw;left:11%; }
+  .work-social-router-shell::before { animation-duration: 24s; }
+  .work-social-router-shell::after { animation-duration: 18s; filter: blur(7px); }
+}
+
+.work-social-router-shell::before,
+.work-social-router-shell::after {
+  animation-play-state: running !important;
+}
+
+
+/* FINAL VIEWPORT CANVAS LOCK.
+   Page-level backgrounds are content surfaces, not the environment.
+   Keep the single galaxy canvas visible behind every routed page. */
+.work-social-router-shell > .work-social-page-content > main,
+.work-social-router-shell > .work-social-page-content > .wo,
+.work-social-router-shell > .work-social-page-content > .expense-manager-page,
+.work-social-router-shell > .work-social-page-content > .worker-identity-page,
+.work-social-router-shell > .work-social-page-content > .premium-profile-page,
+.work-social-router-shell > .work-social-page-content > .notifications-page,
+.work-social-router-shell > .work-social-page-content > .home-page-root {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  background-attachment: initial !important;
+  box-shadow: none !important;
+}
+
+/* Remove legacy full-page canvas effects that are attached to routed page roots. */
+.work-social-router-shell > .work-social-page-content > main::before,
+.work-social-router-shell > .work-social-page-content > main::after,
+.work-social-router-shell > .work-social-page-content > .wo::before,
+.work-social-router-shell > .work-social-page-content > .wo::after,
+.work-social-router-shell > .work-social-page-content > .expense-manager-page::before,
+.work-social-router-shell > .work-social-page-content > .expense-manager-page::after,
+.work-social-router-shell > .work-social-page-content > .worker-identity-page::before,
+.work-social-router-shell > .work-social-page-content > .worker-identity-page::after {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+/* The scroll viewport itself never paints a competing canvas. */
+.work-social-router-shell > .work-social-page-content {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+/* FINAL LIVING GALAXY OVERRIDE — visually distinct environment. */
+
+.work-social-router-shell {
+  background:
+    radial-gradient(ellipse 72% 28% at 50% 51%, rgba(28,235,255,.42) 0%, rgba(0,150,255,.25) 22%, rgba(91,70,255,.16) 42%, transparent 72%),
+    radial-gradient(ellipse 42% 48% at 12% 42%, rgba(0,110,255,.28), transparent 70%),
+    radial-gradient(ellipse 42% 48% at 88% 56%, rgba(177,55,255,.27), transparent 70%),
+    radial-gradient(ellipse 34% 30% at 64% 18%, rgba(0,255,220,.18), transparent 72%),
+    radial-gradient(ellipse 34% 30% at 35% 82%, rgba(86,65,255,.18), transparent 72%),
+    linear-gradient(115deg,#000006 0%,#010313 24%,#02051a 48%,#010716 72%,#000006 100%) !important;
+  background-size: 135% 70%, 125% 135%, 125% 135%, 120% 120%, 120% 120%, 120% 120% !important;
+  background-position: 50% 52%, 10% 42%, 90% 58%, 64% 18%, 35% 82%, 50% 50% !important;
+  animation: ws-living-canvas 20s ease-in-out infinite !important;
+}
+.ws-living-star {
+  width: max(2px,var(--ws-size)) !important;
+  height: max(2.8px,var(--ws-size)) !important;
+  background: #ffffff !important;
+  opacity: .92 !important;
+  box-shadow: 0 0 8px rgba(140,240,255,.95), 0 0 16px rgba(72,132,255,.62) !important;
+}
+.ws-living-star:nth-child(5n) {
+  background:#f0dfff !important;
+  box-shadow:0 0 7px rgba(255,220,255,.95),0 0 18px rgba(190,90,255,.66) !important;
+}
+.ws-cosmic-core {
+  width:72vw !important;
+  height:18vw !important;
+  left:14% !important;
+  top:41% !important;
+  background:radial-gradient(ellipse,rgba(255,255,255,.42) 0 2%,rgba(60,240,255,.48) 8%,rgba(35,145,255,.30) 24%,rgba(135,65,255,.18) 46%,transparent 74%) !important;
+  filter:blur(12px) !important;
+  animation:ws-core-breathe 7s ease-in-out infinite !important;
+}
+@keyframes ws-living-canvas {
+  0%,100% { background-position:50% 52%,10% 42%,90% 58%,64% 18%,35% 82%,50% 50%; }
+  25% { background-position:44% 47%,24% 32%,76% 68%,52% 28%,48% 72%,54% 46%; }
+  50% { background-position:57% 56%,36% 51%,64% 49%,72% 12%,28% 88%,46% 54%; }
+  75% { background-position:46% 49%,18% 61%,82% 39%,58% 22%,42% 78%,52% 48%; }
+}
+
+
+/* FORCE GALAXY MOTION — never scroll-linked. */
+.work-social-router-shell,
+.work-social-router-shell::before,
+.work-social-router-shell::after,
+.ws-cosmic-orb,
+.ws-cosmic-core,
+.ws-cosmic-star-layer,
+.ws-cosmic-dust,
+.ws-cosmic-streaks,
+.ws-living-star { animation-play-state: running !important; }
+
+
+/* NEW COSMIC BACKDROP — deliberately replaces the old blue page canvas.
+   Fixed to the viewport, fully decorative, and completely independent of scrolling/touch. */
+.app-shell { position:relative !important; isolation:isolate !important; }
+.ws-new-cosmic-backdrop {
+  position:fixed !important;
+  inset:0 !important;
+  z-index:0 !important;
+  pointer-events:none !important;
+  overflow:hidden !important;
+  background:
+    radial-gradient(ellipse 72% 24% at 50% 50%, rgba(0,245,255,.34), transparent 62%),
+    radial-gradient(ellipse 52% 62% at 8% 38%, rgba(22,70,255,.34), transparent 68%),
+    radial-gradient(ellipse 50% 64% at 92% 62%, rgba(177,45,255,.30), transparent 68%),
+    radial-gradient(ellipse 38% 38% at 70% 12%, rgba(0,255,210,.18), transparent 70%),
+    linear-gradient(135deg,#000007 0%,#020014 34%,#000b1c 56%,#070013 78%,#000006 100%) !important;
+}
+.ws-new-cosmic-band {
+  position:absolute; width:170vw; height:38vh; left:-35vw; top:31vh;
+  border-radius:50%; transform:rotate(-9deg);
+  background:
+    radial-gradient(ellipse at center,rgba(255,255,255,.32) 0 1.5%,rgba(0,240,255,.58) 5%,rgba(0,155,255,.34) 18%,rgba(108,65,255,.25) 34%,rgba(205,55,255,.16) 48%,transparent 68%);
+  filter:blur(12px) saturate(145%);
+  opacity:.92;
+  animation:ws-new-band-drift 11s ease-in-out infinite;
+}
+.ws-new-cosmic-glow { position:absolute; border-radius:50%; filter:blur(45px); mix-blend-mode:screen; }
+.ws-new-cosmic-glow-a { width:62vw;height:62vw;left:-18vw;top:8vh;background:rgba(0,110,255,.28);animation:ws-new-glow-a 15s ease-in-out infinite; }
+.ws-new-cosmic-glow-b { width:58vw;height:58vw;right:-16vw;top:24vh;background:rgba(185,45,255,.26);animation:ws-new-glow-b 18s ease-in-out infinite; }
+.ws-new-cosmic-glow-c { width:42vw;height:42vw;left:31vw;top:-18vh;background:rgba(0,255,220,.18);animation:ws-new-glow-c 13s ease-in-out infinite; }
+.ws-new-cosmic-pulse {
+  position:absolute; width:54vw;height:12vw;left:23vw;top:44vh;border-radius:50%;
+  background:radial-gradient(ellipse,rgba(255,255,255,.34),rgba(0,240,255,.28) 18%,transparent 72%);
+  filter:blur(15px); animation:ws-new-pulse 6s ease-in-out infinite;
+}
+@keyframes ws-new-band-drift {
+  0%,100% { transform:translate3d(-10vw,0,0) rotate(-9deg) scaleX(.92); opacity:.62; }
+  50% { transform:translate3d(13vw,-3vh,0) rotate(-4deg) scaleX(1.08); opacity:1; }
+}
+@keyframes ws-new-glow-a {
+  0%,100% { transform:translate3d(0,0,0) scale(.9); }
+  50% { transform:translate3d(26vw,10vh,0) scale(1.25); }
+}
+@keyframes ws-new-glow-b {
+  0%,100% { transform:translate3d(0,0,0) scale(.92); }
+  50% { transform:translate3d(-24vw,-12vh,0) scale(1.22); }
+}
+@keyframes ws-new-glow-c {
+  0%,100% { transform:translate3d(0,0,0) scale(.82); opacity:.45; }
+  50% { transform:translate3d(-12vw,24vh,0) scale(1.25); opacity:1; }
+}
+@keyframes ws-new-pulse {
+  0%,100% { transform:scaleX(.72); opacity:.34; }
+  50% { transform:scaleX(1.3); opacity:1; }
+}
+.work-social-router-shell { z-index:1 !important; background:transparent !important; background-image:none !important; background-color:transparent !important; }

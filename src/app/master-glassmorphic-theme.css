@@ -1,0 +1,262 @@
+/* Work Social — Master Glassmorphic Sci-Fi UI convergence.
+   Presentation-only overrides. Business logic, data, routing, auth, AI and Supabase behavior are untouched. */
+
+/* Premium supercomputer canvas: controlled blue-black depth with electric cyan energy and restrained lime telemetry. */
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+:root {
+  --ws-supercomputer-canvas:
+    radial-gradient(ellipse 88% 66% at 50% -8%, rgba(45, 210, 255, 0.20), transparent 60%),
+    radial-gradient(ellipse 54% 70% at 0% 24%, rgba(0, 112, 255, 0.25), transparent 72%),
+    radial-gradient(ellipse 54% 70% at 100% 28%, rgba(0, 196, 255, 0.18), transparent 72%),
+    radial-gradient(ellipse 48% 62% at 8% 92%, rgba(154, 255, 38, 0.10), transparent 74%),
+    radial-gradient(ellipse 48% 62% at 92% 92%, rgba(154, 255, 38, 0.08), transparent 74%),
+    linear-gradient(120deg, #07162b 0%, #0a2344 32%, #0c2d52 55%, #0a2341 76%, #061427 100%);
+}
+
+/* The router shell owns the environment canvas. Never paint a second,
+   page-level supercomputer canvas underneath/above the animated shell. */
+html,
+body {
+  background: transparent !important;
+  background-image: none !important;
+  background-attachment: initial !important;
+}
+
+body {
+  color: var(--ws-text-primary) !important;
+}
+
+/* Routed content is a native scroll viewport, not a background layer. */
+.work-social-page-content,
+body:has(.home-post-feed) .app-shell,
+body:has(.home-post-feed) .work-social-page-content {
+  background-color: transparent !important;
+  background-image: none !important;
+  background-attachment: initial !important;
+  background-size: auto !important;
+}
+
+.app-shell,
+.premium-profile-panel {
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+
+/* Posts: use the shared glass material instead of legacy solid cards. */
+.home-post-feed article,
+.home-post-feed article footer {
+  background: var(--ws-glass-bg) !important;
+  border: 1px solid var(--ws-glass-border) !important;
+  backdrop-filter: blur(var(--ws-glass-blur)) !important;
+  -webkit-backdrop-filter: blur(var(--ws-glass-blur)) !important;
+  box-shadow: var(--ws-glow-cyan) !important;
+}
+
+.home-post-feed article:hover {
+  border-color: rgba(0, 240, 255, 0.32) !important;
+  box-shadow: var(--ws-glow-cyan-hover) !important;
+}
+
+.home-post-feed article [role="group"],
+.home-post-feed article [role="menu"],
+.home-post-feed article [role="dialog"],
+.home-post-feed article [role="alertdialog"] {
+  background: var(--ws-glass-bg) !important;
+  border-color: var(--ws-glass-border) !important;
+  backdrop-filter: blur(var(--ws-glass-blur)) !important;
+  -webkit-backdrop-filter: blur(var(--ws-glass-blur)) !important;
+}
+
+.home-post-feed article input,
+.home-post-feed article textarea {
+  background: rgba(8, 52, 92, 0.34) !important;
+  border-color: var(--ws-glass-border) !important;
+  color: var(--ws-text-primary) !important;
+}
+
+.home-post-feed article input:focus,
+.home-post-feed article textarea:focus {
+  outline: none !important;
+  border-color: rgba(0, 240, 255, 0.55) !important;
+  box-shadow: var(--ws-glow-cyan) !important;
+}
+
+.home-post-feed article button {
+  border-color: var(--ws-glass-border) !important;
+}
+
+.home-post-feed article button:hover:not(:disabled) {
+  border-color: rgba(0, 240, 255, 0.45) !important;
+  box-shadow: var(--ws-glow-cyan-hover) !important;
+}
+
+/* Profile cards: converge the existing premium profile surface to the master material. */
+.premium-profile-panel .profile-state-card,
+.premium-profile-panel .profile-hero-card,
+.premium-profile-panel .profile-joined-card,
+.premium-profile-panel .edit-profile-card {
+  background: var(--ws-glass-bg) !important;
+  border: 1px solid var(--ws-glass-border) !important;
+  color: var(--ws-text-primary) !important;
+  backdrop-filter: blur(var(--ws-glass-blur)) !important;
+  -webkit-backdrop-filter: blur(var(--ws-glass-blur)) !important;
+  box-shadow: var(--ws-glow-cyan) !important;
+}
+
+.premium-profile-panel .profile-name,
+.premium-profile-panel .edit-profile-heading,
+.premium-profile-panel h2 {
+  font-family: 'Orbitron', 'Roboto Mono', monospace !important;
+  color: var(--ws-cyan) !important;
+  text-shadow: 0 0 8px rgba(0, 240, 255, 0.28) !important;
+}
+
+.premium-profile-panel .profile-handle,
+.premium-profile-panel .profile-bio,
+.premium-profile-panel .profile-location,
+.premium-profile-panel .profile-joined-card p,
+.premium-profile-panel .profile-state-card p {
+  color: var(--ws-text-muted) !important;
+}
+
+.premium-profile-panel .profile-action-button,
+.premium-profile-panel .profile-state-card button {
+  background: var(--ws-glass-bg) !important;
+  color: var(--ws-text-primary) !important;
+  border: 1px solid var(--ws-glass-border) !important;
+}
+
+.premium-profile-panel .profile-action-button.primary {
+  background: rgba(0, 240, 255, 0.10) !important;
+  color: var(--ws-cyan) !important;
+  border-color: rgba(0, 240, 255, 0.42) !important;
+  box-shadow: var(--ws-glow-cyan) !important;
+}
+
+/* Shared HUD typography. */
+.home-post-feed article h1,
+.home-post-feed article h2,
+.home-post-feed article h3,
+.home-post-feed article strong,
+.premium-profile-panel h1,
+.premium-profile-panel h2,
+.premium-profile-panel h3 {
+  font-family: 'Orbitron', 'Roboto Mono', monospace !important;
+}
+
+.home-post-feed article a,
+.home-post-feed article [data-accent="true"],
+.premium-profile-panel .profile-name {
+  color: var(--ws-cyan) !important;
+}
+
+/* Social bottom navigation: glass dock + neon active state. */
+nav[aria-label="Main navigation"] {
+  background: var(--ws-glass-bg) !important;
+  border: 1px solid var(--ws-glass-border) !important;
+  backdrop-filter: blur(var(--ws-glass-blur)) !important;
+  -webkit-backdrop-filter: blur(var(--ws-glass-blur)) !important;
+}
+
+nav[aria-label="Main navigation"] > button[aria-current="page"],
+nav[aria-label="Main navigation"] > button[data-active="true"] {
+  color: var(--ws-cyan) !important;
+  border-color: rgba(0, 240, 255, 0.45) !important;
+  box-shadow: var(--ws-glow-cyan) !important;
+  background: rgba(0, 240, 255, 0.08) !important;
+}
+
+nav[aria-label="Main navigation"] > button:hover {
+  border-color: rgba(0, 240, 255, 0.32) !important;
+  box-shadow: var(--ws-glow-cyan) !important;
+}
+
+/* Generic notification/dialog surfaces used by Social UI. */
+[role="dialog"],
+[role="alertdialog"] {
+  background: var(--ws-glass-bg) !important;
+  border-color: var(--ws-glass-border) !important;
+  color: var(--ws-text-primary) !important;
+  backdrop-filter: blur(var(--ws-glass-blur)) !important;
+  -webkit-backdrop-filter: blur(var(--ws-glass-blur)) !important;
+  box-shadow: var(--ws-glow-cyan-hover) !important;
+}
+
+[role="dialog"] h1,
+[role="dialog"] h2,
+[role="dialog"] h3,
+[role="alertdialog"] h1,
+[role="alertdialog"] h2,
+[role="alertdialog"] h3 {
+  font-family: 'Orbitron', 'Roboto Mono', monospace !important;
+  color: var(--ws-cyan) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-post-feed article,
+  .premium-profile-panel .profile-state-card,
+  .premium-profile-panel .profile-hero-card,
+  .premium-profile-panel .profile-joined-card,
+  .premium-profile-panel .edit-profile-card,
+  nav[aria-label="Main navigation"] > button {
+    transition: none !important;
+  }
+}
+
+/* HOME POST SURFACE AUDIT — static post content must be completely surfaceless. */
+body:has(.home-post-feed) .home-post-feed,
+body:has(.home-post-feed) .home-post-feed > section,
+body:has(.home-post-feed) .home-post-feed > section > div,
+body:has(.home-post-feed) .home-post-feed article,
+body:has(.home-post-feed) .home-post-feed article > header,
+body:has(.home-post-feed) .home-post-feed article > footer,
+body:has(.home-post-feed) .home-post-feed article > div,
+body:has(.home-post-feed) .home-post-feed article > div > div {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  filter: none !important;
+}
+
+body:has(.home-post-feed) .home-post-feed article input,
+body:has(.home-post-feed) .home-post-feed article textarea,
+body:has(.home-post-feed) .home-post-feed article button {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+body:has(.home-post-feed) .home-post-feed article [role="group"] {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+body:has(.home-post-feed) .home-post-feed > section > h2,
+body:has(.home-post-feed) .home-post-feed > section > header {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+

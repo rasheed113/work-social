@@ -5,36 +5,44 @@ import { navigate } from '../Router';
 
 const styles = {
   page: {
-    width: '100%', maxWidth: 920, margin: '0 auto', padding: '18px 16px 96px', boxSizing: 'border-box', color: '#f7f8ff',
+    width: '100%', maxWidth: 920, margin: '0 auto', padding: '18px 16px 96px', boxSizing: 'border-box', color: '#9defff',
   } as React.CSSProperties,
   hero: {
-    position: 'relative', overflow: 'hidden', borderRadius: 26, padding: '24px 22px', marginBottom: 18,
-    background: 'linear-gradient(135deg, #171a3a 0%, #20265c 48%, #5d2ca8 100%)',
-    boxShadow: '0 20px 55px rgba(31, 25, 91, .32), inset 0 1px 0 rgba(255,255,255,.14)',
-    border: '1px solid rgba(255,255,255,.12)',
+    position: 'relative', overflow: 'hidden', borderRadius: 26, padding: '22px 22px 20px', marginBottom: 18,
+    background: 'transparent',
+    backgroundImage: 'none',
+    backdropFilter: 'none', WebkitBackdropFilter: 'none',
+    boxShadow: 'none',
+    border: '0',
   } as React.CSSProperties,
-  glow: { position: 'absolute', width: 180, height: 180, borderRadius: '50%', right: -70, top: -80, background: 'rgba(89, 211, 255, .22)', filter: 'blur(18px)', pointerEvents: 'none' } as React.CSSProperties,
-  title: { margin: 0, fontSize: 30, lineHeight: 1.05, fontWeight: 900, letterSpacing: '-.04em', textShadow: '0 3px 14px rgba(0,0,0,.28)' } as React.CSSProperties,
-  subtitle: { margin: '8px 0 0', color: 'rgba(255,255,255,.72)', fontSize: 14 } as React.CSSProperties,
-  searchWrap: { display: 'flex', alignItems: 'center', gap: 10, marginTop: 18, padding: '11px 14px', borderRadius: 17, background: 'rgba(255,255,255,.1)', border: '1px solid rgba(255,255,255,.14)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,.08)' } as React.CSSProperties,
-  search: { flex: 1, minWidth: 0, border: 0, outline: 0, background: 'transparent', color: '#fff', fontSize: 15 } as React.CSSProperties,
-  section: { marginTop: 16, padding: 16, borderRadius: 22, background: 'linear-gradient(180deg, rgba(255,255,255,.98), rgba(246,247,255,.98))', color: '#17182b', border: '1px solid rgba(99,102,241,.12)', boxShadow: '0 14px 36px rgba(24,25,60,.12)' } as React.CSSProperties,
-  sectionTitle: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, margin: '0 0 12px', fontSize: 17, fontWeight: 850 } as React.CSSProperties,
-  row: { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: 7, padding: 11, marginTop: 8, borderRadius: 17, background: '#fff', border: '1px solid rgba(30,35,80,.08)', boxShadow: '0 7px 20px rgba(30,35,80,.07)', transition: 'transform .18s ease, box-shadow .18s ease' } as React.CSSProperties,
+  glow: { display: 'none' } as React.CSSProperties,
+  title: { margin: '2px 0 0', fontSize: 31, lineHeight: 1.05, fontWeight: 900, letterSpacing: '.12em', fontFamily: 'monospace, sans-serif', textTransform: 'uppercase', color: '#7df5ff', textShadow: '0 0 12px rgba(0,240,255,.55), 0 0 26px rgba(0,180,255,.22)' } as React.CSSProperties,
+  subtitle: { margin: '8px 0 0', color: 'rgba(125,245,255,.72)', fontSize: 12, letterSpacing: '.055em', fontFamily: 'monospace, sans-serif' } as React.CSSProperties,
+  searchWrap: { display: 'flex', alignItems: 'center', gap: 10, marginTop: 17, padding: '10px 13px', borderRadius: 0, background: 'transparent',
+    backgroundImage: 'none', backdropFilter: 'none', WebkitBackdropFilter: 'none', border: '0', boxShadow: 'none' } as React.CSSProperties,
+  search: { flex: 1, minWidth: 0, border: 0, outline: 0, background: 'transparent', color: '#bfefff', fontSize: 14, fontFamily: 'monospace, sans-serif', letterSpacing: '.02em' } as React.CSSProperties,
+  section: { marginTop: 16, padding: 16, borderRadius: 22, background: 'transparent',
+    backgroundImage: 'none', backdropFilter: 'blur(18px)', WebkitBackdropFilter: 'blur(18px)', color: '#bfefff', border: '1px solid rgba(0,240,255,.16)', boxShadow: 'none' } as React.CSSProperties,
+  networkSection: { marginTop: 16, padding: 16, borderRadius: 0, background: 'transparent', backgroundImage: 'none', backdropFilter: 'none', WebkitBackdropFilter: 'none', color: '#bfefff', border: '0', boxShadow: 'none' } as React.CSSProperties,
+  sectionTitle: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, margin: '0 0 12px', fontSize: 17, fontWeight: 850, color: '#66e8ff', textShadow: '0 0 12px rgba(75,220,255,.2)' } as React.CSSProperties,
+  row: { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: 7, padding: 11, marginTop: 8, borderRadius: 17, background: 'transparent',
+    backgroundImage: 'none', backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)', color: '#bfefff', border: '1px solid rgba(91,224,255,.14)', boxShadow: 'none', transition: 'transform .18s ease, box-shadow .18s ease' } as React.CSSProperties,
+  networkRow: { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: 7, padding: 11, marginTop: 8, borderRadius: 0, background: 'transparent', backgroundImage: 'none', backdropFilter: 'none', WebkitBackdropFilter: 'none', color: '#bfefff', border: '0', boxShadow: 'none', transition: 'none' } as React.CSSProperties,
   identity: { display: 'flex', alignItems: 'center', gap: 11, minWidth: 0 } as React.CSSProperties,
-  avatar: { width: 48, height: 48, borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: '2px solid rgba(111,76,255,.18)', boxShadow: '0 5px 14px rgba(75,62,150,.16)' } as React.CSSProperties,
-  avatarFallback: { width: 48, height: 48, borderRadius: '50%', display: 'grid', placeItems: 'center', background: 'linear-gradient(135deg,#eef0ff,#dfe4ff)', flexShrink: 0, fontSize: 20, boxShadow: '0 5px 14px rgba(75,62,150,.12)' } as React.CSSProperties,
-  nameButton: { flex: 1, minWidth: 0, border: 0, background: 'transparent', textAlign: 'left', padding: 0, cursor: 'pointer', color: '#17182b', fontSize: 15 } as React.CSSProperties,
-  buttonBase: { border: 0, borderRadius: 12, padding: '7px 10px', fontWeight: 800, cursor: 'pointer', whiteSpace: 'nowrap' } as React.CSSProperties,
+  avatar: { width: 48, height: 48, borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: '2px solid rgba(0,220,255,.22)', boxShadow: '0 0 16px rgba(0,220,255,.12)' } as React.CSSProperties,
+  avatarFallback: { width: 48, height: 48, borderRadius: '50%', display: 'grid', placeItems: 'center', background: 'linear-gradient(135deg,rgba(16,43,69,.72),rgba(10,28,50,.58))', border: '1px solid rgba(0,240,255,.18)', flexShrink: 0, fontSize: 20, boxShadow: '0 0 16px rgba(0,220,255,.10)' } as React.CSSProperties,
+  nameButton: { flex: 1, minWidth: 0, border: 0, background: 'transparent', textAlign: 'left', padding: 0, cursor: 'pointer', color: '#66e8ff', fontSize: 15 } as React.CSSProperties,
+  buttonBase: { border: '1px solid rgba(120,232,255,.2)', borderRadius: 10, padding: '7px 10px', fontWeight: 800, cursor: 'pointer', whiteSpace: 'nowrap', color: '#bfefff', background: 'rgba(100,220,255,.07)' } as React.CSSProperties,
   actions: { display: 'flex', gap: 7, flexWrap: 'wrap', paddingLeft: 59 } as React.CSSProperties,
-  follow: { background: '#eef0ff', color: '#4c3acb' } as React.CSSProperties,
-  add: { background: 'linear-gradient(135deg,#6547ff,#8b4dff)', color: '#fff', boxShadow: '0 7px 16px rgba(101,71,255,.25)' } as React.CSSProperties,
-  pending: { background: '#f1f2f6', color: '#666b7c' } as React.CSSProperties,
-  friend: { background: 'linear-gradient(135deg,#dff9ed,#c9f3df)', color: '#147447' } as React.CSSProperties,
-  accept: { background: 'linear-gradient(135deg,#18a86b,#39c98b)', color: '#fff', boxShadow: '0 7px 16px rgba(24,168,107,.22)' } as React.CSSProperties,
-  reject: { background: '#f2f3f7', color: '#626777' } as React.CSSProperties,
-  alert: { margin: '12px 0 0', padding: '10px 12px', borderRadius: 13, background: '#fff0f2', color: '#b4233c', border: '1px solid #ffd3da' } as React.CSSProperties,
-  empty: { padding: '24px 10px', textAlign: 'center', color: '#777b8d' } as React.CSSProperties,
+  follow: { background: 'rgba(108,91,255,.12)', color: '#bfefff', borderColor: 'rgba(155,140,255,.24)' } as React.CSSProperties,
+  add: { background: 'rgba(0,188,212,.12)', color: '#bfefff', borderColor: 'rgba(0,240,255,.32)', boxShadow: '0 0 16px rgba(0,200,255,.10)' } as React.CSSProperties,
+  pending: { background: 'rgba(120,150,170,.10)', color: '#8fb9c9' } as React.CSSProperties,
+  friend: { background: 'rgba(0,180,140,.10)', color: '#bfefff', borderColor: 'rgba(0,220,180,.24)' } as React.CSSProperties,
+  accept: { background: 'rgba(0,168,120,.12)', color: '#bfefff', borderColor: 'rgba(0,220,180,.28)', boxShadow: '0 0 16px rgba(0,200,130,.10)' } as React.CSSProperties,
+  reject: { background: 'rgba(100,120,140,.08)', color: '#8fb9c9' } as React.CSSProperties,
+  alert: { margin: '12px 0 0', padding: '10px 12px', borderRadius: 13, background: 'transparent',
+    backgroundImage: 'none', color: '#bfefff', border: '1px solid rgba(255,100,130,.22)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' } as React.CSSProperties,
+  empty: { padding: '24px 10px', textAlign: 'center', color: '#8fb9c9' } as React.CSSProperties,
 } satisfies Record<string, React.CSSProperties>;
 
 export function FriendsPage() {
@@ -81,11 +89,24 @@ export function FriendsPage() {
   return (
     <main style={{ minWidth: 0, width: '100%', boxSizing: 'border-box' }}>
       <div style={styles.page}>
-        <section style={styles.hero}><div style={styles.glow} /><div style={{ position: 'relative', zIndex: 1 }}><div style={{ fontSize: 12, fontWeight: 900, letterSpacing: '.16em', textTransform: 'uppercase', color: '#8de7ff' }}>WORK SOCIAL</div><h1 style={styles.title}>Friends</h1><p style={styles.subtitle}>Connect with people, manage requests and build your circle.</p><div style={styles.searchWrap}><span aria-hidden="true" style={{ fontSize: 18 }}>⌕</span><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search people..." aria-label="Search people" style={styles.search} />{search && <button type="button" onClick={() => setSearch('')} aria-label="Clear search" style={{ border: 0, background: 'rgba(255,255,255,.12)', color: '#fff', borderRadius: 9, width: 30, height: 30, cursor: 'pointer' }}>×</button>}</div></div></section>
+        <div style={{ marginBottom: 18 }}>
+          <div style={{ position: 'relative', zIndex: 1 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 13 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><span style={{ width: 7, height: 7, borderRadius: '50%', background: '#63e8ff', boxShadow: '0 0 12px rgba(99,232,255,.9)' }} /><span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '.24em', textTransform: 'uppercase', color: '#7df5ff', fontFamily: 'monospace', textShadow: '0 0 10px rgba(0,240,255,.45)' }}>SOCIAL COMMAND CENTER</span></div>
+              <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: '.18em', color: 'rgba(125,245,255,.62)', whiteSpace: 'nowrap', fontFamily: 'monospace' }}>SYS / FRIENDS</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 16 }}>
+              <div style={{ minWidth: 0 }}><div style={{ fontSize: 9, fontWeight: 900, letterSpacing: '.2em', color: 'rgba(125,245,255,.62)', textTransform: 'uppercase', marginBottom: 6, fontFamily: 'monospace', textShadow: '0 0 8px rgba(0,240,255,.25)' }}>NETWORK DIRECTORY</div><h1 style={styles.title}>Friends</h1><p style={styles.subtitle}>Connect with people, manage requests and build your circle.</p></div>
+              <div aria-hidden="true" style={{ display: 'grid', gap: 4, minWidth: 78, flexShrink: 0, textAlign: 'right' }}><span style={{ fontSize: 8, fontWeight: 800, letterSpacing: '.18em', color: 'rgba(125,245,255,.58)', fontFamily: 'monospace' }}>LINK</span><strong style={{ fontSize: 10, fontWeight: 900, letterSpacing: '.16em', color: '#7df5ff', fontFamily: 'monospace', textShadow: '0 0 9px rgba(0,240,255,.35)' }}>ONLINE</strong></div>
+            </div>
+            <div style={styles.searchWrap}><span aria-hidden="true" style={{ fontSize: 18, lineHeight: 1, color: '#78e8ff', textShadow: '0 0 10px rgba(120,232,255,.55)' }}>⌕</span><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search people..." aria-label="Search people" style={styles.search} />{search && <button type="button" onClick={() => setSearch('')} aria-label="Clear search" style={{ border: '1px solid rgba(120,232,255,.2)', background: 'rgba(100,220,255,.08)', color: '#bff6ff', borderRadius: 8, width: 29, height: 29, cursor: 'pointer' }}>×</button>}</div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, marginTop: 9, fontSize: 8, fontWeight: 800, letterSpacing: '.16em', textTransform: 'uppercase', color: 'rgba(125,245,255,.52)', fontFamily: 'monospace' }}><span>DIRECTORY ACCESS // READY</span><span>QUERY: {search.trim() ? 'ACTIVE' : 'IDLE'}</span></div>
+          </div>
+        </div>
         {error && <p role="alert" style={styles.alert}>{error}</p>}
-        {loading && <section style={styles.section}><WorkSocialPremiumLoader title="Friends" message="Loading your social circle…" /></section>}
-        {!loading && requests.length > 0 && <section style={styles.section}><h2 style={styles.sectionTitle}><span>🤝 Friend Requests</span><span style={{ fontSize: 12, padding: '5px 9px', borderRadius: 999, background: '#eeeaff', color: '#5b42c7' }}>{requests.length}</span></h2>{requests.map((request) => { const sender = profiles.find((p) => p.id === request.sender_id); return <article key={request.id} style={styles.row}><div style={styles.identity}>{sender?.avatar_url ? <img src={sender.avatar_url} alt="" style={styles.avatar} /> : <div aria-hidden="true" style={styles.avatarFallback}>👤</div>}<div style={{ flex: 1, minWidth: 0 }}><strong style={{ display: 'block', fontSize: 15 }}>{sender?.display_name ?? 'User'}</strong><span style={{ color: '#85899a', fontSize: 12 }}>wants to connect with you</span></div></div><div style={styles.actions}><button type="button" onClick={() => void respond(request, 'accepted')} style={{ ...styles.buttonBase, ...styles.accept }}>Accept</button><button type="button" onClick={() => void respond(request, 'rejected')} style={{ ...styles.buttonBase, ...styles.reject }}>Reject</button></div></article>; })}</section>}
-        {!loading && <section style={styles.section}><h2 style={styles.sectionTitle}><span>{search.trim() ? '🔎 Search results' : '✨ People'}</span><span style={{ fontSize: 12, color: '#888c9d' }}>{filtered.length} people</span></h2>{filtered.map((p) => { const isFriend = friendIds.has(p.id); const isPending = pendingIds.has(p.id); const isFollowing = followingIds.has(p.id); return <article key={p.id} style={styles.row}><div style={styles.identity}><button type="button" onClick={() => navigate(`/profile/${encodeURIComponent(p.id)}`)} aria-label={`Open ${p.display_name ?? 'User'} profile`} style={{ border: 0, background: 'transparent', padding: 0, cursor: 'pointer', flexShrink: 0 }}>{p.avatar_url ? <img src={p.avatar_url} alt="" style={styles.avatar} /> : <div aria-hidden="true" style={styles.avatarFallback}>👤</div>}</button><button type="button" onClick={() => navigate(`/profile/${encodeURIComponent(p.id)}`)} style={styles.nameButton}><strong style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.display_name ?? 'User'}</strong><span style={{ display: 'block', marginTop: 3, color: '#8a8e9f', fontSize: 12 }}>{isFriend ? 'Friend' : isFollowing ? 'Following you' : 'Work Social member'}</span></button></div><div style={styles.actions}><button type="button" onClick={() => void toggleFollow(p.id)} style={{ ...styles.buttonBase, ...(isFollowing ? styles.pending : styles.follow) }}>{isFollowing ? 'Following' : 'Follow'}</button><button type="button" onClick={() => isPending ? void cancelRequest(p.id) : void sendRequest(p.id)} disabled={isFriend} style={{ ...styles.buttonBase, ...(isFriend ? styles.friend : isPending ? styles.pending : styles.add), opacity: isFriend ? 1 : undefined }}>{isFriend ? '✓ Friends' : isPending ? 'Cancel' : 'Add friend'}</button></div></article>; })}{!filtered.length && <div style={styles.empty}><div style={{ fontSize: 30, marginBottom: 8 }}>🫶</div><strong>No people found</strong><div style={{ marginTop: 4, fontSize: 13 }}>Try a different name.</div></div>}</section>}
+        {loading && <WorkSocialPremiumLoader title="Friends" message="Loading your social circle…" status="Connecting to your social network" />}
+        {!loading && requests.length > 0 && <section style={styles.section}><h2 style={styles.sectionTitle}><span>🤝 Friend Requests</span><span style={{ fontSize: 9, fontFamily: 'monospace', color: '#bfefff', fontWeight: 800 }}>{requests.length} INBOUND</span></h2>{requests.map((r) => { const sender = profiles.find((p) => p.id === r.sender_id); return <div key={r.id} style={styles.row}><div style={styles.identity}>{sender?.avatar_url ? <img src={sender.avatar_url} alt="" style={styles.avatar} /> : <div style={styles.avatarFallback}>◉</div>}<button type="button" onClick={() => navigate(`/profile/${r.sender_id}`)} style={styles.nameButton}>{sender?.display_name ?? 'Unknown worker'}</button></div><div style={styles.actions}><button type="button" onClick={() => void respond(r, 'accepted')} style={{ ...styles.buttonBase, ...styles.accept }}>Accept</button><button type="button" onClick={() => void respond(r, 'rejected')} style={{ ...styles.buttonBase, ...styles.reject }}>Decline</button></div></div>})}</section>}
+        {!loading && <div style={{ marginTop: 16, padding: 16 }}><h2 style={styles.sectionTitle}><span>◈ Network Directory</span><span style={{ fontSize: 9, fontFamily: 'monospace', color: '#bfefff', fontWeight: 800 }}>{filtered.length} NODES</span></h2>{filtered.length === 0 ? <div style={styles.empty}>{search.trim() ? 'No matching people found.' : 'No people available yet.'}</div> : filtered.map((p) => { const isFriend = friendIds.has(p.id); const isPending = pendingIds.has(p.id); const isFollowing = followingIds.has(p.id); return <div key={p.id} style={styles.networkRow}><div style={styles.identity}>{p.avatar_url ? <img src={p.avatar_url} alt="" style={styles.avatar} /> : <div style={styles.avatarFallback}>◉</div>}<button type="button" onClick={() => navigate(`/profile/${p.id}`)} style={styles.nameButton}>{p.display_name ?? 'Unknown worker'}</button></div><div style={styles.actions}>{isFriend ? <span style={{ ...styles.buttonBase, ...styles.friend }}>FRIEND</span> : isPending ? <button type="button" onClick={() => void cancelRequest(p.id)} style={{ ...styles.buttonBase, ...styles.pending }}>PENDING / CANCEL</button> : <button type="button" onClick={() => void sendRequest(p.id)} style={{ ...styles.buttonBase, ...styles.add }}>ADD FRIEND</button>}<button type="button" onClick={() => void toggleFollow(p.id)} style={{ ...styles.buttonBase, ...styles.follow }}>{isFollowing ? 'UNFOLLOW' : 'FOLLOW'}</button></div></div>})}</div>}
       </div>
     </main>
   );
