@@ -427,3 +427,98 @@ body:has(.work-social-page-content) .work-social-page-content {
 .work-social-router-shell::after {
   display:none !important;
 }
+
+
+/* HARD-VISIBLE AUTONOMOUS GALAXY MOTION */
+/* The previous canvas was technically animated, but its motion was too subtle and
+   could visually read as static. This layer creates unmistakable autonomous motion:
+   drifting star particles, a moving nebula beam, and a breathing central core.
+   It never reads scroll/touch state and never attaches motion to the scroll surface. */
+
+.ws-new-cosmic-backdrop::before,
+.ws-new-cosmic-backdrop::after {
+  content:"";
+  position:absolute;
+  pointer-events:none;
+  inset:-35%;
+  will-change:transform,opacity,background-position;
+}
+
+.ws-new-cosmic-backdrop::before {
+  background:
+    radial-gradient(circle at 8% 18%,rgba(255,255,255,.95) 0 1.4px,transparent 2.8px),
+    radial-gradient(circle at 22% 71%,rgba(120,225,255,.9) 0 1.2px,transparent 2.8px),
+    radial-gradient(circle at 39% 31%,rgba(255,255,255,.9) 0 1.5px,transparent 3px),
+    radial-gradient(circle at 57% 79%,rgba(190,155,255,.9) 0 1.3px,transparent 2.8px),
+    radial-gradient(circle at 73% 24%,rgba(255,255,255,.95) 0 1.4px,transparent 3px),
+    radial-gradient(circle at 91% 61%,rgba(95,225,255,.9) 0 1.2px,transparent 2.8px),
+    radial-gradient(circle at 16% 48%,rgba(255,255,255,.8) 0 1px,transparent 2.5px),
+    radial-gradient(circle at 84% 88%,rgba(220,170,255,.85) 0 1.2px,transparent 2.7px),
+    radial-gradient(ellipse 30% 8% at 50% 50%,rgba(255,255,255,.18),transparent 72%);
+  background-size:31vw 27vh,43vw 39vh,57vw 51vh,71vw 63vh,83vw 75vh,97vw 87vh,61vw 55vh,113vw 101vh,100% 100%;
+  mix-blend-mode:screen;
+  opacity:.78;
+  animation:ws-new-stars-drift 9s linear infinite !important;
+}
+
+.ws-new-cosmic-backdrop::after {
+  inset:-20%;
+  background:
+    radial-gradient(ellipse 72% 9% at 50% 50%,rgba(255,255,255,.26),transparent 58%),
+    radial-gradient(ellipse 54% 6% at 50% 50%,rgba(0,240,255,.48),transparent 66%),
+    radial-gradient(ellipse 38% 4% at 50% 50%,rgba(160,75,255,.42),transparent 70%);
+  filter:blur(9px);
+  mix-blend-mode:screen;
+  opacity:.72;
+  animation:ws-new-nebula-sweep 7s ease-in-out infinite !important;
+}
+
+.ws-new-cosmic-backdrop {
+  transform-origin:center center !important;
+  animation:
+    ws-new-canvas-breathe 8s ease-in-out infinite,
+    ws-new-background-drift 12s ease-in-out infinite !important;
+}
+
+@keyframes ws-new-stars-drift {
+  0% {
+    transform:translate3d(-7%,-4%,0) rotate(0deg) scale(1);
+    opacity:.46;
+  }
+  50% {
+    transform:translate3d(9%,6%,0) rotate(2deg) scale(1.06);
+    opacity:1;
+  }
+  100% {
+    transform:translate3d(-7%,-4%,0) rotate(0deg) scale(1);
+    opacity:.46;
+  }
+}
+
+@keyframes ws-new-nebula-sweep {
+  0%,100% {
+    transform:translate3d(-22%,2%,0) rotate(-7deg) scaleX(.72);
+    opacity:.28;
+  }
+  50% {
+    transform:translate3d(22%,-4%,0) rotate(7deg) scaleX(1.18);
+    opacity:1;
+  }
+}
+
+@keyframes ws-new-background-drift {
+  0%,100% {
+    background-position:50% 50%,8% 38%,92% 62%,70% 12%,center;
+  }
+  50% {
+    background-position:57% 44%,24% 52%,76% 48%,61% 25%,center;
+  }
+}
+
+/* Keep the visible viewport renderer above any hidden legacy renderer. */
+.ws-new-cosmic-backdrop,
+.ws-new-cosmic-backdrop::before,
+.ws-new-cosmic-backdrop::after {
+  z-index:0 !important;
+  pointer-events:none !important;
+}
