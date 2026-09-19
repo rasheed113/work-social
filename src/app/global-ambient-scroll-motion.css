@@ -19,9 +19,14 @@ body::before {
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  background: #01020a !important;
+  background:
+    radial-gradient(ellipse 92% 42% at 50% 50%, rgba(0, 214, 255, .12), transparent 68%),
+    radial-gradient(ellipse 58% 54% at 0% 8%, rgba(34, 96, 255, .18), transparent 72%),
+    radial-gradient(ellipse 58% 54% at 100% 8%, rgba(126, 53, 255, .18), transparent 72%),
+    radial-gradient(ellipse 58% 54% at 0% 92%, rgba(0, 195, 255, .15), transparent 72%),
+    radial-gradient(ellipse 58% 54% at 100% 92%, rgba(111, 51, 255, .15), transparent 72%),
+    linear-gradient(135deg, #01020a 0%, #020817 34%, #080318 66%, #01020a 100%) !important;
   background-color: #01020a !important;
-  background-image: none !important;
 }
 
 /* The scroll surface is transparent; the cosmic environment stays behind it. */
@@ -34,7 +39,8 @@ body:has(.work-social-page-content) .work-social-page-content {
   background-attachment: initial !important;
 }
 
-/* Deep-space field: stars, dust, edge nebulae and a faint galaxy plane. */
+/* Deep-space field: stars, dust, edge nebulae and a faint galaxy plane.
+   The base galaxy is painted on the shell itself; this layer adds motion/depth. */
 .work-social-router-shell::before {
   content: '';
   position: absolute;
