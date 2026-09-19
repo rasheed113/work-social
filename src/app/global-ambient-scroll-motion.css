@@ -55,6 +55,14 @@ body {
   z-index: 1;
 }
 
+/* Do not paint a second opaque canvas over the animated environment. */
+.work-social-page-content,
+.work-social-router-shell > div.work-social-page-content {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
 @keyframes ws-ambient-base-drift {
   0% { background-position: 0 0, 0 0, center top, left center, right top, left bottom, right bottom, center, 0% 45%; }
   100% { background-position: 0 0, 0 0, center top, left center, right top, left bottom, right bottom, center, 100% 55%; }
