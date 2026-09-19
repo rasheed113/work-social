@@ -6,7 +6,7 @@ html,
 body,
 #root,
 body .app-shell {
-  background: #01020a !important;
+  background: transparent !important;
   background-image: none !important;
   background-attachment: initial !important;
 }
@@ -15,6 +15,7 @@ body::before {
   content: none !important;
 }
 
+/* SINGLE ENVIRONMENT RENDERER: this shell is the only full-viewport canvas. */
 .work-social-router-shell {
   position: relative;
   isolation: isolate;
@@ -121,6 +122,21 @@ body:has(.work-social-page-content) .work-social-page-content {
 .work-social-router-shell > * {
   position: relative;
   z-index: 1;
+}
+
+/* Rendering-path invariant: routed content can scroll, but it can never paint
+   a competing full-page environment over the shell. */
+.work-social-router-shell > .work-social-page-content {
+  position: relative !important;
+  z-index: 2 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  background-attachment: initial !important;
+  isolation: auto !important;
+  touch-action: pan-y !important;
+  overscroll-behavior: none !important;
+  scroll-behavior: auto !important;
 }
 
 @keyframes ws-cosmic-base {
