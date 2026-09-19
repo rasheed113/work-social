@@ -1,12 +1,12 @@
-/* Work Social — living futuristic OS background.
-   Background motion is isolated from the scroll container: native touch scrolling stays 1:1. */
+/* Work Social — Living Digital Galaxy.
+   Visual-only background layers. Native touch scrolling remains untouched. */
 
 .work-social-router-shell {
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  background: #030712 !important;
-  background-color: #030712 !important;
+  background: #01030b !important;
+  background-color: #01030b !important;
 }
 
 body .app-shell .work-social-page-content,
@@ -18,53 +18,67 @@ body:has(.work-social-page-content) .work-social-page-content {
   background-attachment: initial !important;
 }
 
-/* Deep-space canvas: subtle technical grid + luminous horizon. */
+/* Deep-space star field + distant nebulae. */
 .work-social-router-shell::before {
   content: '';
   position: absolute;
-  inset: -18%;
+  inset: -12%;
   z-index: 0;
   pointer-events: none;
   background:
-    radial-gradient(ellipse 34% 20% at 50% 104%, rgba(0, 214, 255, .22), transparent 72%),
-    radial-gradient(ellipse 26% 18% at 8% 18%, rgba(0, 110, 255, .14), transparent 74%),
-    radial-gradient(ellipse 25% 20% at 92% 28%, rgba(126, 58, 255, .15), transparent 74%),
-    repeating-linear-gradient(90deg, rgba(94, 234, 212, .025) 0 1px, transparent 1px 72px),
-    repeating-linear-gradient(0deg, rgba(56, 189, 248, .022) 0 1px, transparent 1px 72px),
-    linear-gradient(135deg, #020617 0%, #061329 46%, #08071b 72%, #020617 100%);
-  opacity: .98;
-  transform: translate3d(0, 0, 0) scale(1.02);
-  animation: ws-space-drift 26s ease-in-out infinite alternate;
+    radial-gradient(circle at 18% 22%, rgba(255,255,255,.62) 0 1px, transparent 1.7px),
+    radial-gradient(circle at 73% 16%, rgba(255,255,255,.52) 0 1px, transparent 1.8px),
+    radial-gradient(circle at 42% 67%, rgba(255,255,255,.46) 0 1px, transparent 1.7px),
+    radial-gradient(circle at 88% 74%, rgba(255,255,255,.55) 0 1px, transparent 1.8px),
+    radial-gradient(circle at 57% 38%, rgba(122,226,255,.48) 0 1px, transparent 1.8px),
+    radial-gradient(ellipse 42% 22% at 24% 68%, rgba(0,174,255,.16), transparent 72%),
+    radial-gradient(ellipse 38% 25% at 82% 31%, rgba(111,58,255,.16), transparent 72%),
+    radial-gradient(ellipse 52% 18% at 54% 54%, rgba(0,224,255,.09), transparent 76%),
+    linear-gradient(145deg, #01030b 0%, #03091b 38%, #08051a 68%, #01030b 100%);
+  background-size:
+    170px 150px,
+    230px 190px,
+    190px 210px,
+    260px 220px,
+    210px 180px,
+    100% 100%,
+    100% 100%,
+    100% 100%,
+    100% 100%;
+  opacity: .96;
+  transform: translate3d(0,0,0) scale(1.03);
+  animation: ws-galaxy-drift 42s ease-in-out infinite alternate;
   will-change: transform;
 }
 
-/* Moving light architecture — ribbons rather than generic blurred blobs. */
+/* Flowing galactic energy: slow ribbons and luminous particles. */
 .work-social-router-shell::after {
   content: '';
   position: absolute;
-  inset: -30%;
+  inset: -34%;
   z-index: 0;
   pointer-events: none;
   background:
-    linear-gradient(112deg,
-      transparent 20%,
-      rgba(0, 229, 255, 0) 31%,
-      rgba(0, 229, 255, .16) 39%,
-      rgba(86, 196, 255, .08) 43%,
+    linear-gradient(117deg,
+      transparent 24%,
+      rgba(0,229,255,0) 35%,
+      rgba(0,229,255,.13) 41%,
+      rgba(108,225,255,.08) 44%,
       transparent 52%),
-    linear-gradient(294deg,
-      transparent 35%,
-      rgba(132, 72, 255, 0) 43%,
-      rgba(132, 72, 255, .15) 49%,
-      rgba(0, 210, 255, .07) 54%,
-      transparent 63%),
-    radial-gradient(ellipse 16% 7% at 18% 34%, rgba(0, 238, 255, .34), transparent 72%),
-    radial-gradient(ellipse 13% 8% at 82% 68%, rgba(137, 92, 255, .30), transparent 72%);
-  filter: blur(12px);
-  opacity: .78;
+    linear-gradient(297deg,
+      transparent 37%,
+      rgba(133,78,255,0) 44%,
+      rgba(133,78,255,.14) 49%,
+      rgba(0,206,255,.07) 53%,
+      transparent 61%),
+    radial-gradient(circle at 20% 44%, rgba(0,232,255,.38) 0 1px, transparent 2px),
+    radial-gradient(circle at 78% 57%, rgba(165,105,255,.34) 0 1px, transparent 2px),
+    radial-gradient(ellipse 30% 8% at 50% 51%, rgba(0,210,255,.12), transparent 72%);
+  filter: blur(9px);
   mix-blend-mode: screen;
-  transform: translate3d(-2%, 0, 0) rotate(-1deg);
-  animation: ws-light-architecture 17s cubic-bezier(.45, 0, .35, 1) infinite alternate;
+  opacity: .72;
+  transform: translate3d(-4%,1%,0) rotate(-1deg) scale(.98);
+  animation: ws-galaxy-energy 24s cubic-bezier(.45,0,.35,1) infinite alternate;
   will-change: transform, opacity;
 }
 
@@ -73,48 +87,47 @@ body:has(.work-social-page-content) .work-social-page-content {
   z-index: 1;
 }
 
-@keyframes ws-space-drift {
+@keyframes ws-galaxy-drift {
   0% {
-    transform: translate3d(-1.2%, -0.6%, 0) scale(1.02);
+    transform: translate3d(-1%, -0.5%, 0) scale(1.03);
   }
   50% {
-    transform: translate3d(.8%, .7%, 0) scale(1.035);
+    transform: translate3d(.7%, .8%, 0) scale(1.045);
   }
   100% {
-    transform: translate3d(1.4%, -0.8%, 0) scale(1.025);
+    transform: translate3d(1.2%, -.6%, 0) scale(1.035);
   }
 }
 
-@keyframes ws-light-architecture {
+@keyframes ws-galaxy-energy {
   0% {
-    transform: translate3d(-9%, 3%, 0) rotate(-2deg) scale(.97);
-    opacity: .50;
+    transform: translate3d(-10%, 3%, 0) rotate(-2deg) scale(.96);
+    opacity: .42;
   }
   35% {
-    transform: translate3d(-1%, -2%, 0) rotate(1deg) scale(1);
-    opacity: .72;
+    transform: translate3d(-3%, -1%, 0) rotate(1deg) scale(1);
+    opacity: .64;
   }
   70% {
-    transform: translate3d(6%, 2%, 0) rotate(2deg) scale(1.035);
-    opacity: .88;
+    transform: translate3d(5%, 2%, 0) rotate(2deg) scale(1.035);
+    opacity: .82;
   }
   100% {
-    transform: translate3d(11%, -3%, 0) rotate(-1deg) scale(1.01);
-    opacity: .62;
+    transform: translate3d(10%, -2%, 0) rotate(-1deg) scale(1.01);
+    opacity: .58;
   }
 }
 
 @media (max-width: 767px) {
   .work-social-router-shell::before {
-    animation-duration: 32s;
+    animation-duration: 52s;
   }
 
   .work-social-router-shell::after {
-    animation-duration: 21s;
+    animation-duration: 29s;
   }
 }
 
-/* Keep motion active; neither layer participates in scrolling or touch input. */
 .work-social-router-shell::before,
 .work-social-router-shell::after {
   animation-play-state: running !important;
