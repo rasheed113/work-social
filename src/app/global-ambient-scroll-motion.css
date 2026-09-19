@@ -41,7 +41,9 @@ body::before {
   background:radial-gradient(ellipse 70% 20% at 50% 52%,rgba(38,226,255,.12),transparent 70%);
 }
 .ws-cosmic-orb,.ws-cosmic-core,.ws-cosmic-vignette { position:absolute; pointer-events:none; }
-.ws-cosmic-orb { border-radius:50%; filter:blur(38px); mix-blend-mode:screen; will-change:transform,opacity; }
+.ws-cosmic-orb { z-index:1; border-radius:50%; filter:blur(38px); mix-blend-mode:screen; will-change:transform,opacity; }
+.ws-cosmic-core { z-index:2; }
+.ws-cosmic-vignette { z-index:6; }
 .ws-cosmic-orb-a { width:42vw;height:42vw;left:-12vw;top:8%;background:radial-gradient(circle,rgba(0,126,255,.32),transparent 68%);animation:ws-orbit-a 19s ease-in-out infinite; }
 .ws-cosmic-orb-b { width:38vw;height:38vw;right:-9vw;top:22%;background:radial-gradient(circle,rgba(179,52,255,.30),transparent 68%);animation:ws-orbit-b 23s ease-in-out infinite; }
 .ws-cosmic-orb-c { width:28vw;height:28vw;right:18%;top:-14%;background:radial-gradient(circle,rgba(0,255,211,.22),transparent 66%);animation:ws-orbit-c 16s ease-in-out infinite; }
@@ -56,7 +58,7 @@ body::before {
 @keyframes ws-core-breathe { 0%,100%{transform:scaleX(.82);opacity:.45} 50%{transform:scaleX(1.22);opacity:1} }
 
 /* Individual stars: each particle changes position and brightness independently. This is autonomous animation, not scroll-linked motion. */
-.ws-living-star-field { position:absolute; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
+.ws-living-star-field { position:absolute; inset:0; z-index:4; pointer-events:none; overflow:hidden; }
 .ws-living-star { position:absolute; left:var(--ws-x); top:var(--ws-y); width:var(--ws-size); height:var(--ws-size); border-radius:50%; background:rgba(235,250,255,.96); box-shadow:0 0 5px rgba(90,220,255,.72),0 0 11px rgba(150,90,255,.34); animation:ws-living-star var(--ws-duration) ease-in-out var(--ws-delay) infinite; will-change:transform,opacity; }
 .ws-living-star:nth-child(3n) { background:rgba(110,235,255,.96); }
 .ws-living-star:nth-child(5n) { background:rgba(215,180,255,.95); }
@@ -69,7 +71,7 @@ body::before {
 }
 
 /* Independent deep-space layers: each has its own motion cycle, so the scene never moves as one flat texture. */
-.ws-cosmic-star-layer,.ws-cosmic-dust,.ws-cosmic-streaks { position:absolute; inset:-12%; pointer-events:none; will-change:transform,opacity; }
+.ws-cosmic-star-layer,.ws-cosmic-dust,.ws-cosmic-streaks { position:absolute; inset:-12%; z-index:3; pointer-events:none; will-change:transform,opacity; }
 .ws-cosmic-star-layer { background-repeat:repeat; mix-blend-mode:screen; }
 .ws-cosmic-star-layer-a {
   opacity:.92;
@@ -96,7 +98,7 @@ body::before {
   background-image:radial-gradient(ellipse at 20% 40%,rgba(0,220,255,.24),transparent 24%),radial-gradient(ellipse at 78% 58%,rgba(170,65,255,.22),transparent 25%),radial-gradient(ellipse at 50% 52%,rgba(255,255,255,.10),transparent 18%);
   animation:ws-dust-drift 29s ease-in-out infinite;
 }
-.ws-cosmic-streaks { inset:-30%; opacity:0; mix-blend-mode:screen; background:linear-gradient(115deg,transparent 46%,rgba(150,245,255,.72) 49.7%,rgba(255,255,255,.95) 50%,rgba(130,95,255,.55) 50.3%,transparent 54%); filter:blur(1px); animation:ws-streak-pass 18s ease-in-out infinite; }
+.ws-cosmic-streaks { z-index:5; inset:-30%; opacity:0; mix-blend-mode:screen; background:linear-gradient(115deg,transparent 46%,rgba(150,245,255,.72) 49.7%,rgba(255,255,255,.95) 50%,rgba(130,95,255,.55) 50.3%,transparent 54%); filter:blur(1px); animation:ws-streak-pass 18s ease-in-out infinite; }
 @keyframes ws-stars-near { 0%,100%{transform:translate3d(-2%,1%,0);background-position:0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0;opacity:.72} 50%{transform:translate3d(3%,-2%,0);background-position:3vw -2vh,-2vw 3vh,4vw 1vh,-3vw -2vh,2vw 2vh,-4vw 1vh,3vw -1vh,-2vw 3vh;opacity:1} }
 @keyframes ws-stars-mid { 0%{transform:translate3d(5%,-3%,0) rotate(0deg)} 50%{transform:translate3d(-5%,4%,0) rotate(.8deg)} 100%{transform:translate3d(5%,-3%,0) rotate(0deg)} }
 @keyframes ws-stars-far { 0%,100%{transform:scale(1) translate3d(0,0,0);opacity:.22} 50%{transform:scale(1.08) translate3d(-3%,2%,0);opacity:.48} }
@@ -299,9 +301,10 @@ body:has(.work-social-page-content) .work-social-page-content {
 }
 .ws-living-star {
   width: max(2px,var(--ws-size)) !important;
-  height: max(2px,var(--ws-size)) !important;
-  background: #eaffff !important;
-  box-shadow: 0 0 6px rgba(140,240,255,.95), 0 0 16px rgba(72,132,255,.62) !important;
+  height: max(2.8px,var(--ws-size)) !important;
+  background: #ffffff !important;
+  opacity: .92 !important;
+  box-shadow: 0 0 8px rgba(140,240,255,.95), 0 0 16px rgba(72,132,255,.62) !important;
 }
 .ws-living-star:nth-child(5n) {
   background:#f0dfff !important;
