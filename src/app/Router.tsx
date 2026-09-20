@@ -83,7 +83,7 @@ export function Router({ profileId }: RouterProps) {
   const workPage:ReactNode=pathname==='/work/identity'
     ?<WorkerIdentityPage profileId={profileId}/>
     :pathname==='/work/dashboard'
-      ?<WorkerOverviewPage/>
+      ?<WorkerWorkHousePage/>
       :pathname==='/work/finance'
       ?<WorkerFinancePage/>
       :pathname==='/work/settings/team-joining'
