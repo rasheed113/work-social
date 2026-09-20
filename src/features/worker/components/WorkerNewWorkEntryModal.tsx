@@ -135,7 +135,7 @@ export function WorkerNewWorkEntryModal({ open, saving, onClose, onSave }: Worke
         .new-entry-action:active:not(:disabled){transform:translateY(1px) scale(.985);}\
         .new-entry-action:focus-visible{outline:3px solid rgba(20,184,166,.16);outline-offset:2px;}\
         .new-entry-cancel{background:rgba(30,41,59,.88);color:#e2e8f0;box-shadow:inset 0 2px 0 #fff,inset 0 -2px 0 rgba(100,116,139,.1),0 2px 0 #fff,0 4px 8px rgba(15,23,42,.08);}\
-        .new-entry-save{border-color:rgba(14,116,144,.5);background:linear-gradient(180deg,#e8fbfb 0%,#bfe9e8 48%,#79c8c8 100%);color:#0b3f4d;box-shadow:inset 0 2px 0 rgba(255,255,255,.96),inset 0 -3px 0 rgba(13,116,144,.18),0 2px 0 rgba(255,255,255,.82),0 5px 10px rgba(15,118,110,.15);}\
+        .new-entry-save{border-color:rgba(236,72,153,.55);background:linear-gradient(180deg,#f0abfc 0%,#ec4899 48%,#c026d3 100%);color:#fff;box-shadow:inset 0 2px 0 rgba(255,255,255,.96),inset 0 -3px 0 rgba(13,116,144,.18),0 2px 0 rgba(255,255,255,.82),0 5px 10px rgba(15,118,110,.15);}\
         .new-entry-save:hover:not(:disabled){box-shadow:inset 0 2px 0 #fff,inset 0 -3px 0 rgba(13,116,144,.2),0 3px 0 rgba(255,255,255,.86),0 7px 13px rgba(15,118,110,.19);}\
         .new-entry-action:disabled{cursor:not-allowed;opacity:.58;transform:none;box-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 2px 5px rgba(15,23,42,.06);}\
         @media (max-width:360px){.new-entry-surface{padding:11px 11px calc(12px + env(safe-area-inset-bottom));border-radius:18px}.new-entry-surface form{gap:8px!important}.new-entry-title{font-size:20px}.new-entry-control,.new-entry-context,.new-entry-size-trigger{min-height:40px!important}.new-entry-note{min-height:62px}.new-entry-actions{gap:7px}.new-entry-action{min-height:38px;padding:0 9px}}\
