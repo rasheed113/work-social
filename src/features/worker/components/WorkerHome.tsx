@@ -78,6 +78,7 @@ export function WorkerHome({ profileId }: WorkerHomeProps) {
         </div>
         <div className="worker-home__actions">
           <WorkerDashboardCustomize workerProfileId={dashboard.workerProfileId ?? ''} cards={defaultDashboardCards} onLayoutChange={(order, hidden) => { setDashboardOrder(order); setHiddenDashboardCards(hidden); }} />
+          <button className="worker-home__button" type="button" onClick={() => navigate('/work/dashboard')}>▦ View Dashboard</button>
           <button className="worker-home__button" type="button" onClick={() => navigate('/work/trash')}>🗑️ Trash</button>
           <button className="worker-home__button worker-home__button--primary" type="button" onClick={() => setNewEntryOpen(true)} disabled={!dashboard.workerProfileId || dashboard.loading}>+ New Entry</button>
         </div>
