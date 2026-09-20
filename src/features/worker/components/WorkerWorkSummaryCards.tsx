@@ -97,7 +97,15 @@ export function WorkerWorkSummaryCards({ totals, periodLabels, onOpenHistory, ca
         @media (max-width:680px){.worker-summary{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;padding:10px;border-radius:21px}.worker-summary__card--week{grid-column:1 / -1;min-height:244px;order:-1}.worker-summary__card--today,.worker-summary__card--month{grid-column:span 1}.worker-summary__week-chart{inset:36px 10px 11px}.worker-summary__ring-wrap{width:min(176px,56%)}.worker-summary__lifetime{grid-column:1 / -1;align-items:flex-start;flex-direction:column;gap:7px}.worker-summary__lifetime-copy{flex-basis:auto;text-align:left;max-width:none}}
         @media (max-width:430px){.worker-summary{gap:8px;padding:9px;border-radius:19px}.worker-summary__card--week{min-height:225px;padding:14px}.worker-summary__week-caption{left:11px;top:11px}.worker-summary__week-status{right:10px;top:10px}.worker-summary__week-chart{inset:35px 5px 9px}.worker-summary__ring-wrap{width:min(160px,57%)}.worker-summary__ring-core strong{font-size:clamp(26px,8vw,38px)}.worker-summary__metric{padding:6px}.worker-summary__metric-copy{font-size:7px}.worker-summary__metric strong{font-size:11px}.worker-summary__value{font-size:clamp(21px,8vw,27px)}.worker-summary__period{font-size:8px}}
         @media (prefers-reduced-motion: reduce){.worker-summary__card{transition:none}}
-      `}</style>
+      `}        .worker-summary__card--today .worker-summary__label{color:#67e8f9}.worker-summary__card--today .worker-summary__value{color:#22d3ee}
+        .worker-summary__card--week .worker-summary__week-caption{color:#93c5fd}.worker-summary__card--week .worker-summary__ring-label{color:#c4b5fd}.worker-summary__card--week .worker-summary__ring-core strong{color:#a5b4fc}
+        .worker-summary__card--month .worker-summary__label{color:#e9d5ff}.worker-summary__card--month .worker-summary__value{color:#f0abfc}
+        .worker-summary__card--lifetime .worker-summary__lifetime-label{color:#fbbf24}.worker-summary__lifetime-value{color:#fde68a}
+        .worker-summary__card--today .worker-summary__metric strong{color:#67e8f9}.worker-summary__card--month .worker-summary__metric strong{color:#f0abfc}
+        .worker-summary__card--today .worker-summary__mini-fill{background:linear-gradient(90deg,#06b6d4,#22d3ee,#3b82f6)}
+        .worker-summary__card--month .worker-summary__mini-fill{background:linear-gradient(90deg,#8b5cf6,#d946ef,#ec4899)}
+        .worker-summary__lifetime .worker-summary__lifetime-copy{color:#c4b5fd}
+</style>
       <section className="worker-summary" aria-label="Personal Work, Team Work and Total">
         {orderedCards.filter(card => !hiddenCards.includes(card.id) && card.id !== 'lifetime').map(card => {
           const totalNumber = Math.max(0, Number(card.breakdown.total) || 0);
@@ -136,11 +144,4 @@ export function WorkerWorkSummaryCards({ totals, periodLabels, onOpenHistory, ca
   );
 }
 
-        .worker-summary__card--today .worker-summary__label{color:#67e8f9}.worker-summary__card--today .worker-summary__value{color:#22d3ee}
-        .worker-summary__card--week .worker-summary__week-caption{color:#93c5fd}.worker-summary__card--week .worker-summary__ring-label{color:#c4b5fd}.worker-summary__card--week .worker-summary__ring-core strong{color:#a5b4fc}
-        .worker-summary__card--month .worker-summary__label{color:#e9d5ff}.worker-summary__card--month .worker-summary__value{color:#f0abfc}
-        .worker-summary__card--lifetime .worker-summary__lifetime-label{color:#fbbf24}.worker-summary__lifetime-value{color:#fde68a}
-        .worker-summary__card--today .worker-summary__metric strong{color:#67e8f9}.worker-summary__card--month .worker-summary__metric strong{color:#f0abfc}
-        .worker-summary__card--today .worker-summary__mini-fill{background:linear-gradient(90deg,#06b6d4,#22d3ee,#3b82f6)}
-        .worker-summary__card--month .worker-summary__mini-fill{background:linear-gradient(90deg,#8b5cf6,#d946ef,#ec4899)}
-        .worker-summary__lifetime .worker-summary__lifetime-copy{color:#c4b5fd}
+        
