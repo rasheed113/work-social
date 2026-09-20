@@ -1,0 +1,45 @@
+/* Final visual override for the header Chat navigation button. No navigation or chat behavior changes. */
+html body #root header.ws-main-header button.ws-main-header__chat {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  min-height: 40px !important;
+  padding: 0 13px !important;
+  box-sizing: border-box !important;
+  border: 1px solid rgba(0, 240, 255, 0.68) !important;
+  border-radius: 13px !important;
+  background: linear-gradient(135deg, rgba(0, 240, 255, 0.34), rgba(0, 126, 255, 0.30) 52%, rgba(72, 65, 225, 0.26)) !important;
+  background-color: rgba(0, 75, 135, 0.42) !important;
+  background-image: linear-gradient(135deg, rgba(0, 240, 255, 0.34), rgba(0, 126, 255, 0.30) 52%, rgba(72, 65, 225, 0.26)) !important;
+  color: #00f0ff !important;
+  -webkit-text-fill-color: #00f0ff !important;
+  opacity: 1 !important;
+  backdrop-filter: blur(18px) saturate(190%) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(190%) !important;
+  box-shadow: 0 0 22px rgba(0, 210, 255, 0.28), inset 0 0 14px rgba(0, 240, 255, 0.12), inset 0 1px 0 rgba(170, 250, 255, 0.18) !important;
+  text-shadow: 0 0 8px rgba(0, 240, 255, 0.52) !important;
+}
+
+html body #root header.ws-main-header button.ws-main-header__chat,
+html body #root header.ws-main-header button.ws-main-header__chat:hover,
+html body #root header.ws-main-header button.ws-main-header__chat:focus,
+html body #root header.ws-main-header button.ws-main-header__chat:focus-visible {
+  background: linear-gradient(135deg, rgba(0, 240, 255, 0.34), rgba(0, 126, 255, 0.30) 52%, rgba(72, 65, 225, 0.26)) !important;
+  color: #00f0ff !important;
+  -webkit-text-fill-color: #00f0ff !important;
+}
+
+html body #root header.ws-main-header button.ws-main-header__chat:hover,
+html body #root header.ws-main-header button.ws-main-header__chat:focus-visible {
+  background: linear-gradient(135deg, rgba(0, 240, 255, 0.42), rgba(0, 126, 255, 0.36) 52%, rgba(72, 65, 225, 0.32)) !important;
+  border-color: rgba(0, 250, 255, 0.88) !important;
+  box-shadow: 0 0 30px rgba(0, 240, 255, 0.38), inset 0 0 16px rgba(0, 240, 255, 0.15) !important;
+}
+
+html body #root header.ws-main-header button.ws-main-header__chat * {
+  color: #00f0ff !important;
+  -webkit-text-fill-color: #00f0ff !important;
+}
