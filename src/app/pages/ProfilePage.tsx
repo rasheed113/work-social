@@ -5,7 +5,7 @@ interface ProfilePageProps { profileId: string; viewerId?: string; }
 
 export function ProfilePage({ profileId, viewerId }: ProfilePageProps) {
   const isOwner = !viewerId || viewerId === profileId;
-  return <main className="premium-profile-page">
+  return <main className="premium-profile-page social-profile-page">
     <style>{`
       .premium-profile-page {
         min-width: 0;
