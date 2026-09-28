@@ -87,7 +87,7 @@ export function FriendsPage() {
   const toggleFollow = async (targetId: string) => { if (!me) return; const isFollowing = followingIds.has(targetId); const result = isFollowing ? await supabase.from('follows').delete().eq('follower_id', me).eq('following_id', targetId) : await supabase.from('follows').insert({ follower_id: me, following_id: targetId }); if (result.error) return setError(result.error.message); setFollowingIds((current) => { const next = new Set(current); if (isFollowing) next.delete(targetId); else next.add(targetId); return next; }); };
 
   return (
-    <main style={{ minWidth: 0, width: '100%', boxSizing: 'border-box' }}>
+    <main className="social-friends-page" style={{ minWidth: 0, width: '100%', boxSizing: 'border-box' }}>
       <div style={styles.page}>
         <div style={{ marginBottom: 18 }}>
           <div style={{ position: 'relative', zIndex: 1 }}>
