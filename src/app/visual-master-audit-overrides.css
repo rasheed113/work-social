@@ -620,3 +620,89 @@ main:has(#worker-profile-title) section[aria-labelledby="worker-settings-section
     animation: none !important;
   }
 }
+
+
+/* Worker Work Entry List — remove the remaining ledger-card white surfaces. */
+.worker-history .worker-entry-list,
+.worker-history .worker-entry-list__card,
+.worker-history .worker-entry-list__row,
+.worker-history .worker-entry-list__team-card,
+.worker-history .worker-entry-list__empty {
+  background: transparent !important;
+  color: var(--ws-audit-text) !important;
+  border-color: var(--ws-audit-line) !important;
+  box-shadow: none !important;
+}
+
+.worker-history .worker-entry-list__card {
+  background: var(--ws-audit-glass) !important;
+  border: 1px solid var(--ws-audit-line) !important;
+  border-radius: 15px !important;
+  box-shadow: var(--ws-audit-shadow) !important;
+  backdrop-filter: blur(16px) saturate(120%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(120%) !important;
+}
+
+.worker-history .worker-entry-list__group-label,
+.worker-history .worker-entry-list__meta,
+.worker-history .worker-entry-list__team-meta,
+.worker-history .worker-entry-list__empty {
+  color: var(--ws-audit-soft) !important;
+}
+
+.worker-history .worker-entry-list__name,
+.worker-history .worker-entry-list__name-text,
+.worker-history .worker-entry-list__amount,
+.worker-history .worker-entry-list__team-name {
+  color: var(--ws-audit-text) !important;
+}
+
+.worker-history .worker-entry-list__tag {
+  background: rgba(34,211,238,.08) !important;
+  color: var(--ws-audit-cyan) !important;
+  border-color: rgba(34,211,238,.18) !important;
+}
+
+.worker-history .worker-entry-list__team-loading {
+  color: var(--ws-audit-soft) !important;
+}
+
+/* Details dialog is rendered as a dialog without a dedicated class. */
+.worker-history [role="dialog"] {
+  background: var(--ws-audit-glass-strong) !important;
+  color: var(--ws-audit-text) !important;
+  border-color: var(--ws-audit-line-strong) !important;
+  box-shadow: 0 28px 76px rgba(0,5,20,.48), inset 0 1px 0 rgba(190,240,255,.08) !important;
+  backdrop-filter: blur(24px) saturate(135%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(135%) !important;
+}
+
+.worker-history [role="dialog"] * {
+  color: inherit;
+}
+
+.contractor-account-settings {
+  color: var(--ws-audit-text) !important;
+}
+
+.contractor-account-settings > header h1 {
+  color: var(--ws-audit-text) !important;
+}
+
+.contractor-account-settings > section {
+  background: var(--ws-audit-glass) !important;
+  color: var(--ws-audit-text) !important;
+  border-color: var(--ws-audit-line) !important;
+  box-shadow: var(--ws-audit-shadow) !important;
+}
+
+.contractor-account-settings > section > div {
+  background: rgba(8,29,55,.46) !important;
+  border-color: var(--ws-audit-line) !important;
+}
+
+.contractor-account-settings button {
+  background: rgba(8,29,55,.56) !important;
+  color: var(--ws-audit-text) !important;
+  border-color: var(--ws-audit-line) !important;
+}
