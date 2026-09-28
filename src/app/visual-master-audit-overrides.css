@@ -411,6 +411,7 @@ main:has(#worker-profile-title) section[aria-labelledby="worker-settings-section
   background: transparent !important;
 }
 
+/* Team Finance: dark glass surfaces over the live galaxy background. */
 .tf-page .tf-top .tf-back,
 .tf-page .tf-x,
 .tf-page .tf-more,
@@ -440,7 +441,8 @@ main:has(#worker-profile-title) section[aria-labelledby="worker-settings-section
 .tf-page .tf-title,
 .tf-page .tf-name,
 .tf-page .tf-row-title,
-.tf-page .tf-action h2 {
+.tf-page .tf-action h2,
+.tf-page .tf-nums strong {
   color: var(--ws-audit-text) !important;
 }
 
@@ -452,7 +454,8 @@ main:has(#worker-profile-title) section[aria-labelledby="worker-settings-section
 .tf-page .tf-note,
 .tf-page .tf-action p,
 .tf-page .tf-metric small,
-.tf-page .tf-detail small {
+.tf-page .tf-detail small,
+.tf-page .tf-ring b span {
   color: var(--ws-audit-soft) !important;
 }
 
