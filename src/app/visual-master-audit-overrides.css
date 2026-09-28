@@ -851,3 +851,213 @@ main:has(#worker-profile-title) section[aria-labelledby="worker-settings-section
   }
 }
 
+/* -------------------------------------------------------------------------- */
+/* Phase D — social polish: Home, Friends, Profile and Post dialogs           */
+/* -------------------------------------------------------------------------- */
+
+/* Home: secondary copy should read as soft telemetry, not disappear into the
+   galaxy. Post content remains intentionally surface-less. */
+.home-page-root .ws-muted-text,
+.home-page-root small.ws-muted-text {
+  color: rgba(186,230,253,.72) !important;
+  -webkit-text-fill-color: rgba(186,230,253,.72) !important;
+}
+
+.home-page-root .home-create-post textarea::placeholder {
+  color: rgba(186,230,253,.54) !important;
+  opacity: 1 !important;
+}
+
+.home-page-root .home-create-post p[role="alert"] {
+  color: #fecdd3 !important;
+  border: 1px solid rgba(251,113,133,.22) !important;
+  background: rgba(127,29,29,.10) !important;
+  border-radius: 10px !important;
+}
+
+/* Friends: normalize search + action controls into the same thin-glass HUD
+   language without changing any request/follow/friend behavior. */
+.social-friends-page {
+  color: var(--ws-audit-text) !important;
+}
+
+.social-friends-page input {
+  color: var(--ws-audit-text) !important;
+  -webkit-text-fill-color: var(--ws-audit-text) !important;
+  caret-color: var(--ws-audit-cyan) !important;
+}
+
+.social-friends-page input::placeholder {
+  color: rgba(186,230,253,.55) !important;
+  opacity: 1 !important;
+}
+
+.social-friends-page button {
+  transition: transform .16s ease, border-color .16s ease, background .16s ease, box-shadow .16s ease !important;
+}
+
+.social-friends-page button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.social-friends-page button:focus-visible,
+.social-friends-page input:focus-visible {
+  outline: 2px solid rgba(103,232,249,.70) !important;
+  outline-offset: 2px;
+}
+
+.social-friends-page .social-friends-action,
+.social-friends-page [data-social-action] {
+  color: var(--ws-audit-text) !important;
+}
+
+.social-friends-page section {
+  border-color: rgba(103,232,249,.18) !important;
+}
+
+.social-friends-page section h2,
+.social-friends-page > div h2 {
+  color: var(--ws-audit-text) !important;
+}
+
+.social-friends-page section h2 span:last-child,
+.social-friends-page > div h2 span:last-child {
+  color: var(--ws-audit-soft) !important;
+}
+
+.social-friends-page [role="alert"] {
+  color: #fecdd3 !important;
+  background: rgba(127,29,29,.12) !important;
+  border-color: rgba(251,113,133,.28) !important;
+}
+
+.social-friends-page img {
+  border-color: rgba(103,232,249,.28) !important;
+}
+
+@media (max-width: 520px) {
+  .social-friends-page .actions {
+    padding-left: 0 !important;
+  }
+
+  .social-friends-page .actions button,
+  .social-friends-page .actions span {
+    min-height: 34px !important;
+    padding: 7px 9px !important;
+    font-size: 9px !important;
+  }
+}
+
+/* Profile: remove the remaining legacy near-white foundation surfaces and
+   restore readable light typography over the shared galaxy background. */
+.social-profile-page {
+  color: var(--ws-audit-text) !important;
+}
+
+.social-profile-page .foundation-card {
+  background: var(--ws-audit-glass) !important;
+  border-color: var(--ws-audit-line) !important;
+  color: var(--ws-audit-text) !important;
+  box-shadow: var(--ws-audit-shadow) !important;
+  backdrop-filter: blur(18px) saturate(125%) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(125%) !important;
+}
+
+.social-profile-page > section > section.foundation-card[style*="text-align:center"]::after {
+  background: linear-gradient(180deg, rgba(255,255,255,.055), transparent 35%) !important;
+}
+
+.social-profile-page > section > section.foundation-card[style*="text-align:center"] > img {
+  border-color: rgba(255,255,255,.76) !important;
+  outline-color: rgba(103,232,249,.22) !important;
+  box-shadow: 0 11px 28px rgba(0,0,0,.28), 0 0 0 7px rgba(103,232,249,.055) !important;
+}
+
+.social-profile-page > section > section.foundation-card[style*="text-align:center"] > h2 {
+  color: var(--ws-audit-text) !important;
+  text-shadow: 0 2px 8px rgba(0,0,0,.25) !important;
+}
+
+.social-profile-page > section > section.foundation-card[style*="text-align:center"] > p,
+.social-profile-page > section > footer.foundation-card {
+  color: var(--ws-audit-soft) !important;
+}
+
+.social-profile-page button {
+  background: rgba(8,29,55,.56) !important;
+  border-color: var(--ws-audit-line) !important;
+  color: var(--ws-audit-text) !important;
+  box-shadow: none !important;
+}
+
+.social-profile-page button:hover:not(:disabled) {
+  background: rgba(34,211,238,.09) !important;
+  border-color: rgba(103,232,249,.34) !important;
+  box-shadow: 0 8px 20px rgba(0,0,0,.14) !important;
+}
+
+.social-profile-page > section > section.foundation-card[style*="text-align:center"] > div[style*="display:flex"] button:first-child {
+  background: linear-gradient(135deg, rgba(34,211,238,.86), rgba(99,102,241,.90)) !important;
+  color: #f8fdff !important;
+  border-color: rgba(190,245,255,.20) !important;
+  box-shadow: 0 9px 22px rgba(37,99,235,.22), inset 0 1px 0 rgba(255,255,255,.20) !important;
+}
+
+.social-profile-page > section.foundation-card[aria-label="Account"] h2 {
+  color: var(--ws-audit-text) !important;
+}
+
+.social-profile-page > section.foundation-card[aria-label="Account"] h2::before {
+  background: rgba(34,211,238,.10) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.08) !important;
+}
+
+.social-profile-page > section.foundation-card[aria-label="Account"] button {
+  background: rgba(127,29,29,.16) !important;
+  color: #fecdd3 !important;
+  border-color: rgba(251,113,133,.30) !important;
+}
+
+/* Post edit/delete dialogs: keep the already-premium neon frame, but remove
+   the near-invisible .01/.02 body fill so content has a stable glass plane. */
+.home-post-feed [role="dialog"][aria-labelledby="edit-post-title"] > div > div,
+.home-post-feed [role="dialog"][aria-labelledby="delete-post-title"] > div > div {
+  background: linear-gradient(145deg, rgba(8,22,43,.72), rgba(8,18,40,.60)) !important;
+  border-color: rgba(103,232,249,.22) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.12), 0 24px 70px rgba(0,0,0,.34) !important;
+}
+
+.home-post-feed [role="dialog"][aria-labelledby="delete-post-title"] > div > div {
+  background: linear-gradient(145deg, rgba(30,10,32,.72), rgba(10,18,40,.60)) !important;
+  border-color: rgba(255,109,163,.24) !important;
+}
+
+.home-post-feed [role="dialog"][aria-labelledby="edit-post-title"] textarea {
+  background: rgba(3,12,28,.48) !important;
+  border-color: rgba(103,232,249,.38) !important;
+}
+
+.home-post-feed [role="dialog"] button:focus-visible {
+  outline: 2px solid rgba(103,232,249,.72) !important;
+  outline-offset: 2px;
+}
+
+.home-post-feed [role="dialog"][aria-labelledby="edit-post-title"] p,
+.home-post-feed [role="dialog"][aria-labelledby="delete-post-title"] p {
+  color: rgba(207,232,255,.82) !important;
+}
+
+@media (max-width: 767px) {
+  .home-post-feed [role="dialog"] > div {
+    width: min(100%, calc(100vw - 20px)) !important;
+    max-height: calc(100dvh - 112px - env(safe-area-inset-bottom)) !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .social-profile-page > section > section.foundation-card[style*="text-align:center"] {
+    background: rgba(8,29,55,.54) !important;
+  }
+}
+
