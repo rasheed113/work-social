@@ -1,0 +1,622 @@
+/* Work Social — Visual Master Audit implementation layer.
+   Presentation-only. Intentionally loaded last so legacy inline/page styles cannot
+   reintroduce opaque white surfaces. No data, auth, AI, routing or business logic. */
+
+:root {
+  --ws-audit-glass: linear-gradient(145deg, rgba(18,45,80,.54), rgba(7,23,47,.64));
+  --ws-audit-glass-soft: rgba(9,29,55,.46);
+  --ws-audit-glass-strong: linear-gradient(145deg, rgba(17,48,86,.78), rgba(7,23,48,.86));
+  --ws-audit-line: rgba(104,205,255,.22);
+  --ws-audit-line-strong: rgba(34,211,238,.42);
+  --ws-audit-text: #eaf8ff;
+  --ws-audit-soft: #a9c6df;
+  --ws-audit-muted: #7898b7;
+  --ws-audit-cyan: #67e8f9;
+  --ws-audit-violet: #a5b4fc;
+  --ws-audit-shadow: 0 18px 46px rgba(0,8,24,.24), inset 0 1px 0 rgba(190,240,255,.08);
+}
+
+body {
+  color: var(--ws-audit-text);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Contractor Personal Dashboard                                              */
+/* -------------------------------------------------------------------------- */
+
+.contractor-dashboard {
+  color: var(--ws-audit-text) !important;
+}
+
+.contractor-dashboard .cd-hero,
+.contractor-dashboard .cd-card,
+.contractor-dashboard .cd-section,
+.contractor-dashboard .cd-commission,
+.contractor-dashboard .cd-entry {
+  background: var(--ws-audit-glass) !important;
+  border: 1px solid var(--ws-audit-line) !important;
+  color: var(--ws-audit-text) !important;
+  box-shadow: var(--ws-audit-shadow) !important;
+  backdrop-filter: blur(18px) saturate(125%) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(125%) !important;
+}
+
+.contractor-dashboard .cd-hero {
+  background: linear-gradient(145deg, rgba(17,52,91,.62), rgba(8,27,54,.68)) !important;
+}
+
+.contractor-dashboard .cd-kicker,
+.contractor-dashboard .cd-tap,
+.contractor-dashboard .cd-label,
+.contractor-dashboard .cd-entry-meta,
+.contractor-dashboard .cd-sub,
+.contractor-dashboard .cd-section > p,
+.contractor-dashboard .cd-empty {
+  color: var(--ws-audit-soft) !important;
+}
+
+.contractor-dashboard .cd-title,
+.contractor-dashboard .cd-value,
+.contractor-dashboard .cd-entry-name {
+  color: var(--ws-audit-text) !important;
+  text-shadow: 0 0 18px rgba(34,211,238,.10) !important;
+}
+
+.contractor-dashboard .cd-icon,
+.contractor-dashboard .cd-badge {
+  background: rgba(34,211,238,.09) !important;
+  color: var(--ws-audit-cyan) !important;
+  border: 1px solid rgba(34,211,238,.18) !important;
+}
+
+.contractor-dashboard .cd-commission {
+  background: linear-gradient(145deg, rgba(13,65,65,.46), rgba(7,31,50,.62)) !important;
+  border-color: rgba(52,211,153,.28) !important;
+}
+
+.contractor-dashboard .cd-commission-value {
+  color: #86efac !important;
+}
+
+.contractor-dashboard .cd-btn,
+.contractor-dashboard .cd-more,
+.contractor-dashboard .cd-more-list {
+  background: rgba(8,29,55,.54) !important;
+  color: var(--ws-audit-text) !important;
+  border: 1px solid var(--ws-audit-line) !important;
+  box-shadow: none !important;
+}
+
+.contractor-dashboard .cd-btn.cd-primary {
+  background: linear-gradient(135deg, rgba(34,211,238,.90), rgba(59,130,246,.88), rgba(124,131,255,.88)) !important;
+  color: #fff !important;
+  border-color: rgba(190,245,255,.34) !important;
+  box-shadow: 0 10px 28px rgba(37,99,235,.24), 0 0 22px rgba(34,211,238,.10) !important;
+}
+
+.contractor-dashboard .cd-menu,
+.contractor-dashboard .cd-overlay .cd-modal,
+.contractor-dashboard .cd-info-grid div,
+.contractor-dashboard .cd-detail-entry,
+.contractor-dashboard .cd-nav button {
+  background: var(--ws-audit-glass-strong) !important;
+  color: var(--ws-audit-text) !important;
+  border-color: var(--ws-audit-line) !important;
+  box-shadow: var(--ws-audit-shadow) !important;
+  backdrop-filter: blur(22px) saturate(130%) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(130%) !important;
+}
+
+.contractor-dashboard .cd-menu button {
+  color: var(--ws-audit-text) !important;
+  background: transparent !important;
+}
+
+.contractor-dashboard .cd-menu .danger {
+  color: #fda4af !important;
+}
+
+.contractor-dashboard .cd-overlay {
+  background: rgba(2,8,20,.60) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+}
+
+.contractor-dashboard .cd-close {
+  background: rgba(8,29,55,.64) !important;
+  color: var(--ws-audit-text) !important;
+  border-color: var(--ws-audit-line) !important;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Worker Work History                                                        */
+/* -------------------------------------------------------------------------- */
+
+.worker-history {
+  color: var(--ws-audit-text) !important;
+}
+
+.worker-history:before {
+  background: transparent !important;
+}
+
+.worker-history .wh-surface,
+.worker-history .worker-history__hero,
+.worker-history .worker-history__total,
+.worker-history .worker-history__selected,
+.worker-history .worker-history__state,
+.worker-history .worker-history__daily {
+  background: var(--ws-audit-glass) !important;
+  border-color: var(--ws-audit-line) !important;
+  color: var(--ws-audit-text) !important;
+  box-shadow: var(--ws-audit-shadow) !important;
+}
+
+.worker-history .worker-history__title,
+.worker-history .worker-history__date,
+.worker-history .worker-history__total-value,
+.worker-history .worker-history__daily strong,
+.worker-history .worker-history__list-title h2 {
+  color: var(--ws-audit-text) !important;
+  text-shadow: 0 0 18px rgba(34,211,238,.10) !important;
+}
+
+.worker-history .worker-history__description,
+.worker-history .worker-history__total-copy,
+.worker-history .worker-history__eyebrow,
+.worker-history .worker-history__selected-label,
+.worker-history .worker-history__list-title span,
+.worker-history .worker-history__daily span,
+.worker-history .worker-history__state {
+  color: var(--ws-audit-soft) !important;
+}
+
+.worker-history .worker-history__back,
+.worker-history .worker-history__nav-button,
+.worker-history .worker-history__more {
+  background: rgba(8,29,55,.56) !important;
+  color: var(--ws-audit-text) !important;
+  border-color: var(--ws-audit-line) !important;
+  box-shadow: none !important;
+}
+
+.worker-history .worker-history__segments {
+  background: rgba(7,25,48,.50) !important;
+  border-color: var(--ws-audit-line) !important;
+  box-shadow: none !important;
+}
+
+.worker-history .worker-history__segment {
+  color: var(--ws-audit-muted) !important;
+}
+
+.worker-history .worker-history__segment[aria-pressed=true] {
+  color: var(--ws-audit-text) !important;
+  background: linear-gradient(135deg, rgba(34,211,238,.15), rgba(99,102,241,.17)) !important;
+  border-color: rgba(34,211,238,.32) !important;
+  box-shadow: 0 0 20px rgba(34,211,238,.08) !important;
+}
+
+/* Entry list is a separate component, so normalize common history surfaces by
+   ancestry instead of touching global article/card styles. */
+.worker-history .wh-surface ~ * article,
+.worker-history .wh-surface ~ * [class*="entry"],
+.worker-history .wh-surface ~ * [class*="row"] {
+  color: var(--ws-audit-text);
+}
+
+.worker-history .worker-history__state-mark {
+  background: rgba(34,211,238,.08) !important;
+  color: var(--ws-audit-cyan) !important;
+  border-color: rgba(34,211,238,.20) !important;
+  box-shadow: none !important;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Worker Settings                                                            */
+/* -------------------------------------------------------------------------- */
+
+main:has(#worker-profile-title),
+main:has(#team-joining-title) {
+  color: var(--ws-audit-text) !important;
+}
+
+main:has(#worker-profile-title) > header > div,
+main:has(#team-joining-title) > header > div,
+main:has(#worker-profile-title) > p:first-of-type,
+main:has(#team-joining-title) section[aria-labelledby="team-joining-title"] p {
+  color: var(--ws-audit-soft) !important;
+  text-shadow: none !important;
+}
+
+main:has(#worker-profile-title) > header h1,
+main:has(#team-joining-title) > header h1,
+main:has(#worker-profile-title) #worker-profile-title,
+main:has(#team-joining-title) #team-joining-title,
+main:has(#worker-profile-title) #worker-settings-section-title {
+  color: var(--ws-audit-text) !important;
+  text-shadow: 0 0 18px rgba(34,211,238,.10) !important;
+}
+
+main:has(#worker-profile-title) section[aria-labelledby="worker-profile-title"],
+main:has(#worker-profile-title) section[aria-labelledby="worker-settings-section-title"],
+main:has(#team-joining-title) section[aria-labelledby="team-joining-title"] {
+  background: var(--ws-audit-glass) !important;
+  border-color: var(--ws-audit-line) !important;
+  box-shadow: var(--ws-audit-shadow) !important;
+  color: var(--ws-audit-text) !important;
+  backdrop-filter: blur(18px) saturate(125%) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(125%) !important;
+}
+
+main:has(#worker-profile-title) section[aria-labelledby="worker-settings-section-title"] > button,
+main:has(#worker-profile-title) section[aria-labelledby="worker-profile-title"] button,
+main:has(#team-joining-title) section[aria-labelledby="team-joining-title"] button {
+  background: rgba(8,29,55,.50) !important;
+  color: var(--ws-audit-text) !important;
+  border-color: var(--ws-audit-line) !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+main:has(#worker-profile-title) section[aria-labelledby="worker-settings-section-title"] > button strong {
+  color: var(--ws-audit-text) !important;
+}
+
+main:has(#worker-profile-title) section[aria-labelledby="worker-settings-section-title"] > button span:last-child {
+  color: var(--ws-audit-cyan) !important;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Dashboard Customize Cards modal                                            */
+/* -------------------------------------------------------------------------- */
+
+[role="dialog"][aria-label="Customize Dashboard"] {
+  background: rgba(2,8,20,.62) !important;
+  backdrop-filter: blur(12px) saturate(115%) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(115%) !important;
+}
+
+[role="dialog"][aria-label="Customize Dashboard"] > section {
+  background: var(--ws-audit-glass-strong) !important;
+  border-color: var(--ws-audit-line-strong) !important;
+  color: var(--ws-audit-text) !important;
+  box-shadow: 0 30px 80px rgba(0,5,20,.48), inset 0 1px 0 rgba(190,240,255,.08) !important;
+  backdrop-filter: blur(24px) saturate(135%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(135%) !important;
+}
+
+[role="dialog"][aria-label="Customize Dashboard"] h2,
+[role="dialog"][aria-label="Customize Dashboard"] strong {
+  color: var(--ws-audit-text) !important;
+}
+
+[role="dialog"][aria-label="Customize Dashboard"] p,
+[role="dialog"][aria-label="Customize Dashboard"] span {
+  color: var(--ws-audit-soft) !important;
+}
+
+[role="dialog"][aria-label="Customize Dashboard"] > section > div:nth-child(2) > div {
+  background: rgba(8,29,55,.50) !important;
+  border-color: var(--ws-audit-line) !important;
+  color: var(--ws-audit-text) !important;
+}
+
+[role="dialog"][aria-label="Customize Dashboard"] button {
+  color: var(--ws-audit-text) !important;
+}
+
+[role="dialog"][aria-label="Customize Dashboard"] button:not(:last-child) {
+  background: rgba(8,29,55,.60) !important;
+  border-color: var(--ws-audit-line) !important;
+}
+
+[role="dialog"][aria-label="Customize Dashboard"] > section > div:last-child button:first-child {
+  background: rgba(8,29,55,.60) !important;
+  border-color: var(--ws-audit-line) !important;
+}
+
+[role="dialog"][aria-label="Customize Dashboard"] > section > div:last-child button:last-child {
+  background: linear-gradient(135deg, rgba(34,211,238,.92), rgba(59,130,246,.92), rgba(124,131,255,.92)) !important;
+  border-color: rgba(190,245,255,.34) !important;
+  color: #fff !important;
+}
+
+[role="dialog"][aria-label="Customize Dashboard"] > section > div:first-child > button {
+  background: rgba(8,29,55,.64) !important;
+  border-color: var(--ws-audit-line) !important;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Contractor Account Setup                                                   */
+/* -------------------------------------------------------------------------- */
+
+.contractor-account-setup {
+  color: var(--ws-audit-text) !important;
+}
+
+.contractor-account-setup > header div,
+.contractor-account-setup > header p {
+  color: var(--ws-audit-soft) !important;
+}
+
+.contractor-account-setup > header h1 {
+  color: var(--ws-audit-text) !important;
+  text-shadow: 0 0 18px rgba(34,211,238,.10) !important;
+}
+
+.contractor-account-setup > section {
+  background: var(--ws-audit-glass) !important;
+  border-color: var(--ws-audit-line) !important;
+  color: var(--ws-audit-text) !important;
+  box-shadow: var(--ws-audit-shadow) !important;
+  backdrop-filter: blur(18px) saturate(125%) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(125%) !important;
+}
+
+.contractor-account-setup fieldset legend,
+.contractor-account-setup label,
+.contractor-account-setup strong {
+  color: var(--ws-audit-text) !important;
+}
+
+.contractor-account-setup section button[aria-pressed] {
+  background: rgba(8,29,55,.54) !important;
+  border-color: var(--ws-audit-line) !important;
+  color: var(--ws-audit-text) !important;
+  box-shadow: none !important;
+}
+
+.contractor-account-setup section button[aria-pressed="true"] {
+  background: linear-gradient(135deg, rgba(34,211,238,.15), rgba(52,211,153,.14)) !important;
+  border-color: rgba(52,211,153,.40) !important;
+  color: #b9ffe5 !important;
+  box-shadow: 0 0 20px rgba(52,211,153,.08) !important;
+}
+
+.contractor-account-setup input {
+  background: rgba(7,24,48,.72) !important;
+  color: var(--ws-audit-text) !important;
+  border-color: var(--ws-audit-line) !important;
+}
+
+.contractor-account-setup input::placeholder {
+  color: var(--ws-audit-muted) !important;
+}
+
+.contractor-account-setup [role="alert"] {
+  background: rgba(127,29,29,.22) !important;
+  color: #fecaca !important;
+  border: 1px solid rgba(248,113,113,.24) !important;
+}
+
+.contractor-account-setup [role="status"] {
+  background: rgba(16,185,129,.12) !important;
+  color: #a7f3d0 !important;
+  border: 1px solid rgba(52,211,153,.24) !important;
+}
+
+.contractor-account-setup > section > button[type="button"] {
+  background: linear-gradient(135deg, rgba(34,211,238,.92), rgba(16,185,129,.88), rgba(59,130,246,.88)) !important;
+  border-color: rgba(190,245,255,.30) !important;
+  color: #fff !important;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Contractor Team Finance — local inline CSS is intentionally overridden.    */
+/* -------------------------------------------------------------------------- */
+
+.tf-page {
+  color: var(--ws-audit-text) !important;
+  background: transparent !important;
+}
+
+.tf-page .tf-top .tf-back,
+.tf-page .tf-x,
+.tf-page .tf-more,
+.tf-page .tf-card,
+.tf-page .tf-metric,
+.tf-page .tf-worker,
+.tf-page .tf-state,
+.tf-page .tf-modal,
+.tf-page .tf-detail > div,
+.tf-page .tf-row,
+.tf-page .tf-menu,
+.tf-page .tf-form,
+.tf-page .tf-action,
+.tf-page .tf-success {
+  background: var(--ws-audit-glass) !important;
+  border-color: var(--ws-audit-line) !important;
+  color: var(--ws-audit-text) !important;
+  box-shadow: var(--ws-audit-shadow) !important;
+  backdrop-filter: blur(18px) saturate(125%) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(125%) !important;
+}
+
+.tf-page .tf-card {
+  background: linear-gradient(145deg, rgba(17,52,91,.60), rgba(7,25,50,.70)) !important;
+}
+
+.tf-page .tf-title,
+.tf-page .tf-name,
+.tf-page .tf-row-title,
+.tf-page .tf-action h2 {
+  color: var(--ws-audit-text) !important;
+}
+
+.tf-page .tf-sub,
+.tf-page .tf-legend,
+.tf-page .tf-section,
+.tf-page .tf-wid,
+.tf-page .tf-row-meta,
+.tf-page .tf-note,
+.tf-page .tf-action p,
+.tf-page .tf-metric small,
+.tf-page .tf-detail small {
+  color: var(--ws-audit-soft) !important;
+}
+
+.tf-page .tf-kicker {
+  color: var(--ws-audit-cyan) !important;
+}
+
+.tf-page .tf-period button,
+.tf-page .tf-btn,
+.tf-page .tf-cancel {
+  background: rgba(8,29,55,.58) !important;
+  color: var(--ws-audit-text) !important;
+  border-color: var(--ws-audit-line) !important;
+}
+
+.tf-page .tf-period button.active {
+  background: linear-gradient(135deg, rgba(34,211,238,.15), rgba(99,102,241,.18)) !important;
+  color: #dffaff !important;
+  border-color: rgba(34,211,238,.36) !important;
+}
+
+.tf-page .tf-btn.pay,
+.tf-page .tf-save {
+  background: linear-gradient(135deg, rgba(16,185,129,.90), rgba(14,165,233,.88)) !important;
+  color: #fff !important;
+  border-color: rgba(190,255,235,.25) !important;
+}
+
+.tf-page .tf-input,
+.tf-page .tf-select {
+  background: rgba(7,24,48,.76) !important;
+  color: var(--ws-audit-text) !important;
+  border-color: var(--ws-audit-line) !important;
+}
+
+.tf-page .tf-menu button {
+  background: transparent !important;
+  color: var(--ws-audit-text) !important;
+}
+
+.tf-page .tf-menu .danger {
+  color: #fda4af !important;
+}
+
+.tf-page .tf-form {
+  background: linear-gradient(145deg, rgba(10,62,57,.38), rgba(8,34,58,.56)) !important;
+  border-color: rgba(52,211,153,.25) !important;
+}
+
+.tf-page .tf-form-title {
+  color: #86efac !important;
+}
+
+.tf-page .tf-overlay {
+  background: rgba(2,8,20,.62) !important;
+  backdrop-filter: blur(12px) saturate(115%) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(115%) !important;
+}
+
+.tf-page .tf-action-icon {
+  background: rgba(34,211,238,.10) !important;
+  color: var(--ws-audit-cyan) !important;
+}
+
+.tf-page .tf-confirm {
+  background: linear-gradient(135deg, rgba(99,102,241,.94), rgba(59,130,246,.92)) !important;
+  color: #fff !important;
+}
+
+.tf-page .tf-confirm.danger {
+  background: linear-gradient(135deg, #e11d48, #be123c) !important;
+}
+
+/* Account / Work Mode selector and its full-screen picker. */
+[aria-labelledby="account-mode-switch-title"] {
+  background: var(--ws-audit-glass) !important;
+  border-color: var(--ws-audit-line) !important;
+  color: var(--ws-audit-text) !important;
+  box-shadow: var(--ws-audit-shadow) !important;
+  backdrop-filter: blur(18px) saturate(125%) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(125%) !important;
+}
+
+[aria-labelledby="account-mode-switch-title"] h2 {
+  color: var(--ws-audit-text) !important;
+}
+
+[aria-labelledby="account-mode-switch-title"] p {
+  color: var(--ws-audit-soft) !important;
+}
+
+[aria-labelledby="account-mode-switch-title"] button > div:last-child {
+  background: rgba(8,29,55,.56) !important;
+  color: var(--ws-audit-text) !important;
+  border-color: var(--ws-audit-line) !important;
+  box-shadow: none !important;
+}
+
+[aria-labelledby="account-mode-dialog-title"] {
+  background: var(--ws-audit-glass-strong) !important;
+  border-color: var(--ws-audit-line-strong) !important;
+  color: var(--ws-audit-text) !important;
+  box-shadow: 0 30px 80px rgba(0,5,20,.48), inset 0 1px 0 rgba(190,240,255,.08) !important;
+  backdrop-filter: blur(24px) saturate(135%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(135%) !important;
+}
+
+[aria-labelledby="account-mode-dialog-title"] h2,
+[aria-labelledby="account-mode-dialog-title"] strong {
+  color: var(--ws-audit-text) !important;
+}
+
+[aria-labelledby="account-mode-dialog-title"] p,
+[aria-labelledby="account-mode-dialog-title"] button span {
+  color: var(--ws-audit-soft) !important;
+}
+
+[aria-labelledby="account-mode-dialog-title"] > div[style*="display: grid"] > button {
+  background: rgba(8,29,55,.56) !important;
+  border-color: var(--ws-audit-line) !important;
+  color: var(--ws-audit-text) !important;
+  box-shadow: none !important;
+}
+
+[aria-labelledby="account-mode-dialog-title"] > div[style*="display: grid"] > button[style*="1.5px"] {
+  background: linear-gradient(135deg, rgba(34,211,238,.15), rgba(99,102,241,.18)) !important;
+  border-color: rgba(34,211,238,.40) !important;
+}
+
+[aria-labelledby="account-mode-dialog-title"] + button {
+  background: rgba(8,29,55,.60) !important;
+  color: var(--ws-audit-text) !important;
+  border-color: var(--ws-audit-line) !important;
+}
+
+@media (max-width: 700px) {
+  .contractor-dashboard .cd-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .tf-page {
+    padding-bottom: 126px !important;
+  }
+
+  .tf-page .tf-overlay {
+    padding-bottom: calc(110px + env(safe-area-inset-bottom)) !important;
+  }
+
+  [role="dialog"][aria-label="Customize Dashboard"] {
+    padding: calc(12px + env(safe-area-inset-top)) 10px calc(90px + env(safe-area-inset-bottom)) !important;
+    align-items: flex-start !important;
+    overflow: auto !important;
+  }
+
+  [role="dialog"][aria-label="Customize Dashboard"] > section {
+    max-height: calc(100dvh - 110px) !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .contractor-dashboard *,
+  .worker-history *,
+  .tf-page * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
