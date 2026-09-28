@@ -1064,3 +1064,70 @@ main:has(#worker-profile-title) section[aria-labelledby="worker-settings-section
   }
 }
 
+
+
+/* -------------------------------------------------------------------------- */
+/* Contractor workspace boundary — personal Finance vs Team workspace         */
+/* -------------------------------------------------------------------------- */
+
+.contractor-finance-page {
+  color: var(--ws-audit-text) !important;
+}
+
+.contractor-finance-page > section,
+.contractor-finance-page > main,
+.contractor-finance-page article {
+  background: var(--ws-audit-glass) !important;
+  border-color: var(--ws-audit-line) !important;
+  color: var(--ws-audit-text) !important;
+  box-shadow: var(--ws-audit-shadow) !important;
+  backdrop-filter: blur(18px) saturate(125%) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(125%) !important;
+}
+
+.contractor-finance-page h1,
+.contractor-finance-page h2,
+.contractor-finance-page h3,
+.contractor-finance-page strong {
+  color: var(--ws-audit-text) !important;
+}
+
+.contractor-finance-page p,
+.contractor-finance-page span,
+.contractor-finance-page label,
+.contractor-finance-page small {
+  color: var(--ws-audit-soft) !important;
+}
+
+.contractor-finance-page input,
+.contractor-finance-page textarea,
+.contractor-finance-page select {
+  background: rgba(7,24,48,.82) !important;
+  color: var(--ws-audit-text) !important;
+  border-color: var(--ws-audit-line) !important;
+  -webkit-text-fill-color: var(--ws-audit-text) !important;
+}
+
+.contractor-finance-page button:not([style*="linear-gradient(135deg,#06b6d4"]) {
+  border-color: var(--ws-audit-line) !important;
+}
+
+.contractor-finance-page [role="dialog"] > section {
+  background: var(--ws-audit-glass-strong) !important;
+  border-color: var(--ws-audit-line-strong) !important;
+  color: var(--ws-audit-text) !important;
+  box-shadow: 0 30px 90px rgba(0,0,0,.42), inset 0 1px 0 rgba(190,240,255,.08) !important;
+}
+
+.contractor-finance-page [role="dialog"] input,
+.contractor-finance-page [role="dialog"] textarea {
+  background: rgba(3,12,28,.72) !important;
+  color: var(--ws-audit-text) !important;
+  border-color: rgba(103,232,249,.28) !important;
+}
+
+.contractor-finance-page [role="dialog"] button[aria-label="Close"] {
+  background: rgba(8,29,55,.72) !important;
+  color: var(--ws-audit-text) !important;
+  border-color: var(--ws-audit-line) !important;
+}
