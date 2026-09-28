@@ -706,3 +706,148 @@ main:has(#worker-profile-title) section[aria-labelledby="worker-settings-section
   color: var(--ws-audit-text) !important;
   border-color: var(--ws-audit-line) !important;
 }
+
+/* -------------------------------------------------------------------------- */
+/* Phase C — mobile viewport, safe-area, keyboard and transition stability    */
+/* Presentation-only. Protected Worker Overview (.wo) and Contractor Overview
+   (.co5-page) are intentionally excluded from the page-content spacing rules. */
+
+@media (max-width: 767px) {
+  body:not(:has(.wo)):not(:has(.co5-page)) .work-social-page-content {
+    padding-bottom: max(92px, calc(92px + env(safe-area-inset-bottom))) !important;
+    scroll-padding-bottom: calc(118px + env(safe-area-inset-bottom)) !important;
+  }
+
+  body:not(:has(.wo)):not(:has(.co5-page)) .work-social-page-content main {
+    scroll-margin-bottom: calc(118px + env(safe-area-inset-bottom));
+  }
+
+  /* Keep focused controls above the mobile navigation/keyboard boundary. */
+  body:not(:has(.wo)):not(:has(.co5-page)) input,
+  body:not(:has(.wo)):not(:has(.co5-page)) textarea,
+  body:not(:has(.wo)):not(:has(.co5-page)) select {
+    scroll-margin-top: 88px;
+    scroll-margin-bottom: calc(128px + env(safe-area-inset-bottom));
+  }
+
+  /* Targeted modal viewport contract: the dialog itself may scroll, while the
+     galaxy backdrop stays visible instead of being replaced by a white sheet. */
+  body:not(:has(.wo)):not(:has(.co5-page)) [role="dialog"],
+  body:not(:has(.wo)):not(:has(.co5-page)) [role="alertdialog"] {
+    max-height: calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important;
+    max-width: calc(100vw - 20px) !important;
+  }
+
+  body:not(:has(.wo)):not(:has(.co5-page)) [role="dialog"] > * {
+    max-height: inherit;
+  }
+
+  /* Work-side long forms: leave a stable breathing zone when the Android
+     keyboard changes the visual viewport. */
+  .contractor-account-setup,
+  .contractor-account-settings,
+  .worker-history {
+    padding-bottom: calc(118px + env(safe-area-inset-bottom)) !important;
+  }
+
+  .contractor-account-setup input,
+  .contractor-account-setup button,
+  .contractor-account-settings button,
+  .worker-history input,
+  .worker-history button {
+    scroll-margin-bottom: calc(136px + env(safe-area-inset-bottom));
+  }
+
+  /* Team Finance overlays and forms must never finish underneath the footer. */
+  .tf-page .tf-overlay {
+    min-height: 100dvh !important;
+    box-sizing: border-box !important;
+    padding-top: max(10px, env(safe-area-inset-top)) !important;
+    padding-left: max(10px, env(safe-area-inset-left)) !important;
+    padding-right: max(10px, env(safe-area-inset-right)) !important;
+    padding-bottom: calc(118px + env(safe-area-inset-bottom)) !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .tf-page .tf-modal,
+  .tf-page .tf-form,
+  .tf-page .tf-detail {
+    width: min(100%, 720px) !important;
+    max-height: calc(100dvh - 136px) !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Account-mode picker: scroll the options, not the app shell. */
+  [aria-labelledby="account-mode-dialog-title"] {
+    max-height: calc(100dvh - 112px) !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Customize Cards modal follows the same mobile viewport contract. */
+  [role="dialog"][aria-label="Customize Dashboard"] > section {
+    width: min(100%, 560px) !important;
+    max-height: calc(100dvh - 112px - env(safe-area-inset-bottom)) !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* AI launcher/panel must clear the bottom dock and adapt to the visual
+     viewport when the Android keyboard opens. */
+  .ws-ai-launcher.ws-ai-brand-logo {
+    bottom: calc(94px + env(safe-area-inset-bottom)) !important;
+  }
+
+  .ws-ai-panel {
+    bottom: calc(142px + env(safe-area-inset-bottom)) !important;
+    height: calc(100dvh - 165px - env(safe-area-inset-bottom)) !important;
+    max-height: calc(100dvh - 165px - env(safe-area-inset-bottom)) !important;
+  }
+}
+
+@media (max-width: 430px) {
+  body:not(:has(.wo)):not(:has(.co5-page)) .work-social-page-content {
+    padding-left: max(8px, env(safe-area-inset-left)) !important;
+    padding-right: max(8px, env(safe-area-inset-right)) !important;
+  }
+
+  .contractor-account-setup,
+  .contractor-account-settings,
+  .worker-history {
+    padding-left: max(8px, env(safe-area-inset-left)) !important;
+    padding-right: max(8px, env(safe-area-inset-right)) !important;
+  }
+
+  .tf-page .tf-modal,
+  .tf-page .tf-form,
+  .tf-page .tf-detail,
+  [aria-labelledby="account-mode-dialog-title"],
+  [role="dialog"][aria-label="Customize Dashboard"] > section {
+    border-radius: 18px !important;
+  }
+}
+
+/* Prevent the brief white/empty flash during route content replacement without
+   introducing a fake loading state or changing Router/business behavior. */
+.work-social-page-content {
+  min-height: 0 !important;
+  isolation: isolate;
+}
+
+.work-social-page-content > main {
+  min-height: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .work-social-page-content,
+  .work-social-page-content * {
+    scroll-behavior: auto !important;
+  }
+}
+
