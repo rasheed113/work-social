@@ -44,11 +44,11 @@ export function WorkerWorkHistoryPage() {
   const editEntry = async (...args: Parameters<typeof history.editEntry>) => history.editEntry(...args); const trashEntry = async (entryId: string) => history.trashEntry(entryId);
 
   if (session.loading) return <WorkSocialPremiumLoader title="Worker Work History" message="Loading Work History…" />;
-  if (session.error || !session.profileId) return <main className="worker-history"><section className="worker-history__state worker-history__state--error"><span className="worker-history__state-mark" aria-hidden="true">!</span><p role="alert">{session.error ?? 'Authenticated profile is unavailable.'}</p></section></main>;
+  if (session.error || !session.profileId) return <main className="worker-history ws-phase2-worker-history"><section className="worker-history__state worker-history__state--error"><span className="worker-history__state-mark" aria-hidden="true">!</span><p role="alert">{session.error ?? 'Authenticated profile is unavailable.'}</p></section></main>;
 
   let periodLabel = ''; if (isDay) periodLabel = formatDate(selectedPeriod); else if (isWeek) { const end = new Date(selectedPeriod); end.setDate(end.getDate() + 6); periodLabel = `${formatDate(selectedPeriod)} – ${formatDate(end)}`; } else if (isMonth) periodLabel = selectedPeriod.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
 
-  return <main className="worker-history">
+  return <main className="worker-history ws-phase2-worker-history">
     <style>{`
       .worker-history{--ink:#172033;--muted:#64748b;--blue:#2563eb;--violet:#635bdb;--teal:#0f9f95;width:100%;max-width:760px;margin:0 auto;padding:14px 10px 104px;box-sizing:border-box;color:var(--ink)}
       .worker-history:before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(70% 35% at 10% 0%,rgba(37,99,235,.07),transparent 70%),radial-gradient(60% 35% at 100% 42%,rgba(15,159,149,.055),transparent 70%),linear-gradient(180deg,#f8fafc,#f3f6fa 60%,#f8fafc)}
