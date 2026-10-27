@@ -313,3 +313,26 @@ body{font-family:var(--font)}
 .work-social-router-shell :where(.ws-ui-toast,.ws-ui-notification,.toast,.notification,.notice,[role="alert"],[role="status"]){color:var(--text)!important;background:var(--bg)!important;border-color:#E5E7EB!important;border-radius:var(--radius-card)!important;box-shadow:var(--ws-dna-shadow-soft)!important}
 .work-social-router-shell :where(.ws-ui-loading,[data-ws-loading-state],.ws-ui-empty,[data-ws-empty]){color:var(--text)!important;background:var(--surface)!important;border-color:#E5E7EB!important;border-radius:var(--radius-card)!important}
 @media(max-width:767px){.work-social-router-shell{--ws-ui-control-h:var(--height-control);--ws-ui-control-h-compact:var(--height-control)}.work-social-router-shell :where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),textarea,select){min-height:var(--height-control)!important;font-size:16px}}
+
+
+/* Final cascade corrections: neutralize legacy header/button gradients for shared shell components. */
+.work-social-router-shell>header,
+.work-social-router-shell>nav,
+.work-social-router-shell .ws-main-header,
+.work-social-router-shell .ws-bottom-nav {
+  color:var(--text)!important;
+  background:var(--bg)!important;
+  border-color:#E5E7EB!important;
+  box-shadow:0 1px 3px rgba(17,24,39,.06)!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+}
+.work-social-router-shell :where(button,[role="button"],input[type="button"],input[type="reset"],[data-ws-component="button"]) {
+  color:var(--text);
+  background:var(--surface);
+}
+.work-social-router-shell nav :where(a,button) { color:var(--text); background:transparent; box-shadow:none; }
+.work-social-router-shell :where(button:hover,[role="button"]:hover,input[type="button"]:hover,input[type="reset"]:hover) {
+  color:var(--text); background:#F3F4F6; box-shadow:none;
+}
+.work-social-router-shell :where(button[data-ws-variant="primary"],[data-ws-component="button"][data-ws-variant="primary"],.ws-ui-button--primary,input[type="submit"]) { color:#FFFFFF!important;background:var(--primary)!important; }
