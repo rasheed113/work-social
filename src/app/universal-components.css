@@ -336,3 +336,360 @@ body{font-family:var(--font)}
   color:var(--text); background:#F3F4F6; box-shadow:none;
 }
 .work-social-router-shell :where(button[data-ws-variant="primary"],[data-ws-component="button"][data-ws-variant="primary"],.ws-ui-button--primary,input[type="submit"]) { color:#FFFFFF!important;background:var(--primary)!important; }
+
+
+/* Phase 2 page uniformity — scoped visual overrides only.
+   Keep premium-visual-unification.css imported before this stylesheet.
+   No data, routing, auth, finance, membership, or transaction behavior belongs here. */
+:root {
+  --primary: #2563EB;
+  --bg: #FFFFFF;
+  --surface: #F8F9FA;
+  --text: #111827;
+  --radius-card: 12px;
+  --radius-btn: 8px;
+  --radius-pill: 999px;
+  --height-control: 44px;
+}
+.ws-phase2-worker-overview,
+.ws-phase2-contractor-overview,
+.ws-phase2-contractor-finance,
+.ws-phase2-team-finance,
+.ws-phase2-worker-history,
+.ws-phase2-contractor-account,
+main:has(#worker-profile-title),
+main:has(#team-joining) {
+  color: var(--text) !important;
+  background: var(--bg) !important;
+  font-family: 'Poppins', sans-serif !important;
+}
+.ws-phase2-worker-overview *,
+.ws-phase2-contractor-overview *,
+.ws-phase2-contractor-finance *,
+.ws-phase2-team-finance *,
+.ws-phase2-worker-history *,
+.ws-phase2-contractor-account *,
+main:has(#worker-profile-title) *,
+main:has(#team-joining) * {
+  font-family: 'Poppins', sans-serif;
+}
+.ws-phase2-worker-overview .wo-hero,
+.ws-phase2-worker-overview .wo-card,
+.ws-phase2-worker-overview .wo-finbox,
+.ws-phase2-worker-overview .wo-team,
+.ws-phase2-worker-overview .wo-stat,
+.ws-phase2-worker-overview .wo-error,
+.ws-phase2-worker-overview .wo-empty {
+  color: var(--text) !important;
+  background: var(--surface) !important;
+  border: 1px solid #E5E7EB !important;
+  border-radius: var(--radius-card) !important;
+  box-shadow: 0 2px 8px rgba(17,24,39,.05) !important;
+}
+.ws-phase2-worker-overview .wo,
+.ws-phase2-worker-overview.wo {
+  color: var(--text) !important;
+  background: var(--bg) !important;
+}
+.ws-phase2-worker-overview .wo-brand small,
+.ws-phase2-worker-overview .wo-k,
+.ws-phase2-worker-overview .wo-eyebrow,
+.ws-phase2-worker-overview .wo-muted,
+.ws-phase2-worker-overview .wo-copy,
+.ws-phase2-worker-overview .wo-ticker,
+.ws-phase2-worker-overview .wo-field-label,
+.ws-phase2-worker-overview .wo-field-status,
+.ws-phase2-worker-overview .wo-prism-meta,
+.ws-phase2-worker-overview .wo-prism-value em,
+.ws-phase2-worker-overview .wo-prism-facet,
+.ws-phase2-worker-overview .wo-finbox small,
+.ws-phase2-worker-overview .wo-team small,
+.ws-phase2-worker-overview .wo-team em,
+.ws-phase2-worker-overview .wo-stat small {
+  color: #4B5563 !important;
+}
+.ws-phase2-worker-overview h1,
+.ws-phase2-worker-overview h2,
+.ws-phase2-worker-overview strong,
+.ws-phase2-worker-overview .wo-time,
+.ws-phase2-worker-overview .wo-prism-value strong,
+.ws-phase2-worker-overview .wo-finbox strong {
+  color: var(--text) !important;
+}
+.ws-phase2-worker-overview .wo h1 span,
+.ws-phase2-worker-overview h1 span {
+  color: var(--primary) !important;
+  background: none !important;
+  -webkit-text-fill-color: var(--primary) !important;
+}
+.ws-phase2-worker-overview .wo-field,
+.ws-phase2-worker-overview .wo-prism {
+  background: var(--surface) !important;
+  color: var(--text) !important;
+  border: 1px solid #E5E7EB !important;
+  border-radius: var(--radius-card) !important;
+  box-shadow: none !important;
+}
+.ws-phase2-worker-overview .wo-field-grid,
+.ws-phase2-worker-overview .wo-field-lines,
+.ws-phase2-worker-overview .wo-field-star,
+.ws-phase2-worker-overview .wo-prism-grid,
+.ws-phase2-worker-overview .wo-prism-core,
+.ws-phase2-worker-overview .wo-prism-facet {
+  opacity: .16;
+}
+.ws-phase2-worker-overview .wo-live,
+.ws-phase2-worker-overview .wo-set,
+.ws-phase2-worker-overview .wo-btn,
+.ws-phase2-worker-overview .wo-mini {
+  min-height: var(--height-control) !important;
+  border-radius: var(--radius-btn) !important;
+  border: 1px solid #D1D5DB !important;
+  background: var(--surface) !important;
+  color: var(--text) !important;
+  box-shadow: none !important;
+}
+.ws-phase2-worker-overview .wo-btn.primary,
+.ws-phase2-worker-overview .wo-actions .primary {
+  background: var(--primary) !important;
+  border-color: var(--primary) !important;
+  color: #FFFFFF !important;
+}
+.ws-phase2-worker-overview .wo-actions,
+.ws-phase2-worker-overview .wo-team-actions { gap: 8px !important; }
+
+.ws-phase2-contractor-overview .co5-page,
+.ws-phase2-contractor-overview.co5-page {
+  color: var(--text) !important;
+  background: var(--bg) !important;
+}
+.ws-phase2-contractor-overview .co5-hero,
+.ws-phase2-contractor-overview .co5-card,
+.ws-phase2-contractor-overview .co5-summary article,
+.ws-phase2-contractor-overview .co5-delete-success {
+  color: var(--text) !important;
+  background: var(--surface) !important;
+  border: 1px solid #E5E7EB !important;
+  border-radius: var(--radius-card) !important;
+  box-shadow: 0 2px 8px rgba(17,24,39,.05) !important;
+}
+.ws-phase2-contractor-overview .co5-brand,
+.ws-phase2-contractor-overview .co5-kicker,
+.ws-phase2-contractor-overview .co5-section-head span,
+.ws-phase2-contractor-overview .co5-summary article span,
+.ws-phase2-contractor-overview .co5-context {
+  color: var(--primary) !important;
+}
+.ws-phase2-contractor-overview .co5-page :where(h1,h2,h3,p,strong,small,span) {
+  text-shadow: none !important;
+}
+.ws-phase2-contractor-overview .co5-page :where(button) {
+  min-height: var(--height-control) !important;
+  border-radius: var(--radius-btn) !important;
+  font-family: 'Poppins', sans-serif !important;
+  box-shadow: none !important;
+}
+.ws-phase2-contractor-overview .co5-create-team,
+.ws-phase2-contractor-overview .co5-actions button:first-child,
+.ws-phase2-contractor-overview .co5-priority button {
+  color: #FFFFFF !important;
+  background: var(--primary) !important;
+  border-color: var(--primary) !important;
+}
+.ws-phase2-contractor-overview .co5-settings,
+.ws-phase2-contractor-overview .co5-actions button,
+.ws-phase2-contractor-overview .co5-retry {
+  color: var(--text) !important;
+  background: var(--surface) !important;
+  border-color: #D1D5DB !important;
+}
+
+.ws-phase2-contractor-finance {
+  color: var(--text) !important;
+  background: var(--bg) !important;
+}
+.ws-phase2-contractor-finance > section,
+.ws-phase2-contractor-finance [role="dialog"] > section,
+.ws-phase2-contractor-finance [role="dialog"] section,
+.ws-phase2-contractor-finance [style*="borderRadius"],
+.ws-phase2-contractor-finance [style*="border-radius"] {
+  border-radius: var(--radius-card) !important;
+}
+.ws-phase2-contractor-finance > section,
+.ws-phase2-contractor-finance [role="dialog"] > section {
+  background: var(--surface) !important;
+  border: 1px solid #E5E7EB !important;
+  color: var(--text) !important;
+  box-shadow: 0 12px 32px rgba(17,24,39,.10) !important;
+}
+.ws-phase2-contractor-finance h1,
+.ws-phase2-contractor-finance h2,
+.ws-phase2-contractor-finance h3,
+.ws-phase2-contractor-finance strong,
+.ws-phase2-contractor-finance label {
+  color: var(--text);
+}
+.ws-phase2-contractor-finance :where(button) {
+  min-height: var(--height-control) !important;
+  border-radius: var(--radius-btn) !important;
+  font-family: 'Poppins', sans-serif !important;
+  box-shadow: none !important;
+}
+.ws-phase2-contractor-finance button:not([aria-label="Close"]):not([style*="dc2626"]) {
+  border-color: #D1D5DB;
+}
+.ws-phase2-contractor-finance input,
+.ws-phase2-contractor-finance select,
+.ws-phase2-contractor-finance textarea {
+  min-height: var(--height-control) !important;
+  border-radius: var(--radius-btn) !important;
+  color: var(--text) !important;
+  background: #FFFFFF !important;
+  border: 1px solid #D1D5DB !important;
+}
+.ws-phase2-contractor-finance [role="dialog"] {
+  background: rgba(17,24,39,.38) !important;
+  color: var(--text) !important;
+}
+.ws-phase2-contractor-finance [role="dialog"] button[aria-label="Close"] {
+  background: var(--surface) !important;
+  color: var(--text) !important;
+}
+.ws-phase2-contractor-finance button[style*="linear-gradient"],
+.ws-phase2-contractor-finance button[style*="6366f1"],
+.ws-phase2-contractor-finance button[style*="059669"],
+.ws-phase2-contractor-finance button[style*="047857"] {
+  background: var(--primary) !important;
+  border-color: var(--primary) !important;
+  color: #FFFFFF !important;
+}
+
+.ws-phase2-team-finance,
+.ws-phase2-team-finance.tf-page {
+  color: var(--text) !important;
+  background: var(--bg) !important;
+}
+.ws-phase2-team-finance :where(.tf-card,.tf-worker,.tf-row,.tf-modal,.tf-action,.tf-success,.tf-state,.tf-period,.tf-form,.tf-history,.tf-detail,.tf-metric) {
+  color: var(--text) !important;
+  background: var(--surface) !important;
+  border-color: #E5E7EB !important;
+  border-radius: var(--radius-card) !important;
+  box-shadow: 0 2px 8px rgba(17,24,39,.05) !important;
+}
+.ws-phase2-team-finance :where(.tf-title,.tf-kicker,.tf-section,.tf-form-title,.tf-row-title,.tf-name) { color: var(--text) !important; }
+.ws-phase2-team-finance :where(.tf-sub,.tf-wid,.tf-row-meta,.tf-note,.tf-state p) { color: #4B5563 !important; }
+.ws-phase2-team-finance :where(.tf-back,.tf-btn,.tf-save,.tf-more,.tf-x,.tf-period button,.tf-menu button,.tf-cancel,.tf-confirm,.tf-action-buttons button) {
+  min-height: var(--height-control) !important;
+  border-radius: var(--radius-btn) !important;
+  box-shadow: none !important;
+}
+.ws-phase2-team-finance :where(.tf-btn.pay,.tf-save,.tf-confirm:not(.danger)) {
+  background: var(--primary) !important;
+  color: #FFFFFF !important;
+  border-color: var(--primary) !important;
+}
+.ws-phase2-team-finance :where(.tf-back,.tf-btn:not(.pay),.tf-more,.tf-x,.tf-period button,.tf-menu button,.tf-cancel) {
+  background: #FFFFFF !important;
+  color: var(--text) !important;
+  border: 1px solid #D1D5DB !important;
+}
+.ws-phase2-team-finance :where(.tf-input,.tf-select) {
+  min-height: var(--height-control) !important;
+  border-radius: var(--radius-btn) !important;
+  background: #FFFFFF !important;
+  color: var(--text) !important;
+  border: 1px solid #D1D5DB !important;
+}
+.ws-phase2-team-finance .tf-overlay { background: rgba(17,24,39,.38) !important; }
+.ws-phase2-team-finance :where(.tf-period button.active) { background: var(--primary) !important; color: #FFFFFF !important; }
+
+.ws-phase2-worker-history {
+  color: var(--text) !important;
+  background: var(--bg) !important;
+}
+.ws-phase2-worker-history :where(.wh-surface,.worker-history__state,.worker-history__entry,.worker-history__item,.worker-history__row,.worker-history__daily) {
+  color: var(--text) !important;
+  background: var(--surface) !important;
+  border-color: #E5E7EB !important;
+  border-radius: var(--radius-card) !important;
+  box-shadow: 0 2px 8px rgba(17,24,39,.04) !important;
+}
+.ws-phase2-worker-history :where(.worker-history__title,.worker-history__total-value,.worker-history__selected-label,.worker-history__date,.worker-history__list-title h2) { color: var(--text) !important; }
+.ws-phase2-worker-history :where(.worker-history__eyebrow,.worker-history__segment[aria-pressed="true"]) { color: var(--primary) !important; }
+.ws-phase2-worker-history :where(button) {
+  min-height: var(--height-control) !important;
+  border-radius: var(--radius-btn) !important;
+  font-family: 'Poppins', sans-serif !important;
+  box-shadow: none !important;
+}
+.ws-phase2-worker-history .worker-history__segment { border-radius: var(--radius-pill) !important; }
+.ws-phase2-worker-history :where(.worker-history__back,.worker-history__nav-button,.worker-history__more) {
+  background: var(--primary) !important;
+  color: #FFFFFF !important;
+  border-color: var(--primary) !important;
+}
+.ws-phase2-worker-history .worker-history__segment {
+  background: var(--surface) !important;
+  color: var(--text) !important;
+  border-color: #D1D5DB !important;
+}
+.ws-phase2-worker-history .worker-history__segment[aria-pressed="true"] {
+  background: var(--primary) !important;
+  color: #FFFFFF !important;
+}
+
+.ws-phase2-contractor-account {
+  color: var(--text) !important;
+  background: var(--bg) !important;
+}
+.ws-phase2-contractor-account > section,
+.ws-phase2-contractor-account > header + section {
+  color: var(--text) !important;
+  background: var(--surface) !important;
+  border: 1px solid #E5E7EB !important;
+  border-radius: var(--radius-card) !important;
+  box-shadow: 0 2px 8px rgba(17,24,39,.05) !important;
+}
+.ws-phase2-contractor-account > header :where(div,h1,p) { color: var(--text) !important; }
+.ws-phase2-contractor-account :where(button) {
+  min-height: var(--height-control) !important;
+  border-radius: var(--radius-btn) !important;
+  font-family: 'Poppins', sans-serif !important;
+  box-shadow: none !important;
+}
+.ws-phase2-contractor-account :where(button[aria-pressed="true"],button[style*="linear-gradient"],button[style*="059669"],button[style*="047857"]) {
+  color: #FFFFFF !important;
+  background: var(--primary) !important;
+  border-color: var(--primary) !important;
+}
+.ws-phase2-contractor-account input,
+.ws-phase2-contractor-account select,
+.ws-phase2-contractor-account textarea {
+  min-height: var(--height-control) !important;
+  border-radius: var(--radius-btn) !important;
+  color: var(--text) !important;
+  background: #FFFFFF !important;
+  border: 1px solid #D1D5DB !important;
+}
+.ws-phase2-contractor-account fieldset { border-color: #E5E7EB !important; }
+.ws-phase2-contractor-account [role="status"] { color: var(--primary) !important; background: #EFF6FF !important; }
+
+main:has(#worker-profile-title),
+main:has(#team-joining) {
+  color: var(--text) !important;
+  background: var(--bg) !important;
+}
+main:has(#worker-profile-title) :where(section,article,[class*="card"],[class*="panel"]),
+main:has(#team-joining) :where(section,article,[class*="card"],[class*="panel"]) {
+  color: var(--text) !important;
+  background: var(--surface) !important;
+  border-color: #E5E7EB !important;
+  border-radius: var(--radius-card) !important;
+  box-shadow: 0 2px 8px rgba(17,24,39,.05) !important;
+}
+main:has(#worker-profile-title) :where(button),
+main:has(#team-joining) :where(button) {
+  min-height: var(--height-control) !important;
+  border-radius: var(--radius-btn) !important;
+  box-shadow: none !important;
+}
