@@ -133,7 +133,7 @@ body { margin: 0; }
 .work-social-router-shell :where([role="menuitem"],[role="option"],.ws-ui-menu-item) { min-height: 36px; padding: 7px 10px; color: var(--text); border-radius: var(--radius-btn); }
 .work-social-router-shell :where([role="menuitem"]:hover,[role="option"]:hover,[role="option"][aria-selected="true"],.ws-ui-menu-item:hover) { background: var(--surface); }
 .work-social-router-shell :where(.ws-ui-overlay,.modal-backdrop,.dialog-backdrop) { background: rgba(17,24,39,.38); }
-.work-social-router-shell :where(.ws-ui-toast,.ws-ui-notification,.toast,.notification,.notice,[role="alert"],[role="status"] { color: var(--text); background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-card); box-shadow: var(--ws-dna-shadow-soft); }
+.work-social-router-shell :where(.ws-ui-toast,.ws-ui-notification,.toast,.notification,.notice,[role="alert"],[role="status"]) { color: var(--text); background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-card); box-shadow: var(--ws-dna-shadow-soft); }
 .work-social-router-shell :where(.ws-ui-loading,[data-ws-loading-state],.ws-ui-empty,[data-ws-empty]) { color: var(--text); background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-card); }
 .work-social-router-shell :where(.ws-ui-error,[data-ws-error-state]) { color: #B91C1C; background: #FEF2F2; border: 1px solid #FECACA; border-radius: var(--radius-card); }
 
