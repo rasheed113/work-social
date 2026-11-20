@@ -128,8 +128,8 @@ export function WorkerOverallHealthCard({ todayEntries, weekEntries, remaining }
 @keyframes woHealthSignal{to{stroke-dashoffset:-44}}
 @media(prefers-reduced-motion:no-preference){
  .wo .wo-live-map-health circle:nth-of-type(odd){transform-box:fill-box;transform-origin:center;animation:woHealthPulse 3s ease-in-out infinite}
- .wo .wo-live-map-health circle:nth-of-type(5){animation-delay:-1s}
- .wo .wo-live-map-health circle:nth-of-type(9){animation-delay:-2s}
+ .wo .wo-live-map-health circle:nth-of-type(3){animation-delay:-1s}
+ .wo .wo-live-map-health circle:nth-of-type(5){animation-delay:-2s}
  .wo .wo-live-map-health path{animation:woHealthSignal 5s linear infinite}
 }
 
