@@ -68,6 +68,64 @@ export function SignupForm({ onLogin }: { onLogin: () => void }) {
       .ws-auth-card .auth-hold { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 16px 0 0; padding: 9px 11px; border: 1px solid rgba(148,163,184,.20); border-radius: 11px; background: rgba(248,250,252,.58); color: #7b8798; font-size: 11px; font-weight: 650; letter-spacing: .01em; }
       .ws-auth-card .auth-hold::before { content: 'SOON'; padding: 3px 6px; border: 1px solid rgba(109,93,252,.14); border-radius: 999px; background: rgba(109,93,252,.07); color: #6558dd; font-size: 8px; font-weight: 900; letter-spacing: .09em; }
       @media (max-width: 600px) { .app-shell:has(.ws-auth-card) { padding: 16px !important; } .ws-auth-card { padding: 24px 18px 20px; border-radius: 22px; } .ws-auth-card > p:first-of-type { margin-bottom: 21px; } .ws-auth-card form { gap: 10px; } .ws-auth-card form input, .ws-auth-card > button:not(.link-button), .ws-auth-card form button[type="submit"] { min-height: 48px; } }
+
+      /* Uniform light design tokens for the existing auth form. */
+      .app-shell:has(.ws-auth-card) {
+        background: #FFFFFF;
+        background-image: none;
+      }
+      .ws-auth-card {
+        border: 1px solid #E5E7EB;
+        border-radius: 12px;
+        background: #FFFFFF;
+        box-shadow: 0 1px 3px rgba(17,24,39,.08);
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        color: #111827;
+      }
+      .ws-auth-card h1 { color: #111827; letter-spacing: -.02em; }
+      .ws-auth-card > p:first-of-type { color: #4B5563; }
+      .ws-auth-card > button:not(.link-button),
+      .ws-auth-card form input,
+      .ws-auth-card form button[type="submit"] {
+        min-height: 44px;
+        border-radius: 8px;
+      }
+      .ws-auth-card > button:not(.link-button) {
+        color: #111827;
+        background: #F8F9FA;
+        border-color: #E5E7EB;
+        box-shadow: none;
+      }
+      .ws-auth-card form input {
+        color: #111827;
+        background: #FFFFFF;
+        border-color: #E5E7EB;
+        box-shadow: none;
+      }
+      .ws-auth-card form input:focus {
+        border-color: #2563EB;
+        box-shadow: 0 0 0 3px rgba(37,99,235,.18);
+      }
+      .ws-auth-card form button[type="submit"] {
+        color: #FFFFFF;
+        background: #2563EB;
+        border: 1px solid #2563EB;
+        box-shadow: none;
+      }
+      .ws-auth-card .link-button { color: #2563EB; }
+      .ws-auth-card p[role="status"] {
+        background: #F8F9FA;
+        border-color: #E5E7EB;
+        border-radius: 8px;
+        color: #4B5563;
+      }
+      @media (max-width: 600px) {
+        .ws-auth-card { border-radius: 12px; }
+        .ws-auth-card > button:not(.link-button),
+        .ws-auth-card form input,
+        .ws-auth-card form button[type="submit"] { min-height: 44px; }
+      }
     `}</style>
     <h1>Create account</h1>
     <p>Join Work Social</p>
