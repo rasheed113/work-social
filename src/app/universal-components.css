@@ -185,3 +185,28 @@ body { margin: 0; }
 @media (prefers-reduced-motion: reduce) {
   .work-social-router-shell :where(*,*::before,*::after) { animation-duration: .001ms; animation-iteration-count: 1; scroll-behavior: auto; transition-duration: .001ms; }
 }
+
+/* Authentication shell shares the same light design foundation. */
+.auth-screen {
+  position: relative;
+  min-height: 100dvh;
+  width: 100%;
+  padding: 24px;
+  overflow-x: hidden;
+  background: var(--bg);
+}
+.auth-screen__alert {
+  position: fixed;
+  top: 18px;
+  left: 50%;
+  z-index: 5;
+  width: min(calc(100% - 32px), 438px);
+  margin: 0;
+  padding: 11px 14px;
+  transform: translateX(-50%);
+  color: #B91C1C;
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  border-radius: var(--radius-btn);
+  box-shadow: 0 8px 24px rgba(17,24,39,.08);
+}
