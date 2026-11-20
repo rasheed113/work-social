@@ -67,5 +67,80 @@ export function WorkerOverviewPage(){
 .wo-empty{background:#f8fafc!important;border:1px dashed #cbd5e1!important;color:#64748b!important}
 .wo-error{background:#fef2f2!important;color:#b91c1c!important}
 @media(prefers-reduced-motion:reduce){.wo-field-core,.wo-prism-core,.wo-star-node::before{animation:none!important}}
+\n
+/* Readability + motion polish — keep the approved light surfaces. */
+.wo-ticker{
+  display:block!important;
+  padding:10px 0!important;
+  border:1px solid #e2e8f0!important;
+  border-radius:10px!important;
+  background:#f8fafc!important;
+  color:#475569!important;
+  font-size:clamp(10px,2.7vw,12px)!important;
+  line-height:1.5!important;
+  letter-spacing:.045em!important;
+}
+.wo-ticker div{color:#475569!important;font-weight:600!important;animation:woTicker 23s linear infinite!important;will-change:transform}
+.wo-brand small{font-size:10px!important;letter-spacing:.09em!important;color:#64748b!important}
+.wo-k,.wo-eyebrow{font-size:clamp(10px,2.5vw,11px)!important;letter-spacing:.11em!important;line-height:1.45!important}
+.wo-copy,.wo-muted{font-size:clamp(12px,3vw,14px)!important;line-height:1.6!important;color:#475569!important}
+.wo-live{font-size:10px!important}
+.wo-time{font-size:clamp(17px,4.5vw,20px)!important}
+.wo h2{font-size:clamp(20px,5vw,23px)!important;line-height:1.25!important}
+.wo-set,.wo-btn{font-size:12px!important}
+.wo-field-label,.wo-field-status{font-size:9px!important;letter-spacing:.08em!important}
+.wo-field-footer{font-size:9px!important;line-height:1.4!important}
+.wo-field-core small{font-size:9px!important}
+.wo-field-core em{font-size:8px!important}
+.wo-star-node{padding:11px!important}
+.wo-star-node b{font-size:clamp(16px,4vw,19px)!important}
+.wo-star-node small{font-size:10px!important;line-height:1.4!important;letter-spacing:.02em!important}
+.wo-star-node i{width:30px!important;height:4px!important;margin-bottom:9px!important}
+.wo-stat{padding:11px!important}
+.wo-stat small{font-size:10px!important;line-height:1.35!important}
+.wo-stat strong{font-size:clamp(14px,3.6vw,16px)!important}
+.wo-prism-value small{font-size:9px!important;letter-spacing:.1em!important}
+.wo-prism-value em{font-size:9px!important;letter-spacing:.06em!important}
+.wo-prism-facet{padding:10px!important}
+.wo-prism-facet b{font-size:9px!important;letter-spacing:.06em!important}
+.wo-prism-facet strong{font-size:clamp(11px,2.8vw,13px)!important}
+.wo-prism-meta span,.wo-prism-meta b{font-size:8px!important;letter-spacing:.035em!important}
+.wo-finbox{padding:11px 8px!important}
+.wo-finbox small{font-size:9px!important;line-height:1.35!important}
+.wo-finbox strong{font-size:clamp(11px,2.8vw,13px)!important}
+.wo-rem{font-size:12px!important;line-height:1.5!important}
+.wo-team{padding:12px!important}
+.wo-team b{font-size:14px!important}
+.wo-team small,.wo-team em{font-size:10px!important;line-height:1.45!important}
+.wo-mini{font-size:10px!important;min-height:36px!important}
+.wo-empty,.wo-error{font-size:12px!important;line-height:1.5!important}
+.wo-health-note{font-size:11px!important;line-height:1.55!important}
+.wo-live-map-health text,.wo-live-finance-orbit text{font-size:inherit}
+@media(prefers-reduced-motion:no-preference){
+  .wo-card{animation:woCardEnter .55s cubic-bezier(.2,.75,.25,1) both}
+  .wo-card:nth-of-type(2){animation-delay:.05s}
+  .wo-card:nth-of-type(3){animation-delay:.1s}
+  .wo-card:nth-of-type(4){animation-delay:.15s}
+  .wo-field::before{animation:woConstellationSpin 22s linear infinite!important}
+  .wo-field-core{animation:woCore 5s ease-in-out infinite!important}
+  .wo-field-core::before{animation:woCoreRing 4.8s ease-in-out infinite!important}
+  .wo-field-star,.wo-star-node::before{animation:woStar 3.2s ease-in-out infinite!important}
+  .wo-prism::after{animation:woPrismLight 6s ease-in-out infinite!important}
+  .wo-prism-core{animation:woPrismFloat 5.5s ease-in-out infinite!important}
+  .wo-prism-core span{animation:woPrismBeam 2.8s ease-in-out infinite!important}
+  .wo-prism-core span:nth-child(2){animation-delay:-1.4s!important}
+  .wo-ticker div{animation:woTicker 23s linear infinite!important}
+}
+@keyframes woCardEnter{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:400px){
+  .wo-field-footer{font-size:8px!important}
+  .wo-star-node{padding:8px!important}
+  .wo-star-node b{font-size:15px!important}
+  .wo-star-node small{font-size:9px!important}
+  .wo-prism-facet b{font-size:8px!important}
+  .wo-prism-facet strong{font-size:10px!important}
+  .wo-prism-meta span,.wo-prism-meta b{font-size:7px!important}
+  .wo-finbox small{font-size:8px!important}
+}
 \n`}</style><div className="wo-shell"><section className="wo-hero"><div className="wo-brand"><div><b>WS · Work Social</b><small>YOUR PERSONAL WORK SPACE</small></div><button className="wo-set" onClick={()=>navigate('/work/settings')}>⚙ Settings</button></div><div className="wo-k">WORKER · PERSONAL COMMAND CENTER</div><h1>Welcome back, <span>{name}</span></h1><p className="wo-copy">Personal work, earnings and real team context — one command center.</p><div className="wo-clock"><span className="wo-live"><i/>LIVE</span><span className="wo-time">{time}</span></div><div className="wo-ticker"><div>{date} · {num(personalMonth)} PKR PERSONAL WORK VALUE THIS MONTH · {teams.length} REAL TEAM{teams.length===1?'':'S'} · WORK SOCIAL</div></div></section>{loading?<section className="wo-card"><WorkSocialPremiumLoader title="Worker Overview" message="Loading real Worker data…" /></section>:<>{error&&<div className="wo-error">{error}</div>}<section className="wo-card"><div className="wo-eyebrow">01 · LIVING WORK FIELD</div><h2>Your work, alive in the field</h2><p className="wo-muted">Five latest real Worker work records become a living constellation. Quantity, source and date stay real; the field is only the visual layer.</p>{recent.length?<div className="wo-field"><div className="wo-field-label">LIVE WORK FIELD · 5 REAL SIGNALS</div><div className="wo-field-status">● CONNECTED</div><div className="wo-field-grid"/><span className="wo-field-star s1"/><span className="wo-field-star s2"/><span className="wo-field-star s3"/><span className="wo-field-star s4"/><span className="wo-field-star s5"/><span className="wo-field-star s6"/><div className="wo-field-lines"><span/><span/><span/><span/><span/></div><div className="wo-field-core"><small>THIS MONTH</small><strong>{num(v.month.quantity)}</strong><em>PCS · REAL WORK</em></div>{recent.map((x,i)=><div className={`wo-star-node n${i+1}`} key={`${x.source}-${x.id}`}><i/><b>{num(Number(x.quantity))} PCS</b><small>{x.team_number?`TEAM T${x.team_number}`:'PERSONAL'} · {new Date(x.occurred_at).toLocaleDateString(undefined,{month:'short',day:'numeric'})}</small></div>)}<div className="wo-field-footer"><span>PERSONAL + AUTHORIZED TEAM WORK</span><b>{v.month.count} REAL ENTRIES THIS MONTH</b></div></div>:<div className="wo-empty">No Worker work records available.</div>}<div className="wo-stats"><div className="wo-stat cyan"><small>OVERALL MONTH VOLUME</small><strong>{num(v.month.quantity)} pcs</strong></div><div className="wo-stat violet"><small>OVERALL MONTH VALUE</small><strong>{money(v.month.earning)}</strong></div><div className="wo-stat lime"><small>REAL ENTRIES</small><strong>{v.month.count}</strong></div></div></section><section className="wo-card"><div className="wo-eyebrow">02 · WORK VOLUME PRISM</div><h2>Your work, in light</h2><p className="wo-muted">Real Worker work volume across personal work and authorized teams — rendered as one living prism. The light is visual; every quantity shown is real.</p><div className="wo-prism" aria-label="Real Worker work volume prism"><div className="wo-prism-grid"/><div className="wo-prism-core"><span/><span/></div><div className="wo-prism-value"><small>THIS MONTH · OVERALL VOLUME</small><strong>{num(v.month.quantity)}</strong><em>PCS · PERSONAL + AUTHORIZED TEAM WORK</em></div>{vol.map(([label,x])=>{const intensity=x.quantity>0?Math.max(.24,Math.min(1,.28+.72*(x.quantity/maxVolume))):.12;return <div className="wo-prism-facet" key={label} style={{opacity:intensity}}><b>{label}</b><strong>{num(x.quantity)} PCS</strong></div>})}<div className="wo-prism-meta"><span>SIX REAL PERIODS · VISUAL INTENSITY FOLLOWS QUANTITY</span><b>PEAK · {peak[0]} · {num(peak[1].quantity)} PCS</b></div></div></section><section className="wo-card"><div className="wo-eyebrow">03 · WORK → EARNING → RECEIVED</div><h2>Financial result of your work</h2><p className="wo-muted">Existing Worker Finance summary is authoritative; Overview does not rewrite accounting.</p><div className="wo-fin"><div className="wo-finbox"><small>WORK / EARNINGS</small><strong>{money(finance.summary.total_earnings)}</strong></div><span className="wo-arrow">→</span><div className="wo-finbox"><small>EARNED</small><strong>{money(finance.summary.total_earnings)}</strong></div><span className="wo-arrow">→</span><div className="wo-finbox"><small>RECEIVED</small><strong>{money(finance.summary.received)}</strong></div></div><div className="wo-rem">Remaining: <b>{money(finance.summary.remaining)}</b></div><div className="wo-actions"><button className="wo-btn primary" onClick={()=>navigate('/work/dashboard')}>My Work</button><button className="wo-btn" onClick={()=>navigate('/work/finance')}>Personal Finance</button></div></section><WorkerOverallHealthCard todayEntries={v.today.count} weekEntries={v.week.count} remaining={finance.summary.remaining}/><section className="wo-card"><div className="wo-eyebrow">MY TEAMS · REAL CONTEXT</div><h2>Team workspaces</h2><p className="wo-muted">Your approved teams, each with its own real team workspace.</p>{teams.length?<div className="wo-teams">{teams.map(t=>{const f=teamFin[t.team_id];return <div className="wo-team" key={t.team_id}><div><b>{t.team_name}</b><small>TEAM {t.team_number} · {t.team_purpose||'Approved membership'}</small>{f&&<em>Month finance · Paid {money(f.paid)} · Due {money(f.due)}</em>}</div><div className="wo-team-actions"><button className="wo-mini" onClick={()=>navigate(`/work/team-work/${t.team_number}`)}>VISIT TEAM →</button></div></div>})}</div>:<div className="wo-empty">No approved team memberships found.</div>}</section><section className="wo-card"><div className="wo-eyebrow">PERSONAL ENTRY</div><h2>Existing Worker tools</h2><p className="wo-muted">These remain the existing Worker Dashboard and Finance pages; Overview is only the central entry layer.</p><div className="wo-actions"><button className="wo-btn primary" onClick={()=>navigate('/work/dashboard')}>Worker Dashboard</button><button className="wo-btn" onClick={()=>navigate('/work/finance')}>Worker Finance</button></div></section></>}</div></main>;
 }
