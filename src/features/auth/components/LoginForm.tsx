@@ -260,6 +260,64 @@ export function LoginForm({ onSignup }: { onSignup: () => void }) {
         .ws-auth-card > button:not(.link-button),
         .ws-auth-card form button[type="submit"] { min-height: 48px; }
       }
+
+      /* Uniform light design tokens for the existing auth form. */
+      .app-shell:has(.ws-auth-card) {
+        background: #FFFFFF;
+        background-image: none;
+      }
+      .ws-auth-card {
+        border: 1px solid #E5E7EB;
+        border-radius: 12px;
+        background: #FFFFFF;
+        box-shadow: 0 1px 3px rgba(17,24,39,.08);
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        color: #111827;
+      }
+      .ws-auth-card h1 { color: #111827; letter-spacing: -.02em; }
+      .ws-auth-card > p:first-of-type { color: #4B5563; }
+      .ws-auth-card > button:not(.link-button),
+      .ws-auth-card form input,
+      .ws-auth-card form button[type="submit"] {
+        min-height: 44px;
+        border-radius: 8px;
+      }
+      .ws-auth-card > button:not(.link-button) {
+        color: #111827;
+        background: #F8F9FA;
+        border-color: #E5E7EB;
+        box-shadow: none;
+      }
+      .ws-auth-card form input {
+        color: #111827;
+        background: #FFFFFF;
+        border-color: #E5E7EB;
+        box-shadow: none;
+      }
+      .ws-auth-card form input:focus {
+        border-color: #2563EB;
+        box-shadow: 0 0 0 3px rgba(37,99,235,.18);
+      }
+      .ws-auth-card form button[type="submit"] {
+        color: #FFFFFF;
+        background: #2563EB;
+        border: 1px solid #2563EB;
+        box-shadow: none;
+      }
+      .ws-auth-card .link-button { color: #2563EB; }
+      .ws-auth-card p[role="status"] {
+        background: #F8F9FA;
+        border-color: #E5E7EB;
+        border-radius: 8px;
+        color: #4B5563;
+      }
+      @media (max-width: 600px) {
+        .ws-auth-card { border-radius: 12px; }
+        .ws-auth-card > button:not(.link-button),
+        .ws-auth-card form input,
+        .ws-auth-card form button[type="submit"] { min-height: 44px; }
+      }
     `}</style>
     <h1>Work Social</h1>
     <p>Sign in to your account</p>
